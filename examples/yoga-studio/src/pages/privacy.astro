@@ -1,0 +1,31 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import { site } from '../site';
+---
+
+<Base
+    title="Privacy policy"
+    description="What Still Water Yoga collects on this website, why, how long we keep it, and how to ask us to delete it. Plain language, and no tracking cookies."
+    breadcrumbs={[{ name: 'Privacy', href: '/privacy/' }]}
+>
+    <PageHead label="Privacy" heading="Privacy, *plainly*" />
+
+    <div class="prose page">
+        <p class="muted">Example text. Replace it with your own policy before you launch.</p>
+        <h2>What this website collects</h2>
+        <p>This website sets no tracking cookies and runs no third-party analytics. When you send the intro offer form, we receive what you typed into it (your name, email, phone number, your yoga experience and the class you would like to start with) so that we can welcome you and keep your offer.</p>
+        <h2>How long we keep it</h2>
+        <p>Intro offer requests are kept for one year. If you become a member, we keep your details for as long as you are one, and for as long afterwards as tax rules require.</p>
+        <h2>Who sees it</h2>
+        <p>Only the studio's front desk and teachers. We never sell or share your details, and we will only email you about the studio if you ask us to.</p>
+        <h2>Your rights</h2>
+        <p>Ask us to see, correct or delete anything we hold about you at <a href={`mailto:${site.business.email}`}>{site.business.email}</a>, or at the desk.</p>
+    </div>
+</Base>
+
+<style>
+    .page {
+        padding-bottom: var(--section);
+    }
+</style>

@@ -1,0 +1,485 @@
+/*
+ * Still Water Yoga's design system: tokens, type, layout helpers and
+ * buttons. Components carry their own scoped <style>; this file is what they
+ * share.
+ *
+ * Sand, sage, clay and stone. Two typefaces from Astro's Fonts API
+ * (src/fonts.ts): Cormorant, light and large, for headings and italic
+ * asides; Nunito Sans for everything you read. Space is the main material.
+ */
+
+:root {
+    /* Grounds. */
+    --color-sand: #f3eee5;
+    --color-sand-deep: #e7dfd1;
+    --color-paper: #faf7f1;
+    --color-sage-mist: #dfe3d6;
+    --color-clay-mist: #eddcce;
+
+    /* Text: every pairing below is 4.5:1 or better on sand and sand-deep. */
+    --color-ink: #2a2f2b;
+    --color-muted: #555a54;
+    --color-sage-deep: #4c5e4d;
+    --color-clay-ink: #8a462d;
+
+    /* Decoration only: rings, rules, dots, never small text. */
+    --color-sage: #8b9b86;
+    --color-clay: #b8704f;
+    --color-stone: #a49c8f;
+    --color-line: #d8cfbf;
+
+    /* The footer and the closing band. */
+    --color-forest: #2c3631;
+    --color-on-forest: #efe9dd;
+    --color-on-forest-muted: #b9bfb5;
+
+    --color-focus: #8a462d;
+    --color-error: #9b2c1d;
+    --color-success: #3d5a3f;
+
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+    --radius-small: 0.375rem;
+    --radius: 1.25rem;
+    /* A pebble: never quite a circle. */
+    --radius-pebble: 48% 52% 46% 54% / 55% 47% 53% 45%;
+
+    --shadow-soft: 0 30px 60px -40px rgb(44 54 49 / 0.45);
+
+    --space-1: 0.25rem;
+    --space-2: 0.5rem;
+    --space-3: 0.75rem;
+    --space-4: 1rem;
+    --space-5: 1.25rem;
+    --space-6: 1.5rem;
+    --space-8: 2rem;
+    --space-10: 2.5rem;
+    --space-12: 3rem;
+    --space-16: 4rem;
+    --space-20: 5rem;
+    --space-24: 6rem;
+    --space-32: 8rem;
+
+    /* Breathing room between bands: much more than feels necessary. */
+    --section: clamp(5rem, 3rem + 9vw, 11rem);
+
+    --width-wide: 84rem;
+    --width-content: 72rem;
+    --width-prose: 40rem;
+    --gutter: clamp(1rem, 0.25rem + 3.5vw, 3rem);
+
+    --header-height: 5rem;
+
+    --ease-breath: cubic-bezier(0.37, 0, 0.63, 1);
+    --ease-settle: cubic-bezier(0.22, 0.61, 0.36, 1);
+
+    color-scheme: light;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    scroll-padding-top: calc(var(--header-height) + 1rem);
+    background: var(--color-sand);
+}
+
+body {
+    margin: 0;
+    background: var(--color-sand);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 1.0625rem;
+    font-weight: 400;
+    line-height: 1.75;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    overflow-x: clip;
+}
+
+img,
+svg {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
+/* Type. Light, large serif headings; the sans is for reading. */
+
+h1,
+h2,
+h3,
+h4 {
+    margin: 0 0 var(--space-5);
+    color: var(--color-ink);
+    font-family: var(--font-serif);
+    font-weight: 350;
+    line-height: 1.04;
+    letter-spacing: -0.012em;
+    text-wrap: balance;
+}
+
+h1 {
+    font-size: clamp(3rem, 1.6rem + 5.6vw, 7rem);
+    font-weight: 300;
+    line-height: 0.98;
+    letter-spacing: -0.025em;
+}
+
+h2 {
+    font-size: clamp(2.25rem, 1.5rem + 3vw, 4.25rem);
+}
+
+h3 {
+    font-size: clamp(1.6rem, 1.35rem + 0.9vw, 2.1rem);
+    font-weight: 400;
+    line-height: 1.12;
+}
+
+h4 {
+    font-size: 1.35rem;
+    font-weight: 500;
+}
+
+/* The italic aside inside a heading: "Yoga on the river, *at the pace of breath*". */
+h1 em,
+h2 em,
+h3 em {
+    color: var(--color-clay-ink);
+    font-style: italic;
+    font-weight: 300;
+}
+
+p {
+    margin: 0 0 var(--space-5);
+    text-wrap: pretty;
+}
+
+a {
+    color: var(--color-sage-deep);
+    text-decoration-line: underline;
+    text-decoration-color: color-mix(in srgb, currentColor 35%, transparent);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.25em;
+    transition: color 0.6s var(--ease-settle), text-decoration-color 0.6s var(--ease-settle);
+}
+
+a:hover {
+    color: var(--color-clay-ink);
+    text-decoration-color: currentColor;
+}
+
+strong {
+    font-weight: 700;
+}
+
+:focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 4px;
+    border-radius: var(--radius-small);
+}
+
+::selection {
+    background: var(--color-sage-mist);
+    color: var(--color-ink);
+}
+
+/* The small spaced label that sits above a heading. */
+.label {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin: 0 0 var(--space-6);
+    color: var(--color-sage-deep);
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    line-height: 1.4;
+    text-transform: uppercase;
+}
+
+.label::before {
+    content: '';
+    flex: none;
+    width: 0.55rem;
+    height: 0.55rem;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+}
+
+.lead {
+    max-width: 36rem;
+    color: var(--color-muted);
+    font-size: clamp(1.125rem, 1.02rem + 0.45vw, 1.35rem);
+    line-height: 1.7;
+}
+
+.muted {
+    color: var(--color-muted);
+}
+
+/* Layout helpers. */
+
+.container {
+    width: min(100% - 2 * var(--gutter), var(--width-content));
+    margin-inline: auto;
+}
+
+.wide {
+    width: min(100% - 2 * var(--gutter), var(--width-wide));
+    margin-inline: auto;
+}
+
+.prose {
+    width: min(100% - 2 * var(--gutter), var(--width-prose));
+    margin-inline: auto;
+}
+
+.band {
+    padding-block: var(--section);
+}
+
+.prose > * + h2 {
+    margin-top: var(--space-16);
+}
+
+.prose h2 {
+    font-size: clamp(2rem, 1.6rem + 1.4vw, 2.75rem);
+}
+
+.prose h3 {
+    margin-top: var(--space-10);
+    font-size: clamp(1.5rem, 1.3rem + 0.7vw, 1.85rem);
+}
+
+.prose p,
+.prose li {
+    color: #3a3f3a;
+}
+
+.prose ul,
+.prose ol {
+    margin: 0 0 var(--space-8);
+    padding-left: 1.2em;
+}
+
+.prose li + li {
+    margin-top: var(--space-3);
+}
+
+.prose li::marker {
+    color: var(--color-clay);
+}
+
+.prose blockquote {
+    margin: var(--space-12) 0;
+    padding: 0 0 0 var(--space-8);
+    border-left: 1px solid var(--color-clay);
+    color: var(--color-ink);
+    font-family: var(--font-serif);
+    font-size: clamp(1.5rem, 1.3rem + 0.8vw, 1.9rem);
+    font-style: italic;
+    font-weight: 400;
+    line-height: 1.35;
+}
+
+.prose blockquote p {
+    color: inherit;
+}
+
+.prose blockquote p:last-child {
+    margin-bottom: 0;
+}
+
+.prose a {
+    font-weight: 600;
+}
+
+.prose hr {
+    width: 3rem;
+    height: 3rem;
+    margin: var(--space-16) auto;
+    border: 1px solid var(--color-stone);
+    border-radius: 50%;
+}
+
+/* Buttons: links or buttons with a class, never a div. Soft and unhurried. */
+
+.button {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-3);
+    min-height: 3.25rem;
+    padding: 0.85rem 1.75rem;
+    overflow: hidden;
+    border: 1px solid var(--color-sage-deep);
+    border-radius: 999px;
+    background: var(--color-sage-deep);
+    color: var(--color-paper);
+    font: inherit;
+    font-size: 0.95rem;
+    font-weight: 650;
+    letter-spacing: 0.02em;
+    line-height: 1.2;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    isolation: isolate;
+    transition: color 0.7s var(--ease-settle), border-color 0.7s var(--ease-settle), background-color 0.7s var(--ease-settle);
+}
+
+/* A slow pool of colour rises from below on hover. */
+.button::before {
+    content: '';
+    position: absolute;
+    inset: auto -10% -10%;
+    z-index: -1;
+    height: 0;
+    border-radius: 50% 50% 0 0;
+    background: var(--color-forest);
+    transition: height 0.8s var(--ease-settle);
+}
+
+.button:hover {
+    color: var(--color-paper);
+    border-color: var(--color-forest);
+}
+
+.button:hover::before {
+    height: 130%;
+}
+
+.button-quiet {
+    background: transparent;
+    border-color: color-mix(in srgb, var(--color-ink) 45%, transparent);
+    color: var(--color-ink);
+}
+
+.button-quiet::before {
+    background: var(--color-sage-mist);
+}
+
+.button-quiet:hover {
+    color: var(--color-ink);
+    border-color: var(--color-sage-deep);
+}
+
+.button-light {
+    background: var(--color-on-forest);
+    border-color: var(--color-on-forest);
+    color: var(--color-forest);
+}
+
+.button-light::before {
+    background: var(--color-clay-mist);
+}
+
+.button-light:hover {
+    color: var(--color-forest);
+    border-color: var(--color-clay-mist);
+}
+
+.button[disabled] {
+    opacity: 0.6;
+    cursor: progress;
+}
+
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin: 0;
+}
+
+/* A text link with an arrow that drifts on hover. */
+.arrow-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3);
+    color: var(--color-ink);
+    font-weight: 650;
+    text-decoration: none;
+}
+
+.arrow-link::after {
+    content: '';
+    width: 2.25rem;
+    height: 1px;
+    background: currentColor;
+    transition: width 0.8s var(--ease-settle);
+}
+
+.arrow-link:hover {
+    color: var(--color-clay-ink);
+}
+
+.arrow-link:hover::after {
+    width: 3.5rem;
+}
+
+/* For screen readers only. */
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+}
+
+@media (max-width: 40rem) {
+    .actions > .button {
+        flex: 1 1 100%;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        transition: none !important;
+        animation: none !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/*
+ * Each class style's colour, for the dots and rules that tell them apart on
+ * the schedule. Set by a data-style attribute, never inline. A new style in
+ * src/data/classes.ts gets a line here.
+ */
+[data-style] {
+    --style-color: var(--color-stone);
+}
+
+[data-style='vinyasa'] {
+    --style-color: #b8704f;
+}
+
+[data-style='yin'] {
+    --style-color: #4c5e4d;
+}
+
+[data-style='restorative'] {
+    --style-color: #9a8f7d;
+}
+
+[data-style='prenatal'] {
+    --style-color: #c99a7e;
+}
+
+[data-style='beginners'] {
+    --style-color: #8b9b86;
+}

@@ -1,0 +1,104 @@
+---
+/**
+ * Questions and answers as <details>, readable without script, opening
+ * slowly where the browser can animate to the content's height. Pass the
+ * same items to faqPage() in the page's jsonLd so search engines can read
+ * them too.
+ */
+export interface FaqItem {
+    question: string;
+    answer: string;
+}
+
+interface Props {
+    items: FaqItem[];
+}
+
+const { items } = Astro.props;
+---
+
+<div class="faq">
+    {
+        items.map((item) => (
+            <details>
+                <summary>
+                    <span class="question">{item.question}</span>
+                    <span class="marker" aria-hidden="true" />
+                </summary>
+                <p>{item.answer}</p>
+            </details>
+        ))
+    }
+</div>
+
+<style>
+    .faq {
+        border-bottom: 1px solid var(--color-line);
+    }
+
+    details {
+        border-top: 1px solid var(--color-line);
+    }
+
+    summary {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-6);
+        padding: var(--space-6) 0;
+        list-style: none;
+        cursor: pointer;
+    }
+
+    summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .question {
+        font-family: var(--font-serif);
+        font-size: clamp(1.35rem, 1.2rem + 0.6vw, 1.7rem);
+        font-weight: 450;
+        line-height: 1.25;
+        transition: color 0.6s var(--ease-settle);
+    }
+
+    summary:hover .question {
+        color: var(--color-clay-ink);
+    }
+
+    /* A ring that fills, gently, as the answer opens. */
+    .marker {
+        position: relative;
+        flex: none;
+        width: 1.6rem;
+        height: 1.6rem;
+        border: 1px solid var(--color-stone);
+        border-radius: 50%;
+        transition: background-color 0.8s var(--ease-settle), border-color 0.8s var(--ease-settle);
+    }
+
+    .marker::after {
+        content: '';
+        position: absolute;
+        inset: 0.45rem;
+        border-radius: 50%;
+        background: var(--color-clay);
+        transform: scale(0);
+        transition: transform 0.8s var(--ease-settle);
+    }
+
+    details[open] .marker {
+        border-color: var(--color-clay);
+    }
+
+    details[open] .marker::after {
+        transform: scale(1);
+    }
+
+    p {
+        max-width: 42rem;
+        margin: 0;
+        padding: 0 0 var(--space-8);
+        color: var(--color-muted);
+    }
+</style>

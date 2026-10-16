@@ -1,0 +1,284 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import Ripple from '../components/Ripple.astro';
+import { addressLine, site } from '../site';
+
+const clock = (time: string) => {
+    const [hours = 0, minutes = 0] = time.split(':').map(Number);
+
+    return `${hours % 12 === 0 ? 12 : hours % 12}:${String(minutes).padStart(2, '0')} ${hours < 12 ? 'am' : 'pm'}`;
+};
+const dayRange = (days: readonly string[]) => (days.length === 1 ? days[0] : `${days[0]} to ${days[days.length - 1]}`);
+
+const ways = [
+    { title: 'On foot', text: 'Along the river path from the town bridge, eight minutes. Follow the water downstream; we are the low wooden building with the jetty.' },
+    { title: 'By bike', text: 'The river path is flat all the way. There is a covered rack for six bikes by the porch.' },
+    { title: 'By car', text: 'Free parking along Ferry Lane, and more at the rowing club next door after 9 am. Please do not block the slipway.' },
+    { title: 'By bus', text: 'The 14 stops at Ferry Lane End, a three-minute walk down the lane.' },
+];
+---
+
+<Base
+    title="Contact and directions"
+    description="Find Still Water Yoga at the end of Ferry Lane in Alderwick, by the river. Phone, email, front desk hours, and how to get here on foot, by bike, car or bus."
+    breadcrumbs={[{ name: 'Contact', href: '/contact/' }]}
+>
+    <PageHead label="Contact" heading="Find us *by the water*" lead="Call or write with anything at all. The desk is staffed whenever the studio is open, and someone checks the email every evening." />
+
+    <section class="reach">
+        <div class="wide reach-inner">
+            <div class="ways reveal">
+                <a class="big" href={`tel:${site.business.phoneE164}`}>{site.business.phone}</a>
+                <a class="big" href={`mailto:${site.business.email}`}>{site.business.email}</a>
+                <address>{addressLine}</address>
+            </div>
+            <div class="hours reveal">
+                <h2>Front desk</h2>
+                <dl>
+                    {
+                        site.business.hours.map((hours) => (
+                            <div>
+                                <dt>{dayRange(hours.days)}</dt>
+                                <dd>
+                                    {clock(hours.opens)} – {clock(hours.closes)}
+                                </dd>
+                            </div>
+                        ))
+                    }
+                </dl>
+                <p class="muted">{site.business.note}</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="map band" aria-labelledby="ways-heading">
+        <div class="wide map-inner">
+            <figure class="sketch reveal" aria-labelledby="sketch-caption">
+                <Ripple class="spread sketch-ripple" rings={4} />
+                <svg viewBox="0 0 400 300" role="img" aria-label="A sketch map: the river runs left to right, the town bridge on the left, the river path along the north bank, and the studio at the end of Ferry Lane on the water.">
+                    <path class="river" d="M-10 190 C 80 160, 150 230, 240 200 S 360 150, 410 175 L 410 235 C 360 210, 300 260, 240 255 S 90 220, -10 245 Z" />
+                    <path class="path" d="M10 170 C 90 140, 150 205, 240 180 S 330 140, 300 150" />
+                    <path class="lane" d="M300 40 L 300 150" />
+                    <rect class="bridge" x="52" y="160" width="14" height="100" rx="3" />
+                    <circle class="studio-ring" cx="300" cy="160" r="22" />
+                    <circle class="studio" cx="300" cy="160" r="8" />
+                    <text x="310" y="58">Ferry Lane</text>
+                    <text x="14" y="146">Town bridge</text>
+                    <text x="150" y="160">River path</text>
+                    <text x="150" y="280" class="water-label">River Alder</text>
+                    <text x="332" y="146" class="here">Still Water</text>
+                </svg>
+                <figcaption id="sketch-caption" class="muted">Not to scale, and not a real place.</figcaption>
+            </figure>
+            <div>
+                <h2 id="ways-heading" class="reveal">Getting <em>here</em></h2>
+                <ul class="routes reveal-list">
+                    {
+                        ways.map((way) => (
+                            <li>
+                                <h3>{way.title}</h3>
+                                <p>{way.text}</p>
+                            </li>
+                        ))
+                    }
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <section class="new band">
+        <div class="wide new-inner reveal">
+            <h2>New to the studio?</h2>
+            <p>The intro offer is three weeks of every class for $40. Tell us a little about you and we will be ready to welcome you.</p>
+            <a class="button" href="/new-students/#claim">Claim the intro offer</a>
+        </div>
+    </section>
+</Base>
+
+<style>
+    .reach-inner {
+        display: grid;
+        gap: var(--space-12);
+        padding-bottom: var(--space-12);
+    }
+
+    .ways {
+        display: grid;
+        gap: var(--space-2);
+        align-content: start;
+    }
+
+    .big {
+        color: var(--color-ink);
+        font-family: var(--font-serif);
+        font-size: clamp(2rem, 1.3rem + 3vw, 4rem);
+        font-weight: 300;
+        line-height: 1.15;
+        text-decoration: none;
+        overflow-wrap: anywhere;
+    }
+
+    .big:hover {
+        color: var(--color-clay-ink);
+        font-style: italic;
+    }
+
+    address {
+        margin-top: var(--space-6);
+        color: var(--color-muted);
+        font-style: normal;
+    }
+
+    .hours h2 {
+        font-size: 1.8rem;
+    }
+
+    .hours dl {
+        margin: 0 0 var(--space-4);
+    }
+
+    .hours dl div {
+        display: flex;
+        justify-content: space-between;
+        gap: var(--space-6);
+        padding: var(--space-3) 0;
+        border-top: 1px solid var(--color-line);
+    }
+
+    dd {
+        margin: 0;
+    }
+
+    @media (min-width: 64rem) {
+        .reach-inner {
+            grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.8fr);
+            gap: var(--space-20);
+        }
+    }
+
+    .map {
+        background: var(--color-paper);
+    }
+
+    .map-inner {
+        display: grid;
+        gap: var(--space-12);
+        align-items: center;
+    }
+
+    .sketch {
+        position: relative;
+        margin: 0;
+    }
+
+    .sketch :global(.sketch-ripple) {
+        top: 53%;
+        left: 75%;
+        width: min(18rem, 50%);
+        translate: -50% -50%;
+        --ring-color: var(--color-clay);
+    }
+
+    .sketch svg {
+        position: relative;
+        width: 100%;
+        height: auto;
+    }
+
+    .river {
+        fill: var(--color-sage-mist);
+    }
+
+    .path {
+        fill: none;
+        stroke: var(--color-clay);
+        stroke-dasharray: 4 6;
+        stroke-width: 1.5;
+    }
+
+    .lane {
+        stroke: var(--color-stone);
+        stroke-width: 6;
+        stroke-linecap: round;
+    }
+
+    .bridge {
+        fill: var(--color-stone);
+    }
+
+    .studio {
+        fill: var(--color-clay);
+    }
+
+    .studio-ring {
+        fill: none;
+        stroke: var(--color-clay);
+        stroke-width: 1;
+    }
+
+    text {
+        fill: var(--color-muted);
+        font-family: var(--font-sans);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+    }
+
+    .water-label {
+        fill: var(--color-sage-deep);
+        font-family: var(--font-serif);
+        font-size: 16px;
+        font-style: italic;
+        font-weight: 400;
+        letter-spacing: 0;
+    }
+
+    .here {
+        fill: var(--color-ink);
+        font-family: var(--font-serif);
+        font-size: 15px;
+        font-weight: 600;
+        letter-spacing: 0;
+    }
+
+    .sketch figcaption {
+        margin-top: var(--space-3);
+        font-size: 0.85rem;
+    }
+
+    .routes {
+        margin: var(--space-8) 0 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .routes li {
+        padding: var(--space-5) 0;
+        border-top: 1px solid var(--color-line);
+    }
+
+    .routes h3 {
+        margin-bottom: var(--space-2);
+        font-style: italic;
+    }
+
+    .routes p {
+        margin: 0;
+        color: var(--color-muted);
+    }
+
+    @media (min-width: 64rem) {
+        .map-inner {
+            grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+            gap: var(--space-20);
+        }
+    }
+
+    .new-inner {
+        display: grid;
+        justify-items: start;
+        gap: var(--space-4);
+        max-width: 40rem;
+    }
+</style>

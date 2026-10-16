@@ -1,0 +1,318 @@
+---
+/**
+ * Workshops, courses and retreats, from src/data/workshops.ts. An event
+ * whose date has passed drops off at the next build.
+ */
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import Photo from '../components/Photo.astro';
+import Closing from '../components/Closing.astro';
+import { gatherings, dateStamp, longDate } from '../data/workshops';
+import { teacherBySlug, teacherUrl } from '../data/teachers';
+import { site } from '../site';
+import { buildTime } from '@core/settings';
+
+const today = buildTime.toISOString().slice(0, 10);
+const upcoming = gatherings.filter((item) => item.date >= today);
+const workshops = upcoming.filter((item) => item.kind !== 'Retreat');
+const retreats = upcoming.filter((item) => item.kind === 'Retreat');
+---
+
+<Base
+    title="Workshops and retreats"
+    description="Yoga workshops, short courses and riverside retreats from Still Water Yoga in Alderwick: yin and sound, breathwork, birth partners and weekends away."
+    breadcrumbs={[{ name: 'Workshops & retreats', href: '/workshops/' }]}
+>
+    <PageHead
+        label="Workshops & retreats"
+        heading="Longer, *slower,* together"
+        lead="An afternoon of yin with singing bowls, three weeks of breathing, a weekend upriver. Members pay less for all of them; anyone is welcome."
+        photo="stonesWater"
+    />
+
+    <section class="workshops band" aria-labelledby="workshops-heading">
+        <div class="wide">
+            <h2 id="workshops-heading" class="reveal">At the studio</h2>
+            {workshops.length === 0 && <p class="muted">Nothing on the calendar just now. New dates are posted here first.</p>}
+            <ul class="events">
+                {
+                    workshops.map((item) => {
+                        const [day, month] = dateStamp(item.date);
+                        const teacher = teacherBySlug(item.teacher);
+
+                        return (
+                            <li class="event reveal" id={item.slug}>
+                                <p class="stamp">
+                                    <span class="stamp-day">{day}</span>
+                                    <span>{month}</span>
+                                    <span class="visually-hidden">{longDate(item.date)}</span>
+                                </p>
+                                <div class="event-body">
+                                    <p class="kind">{item.kind}</p>
+                                    <h3>{item.name}</h3>
+                                    <p>{item.text}</p>
+                                    <dl>
+                                        <div>
+                                            <dt>When</dt>
+                                            <dd>{item.when}</dd>
+                                        </div>
+                                        <div>
+                                            <dt>With</dt>
+                                            <dd>
+                                                <a href={teacherUrl(teacher.slug)}>{teacher.name}</a>
+                                            </dd>
+                                        </div>
+                                        <div>
+                                            <dt>Cost</dt>
+                                            <dd>{item.price}</dd>
+                                        </div>
+                                    </dl>
+                                </div>
+                            </li>
+                        );
+                    })
+                }
+            </ul>
+        </div>
+    </section>
+
+    {
+        retreats.length > 0 && (
+            <section class="retreats band" aria-labelledby="retreats-heading">
+                <div class="wide">
+                    <h2 id="retreats-heading" class="reveal">
+                        Retreats, <em>a little way off</em>
+                    </h2>
+                    <ul class="retreat-list">
+                        {retreats.map((item) => {
+                            const teacher = teacherBySlug(item.teacher);
+
+                            return (
+                                <li class="retreat reveal" id={item.slug}>
+                                    {item.photo && (
+                                        <div class="retreat-photo">
+                                            <Photo name={item.photo} sizes="(min-width: 64rem) 30vw, 90vw" class="parallax" />
+                                        </div>
+                                    )}
+                                    <div>
+                                        <p class="kind">
+                                            {item.kind} · {longDate(item.date)}
+                                        </p>
+                                        <h3>{item.name}</h3>
+                                        <p>{item.text}</p>
+                                        <dl>
+                                            <div>
+                                                <dt>When</dt>
+                                                <dd>{item.when}</dd>
+                                            </div>
+                                            <div>
+                                                <dt>Where</dt>
+                                                <dd>{item.where}</dd>
+                                            </div>
+                                            <div>
+                                                <dt>Led by</dt>
+                                                <dd>
+                                                    <a href={teacherUrl(teacher.slug)}>{teacher.name}</a>
+                                                </dd>
+                                            </div>
+                                            <div>
+                                                <dt>Cost</dt>
+                                                <dd>{item.price}</dd>
+                                            </div>
+                                        </dl>
+                                    </div>
+                                </li>
+                            );
+                        })}
+                    </ul>
+                </div>
+            </section>
+        )
+    }
+
+    <section class="book band">
+        <div class="wide book-inner reveal">
+            <h2>To book <em>a place</em></h2>
+            <p>Call the desk on <a href={`tel:${site.business.phoneE164}`}>{site.business.phone}</a>, email <a href={`mailto:${site.business.email}`}>{site.business.email}</a>, or ask after class. Workshops are paid when you book; retreats take a 25% deposit, refundable up to six weeks before.</p>
+        </div>
+    </section>
+
+    <Closing />
+</Base>
+
+<style>
+    .workshops h2,
+    .retreats h2 {
+        margin-bottom: var(--space-12);
+    }
+
+    .events,
+    .retreat-list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .event {
+        display: grid;
+        grid-template-columns: 5rem minmax(0, 1fr);
+        gap: var(--space-6);
+        padding: var(--space-10) 0;
+        border-top: 1px solid var(--color-line);
+        scroll-margin-top: calc(var(--header-height) + 2rem);
+    }
+
+    .stamp {
+        display: grid;
+        place-content: center;
+        justify-items: center;
+        width: 5rem;
+        height: 5rem;
+        margin: 0;
+        border: 1px solid var(--color-clay);
+        border-radius: 50%;
+        color: var(--color-clay-ink);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        line-height: 1;
+        text-transform: uppercase;
+    }
+
+    .stamp-day {
+        font-family: var(--font-serif);
+        font-size: 2rem;
+        font-weight: 400;
+        letter-spacing: 0;
+    }
+
+    .kind {
+        margin: 0 0 var(--space-2);
+        color: var(--color-sage-deep);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+    }
+
+    h3 {
+        margin-bottom: var(--space-3);
+        font-size: clamp(1.8rem, 1.4rem + 1.4vw, 2.6rem);
+    }
+
+    .event-body > p:not(.kind),
+    .retreat p:not(.kind) {
+        max-width: 38rem;
+        color: var(--color-muted);
+    }
+
+    dl {
+        display: grid;
+        gap: var(--space-2) var(--space-8);
+        margin: var(--space-5) 0 0;
+    }
+
+    dl div {
+        display: flex;
+        gap: var(--space-4);
+    }
+
+    dt {
+        flex: none;
+        width: 4.5rem;
+        color: var(--color-muted);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        line-height: 2.2;
+        text-transform: uppercase;
+    }
+
+    dd {
+        margin: 0;
+    }
+
+    @media (min-width: 56rem) {
+        .event {
+            grid-template-columns: 8rem minmax(0, 1fr);
+            gap: var(--space-12);
+        }
+
+        .event:nth-child(even) {
+            margin-left: 10%;
+        }
+
+        dl {
+            grid-template-columns: repeat(3, auto);
+            justify-content: start;
+        }
+
+        dl div {
+            display: grid;
+            gap: 0;
+        }
+    }
+
+    .retreats {
+        background: var(--color-paper);
+    }
+
+    .retreat {
+        display: grid;
+        gap: var(--space-8);
+        align-items: center;
+        padding: var(--space-10) 0;
+        scroll-margin-top: calc(var(--header-height) + 2rem);
+    }
+
+    .retreat-photo {
+        overflow: hidden;
+        width: min(100%, 26rem);
+        aspect-ratio: 4 / 5;
+        border-radius: 999px 999px var(--radius) var(--radius);
+    }
+
+    .retreat-photo :global(img) {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .retreat dl {
+        grid-template-columns: 1fr;
+    }
+
+    .retreat dl div {
+        display: flex;
+        gap: var(--space-4);
+    }
+
+    @media (min-width: 64rem) {
+        .retreat {
+            grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+            gap: var(--space-20);
+        }
+
+        .retreat:nth-child(even) .retreat-photo {
+            order: 2;
+            justify-self: end;
+        }
+    }
+
+    .book-inner {
+        display: grid;
+        gap: var(--space-8);
+    }
+
+    .book-inner p {
+        max-width: 38rem;
+        font-size: 1.1rem;
+    }
+
+    @media (min-width: 64rem) {
+        .book-inner {
+            grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.4fr);
+            gap: var(--space-16);
+        }
+    }
+</style>

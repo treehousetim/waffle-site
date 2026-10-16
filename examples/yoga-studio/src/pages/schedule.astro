@@ -1,0 +1,53 @@
+---
+/**
+ * The weekly schedule comes from the waffle app at build time
+ * (docs/waffle-api.md): /api/site/schedule, checked by parseSchedule and
+ * matched to the class and teacher pages before anything renders. A
+ * development build reads api-fixtures/ instead.
+ */
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import ScheduleWeek from '../components/ScheduleWeek.astro';
+import Closing from '../components/Closing.astro';
+import { loadSchedule } from '../data/schedule';
+import { site } from '../site';
+
+const schedule = await loadSchedule();
+const updated = new Date(`${schedule.updated}T12:00:00Z`).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
+const full = schedule.classes.filter((item) => item.spacesLeft === 0).length;
+---
+
+<Base
+    title="Weekly class schedule"
+    description="This week's yoga classes at Still Water in Alderwick, day by day: times, class styles, teachers, levels and how many spaces are left in each."
+    breadcrumbs={[{ name: 'Schedule', href: '/schedule/' }]}
+>
+    <PageHead
+        label={`Updated ${updated}`}
+        heading="The week, *day by day*"
+        lead={`${schedule.classes.length} classes, from early vinyasa to candlelit restorative. Spaces are as of the last update from the front desk; ${full === 1 ? 'one class is' : `${full} classes are`} full with a waitlist open.`}
+    >
+        <p class="how">Reserve a place on <a href={`tel:${site.business.phoneE164}`}>{site.business.phone}</a> or at the desk. Drop-ins are welcome whenever there is room, and doors open twenty minutes before every class.</p>
+    </PageHead>
+
+    <section class="timetable">
+        <div class="wide">
+            <ScheduleWeek schedule={schedule} />
+        </div>
+    </section>
+
+    <Closing heading="First time? *Start with three weeks.*" text="The intro offer covers every class on this page for three weeks from your first visit, for $40. Pick any one to begin with." />
+</Base>
+
+<style>
+    .how {
+        max-width: 34rem;
+        margin: 0;
+        color: var(--color-muted);
+        font-size: 0.95rem;
+    }
+
+    .timetable {
+        padding-bottom: var(--section);
+    }
+</style>

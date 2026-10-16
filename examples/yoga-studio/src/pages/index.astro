@@ -1,0 +1,664 @@
+---
+/**
+ * The home page: the breathing river, then the studio in a few unhurried
+ * bands. The week at a glance is the waffle app's schedule
+ * (src/data/schedule.ts), as of the last build.
+ */
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import BreathingCircle from '../components/BreathingCircle.astro';
+import Ripple from '../components/Ripple.astro';
+import ClassRows from '../components/ClassRows.astro';
+import TeacherCircles from '../components/TeacherCircles.astro';
+import PostList from '../components/PostList.astro';
+import Photo from '../components/Photo.astro';
+import Closing from '../components/Closing.astro';
+import { site } from '../site';
+import { classBySlug } from '../data/classes';
+import { introOffer } from '../data/pricing';
+import { gatherings, dateStamp } from '../data/workshops';
+import { teacherBySlug } from '../data/teachers';
+import { words } from '../data/words';
+import { loadSchedule } from '../data/schedule';
+import { byDay, clock, dayName } from '../lib/schedule';
+import { buildTime, settings } from '@core/settings';
+import { visiblePosts } from '@core/lib/posts.js';
+
+const schedule = await loadSchedule();
+const week = byDay(schedule.classes);
+const earliest = [...schedule.classes].sort((a, b) => a.start.localeCompare(b.start))[0];
+const posts = visiblePosts(await getCollection('blog'), { includeDrafts: !settings.production, now: buildTime }).slice(0, 3);
+const today = buildTime.toISOString().slice(0, 10);
+const upcoming = gatherings.filter((item) => item.date >= today).slice(0, 3);
+---
+
+<Base title="Still Water Yoga: a yoga studio on the river" description={site.description}>
+    <section class="home-hero">
+        <Ripple class="hero-ripple" rings={4} />
+        <div class="wide inner">
+            <div class="copy">
+                <p class="label">Yoga on the River Alder · since {site.business.founded}</p>
+                <h1>Arrive. Breathe. <em>Stay a while.</em></h1>
+                <p class="lead">
+                    A small, unhurried studio in the old boathouse at Alderwick. Vinyasa, yin, restorative, prenatal and beginners classes, seven days a
+                    week, with the river under the floor.
+                </p>
+                <p class="actions">
+                    <a class="button" href={site.cta.href}>{site.cta.label}</a>
+                    <a class="button button-quiet" href="/schedule/">See this week</a>
+                </p>
+                <p class="fact">
+                    <strong>{schedule.classes.length} classes this week</strong>, the first at {clock(earliest?.start ?? '06:45')}. Three weeks unlimited for new
+                    students: {introOffer.price}.
+                </p>
+            </div>
+            <BreathingCircle photo="riverMist" />
+        </div>
+    </section>
+
+    <section class="statement band">
+        <Ripple class="spread statement-ripple" rings={5} />
+        <div class="wide statement-inner reveal">
+            <p class="statement-text">
+                Fifteen mats, five teachers, a heron on the jetty and <em>nobody in a hurry.</em> We teach yoga slowly, so that it stays with you after you
+                roll up the mat.
+            </p>
+            <a class="arrow-link" href="/about/">About the studio</a>
+        </div>
+    </section>
+
+    <section class="classes band" aria-labelledby="classes-heading">
+        <div class="wide classes-inner">
+            <header class="classes-head reveal">
+                <p class="label">Five ways in</p>
+                <h2 id="classes-heading">Find the pace <em>that suits today</em></h2>
+                <p class="muted">Every class ends lying down. Every class has props for every body. None of them is heated, and none of them is a competition.</p>
+                <a class="arrow-link" href="/classes/">All class styles</a>
+            </header>
+            <ClassRows />
+        </div>
+    </section>
+
+    <section class="glance band" aria-labelledby="week-heading">
+        <div class="wide">
+            <header class="glance-head reveal">
+                <div>
+                    <p class="label">This week</p>
+                    <h2 id="week-heading">The week, <em>at a glance</em></h2>
+                </div>
+                <a class="arrow-link" href="/schedule/">Full schedule, teachers and spaces</a>
+            </header>
+            <ol class="glance-days">
+                {
+                    week.map(({ day, classes: slots }) => (
+                        <li class="day glance-day">
+                            <h3 class="glance-name">
+                                <a href={`/schedule/#${day}`}>{dayName(day).slice(0, 3)}<span class="visually-hidden">{dayName(day).slice(3)}</span></a>
+                            </h3>
+                            <ul>
+                                {slots.map((item) => (
+                                    <li class="pill" data-style={item.style}>
+                                        <time datetime={item.start}>{clock(item.start).replace(':00', '')}</time>
+                                        <span>{classBySlug(item.style).name}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </li>
+                    ))
+                }
+            </ol>
+            <p class="updated muted">Timetable from the front desk, updated {new Date(`${schedule.updated}T12:00:00Z`).toLocaleDateString('en-US', { month: 'long', day: 'numeric', timeZone: 'UTC' })}.</p>
+        </div>
+    </section>
+
+    <section class="offer" aria-labelledby="offer-heading">
+        <div class="wide offer-inner">
+            <div class="offer-photo reveal">
+                <div class="offer-frame">
+                    <Photo name="studioRoom" sizes="(min-width: 64rem) 40vw, 90vw" class="parallax" />
+                </div>
+            </div>
+            <div class="offer-copy reveal">
+                <p class="label">New students</p>
+                <h2 id="offer-heading">Three weeks, <em>every class,</em> {introOffer.price}</h2>
+                <p class="lead">{introOffer.note}</p>
+                <ol class="steps">
+                    <li><strong>Claim it here.</strong> Name, email, and the class you fancy. We reply within a day.</li>
+                    <li><strong>Come early to your first class.</strong> Ten minutes to find a mat and meet the teacher.</li>
+                    <li><strong>Try everything.</strong> Then stay, or don't. No contract, no sales talk.</li>
+                </ol>
+                <p class="actions">
+                    <a class="button" href="/new-students/">Start for {introOffer.price}</a>
+                    <a class="button button-quiet" href="/pricing/">Passes and memberships</a>
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section class="teachers band" aria-labelledby="teachers-heading">
+        <div class="wide">
+            <header class="teachers-head reveal">
+                <p class="label">The teachers</p>
+                <h2 id="teachers-heading">Five teachers, <em>one pace</em></h2>
+                <a class="arrow-link" href="/teachers/">Meet them properly</a>
+            </header>
+            <TeacherCircles />
+        </div>
+    </section>
+
+    <section class="words band" aria-labelledby="words-heading">
+        <div class="wide">
+            <h2 id="words-heading" class="label">In their words</h2>
+            <ul class="word-list reveal-list">
+                {
+                    words.map((item) => (
+                        <li>
+                            <blockquote>
+                                <p>“{item.quote}”</p>
+                            </blockquote>
+                            <p class="who">{item.name}</p>
+                        </li>
+                    ))
+                }
+            </ul>
+        </div>
+    </section>
+
+    {
+        upcoming.length > 0 && (
+            <section class="gather band" aria-labelledby="gather-heading">
+                <div class="wide gather-inner">
+                    <div class="gather-photo reveal">
+                        <Photo name="retreatForest" sizes="(min-width: 64rem) 30vw, 80vw" class="drift" />
+                    </div>
+                    <div>
+                        <header class="reveal">
+                            <p class="label">Workshops and retreats</p>
+                            <h2 id="gather-heading">Longer, <em>slower,</em> together</h2>
+                        </header>
+                        <ul class="gather-list reveal-list">
+                            {upcoming.map((item) => {
+                                const [dayOfMonth, month] = dateStamp(item.date);
+
+                                return (
+                                    <li>
+                                        <p class="stamp" aria-hidden="true">
+                                            <span>{dayOfMonth}</span>
+                                            {month}
+                                        </p>
+                                        <div>
+                                            <h3>
+                                                <a href={`/workshops/#${item.slug}`}>{item.name}</a>
+                                            </h3>
+                                            <p class="muted">
+                                                {item.kind} · {item.when} · with {teacherBySlug(item.teacher).name}
+                                            </p>
+                                        </div>
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                        <a class="arrow-link" href="/workshops/">Everything coming up</a>
+                    </div>
+                </div>
+            </section>
+        )
+    }
+
+    <section class="journal band" aria-labelledby="journal-heading">
+        <div class="container">
+            <header class="journal-head reveal">
+                <p class="label">{site.blog.title}</p>
+                <h2 id="journal-heading">Notes from <em>the river</em></h2>
+            </header>
+            <PostList posts={posts} level="h3" />
+            <p class="journal-more"><a class="arrow-link" href="/blog/">Read the journal</a></p>
+        </div>
+    </section>
+
+    <Closing />
+</Base>
+
+<style>
+    /* The hero: words low on the left, the breathing river on the right. */
+    .home-hero {
+        position: relative;
+        padding: clamp(3rem, 1.5rem + 6vw, 7rem) 0 clamp(4rem, 2rem + 6vw, 8rem);
+        overflow: hidden;
+    }
+
+    .home-hero :global(.hero-ripple) {
+        top: -12rem;
+        left: -14rem;
+        width: 38rem;
+    }
+
+    .inner {
+        position: relative;
+        display: grid;
+        gap: var(--space-16);
+        align-items: center;
+    }
+
+    .copy h1 {
+        margin-bottom: var(--space-8);
+        font-size: clamp(3.4rem, 1.8rem + 6.4vw, 8rem);
+    }
+
+    .copy h1 em {
+        display: block;
+    }
+
+    .copy .actions {
+        margin-top: var(--space-10);
+    }
+
+    .fact {
+        max-width: 30rem;
+        margin: var(--space-10) 0 0;
+        padding-top: var(--space-5);
+        border-top: 1px solid var(--color-line);
+        color: var(--color-muted);
+        font-size: 0.95rem;
+    }
+
+    .fact strong {
+        color: var(--color-ink);
+    }
+
+    @media (min-width: 64rem) {
+        .inner {
+            grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+        }
+    }
+
+    /* A single sentence with the whole width to itself. */
+    .statement {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .statement :global(.statement-ripple) {
+        top: 50%;
+        right: -8rem;
+        width: min(48rem, 120vw);
+        translate: 0 -50%;
+    }
+
+    .statement-inner {
+        position: relative;
+    }
+
+    .statement-text {
+        max-width: 22ch;
+        margin: 0 0 var(--space-10) clamp(0rem, -4rem + 12vw, 10rem);
+        font-family: var(--font-serif);
+        font-size: clamp(2.1rem, 1.3rem + 3.4vw, 4.4rem);
+        font-weight: 300;
+        line-height: 1.12;
+        letter-spacing: -0.015em;
+    }
+
+    .statement-text em {
+        color: var(--color-clay-ink);
+    }
+
+    .statement .arrow-link {
+        margin-left: clamp(0rem, -4rem + 12vw, 10rem);
+    }
+
+    /* Classes: a heading that stays while the list goes by. */
+    .classes {
+        background: var(--color-paper);
+    }
+
+    .classes-inner {
+        display: grid;
+        gap: var(--space-12);
+    }
+
+    .classes-head .muted {
+        max-width: 26rem;
+    }
+
+    @media (min-width: 64rem) {
+        .classes-inner {
+            grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.6fr);
+            gap: var(--space-20);
+            align-items: start;
+        }
+
+        .classes-head {
+            position: sticky;
+            top: calc(var(--header-height) + var(--space-12));
+        }
+    }
+
+    /* The week at a glance. */
+    .glance-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: end;
+        justify-content: space-between;
+        gap: var(--space-6);
+        margin-bottom: var(--space-12);
+    }
+
+    .glance-head h2 {
+        margin: 0;
+    }
+
+    .glance-days {
+        display: grid;
+        grid-auto-flow: column;
+        grid-auto-columns: minmax(10.5rem, 1fr);
+        gap: var(--space-3);
+        margin: 0 calc(-1 * var(--gutter));
+        padding: 0 var(--gutter) var(--space-4);
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        scroll-padding-inline: var(--gutter);
+        list-style: none;
+    }
+
+    .glance-day {
+        scroll-snap-align: start;
+        padding: var(--space-5) var(--space-4);
+        border-radius: 999px 999px var(--radius) var(--radius);
+        background: var(--color-paper);
+    }
+
+    .glance-day:nth-child(even) {
+        margin-top: var(--space-6);
+    }
+
+    .glance-name {
+        margin: var(--space-4) 0 var(--space-5);
+        font-size: 1.9rem;
+        font-style: italic;
+        text-align: center;
+    }
+
+    .glance-name a {
+        color: var(--color-ink);
+        text-decoration: none;
+    }
+
+    .glance-name a:hover {
+        color: var(--color-clay-ink);
+    }
+
+    .glance-day ul {
+        display: grid;
+        gap: var(--space-2);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .pill {
+        display: grid;
+        padding: 0.5rem 0.85rem;
+        border-left: 3px solid var(--style-color);
+        border-radius: 0 var(--radius-small) var(--radius-small) 0;
+        background: var(--color-sand);
+        line-height: 1.3;
+    }
+
+    .pill time {
+        color: var(--color-muted);
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+    }
+
+    .pill span {
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+
+    .updated {
+        margin: var(--space-6) 0 0;
+        font-size: 0.85rem;
+    }
+
+    @media (min-width: 80rem) {
+        .glance-days {
+            grid-auto-flow: row;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            margin: 0;
+            padding: 0;
+            overflow: visible;
+        }
+    }
+
+    /* The offer: a big quiet photo, the price beside it. */
+    .offer {
+        padding: var(--section) 0;
+        background: var(--color-sage-mist);
+    }
+
+    .offer-inner {
+        display: grid;
+        gap: var(--space-12);
+        align-items: center;
+    }
+
+    .offer-frame {
+        overflow: hidden;
+        aspect-ratio: 5 / 6;
+        border-radius: 999px 999px var(--radius) var(--radius);
+    }
+
+    .offer-frame :global(img) {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .offer-copy h2 {
+        max-width: 14ch;
+    }
+
+    .steps {
+        display: grid;
+        gap: var(--space-5);
+        margin: var(--space-10) 0;
+        padding: 0;
+        list-style: none;
+        counter-reset: step;
+    }
+
+    .steps li {
+        position: relative;
+        padding-left: 3.5rem;
+        counter-increment: step;
+    }
+
+    .steps li::before {
+        content: counter(step);
+        position: absolute;
+        top: -0.15rem;
+        left: 0;
+        display: grid;
+        place-items: center;
+        width: 2.3rem;
+        height: 2.3rem;
+        border: 1px solid var(--color-sage-deep);
+        border-radius: 50%;
+        color: var(--color-sage-deep);
+        font-family: var(--font-serif);
+        font-size: 1.2rem;
+        font-style: italic;
+    }
+
+    @media (min-width: 64rem) {
+        .offer-inner {
+            grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr);
+            gap: var(--space-24);
+        }
+
+        .offer-photo {
+            padding-right: var(--space-8);
+        }
+    }
+
+    @media (max-width: 40rem) {
+        .offer-photo {
+            width: 82%;
+        }
+    }
+
+    /* Teachers. */
+    .teachers-head {
+        max-width: 40rem;
+        margin-bottom: var(--space-16);
+    }
+
+    /* Words: four quotes, staggered, a lot of air between them. */
+    .words {
+        background: var(--color-paper);
+    }
+
+    .word-list {
+        display: grid;
+        gap: var(--space-16);
+        margin: var(--space-8) 0 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .word-list blockquote {
+        margin: 0;
+    }
+
+    .word-list blockquote p {
+        margin: 0;
+        font-family: var(--font-serif);
+        font-size: clamp(1.6rem, 1.3rem + 1.2vw, 2.4rem);
+        font-style: italic;
+        font-weight: 350;
+        line-height: 1.25;
+    }
+
+    .who {
+        margin: var(--space-4) 0 0;
+        color: var(--color-muted);
+        font-size: 0.85rem;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+    }
+
+    @media (min-width: 56rem) {
+        .word-list {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: var(--space-20) var(--space-24);
+        }
+
+        .word-list li:nth-child(even) {
+            margin-top: var(--space-24);
+        }
+    }
+
+    /* Workshops and retreats. */
+    .gather-inner {
+        display: grid;
+        gap: var(--space-12);
+        align-items: center;
+    }
+
+    .gather-photo {
+        overflow: hidden;
+        width: min(100%, 24rem);
+        aspect-ratio: 3 / 4;
+        border-radius: var(--radius-pebble);
+    }
+
+    .gather-photo :global(img) {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .gather-list {
+        margin: var(--space-8) 0 var(--space-10);
+        padding: 0;
+        list-style: none;
+    }
+
+    .gather-list li {
+        display: grid;
+        grid-template-columns: 4.5rem minmax(0, 1fr);
+        gap: var(--space-6);
+        align-items: center;
+        padding: var(--space-6) 0;
+        border-top: 1px solid var(--color-line);
+    }
+
+    .stamp {
+        display: grid;
+        place-items: center;
+        width: 4.5rem;
+        height: 4.5rem;
+        margin: 0;
+        border: 1px solid var(--color-clay);
+        border-radius: 50%;
+        color: var(--color-clay-ink);
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        line-height: 1;
+        text-transform: uppercase;
+    }
+
+    .stamp span {
+        font-family: var(--font-serif);
+        font-size: 1.7rem;
+        font-weight: 400;
+        letter-spacing: 0;
+    }
+
+    .gather-list h3 {
+        margin: 0 0 var(--space-1);
+        font-size: clamp(1.45rem, 1.25rem + 0.7vw, 1.9rem);
+    }
+
+    .gather-list h3 a {
+        color: var(--color-ink);
+        text-decoration: none;
+    }
+
+    .gather-list h3 a:hover {
+        color: var(--color-clay-ink);
+    }
+
+    .gather-list .muted {
+        margin: 0;
+        font-size: 0.92rem;
+    }
+
+    @media (min-width: 64rem) {
+        .gather-inner {
+            grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.3fr);
+            gap: var(--space-24);
+        }
+
+        .gather-photo {
+            justify-self: end;
+        }
+    }
+
+    /* The journal. */
+    .journal {
+        padding-top: 0;
+    }
+
+    .journal-head {
+        margin-bottom: var(--space-10);
+    }
+
+    .journal-more {
+        margin: var(--space-10) 0 0;
+    }
+</style>

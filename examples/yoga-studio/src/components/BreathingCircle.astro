@@ -1,0 +1,273 @@
+---
+/**
+ * The home page's centrepiece: the river in a circle that breathes, in for
+ * four seconds and out for six, with ripples spreading on every inhale and
+ * a quiet cue beneath it. All CSS (motion.css has nothing to do with it; the
+ * keyframes are here). Where motion is reduced or unavailable it is a still
+ * photograph in a circle, and the cue says the rhythm in words.
+ */
+import Photo from './Photo.astro';
+import type { PhotoName } from '../data/photos';
+
+interface Props {
+    photo: PhotoName;
+}
+
+const { photo } = Astro.props;
+---
+
+<figure class="breath">
+    <div class="stage">
+        <div class="rings" aria-hidden="true"><span></span><span></span><span></span></div>
+        <div class="orbit" aria-hidden="true"><span class="dot"></span></div>
+        <div class="orb">
+            <Photo name={photo} sizes="(min-width: 64rem) 36rem, 86vw" priority class="orb-photo" />
+        </div>
+    </div>
+    <figcaption class="cue">
+        <span class="cue-title">Breathe with us</span>
+        <span class="cue-words">
+            <span class="steady">in for four, out for six</span>
+            <span class="phase phase-in" aria-hidden="true">breathe in…</span>
+            <span class="phase phase-out" aria-hidden="true">and let it go…</span>
+        </span>
+    </figcaption>
+</figure>
+
+<style>
+    .breath {
+        position: relative;
+        display: grid;
+        justify-items: center;
+        gap: var(--space-8);
+        margin: 0;
+    }
+
+    .stage {
+        position: relative;
+        width: min(86vw, 36rem);
+        aspect-ratio: 1;
+    }
+
+    .orb {
+        position: absolute;
+        inset: 9%;
+        overflow: hidden;
+        border-radius: 50%;
+        background: var(--color-sand-deep);
+        box-shadow: var(--shadow-soft);
+    }
+
+    .orb :global(.orb-photo) {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    /* A faint warm light across the water. */
+    .orb::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        background: radial-gradient(circle at 30% 25%, rgb(250 247 241 / 0.35), transparent 55%);
+        pointer-events: none;
+    }
+
+    .rings span {
+        position: absolute;
+        inset: 9%;
+        border: 1px solid var(--color-sage);
+        border-radius: 50%;
+        opacity: 0.5;
+    }
+
+    .rings span:nth-child(2) {
+        inset: 4%;
+        opacity: 0.32;
+    }
+
+    .rings span:nth-child(3) {
+        inset: 0;
+        opacity: 0.2;
+    }
+
+    .orbit {
+        position: absolute;
+        inset: 0;
+    }
+
+    .dot {
+        position: absolute;
+        top: -0.3rem;
+        left: 50%;
+        width: 0.6rem;
+        height: 0.6rem;
+        margin-left: -0.3rem;
+        border-radius: 50%;
+        background: var(--color-clay);
+    }
+
+    .cue {
+        display: grid;
+        justify-items: center;
+        gap: var(--space-1);
+        text-align: center;
+    }
+
+    .cue-title {
+        color: var(--color-sage-deep);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.24em;
+        text-transform: uppercase;
+    }
+
+    .cue-words {
+        display: grid;
+        color: var(--color-ink);
+        font-family: var(--font-serif);
+        font-size: 1.6rem;
+        font-style: italic;
+        font-weight: 350;
+        line-height: 1.3;
+    }
+
+    .cue-words > * {
+        grid-area: 1 / 1;
+    }
+
+    .phase {
+        display: none;
+    }
+
+    /*
+     * Ten seconds a breath: in for four (0-40%), out for six (40-100%).
+     * Each segment eases in and out, the way a breath does.
+     */
+    @media (prefers-reduced-motion: no-preference) {
+        .orb {
+            animation: breathe 10s infinite;
+        }
+
+        .orb :global(.orb-photo) {
+            animation: breathe-photo 10s infinite;
+        }
+
+        .rings span {
+            animation: ring-spread 10s infinite;
+        }
+
+        .rings span:nth-child(2) {
+            animation-delay: 0.35s;
+        }
+
+        .rings span:nth-child(3) {
+            animation-delay: 0.7s;
+        }
+
+        .orbit {
+            animation: orbit 10s linear infinite;
+        }
+
+        .steady {
+            visibility: hidden;
+        }
+
+        .phase {
+            display: block;
+            opacity: 0;
+        }
+
+        .phase-in {
+            animation: phase-in 10s infinite;
+        }
+
+        .phase-out {
+            animation: phase-out 10s infinite;
+        }
+    }
+
+    @keyframes breathe {
+        0%,
+        100% {
+            transform: scale(0.86);
+            animation-timing-function: var(--ease-breath);
+        }
+
+        40% {
+            transform: scale(1);
+            animation-timing-function: var(--ease-breath);
+        }
+    }
+
+    @keyframes breathe-photo {
+        0%,
+        100% {
+            transform: scale(1.12);
+            animation-timing-function: var(--ease-breath);
+        }
+
+        40% {
+            transform: scale(1);
+            animation-timing-function: var(--ease-breath);
+        }
+    }
+
+    @keyframes ring-spread {
+        0% {
+            transform: scale(0.84);
+            opacity: 0;
+            animation-timing-function: var(--ease-breath);
+        }
+
+        40% {
+            transform: scale(1);
+            opacity: 0.5;
+            animation-timing-function: var(--ease-breath);
+        }
+
+        100% {
+            transform: scale(1.06);
+            opacity: 0;
+        }
+    }
+
+    @keyframes orbit {
+        to {
+            transform: rotate(1turn);
+        }
+    }
+
+    @keyframes phase-in {
+        0% {
+            opacity: 0;
+        }
+
+        5%,
+        35% {
+            opacity: 1;
+        }
+
+        40%,
+        100% {
+            opacity: 0;
+        }
+    }
+
+    @keyframes phase-out {
+        0%,
+        40% {
+            opacity: 0;
+        }
+
+        46%,
+        94% {
+            opacity: 1;
+        }
+
+        100% {
+            opacity: 0;
+        }
+    }
+</style>

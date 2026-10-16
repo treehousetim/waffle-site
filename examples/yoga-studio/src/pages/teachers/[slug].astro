@@ -1,0 +1,327 @@
+---
+/**
+ * One page per teacher, from src/data/teachers.ts: their story, their
+ * training, and their classes this week from the waffle app's schedule.
+ */
+import type { GetStaticPaths } from 'astro';
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import Slot from '../../components/Slot.astro';
+import Closing from '../../components/Closing.astro';
+import { teachers, teacherUrl, type Teacher } from '../../data/teachers';
+import { classBySlug, classUrl } from '../../data/classes';
+import { loadSchedule } from '../../data/schedule';
+import { site } from '../../site';
+import { settings } from '@core/settings';
+import { canonicalUrl } from '@core/lib/seo.js';
+import { gatherings, longDate } from '../../data/workshops';
+import { buildTime } from '@core/settings';
+
+export const getStaticPaths = (() => teachers.map((teacher) => ({ params: { slug: teacher.slug }, props: { teacher } }))) satisfies GetStaticPaths;
+
+interface Props {
+    teacher: Teacher;
+}
+
+const { teacher } = Astro.props;
+const schedule = await loadSchedule();
+const slots = schedule.classes.filter((slot) => slot.teacher === teacher.slug);
+const today = buildTime.toISOString().slice(0, 10);
+const leading = gatherings.filter((item) => item.teacher === teacher.slug && item.date >= today);
+const others = teachers.filter((other) => other.slug !== teacher.slug);
+const [first = '', last = ''] = teacher.name.split(' ');
+const person = {
+    '@type': 'Person',
+    '@id': `${canonicalUrl(teacherUrl(teacher.slug), settings.siteUrl)}#person`,
+    name: teacher.name,
+    jobTitle: 'Yoga teacher',
+    description: teacher.description,
+    worksFor: { '@id': `${settings.siteUrl}/#organization` },
+};
+---
+
+<Base
+    title={`${teacher.name}, yoga teacher`}
+    description={teacher.description}
+    breadcrumbs={[
+        { name: 'Teachers', href: '/teachers/' },
+        { name: teacher.name, href: teacherUrl(teacher.slug) },
+    ]}
+    jsonLd={[person]}
+>
+    <PageHead
+        label={teacher.role}
+        heading={`${first} *${last}*`}
+        lead={`“${teacher.quote}”`}
+        photo={teacher.photo}
+        shape="circle"
+        transition={`vt-teacher-${teacher.slug}`}
+    >
+        <ul class="styles">
+            {
+                teacher.styles.map((slug) => (
+                    <li data-style={slug}>
+                        <a href={classUrl(slug)}>
+                            <span class="dot" aria-hidden="true" />
+                            {classBySlug(slug).name}
+                        </a>
+                    </li>
+                ))
+            }
+        </ul>
+    </PageHead>
+
+    <section class="story band">
+        <div class="wide story-inner">
+            <aside class="facts reveal">
+                <p class="label">Teaching since {teacher.teachingSince}</p>
+                <h2>Training</h2>
+                <ul>
+                    {teacher.training.map((line) => <li>{line}</li>)}
+                </ul>
+                <h2>Off the mat</h2>
+                <p>{teacher.offTheMat}</p>
+            </aside>
+            <div class="bio reveal">
+                {teacher.bio.map((paragraph) => <p>{paragraph}</p>)}
+            </div>
+        </div>
+    </section>
+
+    <section class="week band" aria-labelledby="week-heading">
+        <div class="wide week-inner">
+            <header class="reveal">
+                <p class="label">This week</p>
+                <h2 id="week-heading">Practise <em>with {first}</em></h2>
+                <p class="muted">Spaces as of the last update from the front desk. Reserve on {site.business.phone}.</p>
+                <a class="arrow-link" href="/schedule/">The whole week</a>
+            </header>
+            {
+                slots.length > 0 ? (
+                    <ul class="slots reveal">
+                        {slots.map((slot) => <Slot item={slot} hide="teacher" withDay />)}
+                    </ul>
+                ) : (
+                    <p class="muted">{first} has no classes on the schedule this week.</p>
+                )
+            }
+        </div>
+    </section>
+
+    {
+        leading.length > 0 && (
+            <section class="leading" aria-labelledby="leading-heading">
+                <div class="wide">
+                    <h2 id="leading-heading" class="reveal">Coming up with {first}</h2>
+                    <ul class="reveal-list">
+                        {leading.map((item) => (
+                            <li>
+                                <a href={`/workshops/#${item.slug}`}>{item.name}</a>
+                                <span class="muted">
+                                    {item.kind} · {longDate(item.date)}
+                                </span>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            </section>
+        )
+    }
+
+    <nav class="others" aria-label="Other teachers">
+        <div class="wide">
+            <p class="label">The other teachers</p>
+            <ul>
+                {
+                    others.map((other) => (
+                        <li>
+                            <a href={teacherUrl(other.slug)}>{other.name}</a>
+                        </li>
+                    ))
+                }
+            </ul>
+        </div>
+    </nav>
+
+    <Closing />
+</Base>
+
+<style>
+    .styles {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .styles a {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        padding: 0.45rem 1rem;
+        border: 1px solid var(--color-line);
+        border-radius: 999px;
+        color: var(--color-ink);
+        font-size: 0.9rem;
+        font-weight: 650;
+        text-decoration: none;
+        transition: border-color 0.6s var(--ease-settle), background-color 0.6s var(--ease-settle);
+    }
+
+    .styles a:hover {
+        border-color: var(--style-color);
+        background: var(--color-paper);
+    }
+
+    .dot {
+        width: 0.6rem;
+        height: 0.6rem;
+        border-radius: 50%;
+        background: var(--style-color);
+    }
+
+    .story-inner {
+        display: grid;
+        gap: var(--space-16);
+    }
+
+    .bio p:first-child {
+        font-family: var(--font-serif);
+        font-size: clamp(1.6rem, 1.3rem + 1.1vw, 2.3rem);
+        font-weight: 350;
+        line-height: 1.3;
+    }
+
+    .bio {
+        max-width: 42rem;
+        font-size: 1.1rem;
+    }
+
+    .facts h2 {
+        margin: var(--space-8) 0 var(--space-3);
+        font-size: 1.6rem;
+    }
+
+    .facts ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .facts li {
+        padding: var(--space-2) 0;
+        border-top: 1px solid var(--color-line);
+        color: var(--color-muted);
+    }
+
+    .facts p:not(.label) {
+        color: var(--color-muted);
+        font-style: italic;
+    }
+
+    @media (min-width: 64rem) {
+        .story-inner {
+            grid-template-columns: minmax(0, 1.5fr) minmax(0, 0.7fr);
+            gap: var(--space-24);
+            align-items: start;
+        }
+
+        .facts {
+            position: sticky;
+            top: calc(var(--header-height) + var(--space-12));
+            order: 2;
+        }
+
+        .bio {
+            order: 1;
+        }
+    }
+
+    .week {
+        background: var(--color-sage-mist);
+    }
+
+    .week-inner {
+        display: grid;
+        gap: var(--space-10);
+    }
+
+    .slots {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    @media (min-width: 64rem) {
+        .week-inner {
+            grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.6fr);
+            gap: var(--space-16);
+        }
+    }
+
+    .leading {
+        padding: var(--space-20) 0 0;
+    }
+
+    .leading h2 {
+        font-size: clamp(2rem, 1.6rem + 1.5vw, 3rem);
+    }
+
+    .leading ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .leading li {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: var(--space-2) var(--space-6);
+        padding: var(--space-5) 0;
+        border-top: 1px solid var(--color-line);
+    }
+
+    .leading a {
+        color: var(--color-ink);
+        font-family: var(--font-serif);
+        font-size: 1.6rem;
+        text-decoration: none;
+    }
+
+    .leading a:hover {
+        color: var(--color-clay-ink);
+    }
+
+    .others {
+        margin-top: var(--section);
+        padding: var(--space-12) 0;
+        border-top: 1px solid var(--color-line);
+        border-bottom: 1px solid var(--color-line);
+    }
+
+    .others ul {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2) var(--space-10);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .others a {
+        color: var(--color-ink);
+        font-family: var(--font-serif);
+        font-size: clamp(1.6rem, 1.3rem + 1.2vw, 2.4rem);
+        font-weight: 300;
+        text-decoration: none;
+    }
+
+    .others a:hover {
+        color: var(--color-clay-ink);
+        font-style: italic;
+    }
+</style>

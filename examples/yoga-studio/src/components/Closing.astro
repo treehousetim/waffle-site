@@ -1,0 +1,84 @@
+---
+/**
+ * The quiet invitation at the end of a page: a line, an action, and where
+ * to find the studio. Ripples spread behind it as it arrives.
+ */
+import Ripple from './Ripple.astro';
+import { addressLine, site } from '../site';
+
+interface Props {
+    heading?: string;
+    text?: string;
+    action?: { label: string; href: string };
+}
+
+const {
+    heading = 'Come as you are. *Leave a little slower.*',
+    text = 'Your first three weeks are $40, unlimited. Bring nothing but yourself; the mats, blocks, blankets and tea are here.',
+    action = site.cta,
+} = Astro.props;
+const [before = '', aside, after = ''] = heading.split('*');
+---
+
+<section class="closing">
+    <Ripple class="spread closing-ripple" rings={5} />
+    <div class="container inner reveal">
+        <h2>{before}{aside && <em>{aside}</em>}{after}</h2>
+        <p class="lead">{text}</p>
+        <p class="actions">
+            <a class="button" href={action.href}>{action.label}</a>
+            <a class="button button-quiet" href="/schedule/">See this week's classes</a>
+        </p>
+        <p class="where">
+            <span>{addressLine}</span>
+            <a href={`tel:${site.business.phoneE164}`}>{site.business.phone}</a>
+        </p>
+    </div>
+</section>
+
+<style>
+    .closing {
+        position: relative;
+        padding: var(--section) 0;
+        overflow: hidden;
+        text-align: center;
+    }
+
+    .closing :global(.closing-ripple) {
+        top: 50%;
+        left: 50%;
+        width: min(60rem, 160vw);
+        translate: -50% -50%;
+    }
+
+    .inner {
+        position: relative;
+        display: grid;
+        justify-items: center;
+    }
+
+    h2 {
+        max-width: 18ch;
+        font-size: clamp(2.5rem, 1.6rem + 3.8vw, 5rem);
+        font-weight: 300;
+    }
+
+    .lead {
+        margin-inline: auto;
+    }
+
+    .actions {
+        justify-content: center;
+        margin-top: var(--space-6);
+    }
+
+    .where {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: var(--space-2) var(--space-6);
+        margin: var(--space-12) 0 0;
+        color: var(--color-muted);
+        font-size: 0.95rem;
+    }
+</style>

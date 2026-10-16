@@ -1,0 +1,59 @@
+---
+/**
+ * Served by Caddy, with status 404, for any path that is not in the build
+ * (docker/caddy/Caddyfile). Kept out of search results (src/site.ts).
+ */
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import { classes, classUrl } from '../data/classes';
+---
+
+<Base title="Page not found" description="That page is not here. It may have moved, or the link may be mistyped. Try the class styles, the weekly schedule or the journal instead.">
+    <PageHead
+        label="404"
+        heading="Lost on the river? *That is fine.*"
+        lead="This page is not here. It may have moved, or the link may have a typo in it. Take a breath; here are some ways back."
+        primary={{ label: 'Go to the home page', href: '/' }}
+        secondary={{ label: 'See this week', href: '/schedule/' }}
+    />
+    <nav class="wide ways" aria-label="Class styles">
+        <ul>
+            {
+                classes.map((item) => (
+                    <li data-style={item.slug}>
+                        <a href={classUrl(item.slug)}>{item.name}</a>
+                    </li>
+                ))
+            }
+        </ul>
+    </nav>
+</Base>
+
+<style>
+    .ways {
+        padding-bottom: var(--section);
+    }
+
+    ul {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2) var(--space-10);
+        margin: 0;
+        padding: var(--space-10) 0 0;
+        border-top: 1px solid var(--color-line);
+        list-style: none;
+    }
+
+    a {
+        color: var(--color-ink);
+        font-family: var(--font-serif);
+        font-size: clamp(1.8rem, 1.4rem + 1.5vw, 2.8rem);
+        font-weight: 300;
+        text-decoration: none;
+    }
+
+    a:hover {
+        color: var(--color-clay-ink);
+        font-style: italic;
+    }
+</style>

@@ -1,0 +1,269 @@
+{
+  "success": true,
+  "data": {
+    "updated": "2026-10-14",
+    "classes": [
+      {
+        "day": "monday",
+        "start": "06:45",
+        "duration": 60,
+        "style": "vinyasa",
+        "teacher": "maya-lindqvist",
+        "level": "all",
+        "spacesLeft": 4
+      },
+      {
+        "day": "monday",
+        "start": "09:30",
+        "duration": 60,
+        "style": "beginners",
+        "teacher": "nell-ashby",
+        "level": "beginner",
+        "spacesLeft": 7
+      },
+      {
+        "day": "monday",
+        "start": "12:15",
+        "duration": 45,
+        "style": "vinyasa",
+        "teacher": "tomas-reyes",
+        "level": "all",
+        "spacesLeft": 9
+      },
+      {
+        "day": "monday",
+        "start": "17:45",
+        "duration": 75,
+        "style": "yin",
+        "teacher": "iris-okonkwo",
+        "level": "all",
+        "spacesLeft": 2
+      },
+      {
+        "day": "monday",
+        "start": "19:30",
+        "duration": 75,
+        "style": "restorative",
+        "teacher": "iris-okonkwo",
+        "level": "gentle",
+        "spacesLeft": 0
+      },
+      {
+        "day": "tuesday",
+        "start": "06:45",
+        "duration": 60,
+        "style": "vinyasa",
+        "teacher": "tomas-reyes",
+        "level": "intermediate",
+        "spacesLeft": 5
+      },
+      {
+        "day": "tuesday",
+        "start": "10:00",
+        "duration": 60,
+        "style": "prenatal",
+        "teacher": "hana-mori",
+        "level": "gentle",
+        "spacesLeft": 3
+      },
+      {
+        "day": "tuesday",
+        "start": "18:00",
+        "duration": 60,
+        "style": "beginners",
+        "teacher": "nell-ashby",
+        "level": "beginner",
+        "spacesLeft": 6
+      },
+      {
+        "day": "tuesday",
+        "start": "19:30",
+        "duration": 75,
+        "style": "yin",
+        "teacher": "maya-lindqvist",
+        "level": "all",
+        "spacesLeft": 8
+      },
+      {
+        "day": "wednesday",
+        "start": "06:45",
+        "duration": 60,
+        "style": "vinyasa",
+        "teacher": "maya-lindqvist",
+        "level": "all",
+        "spacesLeft": 6
+      },
+      {
+        "day": "wednesday",
+        "start": "09:30",
+        "duration": 75,
+        "style": "restorative",
+        "teacher": "hana-mori",
+        "level": "gentle",
+        "spacesLeft": 5
+      },
+      {
+        "day": "wednesday",
+        "start": "12:15",
+        "duration": 45,
+        "style": "vinyasa",
+        "teacher": "tomas-reyes",
+        "level": "all",
+        "spacesLeft": 11
+      },
+      {
+        "day": "wednesday",
+        "start": "18:00",
+        "duration": 75,
+        "style": "vinyasa",
+        "teacher": "maya-lindqvist",
+        "level": "intermediate",
+        "spacesLeft": 1
+      },
+      {
+        "day": "wednesday",
+        "start": "19:45",
+        "duration": 60,
+        "style": "yin",
+        "teacher": "nell-ashby",
+        "level": "all",
+        "spacesLeft": 7
+      },
+      {
+        "day": "thursday",
+        "start": "06:45",
+        "duration": 60,
+        "style": "vinyasa",
+        "teacher": "tomas-reyes",
+        "level": "all",
+        "spacesLeft": 8
+      },
+      {
+        "day": "thursday",
+        "start": "10:00",
+        "duration": 60,
+        "style": "prenatal",
+        "teacher": "hana-mori",
+        "level": "gentle",
+        "spacesLeft": 2
+      },
+      {
+        "day": "thursday",
+        "start": "18:00",
+        "duration": 60,
+        "style": "beginners",
+        "teacher": "tomas-reyes",
+        "level": "beginner",
+        "spacesLeft": 4
+      },
+      {
+        "day": "thursday",
+        "start": "19:30",
+        "duration": 75,
+        "style": "restorative",
+        "teacher": "iris-okonkwo",
+        "level": "gentle",
+        "spacesLeft": 3
+      },
+      {
+        "day": "friday",
+        "start": "06:45",
+        "duration": 60,
+        "style": "vinyasa",
+        "teacher": "maya-lindqvist",
+        "level": "all",
+        "spacesLeft": 10
+      },
+      {
+        "day": "friday",
+        "start": "12:15",
+        "duration": 45,
+        "style": "yin",
+        "teacher": "iris-okonkwo",
+        "level": "all",
+        "spacesLeft": 12
+      },
+      {
+        "day": "friday",
+        "start": "17:30",
+        "duration": 60,
+        "style": "vinyasa",
+        "teacher": "tomas-reyes",
+        "level": "all",
+        "spacesLeft": 0
+      },
+      {
+        "day": "friday",
+        "start": "19:00",
+        "duration": 90,
+        "style": "restorative",
+        "teacher": "iris-okonkwo",
+        "level": "gentle",
+        "spacesLeft": 6
+      },
+      {
+        "day": "saturday",
+        "start": "08:30",
+        "duration": 75,
+        "style": "vinyasa",
+        "teacher": "maya-lindqvist",
+        "level": "all",
+        "spacesLeft": 3
+      },
+      {
+        "day": "saturday",
+        "start": "10:30",
+        "duration": 75,
+        "style": "beginners",
+        "teacher": "nell-ashby",
+        "level": "beginner",
+        "spacesLeft": 5
+      },
+      {
+        "day": "saturday",
+        "start": "12:30",
+        "duration": 75,
+        "style": "prenatal",
+        "teacher": "hana-mori",
+        "level": "gentle",
+        "spacesLeft": 4
+      },
+      {
+        "day": "saturday",
+        "start": "16:00",
+        "duration": 75,
+        "style": "yin",
+        "teacher": "iris-okonkwo",
+        "level": "all",
+        "spacesLeft": 9
+      },
+      {
+        "day": "sunday",
+        "start": "09:00",
+        "duration": 75,
+        "style": "vinyasa",
+        "teacher": "tomas-reyes",
+        "level": "all",
+        "spacesLeft": 6
+      },
+      {
+        "day": "sunday",
+        "start": "11:00",
+        "duration": 75,
+        "style": "restorative",
+        "teacher": "hana-mori",
+        "level": "gentle",
+        "spacesLeft": 2
+      },
+      {
+        "day": "sunday",
+        "start": "16:30",
+        "duration": 90,
+        "style": "yin",
+        "teacher": "nell-ashby",
+        "level": "all",
+        "spacesLeft": 11
+      }
+    ]
+  }
+}

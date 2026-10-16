@@ -1,0 +1,235 @@
+---
+/**
+ * The class styles as a long, quiet list: a number, the name set large, a
+ * line about it, how it moves, and a round photograph that surfaces on
+ * hover (always there on phones). Each photo carries its view-transition
+ * name, so it glides into the class's own page (motion.css).
+ */
+import Photo from './Photo.astro';
+import { classes, classUrl } from '../data/classes';
+
+interface Props {
+    /** h2 on a page of classes; h3 inside a section that has its own h2. */
+    level?: 'h2' | 'h3';
+    /** Full: the classes page, with each style's opening words and its photo always in view. */
+    full?: boolean;
+}
+
+const { level = 'h3', full = false } = Astro.props;
+const Heading = level;
+---
+
+<ol class:list={['rows', 'reveal-list', { full }]}>
+    {
+        classes.map((item, index) => (
+            <li class="row" data-style={item.slug}>
+                <span class="number" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
+                <div class="text">
+                    <Heading class="name">
+                        <a href={classUrl(item.slug)}>{item.name}</a>
+                    </Heading>
+                    <p class="line">{full ? item.lead : item.line}</p>
+                </div>
+                <p class="pace">
+                    <span class="dots" aria-hidden="true">
+                        {[1, 2, 3].map((step) => <span class:list={{ on: step <= item.pace }} />)}
+                    </span>
+                    {item.paceLabel}
+                </p>
+                <div class:list={['thumb', `vt-class-${item.slug}`]}>
+                    <Photo name={item.photo} sizes={full ? '(min-width: 52rem) 16rem, 6rem' : '10rem'} decorative />
+                </div>
+            </li>
+        ))
+    }
+</ol>
+
+<style>
+    .rows {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        counter-reset: rows;
+    }
+
+    .row {
+        position: relative;
+        display: grid;
+        grid-template-columns: 2.5rem minmax(0, 1fr) 5.5rem;
+        gap: var(--space-1) var(--space-4);
+        align-items: center;
+        padding: var(--space-6) 0;
+        border-top: 1px solid var(--color-line);
+    }
+
+    .row:last-child {
+        border-bottom: 1px solid var(--color-line);
+    }
+
+    .number {
+        align-self: start;
+        padding-top: 0.9rem;
+        color: var(--color-muted);
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+    }
+
+    .name {
+        margin: 0;
+        font-size: clamp(2.4rem, 1.7rem + 3vw, 4.5rem);
+        font-weight: 300;
+        line-height: 1.05;
+    }
+
+    .name a {
+        color: var(--color-ink);
+        text-decoration: none;
+        transition: color 0.8s var(--ease-settle);
+    }
+
+    /* The whole row is the link. */
+    .name a::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+    }
+
+    .row:hover .name a {
+        color: var(--color-clay-ink);
+        font-style: italic;
+    }
+
+    .line {
+        margin: var(--space-1) 0 0;
+        color: var(--color-muted);
+    }
+
+    .pace {
+        display: inline-flex;
+        grid-column: 2;
+        align-items: center;
+        gap: var(--space-3);
+        margin: 0;
+        color: var(--color-muted);
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+    }
+
+    .dots {
+        display: inline-flex;
+        gap: 0.3rem;
+    }
+
+    .dots span {
+        width: 0.55rem;
+        height: 0.55rem;
+        border: 1px solid var(--style-color);
+        border-radius: 50%;
+    }
+
+    .dots .on {
+        background: var(--style-color);
+    }
+
+    .thumb {
+        grid-column: 3;
+        grid-row: 1 / span 2;
+        width: 5.5rem;
+        aspect-ratio: 1;
+        overflow: hidden;
+        border-radius: 50%;
+        background: var(--color-sand-deep);
+    }
+
+    .thumb :global(img) {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 1.2s var(--ease-settle);
+    }
+
+    /* The full list on a phone: the photo first, then the words beneath it. */
+    @media (max-width: 51.99rem) {
+        .full .row {
+            grid-template-columns: 2.5rem minmax(0, 1fr);
+            padding: var(--space-8) 0;
+        }
+
+        .full .number {
+            grid-row: 1 / span 3;
+        }
+
+        .full .thumb {
+            grid-column: 2;
+            grid-row: 1;
+            width: 7.5rem;
+            margin-bottom: var(--space-4);
+            border-radius: var(--radius-pebble);
+        }
+
+        .full .text {
+            grid-column: 2;
+            grid-row: 2;
+        }
+
+        .full .pace {
+            grid-row: 3;
+            margin-top: var(--space-3);
+        }
+    }
+
+    @media (min-width: 52rem) {
+        .row {
+            grid-template-columns: 4rem minmax(0, 1fr) 11rem 9rem;
+            padding: var(--space-8) 0;
+        }
+
+        .pace {
+            grid-column: 3;
+        }
+
+        .thumb {
+            grid-column: 4;
+            grid-row: 1;
+            justify-self: end;
+            width: 8rem;
+            opacity: 0.55;
+            transform: scale(0.8);
+            transition: opacity 1s var(--ease-settle), transform 1s var(--ease-settle);
+        }
+
+        .row:hover .thumb,
+        .row:focus-within .thumb {
+            opacity: 1;
+            transform: none;
+        }
+
+        .row:hover .thumb :global(img) {
+            transform: scale(1.08);
+        }
+
+        .full .row {
+            grid-template-columns: 4rem minmax(0, 1fr) 11rem 16rem;
+            padding: var(--space-12) 0;
+        }
+
+        .full .line {
+            max-width: 36rem;
+            margin-top: var(--space-3);
+        }
+
+        .full .thumb {
+            width: 14rem;
+            opacity: 1;
+            transform: none;
+            border-radius: var(--radius-pebble);
+        }
+
+        .full .row:nth-child(even) .thumb {
+            border-radius: 54% 46% 52% 48% / 45% 55% 45% 55%;
+        }
+    }
+</style>

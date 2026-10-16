@@ -1,0 +1,150 @@
+---
+/**
+ * The teachers as a loose, uneven row of circles, like stones on a shore:
+ * each a round photograph, a name and what they teach. Each photo carries
+ * its view-transition name, so it glides into the teacher's page.
+ */
+import Photo from './Photo.astro';
+import { teachers, teacherUrl } from '../data/teachers';
+
+interface Props {
+    level?: 'h2' | 'h3';
+    /** Show each teacher's own words under their name. */
+    quotes?: boolean;
+}
+
+const { level = 'h3', quotes = false } = Astro.props;
+const Heading = level;
+---
+
+<ul class:list={['circles', 'reveal-list', { quotes }]}>
+    {
+        teachers.map((teacher) => (
+            <li class="teacher">
+                <div class:list={['portrait', `vt-teacher-${teacher.slug}`]}>
+                    <Photo name={teacher.photo} sizes="(min-width: 64rem) 16rem, 45vw" decorative />
+                </div>
+                <Heading class="name">
+                    <a href={teacherUrl(teacher.slug)}>{teacher.name}</a>
+                </Heading>
+                <p class="role">{teacher.role}</p>
+                {quotes && <p class="quote">“{teacher.quote}”</p>}
+            </li>
+        ))
+    }
+</ul>
+
+<style>
+    .circles {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: var(--space-12) var(--space-6);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .teacher {
+        position: relative;
+    }
+
+    /* Uneven, like stones: every other one sits lower. */
+    .teacher:nth-child(even) {
+        margin-top: var(--space-12);
+    }
+
+    .portrait {
+        overflow: hidden;
+        aspect-ratio: 1;
+        margin-bottom: var(--space-5);
+        border-radius: 50%;
+        background: var(--color-sand-deep);
+        outline: 1px solid var(--color-line);
+        outline-offset: 0.5rem;
+        transition: outline-offset 1s var(--ease-settle), outline-color 1s var(--ease-settle);
+    }
+
+    .portrait :global(img) {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        filter: saturate(0.85);
+        transition: transform 1.4s var(--ease-settle), filter 1.4s var(--ease-settle);
+    }
+
+    .teacher:hover .portrait {
+        outline-color: var(--color-clay);
+        outline-offset: 0.9rem;
+    }
+
+    .teacher:hover .portrait :global(img) {
+        transform: scale(1.06);
+        filter: none;
+    }
+
+    .name {
+        margin: 0 0 var(--space-1);
+        font-size: clamp(1.45rem, 1.25rem + 0.6vw, 1.85rem);
+    }
+
+    .name a {
+        color: var(--color-ink);
+        text-decoration: none;
+    }
+
+    .name a::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+    }
+
+    .teacher:hover .name a {
+        color: var(--color-clay-ink);
+    }
+
+    .role {
+        margin: 0;
+        color: var(--color-muted);
+        font-size: 0.9rem;
+    }
+
+    .quote {
+        margin: var(--space-4) 0 0;
+        font-family: var(--font-serif);
+        font-size: 1.2rem;
+        font-style: italic;
+        line-height: 1.35;
+    }
+
+    @media (min-width: 56rem) {
+        .circles {
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: var(--space-8);
+        }
+
+        .teacher:nth-child(even) {
+            margin-top: var(--space-20);
+        }
+
+        .teacher:nth-child(3) {
+            margin-top: var(--space-6);
+        }
+
+        .quotes {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: var(--space-16) var(--space-12);
+        }
+
+        .quotes .teacher:nth-child(n) {
+            margin-top: 0;
+        }
+
+        .quotes .teacher:nth-child(3n + 2) {
+            margin-top: var(--space-20);
+        }
+
+        .quotes .teacher:nth-child(3n + 3) {
+            margin-top: var(--space-8);
+        }
+    }
+</style>

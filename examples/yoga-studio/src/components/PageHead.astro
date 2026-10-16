@@ -1,0 +1,172 @@
+---
+/**
+ * The top of every page but the home page. It holds the page's one <h1>
+ * (docs/seo.md, 5): a page that uses PageHead puts no other <h1> anywhere.
+ *
+ * The heading sits low and to the left with a great deal of room around
+ * it. With `photo`, a pebble-shaped photograph floats to the right, ripples
+ * spreading behind it; `transition` names it for the view transition that
+ * carries a card's photo into this page (motion.css).
+ *
+ * `heading` may hold one *italic aside* between asterisks, drawn in clay.
+ */
+import Photo from './Photo.astro';
+import Ripple from './Ripple.astro';
+import type { PhotoName } from '../data/photos';
+
+interface Link {
+    label: string;
+    href: string;
+}
+
+interface Props {
+    label?: string | undefined;
+    heading: string;
+    lead?: string;
+    primary?: Link;
+    secondary?: Link;
+    photo?: PhotoName;
+    /** A view-transition class for the photo: vt-class-yin, vt-teacher-hana-mori... */
+    transition?: string;
+    /** Photo shape: a pebble (default) or a perfect circle (people). */
+    shape?: 'pebble' | 'circle';
+}
+
+const { label, heading, lead, primary, secondary, photo, transition, shape = 'pebble' } = Astro.props;
+const [before = '', aside, after = ''] = heading.split('*');
+---
+
+<section class:list={['page-head', { 'has-photo': photo !== undefined }]}>
+    <Ripple class="head-ripple" rings={5} />
+    <div class="wide inner">
+        <div class="copy">
+            {label && <p class="label">{label}</p>}
+            <h1>{before}{aside && <em>{aside}</em>}{after}</h1>
+            {lead && <p class="lead">{lead}</p>}
+            {
+                (primary || secondary) && (
+                    <p class="actions">
+                        {primary && <a class="button" href={primary.href}>{primary.label}</a>}
+                        {secondary && <a class="button button-quiet" href={secondary.href}>{secondary.label}</a>}
+                    </p>
+                )
+            }
+            {Astro.slots.has('default') && <div class="extra"><slot /></div>}
+        </div>
+        {
+            photo && (
+                <div class:list={['media', shape]}>
+                    <div class:list={['frame', transition]}>
+                        <Photo name={photo} sizes="(min-width: 64rem) 34vw, 80vw" priority class="head-photo" />
+                    </div>
+                </div>
+            )
+        }
+    </div>
+</section>
+
+<style>
+    .page-head {
+        position: relative;
+        padding: clamp(4rem, 2rem + 8vw, 9rem) 0 clamp(3.5rem, 2rem + 5vw, 7rem);
+    }
+
+    .page-head :global(.head-ripple) {
+        top: -18rem;
+        right: -16rem;
+        width: 46rem;
+    }
+
+    .has-photo :global(.head-ripple) {
+        top: auto;
+        bottom: -10rem;
+        right: auto;
+        left: -22rem;
+        width: 40rem;
+    }
+
+    .inner {
+        position: relative;
+        display: grid;
+        gap: clamp(3rem, 2rem + 4vw, 6rem);
+        align-items: end;
+    }
+
+    .copy {
+        max-width: 50rem;
+    }
+
+    .copy h1 {
+        margin-bottom: var(--space-8);
+    }
+
+    .lead {
+        margin-bottom: 0;
+    }
+
+    .actions {
+        margin-top: var(--space-10);
+    }
+
+    .extra {
+        margin-top: var(--space-10);
+    }
+
+    .media {
+        position: relative;
+        justify-self: center;
+        width: min(100%, 26rem);
+    }
+
+    .frame {
+        overflow: hidden;
+        aspect-ratio: 4 / 5;
+        border-radius: var(--radius-pebble);
+        background: var(--color-sand-deep);
+    }
+
+    .circle .frame {
+        aspect-ratio: 1;
+        border-radius: 50%;
+    }
+
+    .frame :global(.head-photo) {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    /* A thin ring offset from the photo, like its reflection. */
+    .media::after {
+        content: '';
+        position: absolute;
+        inset: 6% -7% -6% 7%;
+        z-index: -1;
+        border: 1px solid var(--color-clay);
+        border-radius: var(--radius-pebble);
+        opacity: 0.55;
+    }
+
+    .circle.media::after {
+        border-radius: 50%;
+    }
+
+    @media (min-width: 64rem) {
+        .has-photo .inner {
+            grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+        }
+
+        .media {
+            justify-self: end;
+            margin-right: 4%;
+            margin-bottom: -2rem;
+        }
+    }
+
+    @media (max-width: 40rem) {
+        .media {
+            width: min(82%, 20rem);
+            justify-self: end;
+        }
+    }
+</style>

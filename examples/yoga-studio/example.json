@@ -1,0 +1,9 @@
+{
+  "name": "yoga-studio",
+  "label": "Yoga studio",
+  "description": "An independent yoga studio by a river: class styles, a live weekly schedule from the waffle app, teachers, memberships, workshops and retreats, a new-student intro offer form and a journal.",
+  "kind": "Wellness",
+  "schemaType": "SportsActivityLocation",
+  "look": "Serene and spacious: sage, sand, clay and stone, a light Cormorant serif over Nunito Sans, circles and ripples, a breathing hero, everything slow",
+  "waffleEndpoints": ["GET /api/site/schedule", "POST /api/site/forms/intro-offer"]
+}

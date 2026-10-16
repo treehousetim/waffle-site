@@ -1,0 +1,193 @@
+---
+/**
+ * The way in for someone new: what the first visit is like, and the intro
+ * offer form (IntroForm, posting to /api/site/forms/intro-offer).
+ */
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import IntroForm from '../components/IntroForm.astro';
+import Faq from '../components/Faq.astro';
+import Ripple from '../components/Ripple.astro';
+import { introOffer } from '../data/pricing';
+import { faqPage } from '@core/lib/jsonld.js';
+
+const visit = [
+    { title: 'Find us', text: 'The old boathouse at the end of Ferry Lane. Park on the lane or come along the river path; there is a bike rack by the door.' },
+    { title: 'Arrive early', text: 'Doors open twenty minutes before class. Shoes off in the porch, phones in the cubbies, and tell the desk it is your first time.' },
+    { title: 'Set up', text: 'The teacher will help you find a mat and the props you need. Somewhere near the back is a fine place to start.' },
+    { title: 'Practise', text: 'Follow along, rest whenever you like, and ask if you are unsure. Nobody is watching you; everyone is busy with their own breath.' },
+    { title: 'Stay for tea', text: 'There is always tea afterwards. Stay a few minutes, or slip away. Either is fine.' },
+];
+
+const questions = [
+    { question: 'What should I wear?', answer: 'Anything you can move in that does not need adjusting. Layers are good, especially for yin and restorative, when you will cool down.' },
+    { question: 'Do I need my own mat?', answer: 'No. Mats, blocks, straps, bolsters and blankets are all here and free to use. Bring your own if you prefer it.' },
+    { question: 'Should I eat before class?', answer: 'Something light an hour or two before is ideal. A full meal right before a flow class is uncomfortable.' },
+    { question: 'I have an injury. Can I come?', answer: 'Usually, yes. Tell the teacher before class; they will give you options. Restorative and beginners are the gentlest places to start.' },
+];
+---
+
+<Base
+    title="New students and the intro offer"
+    description="New to Still Water Yoga? Three weeks of unlimited classes for $40, what to expect on your first visit to the studio, and which class to try first."
+    breadcrumbs={[{ name: 'New students', href: '/new-students/' }]}
+    jsonLd={[faqPage(questions)]}
+>
+    <PageHead
+        label="New students"
+        heading="Your first three weeks, *$40*"
+        lead={`${introOffer.note} No contract, nothing to sign up to afterwards, and nobody will try to sell you anything.`}
+        photo="matsAndBlocks"
+        primary={{ label: 'Claim the intro offer', href: '#claim' }}
+        secondary={{ label: 'What a first visit is like', href: '#visit' }}
+    />
+
+    <section class="visit band" id="visit" aria-labelledby="visit-heading">
+        <div class="wide">
+            <h2 id="visit-heading" class="reveal">A first visit, <em>step by step</em></h2>
+            <ol class="path reveal-list">
+                {
+                    visit.map((step) => (
+                        <li>
+                            <h3>{step.title}</h3>
+                            <p>{step.text}</p>
+                        </li>
+                    ))
+                }
+            </ol>
+        </div>
+    </section>
+
+    <section class="claim band" id="claim" aria-labelledby="claim-heading">
+        <Ripple class="spread claim-ripple" rings={5} />
+        <div class="wide claim-inner">
+            <header class="reveal">
+                <p class="label">The intro offer</p>
+                <h2 id="claim-heading">Tell us <em>a little</em> about you</h2>
+                <p class="muted">So the teacher of your first class knows to say hello. We reply within a day, usually sooner, with a welcome and anything you need to know.</p>
+                <p class="muted">Not ready to choose a class? Pick "help me choose" and we will suggest one.</p>
+            </header>
+            <div class="form-wrap reveal">
+                <IntroForm thanks="/contact/thanks/" />
+            </div>
+        </div>
+    </section>
+
+    <section class="questions band" aria-labelledby="faq-heading">
+        <div class="wide questions-inner">
+            <h2 id="faq-heading" class="reveal">Before <em>you come</em></h2>
+            <Faq items={questions} />
+        </div>
+    </section>
+</Base>
+
+<style>
+    .visit h2 {
+        margin-bottom: var(--space-16);
+    }
+
+    .path {
+        display: grid;
+        gap: var(--space-10);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        counter-reset: path;
+    }
+
+    .path li {
+        position: relative;
+        padding-left: 4.5rem;
+        counter-increment: path;
+    }
+
+    .path li::before {
+        content: counter(path);
+        position: absolute;
+        top: -0.4rem;
+        left: 0;
+        display: grid;
+        place-items: center;
+        width: 3rem;
+        height: 3rem;
+        border: 1px solid var(--color-clay);
+        border-radius: 50%;
+        color: var(--color-clay-ink);
+        font-family: var(--font-serif);
+        font-size: 1.5rem;
+        font-style: italic;
+    }
+
+    .path h3 {
+        margin-bottom: var(--space-2);
+    }
+
+    .path p {
+        max-width: 24rem;
+        margin: 0;
+        color: var(--color-muted);
+    }
+
+    @media (min-width: 64rem) {
+        .path {
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: var(--space-8);
+        }
+
+        .path li {
+            padding: 4.5rem 0 0;
+        }
+
+        .path li:nth-child(odd) {
+            margin-top: var(--space-12);
+        }
+    }
+
+    .claim {
+        position: relative;
+        overflow: hidden;
+        background: var(--color-paper);
+        scroll-margin-top: var(--header-height);
+    }
+
+    .claim :global(.claim-ripple) {
+        left: -20rem;
+        bottom: -30rem;
+        width: 44rem;
+    }
+
+    .claim-inner {
+        position: relative;
+        display: grid;
+        gap: var(--space-12);
+    }
+
+    .claim header .muted {
+        max-width: 26rem;
+    }
+
+    @media (min-width: 64rem) {
+        .claim-inner {
+            grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.3fr);
+            gap: var(--space-24);
+            align-items: start;
+        }
+
+        .claim header {
+            position: sticky;
+            top: calc(var(--header-height) + var(--space-12));
+        }
+    }
+
+    .questions-inner {
+        display: grid;
+        gap: var(--space-10);
+    }
+
+    @media (min-width: 64rem) {
+        .questions-inner {
+            grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.4fr);
+            gap: var(--space-16);
+        }
+    }
+</style>

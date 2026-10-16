@@ -1,0 +1,66 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import TeacherCircles from '../../components/TeacherCircles.astro';
+import Closing from '../../components/Closing.astro';
+import { teachers } from '../../data/teachers';
+import { buildTime } from '@core/settings';
+
+const years = buildTime.getUTCFullYear();
+const combined = teachers.reduce((sum, teacher) => sum + (years - teacher.teachingSince), 0);
+---
+
+<Base
+    title="Our yoga teachers"
+    description="Meet the five teachers at Still Water Yoga in Alderwick: who they are, what they teach, how they came to yoga, and their classes this week."
+    breadcrumbs={[{ name: 'Teachers', href: '/teachers/' }]}
+>
+    <PageHead
+        label="The teachers"
+        heading="Five teachers, *one pace*"
+        lead={`Between them, more than ${Math.floor(combined / 10) * 10} years of teaching, a hospice nurse, a doula, a schoolteacher, a physio's best patient and a rower with a bad back. All of them slow.`}
+    />
+
+    <section class="people">
+        <div class="wide">
+            <TeacherCircles level="h2" quotes />
+        </div>
+    </section>
+
+    <section class="how band">
+        <div class="wide how-inner reveal">
+            <h2>How we <em>teach</em></h2>
+            <div>
+                <p>Every teacher here teaches the same way, whatever the style: small classes, plenty of options, nothing forced, and a long rest at the end. We would rather you came back next week than impressed yourself this one.</p>
+                <p>We ask before we touch, and you can always say no. Cards at the front of the room let you say so without a word.</p>
+            </div>
+        </div>
+    </section>
+
+    <Closing />
+</Base>
+
+<style>
+    .people {
+        padding-bottom: var(--space-12);
+    }
+
+    .how-inner {
+        display: grid;
+        gap: var(--space-10);
+        padding-top: var(--space-16);
+        border-top: 1px solid var(--color-line);
+    }
+
+    .how-inner div {
+        max-width: 38rem;
+        font-size: 1.1rem;
+    }
+
+    @media (min-width: 64rem) {
+        .how-inner {
+            grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.4fr);
+            gap: var(--space-16);
+        }
+    }
+</style>

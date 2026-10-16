@@ -1,0 +1,112 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import ClassRows from '../../components/ClassRows.astro';
+import Closing from '../../components/Closing.astro';
+
+const choose = [
+    { feeling: 'Restless, want to move', style: 'Vinyasa', href: '/classes/vinyasa/' },
+    { feeling: 'Stiff, a long day sitting', style: 'Yin', href: '/classes/yin/' },
+    { feeling: 'Tired, frayed, not sleeping', style: 'Restorative', href: '/classes/restorative/' },
+    { feeling: 'Pregnant, from fourteen weeks', style: 'Prenatal', href: '/classes/prenatal/' },
+    { feeling: 'New, or new again', style: 'Beginners', href: '/classes/beginners/' },
+];
+---
+
+<Base
+    title="Yoga classes"
+    description="Five styles of yoga at Still Water in Alderwick: vinyasa, yin, restorative, prenatal and beginners. How each one feels, and which to start with."
+    breadcrumbs={[{ name: 'Classes', href: '/classes/' }]}
+>
+    <PageHead
+        label="Classes"
+        heading="Five paces, *one room*"
+        lead="From a flowing, warming vinyasa to an hour and a half lying very still under blankets. Every class is small, every class has props, and every class ends with rest."
+    />
+
+    <section class="list">
+        <div class="wide">
+            <ClassRows level="h2" full />
+        </div>
+    </section>
+
+    <section class="choose band" aria-labelledby="choose-heading">
+        <div class="wide choose-inner">
+            <header class="reveal">
+                <p class="label">Not sure?</p>
+                <h2 id="choose-heading">Start with <em>how you feel</em></h2>
+                <p class="muted">Not how flexible you are, or how fit. Come to the class that answers the day you have had.</p>
+            </header>
+            <dl class="pairs">
+                {
+                    choose.map((pair) => (
+                        <div class="reveal">
+                            <dt>{pair.feeling}</dt>
+                            <dd>
+                                <a href={pair.href}>{pair.style}</a>
+                            </dd>
+                        </div>
+                    ))
+                }
+            </dl>
+        </div>
+    </section>
+
+    <Closing />
+</Base>
+
+<style>
+    .list {
+        padding-bottom: var(--section);
+    }
+
+    .choose {
+        background: var(--color-paper);
+    }
+
+    .choose-inner {
+        display: grid;
+        gap: var(--space-12);
+    }
+
+    .pairs {
+        margin: 0;
+    }
+
+    .pairs div {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: var(--space-2) var(--space-6);
+        padding: var(--space-5) 0;
+        border-top: 1px solid var(--color-line);
+    }
+
+    dt {
+        color: var(--color-muted);
+    }
+
+    dd {
+        margin: 0;
+    }
+
+    dd a {
+        color: var(--color-ink);
+        font-family: var(--font-serif);
+        font-size: 1.8rem;
+        font-style: italic;
+        text-decoration: none;
+    }
+
+    dd a:hover {
+        color: var(--color-clay-ink);
+    }
+
+    @media (min-width: 64rem) {
+        .choose-inner {
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
+            gap: var(--space-20);
+        }
+    }
+</style>

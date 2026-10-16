@@ -1,0 +1,48 @@
+---
+/** /blog/tags/<tag>/ for every tag in use. */
+import type { GetStaticPaths } from 'astro';
+import { getCollection, type CollectionEntry } from 'astro:content';
+import Base from '../../../layouts/Base.astro';
+import PageHead from '../../../components/PageHead.astro';
+import PostList from '../../../components/PostList.astro';
+import { site } from '../../../site';
+import { buildTime, settings } from '@core/settings';
+import { postsTagged, tagIndex, visiblePosts } from '@core/lib/posts.js';
+
+export const getStaticPaths = (async () => {
+    const posts = visiblePosts(await getCollection('blog'), { includeDrafts: !settings.production, now: buildTime });
+
+    return tagIndex(posts).map((tag) => ({
+        params: { tag: tag.slug },
+        props: { name: tag.tag, posts: postsTagged(posts, tag.slug) },
+    }));
+}) satisfies GetStaticPaths;
+
+interface Props {
+    name: string;
+    posts: CollectionEntry<'blog'>[];
+}
+
+const { name, posts } = Astro.props;
+const count = posts.length === 1 ? 'one post' : `${posts.length} posts`;
+---
+
+<Base
+    title={`Journal posts about ${name.toLowerCase()}`}
+    description={`Every ${site.name} journal post about ${name.toLowerCase()}: ${count}, newest first. Notes on practice and rest from the studio on the river.`}
+    breadcrumbs={[
+        { name: site.blog.title, href: '/blog/' },
+        { name, href: Astro.url.pathname },
+    ]}
+>
+    <PageHead label={`Topic · ${count}`} heading={`On *${name.toLowerCase()}*`} secondary={{ label: '← The whole journal', href: '/blog/' }} />
+    <div class="wide list">
+        <PostList posts={posts} />
+    </div>
+</Base>
+
+<style>
+    .list {
+        padding-bottom: var(--section);
+    }
+</style>

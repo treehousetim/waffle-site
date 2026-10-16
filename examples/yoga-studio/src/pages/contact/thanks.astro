@@ -1,0 +1,25 @@
+---
+/**
+ * Where the waffle app sends a browser without script after a good intro
+ * offer request. Kept out of search results (src/site.ts, noindex).
+ */
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+---
+
+<Base title="Thank you, we have it" description="We have your intro offer request and will reply within a day with a welcome. Three weeks of every class at Still Water Yoga start at your first visit.">
+    <PageHead
+        label="Request received"
+        heading="Thank you. *Breathe out.*"
+        lead="We have your details and will reply within a day, usually sooner, with a welcome and anything you need for your first class."
+        primary={{ label: 'See this week’s classes', href: '/schedule/' }}
+        secondary={{ label: 'Back to the home page', href: '/' }}
+    />
+    <div class="space" aria-hidden="true"></div>
+</Base>
+
+<style>
+    .space {
+        height: var(--section);
+    }
+</style>
