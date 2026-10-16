@@ -141,5 +141,11 @@ export default defineConfig({
 
     vite: {
         server: { proxy },
+        // A minifier aimed at current browsers folds animation-timeline into
+        // the animation shorthand, which no browser accepts yet, so every
+        // scroll-driven animation is silently dropped. Aimed at browsers
+        // older than scroll timelines, Lightning CSS keeps it a longhand.
+        // tests/e2e/site-build.test.js fails the build if it ever comes back.
+        build: { cssMinify: 'lightningcss', cssTarget: ['chrome110', 'safari16', 'firefox115'] },
     },
 });

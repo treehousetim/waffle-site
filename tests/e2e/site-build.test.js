@@ -182,6 +182,16 @@ for (const example of targets) {
             artifact.check('every page carries a content security policy', true);
         });
 
+        it('keeps every scroll-driven animation a longhand, which browsers accept', () => {
+            // `animation: rise-in linear both view()` is dropped whole by every
+            // browser: the shorthand cannot set a timeline (astro.config.mjs, vite).
+            const css = site.files().filter((file) => file.endsWith('.css')).map((file) => site.text(file)).join('\n');
+            const folded = [...css.matchAll(/animation:[^;}]*\b(view|scroll)\(/g)].map((match) => match[0]);
+
+            assert.deepEqual(folded, []);
+            artifact.check('scroll timelines are set as longhands', true);
+        });
+
         it('reads the waffle app over HTTP in production, once per endpoint', () => {
             const requests = results.requestsAfterProduction;
 
