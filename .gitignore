@@ -31,3 +31,6 @@ node_modules/
 
 # Log files.
 *.log
+
+# Screenshots taken while working on a page.
+/.shots/

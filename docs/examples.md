@@ -150,3 +150,23 @@ never hidden waiting for an animation the browser cannot run.
 | Example | Kind | schema.org type | Waffle endpoints |
 |---|---|---|---|
 | `electrician` | Local trade | `Electrician` | price guide, quote form |
+| `mobile-detailing` | Local service, mobile | `AutoWash` | detailing packages, booking form |
+| `wedding-photographer` | Studio | `ProfessionalService` | packages, booked dates, enquiry form |
+| `dental` | Health | `Dentist` | accepted insurance, appointment request |
+| `bakery` | Food | `Bakery` | today's bakes, cake order form |
+| `yoga-studio` | Wellness | `SportsActivityLocation` | class schedule, intro offer form |
+| `brewery` | Hospitality | `Brewery` | tap list, events, private hire form |
+| `veterinary` | Health | `VeterinaryCare` | wellness plans, appointment request |
+| `law-firm` | Professional | `LegalService` | consultation request |
+| `landscape-design` | Local trade | `HomeAndConstructionBusiness` | seasonal services, consultation form |
+| `tattoo-studio` | Studio | `TattooParlor` | artists and their books, booking request |
+| `interior-design` | Studio | `ProfessionalService` | enquiry form |
+| `escape-room` | Entertainment | `EntertainmentBusiness` | rooms and open slots, booking form |
+| `bookshop` | Retail | `BookStore` | events, staff picks, special order form |
+| `climbing-gym` | Fitness | `ExerciseGym` | memberships, party booking form |
+| `vintage-clothing` | Retail | `ClothingStore` | new arrivals, sell-to-us form |
+| `music-school` | Education | `EducationalOrganization` | lesson rates, trial lesson form |
+| `florist` | Retail | `Florist` | today's bouquets, order form |
+| `tutoring` | Education | `EducationalOrganization` | test dates, assessment form |
+| `kayak-tours` | Outdoors | `SportsActivityLocation` | tours and departures, booking form |
+| `barber-shop` | Personal care | `HairSalon` | price list, barbers, booking form |
