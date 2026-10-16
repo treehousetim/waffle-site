@@ -1,0 +1,318 @@
+---
+/**
+ * The site header. A calm strip for urgent care with both phone numbers
+ * (plain, steady, never animated: someone reading it may be worried), then
+ * a sticky bar with the logo, the navigation and the booking button. A small paw walks
+ * along the bar's bottom edge as the page scrolls (motion.css).
+ *
+ * Two navigations, one shown at a time: a plain one on wide screens and a
+ * <details> menu on narrow ones, which opens without script. A closed
+ * <details> hides its contents whatever the CSS says, so the wide-screen
+ * navigation cannot live inside it.
+ */
+import Logo from './Logo.astro';
+import Icon from './Icon.astro';
+import { site } from '../site';
+
+const current = Astro.url.pathname;
+const isCurrent = (href: string) => current === href || (href !== '/' && current.startsWith(href));
+---
+
+<div class="strip calm">
+    <div class="container strip-inner">
+        <p class="strip-urgent">
+            <Icon name="firstAid" size={18} />
+            <span>Sick or hurt today? <a href="/services/urgent-care/">Same-day urgent visits</a></span>
+        </p>
+        <p class="strip-call">
+            <Icon name="phone" size={16} />
+            <span><span class="strip-short">Sick or hurt? </span>Call <a href={`tel:${site.business.phoneE164}`}>{site.business.phone}</a></span>
+        </p>
+        <p class="strip-after">
+            <Icon name="moon" size={16} />
+            <span>After hours <a href={`tel:${site.afterHours.phoneE164}`}>{site.afterHours.phone}</a></span>
+        </p>
+    </div>
+</div>
+
+<header class="site-header">
+    <div class="container bar">
+        <Logo />
+
+        <nav class="nav-wide" aria-label="Main">
+            <ul>
+                {
+                    site.nav.map((link) => (
+                        <li>
+                            <a href={link.href} aria-current={isCurrent(link.href) ? 'page' : undefined}>
+                                {link.label}
+                            </a>
+                        </li>
+                    ))
+                }
+            </ul>
+        </nav>
+
+        <div class="contact-wide">
+            <a class="button button-tomato book" href={site.cta.href}>{site.cta.label}</a>
+        </div>
+
+        <details class="menu">
+            <summary>
+                <span class="open-icon"><Icon name="menu" size={26} /></span>
+                <span class="close-icon"><Icon name="close" size={26} /></span>
+                <span class="menu-label">Menu</span>
+            </summary>
+            <nav class="nav-narrow" aria-label="Main, on small screens">
+                <ul>
+                    {
+                        site.nav.map((link) => (
+                            <li>
+                                <a href={link.href} aria-current={isCurrent(link.href) ? 'page' : undefined}>
+                                    <Icon name="paw" size={18} />
+                                    {link.label}
+                                </a>
+                            </li>
+                        ))
+                    }
+                    <li><a href="/about/"><Icon name="paw" size={18} />About us</a></li>
+                    <li><a href="/emergency/"><Icon name="paw" size={18} />Emergencies</a></li>
+                </ul>
+                <div class="actions">
+                    <a class="button button-tomato" href={site.cta.href}>{site.cta.label}</a>
+                    <a class="button button-cream" href={`tel:${site.business.phoneE164}`}>Call {site.business.phone}</a>
+                </div>
+            </nav>
+        </details>
+    </div>
+    <div class="paw-progress" aria-hidden="true">
+        <span class="paw-walker"><Icon name="paw" size={20} /></span>
+    </div>
+</header>
+
+<style>
+    .strip {
+        background: var(--teal-deep);
+        color: var(--cream);
+        font-size: 0.9rem;
+        font-weight: 700;
+    }
+
+    .strip-inner {
+        display: flex;
+        align-items: center;
+        gap: var(--space-6);
+        min-height: 2.5rem;
+    }
+
+    .strip-urgent {
+        margin-right: auto !important;
+    }
+
+    .strip-short {
+        display: none;
+    }
+
+    .strip p {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        margin: 0;
+    }
+
+    .strip :global(svg) {
+        flex: none;
+        color: var(--mint);
+    }
+
+    .strip a {
+        color: var(--sun);
+        text-decoration-color: rgb(255 201 60 / 0.5);
+    }
+
+    .strip a:hover {
+        color: #ffffff;
+    }
+
+    .site-header {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        background: var(--cream);
+        border-bottom: var(--stroke) solid var(--line);
+    }
+
+    .bar {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-5);
+        min-height: var(--header-height);
+    }
+
+    ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .nav-wide,
+    .contact-wide {
+        display: none;
+    }
+
+    .nav-wide ul {
+        display: flex;
+        gap: 0.15rem;
+    }
+
+    .nav-wide a {
+        display: block;
+        padding: 0.4rem 0.7rem;
+        border: 2px solid transparent;
+        border-radius: 999px;
+        color: var(--ink);
+        font-family: var(--font-display);
+        font-size: 1.05rem;
+        font-weight: 500;
+        white-space: nowrap;
+        text-decoration: none;
+        transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.2s var(--spring);
+    }
+
+    .nav-wide a:hover {
+        background: var(--sun-soft);
+        border-color: var(--line);
+        transform: rotate(-2deg) scale(1.04);
+    }
+
+    .nav-wide a[aria-current='page'] {
+        background: var(--sun);
+        border-color: var(--line);
+    }
+
+    .contact-wide {
+        align-items: center;
+        gap: var(--space-4);
+    }
+
+    .book {
+        white-space: nowrap;
+        min-height: 2.9rem;
+        padding: 0.5rem 1.2rem;
+        font-size: 1.05rem;
+    }
+
+    summary {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        min-height: 2.9rem;
+        padding: 0.3rem 0.9rem 0.3rem 0.6rem;
+        border: var(--stroke) solid var(--line);
+        border-radius: 999px;
+        background: var(--sun);
+        box-shadow: var(--pop-small);
+        font-family: var(--font-display);
+        font-weight: 600;
+        list-style: none;
+        cursor: pointer;
+    }
+
+    summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .open-icon,
+    .close-icon {
+        display: inline-flex;
+    }
+
+    .close-icon,
+    .menu[open] .open-icon {
+        display: none;
+    }
+
+    .menu[open] .close-icon {
+        display: inline-flex;
+    }
+
+    .nav-narrow {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: calc(100% + var(--stroke));
+        max-height: calc(100dvh - var(--header-height) - 3rem);
+        overflow-y: auto;
+        padding: var(--space-4) var(--gutter) var(--space-8);
+        background: var(--cream);
+        border-bottom: var(--stroke) solid var(--line);
+    }
+
+    .nav-narrow ul {
+        margin-bottom: var(--space-6);
+    }
+
+    .nav-narrow li + li {
+        border-top: 2px dashed rgb(23 50 58 / 0.25);
+    }
+
+    .nav-narrow li a {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        padding: var(--space-3) 0;
+        color: var(--ink);
+        font-family: var(--font-display);
+        font-size: 1.35rem;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .nav-narrow li a :global(svg) {
+        color: var(--tomato);
+    }
+
+    .nav-narrow li a[aria-current='page'] {
+        color: var(--tomato-ink);
+    }
+
+    /* The walking paw: hidden unless the browser can drive it by scroll. */
+    .paw-progress {
+        display: none;
+    }
+
+    @media (max-width: 48rem) {
+        .strip-urgent,
+        .strip-after {
+            display: none !important;
+        }
+
+        .strip-inner {
+            justify-content: center;
+        }
+
+        .strip-short {
+            display: inline;
+        }
+    }
+
+    @media (max-width: 22rem) {
+        .menu-label {
+            display: none;
+        }
+    }
+
+    @media (min-width: 72rem) {
+        .nav-wide,
+        .contact-wide {
+            display: flex;
+        }
+
+        .menu {
+            display: none;
+        }
+    }
+
+</style>

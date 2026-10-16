@@ -1,0 +1,37 @@
+---
+import ServicePage from '../../layouts/ServicePage.astro';
+---
+
+<ServicePage
+    slug="exotic-pets"
+    title="Exotic pet vet: rabbits, birds, reptiles"
+    description="Vet care for rabbits, guinea pigs, rats, budgies, cockatiels, tortoises and lizards in Bramblewick, from a vet with a special interest in exotic pets."
+    heading="Rabbits, budgies, tortoises: all welcome"
+    lead="Small and unusual pets need a vet who knows their particular ways. Dr. Priya Nandakumar sees our exotic patients in a quiet room, away from barking dogs."
+    shape="circle"
+    glance={[
+        { label: 'We see', value: 'Rabbits, guinea pigs, rats, ferrets, birds and reptiles' },
+        { label: 'Bring', value: 'Your pet in its carrier, with a photo of its home setup' },
+        { label: 'Waiting', value: 'A separate quiet room, away from dogs and cats' },
+        { label: 'Plans', value: 'Bunny Basics and Golden Years Bunny' },
+    ]}
+    faq={[
+        { question: 'My rabbit has stopped eating. Can it wait?', answer: 'No. A rabbit that has not eaten or passed droppings for 12 hours can be in gut stasis, which is an emergency. Call us straight away, or Lantern Hill after hours.' },
+        { question: 'Do guinea pigs need vaccines?', answer: 'No, but they do need vitamin C every day, as they cannot make their own, and a yearly check of teeth, nails and weight.' },
+        { question: 'How do I bring a reptile in?', answer: 'In a secure box or tub with a towel, kept warm with a wrapped hot water bottle in cooler weather. Bring photos of the vivarium, lighting and thermometers too.' },
+        { question: 'Can you neuter rabbits?', answer: 'Yes, and we recommend it: it prevents uterine cancer in does, calms behaviour and lets rabbits live in pairs. Rabbits do not need to fast beforehand.' },
+    ]}
+>
+    <h2>Who we see</h2>
+    <ul>
+        <li><strong>Rabbits:</strong> vaccines, neutering, teeth, gut stasis and arthritis.</li>
+        <li><strong>Guinea pigs, rats and other small mammals:</strong> skin, teeth and breathing problems.</li>
+        <li><strong>Budgies, cockatiels and other pet birds:</strong> health checks, beak and nail trims, feather problems.</li>
+        <li><strong>Tortoises, lizards and snakes:</strong> health checks, pre-hibernation checks, husbandry reviews.</li>
+    </ul>
+    <h2>Most problems start at home</h2>
+    <p>For exotic pets, diet, lighting, temperature and housing cause most of the illness we see. So we ask lots of questions, look at your photos of their setup, and send you home with clear, practical advice. A rabbit on the right hay or a tortoise under the right UVB lamp is a much healthier animal.</p>
+    <p class="callout">Prey animals hide illness until they are quite poorly. A quiet rabbit, a fluffed-up bird or a reptile that will not eat should be seen soon.</p>
+    <h2>Pre-hibernation checks for tortoises</h2>
+    <p>Every autumn we weigh and examine tortoises before hibernation, check for problems that make it unsafe, and help you plan temperatures and wake-up. Book from late August.</p>
+</ServicePage>

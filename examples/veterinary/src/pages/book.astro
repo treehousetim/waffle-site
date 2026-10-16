@@ -1,0 +1,164 @@
+---
+/**
+ * The appointment request: the form, posting to the waffle app, beside what
+ * happens next and the ways to reach us for anything that cannot wait.
+ */
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+import AppointmentForm from '../components/AppointmentForm.astro';
+import Icon from '../components/Icon.astro';
+import { addressLine, site } from '../site';
+
+const next = [
+    { title: 'We read it the same day', text: 'Mags or one of the nurses reads every request while we are open.' },
+    { title: 'We call or text to confirm', text: 'Within one working day, with a time that suits you.' },
+    { title: 'You come in and say hello', text: 'New clients: come ten minutes early for a cuppa and the paperwork.' },
+];
+---
+
+<Base
+    title="Book a vet appointment"
+    description="Request an appointment at Paws & Whiskers in Bramblewick for your dog, cat, rabbit or exotic pet. We confirm a time within one working day."
+    breadcrumbs={[{ name: 'Book a visit', href: '/book/' }]}
+    closing={false}
+>
+    <Hero
+        tone="tomato"
+        icon="calendar"
+        eyebrow="Book a visit"
+        heading="Let’s get them booked in"
+        lead="Four quick steps. Tell us who is coming and when suits you, and we will confirm a time within one working day."
+    />
+
+    <div class="container layout">
+        <AppointmentForm thanks="/book/thanks/" />
+
+        <aside class="side">
+            <div class="panel sticker sticker-sun tilt-right">
+                <h2>What happens next</h2>
+                <ol class="next">
+                    {next.map((step) => (
+                        <li>
+                            <strong>{step.title}</strong>
+                            <span>{step.text}</span>
+                        </li>
+                    ))}
+                </ol>
+            </div>
+
+            <div class="panel sticker">
+                <h2>Rather talk?</h2>
+                <p class="line"><Icon name="phone" size={20} /> <a href={`tel:${site.business.phoneE164}`}>{site.business.phone}</a></p>
+                <p class="line"><Icon name="mail" size={20} /> <a href={`mailto:${site.business.email}`}>{site.business.email}</a></p>
+                <p class="line"><Icon name="pin" size={20} /> <span>{addressLine}</span></p>
+            </div>
+
+            <div class="panel urgent calm">
+                <h2>Is it urgent?</h2>
+                <p>Please don’t use the form. Call <a href={`tel:${site.business.phoneE164}`}>{site.business.phone}</a> and we will see you today. After hours, call {site.afterHours.name} on <a href={`tel:${site.afterHours.phoneE164}`}>{site.afterHours.phone}</a>.</p>
+            </div>
+        </aside>
+    </div>
+</Base>
+
+<style>
+    .layout {
+        display: grid;
+        gap: var(--space-12);
+        padding: var(--space-8) 0 var(--section);
+    }
+
+    @media (min-width: 64rem) {
+        .layout {
+            grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+            align-items: start;
+        }
+
+        .side {
+            position: sticky;
+            top: calc(var(--header-height) + var(--space-8));
+        }
+    }
+
+    .side {
+        display: grid;
+        gap: var(--space-8);
+    }
+
+    .panel {
+        padding: var(--space-6);
+    }
+
+    .panel h2 {
+        margin-bottom: var(--space-4);
+        font-size: 1.5rem;
+    }
+
+    .next {
+        display: grid;
+        gap: var(--space-4);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        counter-reset: next;
+    }
+
+    .next li {
+        display: grid;
+        grid-template-columns: 2.25rem 1fr;
+        column-gap: var(--space-3);
+        counter-increment: next;
+        line-height: 1.4;
+    }
+
+    .next li::before {
+        content: counter(next);
+        grid-row: span 2;
+        display: inline-grid;
+        place-items: center;
+        width: 2.25rem;
+        height: 2.25rem;
+        border: var(--stroke) solid var(--line);
+        border-radius: 50%;
+        background: var(--paper);
+        font-family: var(--font-display);
+        font-weight: 700;
+    }
+
+    .next span {
+        font-size: 0.95rem;
+        font-weight: 600;
+    }
+
+    .line {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        margin-bottom: var(--space-3);
+        font-weight: 700;
+    }
+
+    .line :global(svg) {
+        flex: none;
+        color: var(--tomato-ink);
+    }
+
+    .urgent {
+        padding: var(--space-6);
+        border-radius: var(--radius);
+        background: var(--teal-deep);
+        color: var(--mint-soft);
+    }
+
+    .urgent h2 {
+        color: var(--cream);
+    }
+
+    .urgent p {
+        margin: 0;
+    }
+
+    .urgent a {
+        color: var(--sun);
+    }
+</style>

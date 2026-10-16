@@ -1,0 +1,150 @@
+---
+/**
+ * The team as a row of instant photos, each of the person's own pet (the
+ * people are invented; we never put a made-up name to a real face). On wide
+ * screens the row drifts sideways as the page scrolls past it (motion.css);
+ * otherwise it wraps.
+ */
+import Photo from './Photo.astro';
+import { team, type TeamMember } from '../data/team';
+
+interface Props {
+    members?: TeamMember[];
+    level?: 'h2' | 'h3';
+    /** Drift sideways on scroll (the home page); the team page lays them out still. */
+    drift?: boolean;
+}
+
+const { members = team, level = 'h3', drift = false } = Astro.props;
+const Heading = level;
+---
+
+<div class:list={['polaroids', { drift }]}>
+    <ul class="row">
+        {
+            members.map((member) => (
+                <li class="polaroid">
+                    <div class="snap">
+                        <Photo name={member.pet.photo} sizes="18rem" />
+                    </div>
+                    <p class="caption">{member.pet.name}, {member.pet.kind}</p>
+                    <Heading class="who">{member.name}</Heading>
+                    <p class="role">{member.role}</p>
+                </li>
+            ))
+        }
+    </ul>
+</div>
+
+<style>
+    .polaroids {
+        overflow: clip;
+        overflow-clip-margin: 2rem;
+    }
+
+    .row {
+        display: grid;
+        gap: var(--space-8) var(--space-6);
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+        margin: 0;
+        padding: var(--space-4) 0 var(--space-6);
+        list-style: none;
+    }
+
+    @media (max-width: 39.99rem) {
+        .row {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: var(--space-6) var(--space-4);
+        }
+
+        .row .polaroid {
+            padding: var(--space-2) var(--space-2) var(--space-3);
+            box-shadow: var(--pop-small);
+        }
+
+        .polaroid .caption {
+            font-size: 0.9rem;
+        }
+
+        .polaroid .who {
+            font-size: 1.05rem;
+        }
+
+        .polaroid .role {
+            font-size: 0.82rem;
+        }
+    }
+
+    @media (min-width: 64rem) {
+        .row {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: var(--space-12) var(--space-10);
+        }
+    }
+
+    .polaroid {
+        padding: var(--space-3) var(--space-3) var(--space-5);
+        border: var(--stroke) solid var(--line);
+        border-radius: 0.5rem;
+        background: #ffffff;
+        box-shadow: var(--pop);
+        transition: rotate 0.35s var(--spring), translate 0.35s var(--spring);
+    }
+
+    .polaroid:nth-child(odd) {
+        rotate: -2.5deg;
+    }
+
+    .polaroid:nth-child(even) {
+        rotate: 2deg;
+        translate: 0 0.75rem;
+    }
+
+    .polaroid:hover {
+        rotate: 0deg;
+        translate: 0 -0.4rem;
+    }
+
+    .snap {
+        overflow: hidden;
+        aspect-ratio: 1;
+        border: 2px solid var(--line);
+        background: var(--sun-soft);
+    }
+
+    .snap :global(picture),
+    .snap :global(img) {
+        display: block;
+        width: 100%;
+        height: 100%;
+    }
+
+    .snap :global(img) {
+        object-fit: cover;
+    }
+
+    .caption {
+        margin: var(--space-3) 0 var(--space-2);
+        color: var(--tomato-ink);
+        font-family: var(--font-display);
+        font-size: 1.05rem;
+        font-weight: 500;
+        line-height: 1.25;
+    }
+
+    .who {
+        margin: 0;
+        font-size: 1.3rem;
+    }
+
+    .role {
+        margin: var(--space-1) 0 0;
+        color: var(--muted);
+        font-size: 0.95rem;
+        font-weight: 700;
+        line-height: 1.35;
+    }
+
+    /* The one-row drift layout lives in motion.css, beside the animation that
+       brings every card into view: without that, a single row would hide some. */
+</style>

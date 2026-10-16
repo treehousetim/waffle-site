@@ -1,0 +1,239 @@
+---
+/**
+ * Find us: the address, hours, phone and email from src/site.ts, a little
+ * drawn map of Kettle Lane (no third-party map: the content security policy
+ * blocks embeds, and a drawing is friendlier anyway), and getting here.
+ */
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+import Icon from '../components/Icon.astro';
+import { addressLine, site } from '../site';
+
+---
+
+<Base
+    title="Find us: address and opening hours"
+    description={`Paws & Whiskers Animal Hospital, ${addressLine}. Opening hours, phone, email, parking and how to get here, plus where to go after hours.`}
+    breadcrumbs={[{ name: 'Find us', href: '/contact/' }]}
+>
+    <Hero
+        tone="mint"
+        icon="pin"
+        eyebrow="Find us"
+        heading="Come and say hello"
+        lead="We’re the yellow door on Kettle Lane, between the bookshop and the park. Free parking out back, and a water bowl by the step."
+    />
+
+    <section class="container find" aria-labelledby="details-heading">
+        <div class="details">
+            <h2 id="details-heading" class="visually-hidden">Contact details</h2>
+            <div class="card sticker sticker-sun tilt-left">
+                <h3><Icon name="pin" size={24} /> Address</h3>
+                <p class="big">{site.business.address.street}<br />{site.business.address.city}, {site.business.address.region} {site.business.address.postalCode}</p>
+                <p><a href="#getting">How to get here <Icon name="arrow" size={16} /></a></p>
+            </div>
+            <div class="card sticker">
+                <h3><Icon name="phone" size={24} /> Phone and email</h3>
+                <p class="big"><a href={`tel:${site.business.phoneE164}`}>{site.business.phone}</a></p>
+                <p><a href={`mailto:${site.business.email}`}>{site.business.email}</a></p>
+            </div>
+            <div class="card sticker sticker-mint tilt-right">
+                <h3><Icon name="clock" size={24} /> Opening hours</h3>
+                <dl>
+                    {site.business.hoursText.map((row) => (
+                        <div>
+                            <dt>{row.days}</dt>
+                            <dd>{row.time}</dd>
+                        </div>
+                    ))}
+                </dl>
+            </div>
+        </div>
+
+        <figure class="map sticker">
+            <svg viewBox="0 0 600 480" role="img" aria-label="A drawn map: Paws & Whiskers is on Kettle Lane, beside Bramble Park, with parking behind the building." focusable="false">
+                <rect width="600" height="480" fill="#d8f0ed"></rect>
+                <path d="M380 0 h220 v230 c-60 10 -120 -10 -170 -40 c-30 -20 -50 -90 -50 -190z" fill="#b9e3b0" stroke="#17323a" stroke-width="3"></path>
+                <text x="470" y="90" text-anchor="middle" class="map-label">Bramble Park</text>
+                <path d="M0 400 C 120 360 220 440 340 410 S 520 380 600 420 V480 H0z" fill="#9fd0e8" stroke="#17323a" stroke-width="3"></path>
+                <text x="140" y="455" class="map-label">River Otter</text>
+                <path d="M0 250 H600" stroke="#fffbf2" stroke-width="34"></path>
+                <path d="M0 250 H600" stroke="#17323a" stroke-width="2" stroke-dasharray="14 12"></path>
+                <path d="M260 0 V400" stroke="#fffbf2" stroke-width="28"></path>
+                <path d="M110 0 C 120 120 90 180 120 250" stroke="#fffbf2" stroke-width="22" fill="none"></path>
+                <text x="40" y="238" class="map-street">Kettle Lane</text>
+                <text x="272" y="60" class="map-street" transform="rotate(90 272 60)">Mill Street</text>
+                <rect x="300" y="268" width="70" height="56" rx="6" fill="#fffbf2" stroke="#17323a" stroke-width="3"></rect>
+                <text x="335" y="301" text-anchor="middle" class="map-small">Books</text>
+                <rect x="390" y="268" width="96" height="70" rx="8" fill="#ffc93c" stroke="#17323a" stroke-width="4"></rect>
+                <text x="438" y="308" text-anchor="middle" class="map-small">Paws &amp; W.</text>
+                <rect x="400" y="350" width="80" height="34" rx="6" fill="#fffbf2" stroke="#17323a" stroke-width="3" stroke-dasharray="6 5"></rect>
+                <text x="440" y="373" text-anchor="middle" class="map-small">P</text>
+                <g class="map-pin">
+                    <path d="M438 260 c-16 -18 -24 -30 -24 -42 a24 24 0 0 1 48 0 c0 12 -8 24 -24 42z" fill="#c2361a" stroke="#17323a" stroke-width="4"></path>
+                    <circle cx="438" cy="218" r="8" fill="#fffbf2" stroke="#17323a" stroke-width="3"></circle>
+                </g>
+                <text x="140" y="130" class="map-small" text-anchor="middle">Bus stop: line 4</text>
+                <circle cx="140" cy="148" r="9" fill="#0b4f55" stroke="#17323a" stroke-width="2"></circle>
+            </svg>
+            <figcaption>Not to scale. Drawn by a nurse with a steady hand.</figcaption>
+        </figure>
+    </section>
+
+    <section id="getting" class="band band-paper" aria-labelledby="getting-heading">
+        <div class="container getting">
+            <div>
+                <p class="eyebrow"><Icon name="paw" />Getting here</p>
+                <h2 id="getting-heading">By car, bus or paw</h2>
+            </div>
+            <ul class="paw-list">
+                <li><strong>Parking:</strong> free, behind the building, through the gate on Mill Street. Two bays by the door are kept for pets who cannot walk far.</li>
+                <li><strong>Bus:</strong> line 4 stops on Mill Street, a two-minute walk away.</li>
+                <li><strong>Step-free:</strong> a ramp at the front door, and a lift-up exam table for big dogs.</li>
+                <li><strong>On foot:</strong> through Bramble Park, the scenic route. Bags at the gate.</li>
+                <li><strong>After hours:</strong> {site.afterHours.name}, {site.afterHours.address}, <a href={`tel:${site.afterHours.phoneE164}`}>{site.afterHours.phone}</a>.</li>
+            </ul>
+        </div>
+    </section>
+</Base>
+
+<style>
+    .find {
+        display: grid;
+        gap: var(--space-12);
+        padding: var(--space-10) 0 var(--section);
+    }
+
+    @media (min-width: 64rem) {
+        .find {
+            grid-template-columns: 1fr 1.25fr;
+            align-items: start;
+        }
+    }
+
+    .details {
+        display: grid;
+        gap: var(--space-8);
+    }
+
+    .card {
+        padding: var(--space-6);
+    }
+
+    .card h3 {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        margin-bottom: var(--space-3);
+    }
+
+    .card p {
+        margin: 0 0 var(--space-2);
+        font-weight: 700;
+    }
+
+    .card p:last-child {
+        margin: 0;
+    }
+
+    .card a {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+    }
+
+    .big {
+        font-family: var(--font-display);
+        font-size: 1.5rem;
+        font-weight: 600 !important;
+        line-height: 1.2;
+    }
+
+    .big a {
+        color: var(--ink);
+    }
+
+    dl {
+        display: grid;
+        gap: var(--space-2);
+        margin: 0;
+    }
+
+    dl div {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 0 var(--space-4);
+        padding-bottom: var(--space-2);
+        border-bottom: 2px dashed rgb(23 50 58 / 0.3);
+    }
+
+    dt {
+        font-weight: 800;
+    }
+
+    dd {
+        margin: 0;
+        font-weight: 600;
+    }
+
+    .map {
+        margin: 0;
+        padding: var(--space-3);
+        overflow: hidden;
+        background: #ffffff;
+        box-shadow: var(--pop-large);
+    }
+
+    .map svg {
+        width: 100%;
+        height: auto;
+        border-radius: var(--radius-small);
+    }
+
+    .map :global(.map-label) {
+        fill: #17323a;
+        font-family: var(--font-display);
+        font-size: 22px;
+        font-weight: 600;
+    }
+
+    .map :global(.map-street) {
+        fill: #17323a;
+        font-family: var(--font-body);
+        font-size: 15px;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+    }
+
+    .map :global(.map-small) {
+        fill: #17323a;
+        font-family: var(--font-body);
+        font-size: 14px;
+        font-weight: 800;
+    }
+
+    .map figcaption {
+        padding: var(--space-3) var(--space-2) var(--space-1);
+        color: var(--muted);
+        font-size: 0.9rem;
+        font-weight: 700;
+    }
+
+    .getting {
+        display: grid;
+        gap: var(--space-8);
+    }
+
+    .getting .paw-list {
+        font-size: 1.08rem;
+        font-weight: 600;
+    }
+
+    @media (min-width: 64rem) {
+        .getting {
+            grid-template-columns: 0.8fr 1.2fr;
+        }
+    }
+</style>

@@ -1,0 +1,475 @@
+---
+/**
+ * The appointment request, received by the waffle app (docs/forms.md).
+ *
+ * It posts to /api/site/forms/appointment on this site; Caddy forwards that
+ * to the waffle app with the site key (docs/waffle-api.md). It works without
+ * script: the browser checks the fields, posts the form, and the app answers
+ * with a redirect to `thanks`. With script (src/scripts/forms.ts) it sends
+ * JSON and shows the answer in place, field by field.
+ *
+ * Fields the app receives: pet_name, species, age, reason, details,
+ * client_type (new | existing), preferred_times (one or more), name, phone,
+ * email, contact_by, plus the redirect and the honeypot.
+ */
+import { HONEYPOT } from '@core/lib/forms.js';
+import Icon, { type IconName } from './Icon.astro';
+import { services } from '../data/services';
+
+interface Props {
+    /** Where the app sends a browser without script after a good submission. */
+    thanks: string;
+}
+
+const { thanks } = Astro.props;
+
+const species: { value: string; label: string; icon: IconName }[] = [
+    { value: 'dog', label: 'Dog', icon: 'dog' },
+    { value: 'cat', label: 'Cat', icon: 'cat' },
+    { value: 'rabbit', label: 'Rabbit or small pet', icon: 'rabbit' },
+    { value: 'bird', label: 'Bird', icon: 'bird' },
+    { value: 'reptile', label: 'Reptile', icon: 'turtle' },
+    { value: 'other', label: 'Someone else', icon: 'paw' },
+];
+
+const times = [
+    { value: 'weekday-morning', label: 'Weekday mornings' },
+    { value: 'weekday-afternoon', label: 'Weekday afternoons' },
+    { value: 'weekday-evening', label: 'Weekday evenings (after 5)' },
+    { value: 'saturday', label: 'Saturday mornings' },
+];
+
+const reasons = [
+    ...services.filter((item) => item.slug !== 'urgent-care').map((item) => ({ value: item.slug, label: item.name })),
+    { value: 'sick-visit', label: 'Something is wrong (not an emergency)' },
+    { value: 'follow-up', label: 'A follow-up or recheck' },
+    { value: 'other', label: 'Something else' },
+];
+---
+
+<form class="form sticker" method="post" action="/api/site/forms/appointment" data-site-form>
+    <input type="hidden" name="redirect" value={thanks} />
+
+    <fieldset class="group">
+        <legend><span class="step">1</span> Are you new to us?</legend>
+        <div class="toggles">
+            <label class="toggle">
+                <input type="radio" name="client_type" value="new" required checked />
+                <span><strong>We’re new</strong> First visit to Paws & Whiskers</span>
+            </label>
+            <label class="toggle">
+                <input type="radio" name="client_type" value="existing" />
+                <span><strong>We’ve been before</strong> You already know us</span>
+            </label>
+        </div>
+        <p class="error" data-error-for="client_type" hidden></p>
+    </fieldset>
+
+    <fieldset class="group">
+        <legend><span class="step">2</span> Who’s coming in?</legend>
+        <div class="row">
+            <div class="field">
+                <label for="appt-pet-name">Pet’s name</label>
+                <input id="appt-pet-name" name="pet_name" type="text" required maxlength="60" autocomplete="off" />
+                <p class="error" data-error-for="pet_name" hidden></p>
+            </div>
+            <div class="field">
+                <label for="appt-age">Age</label>
+                <input id="appt-age" name="age" type="text" required maxlength="40" placeholder="e.g. 4 months, or about 9 years" />
+                <p class="error" data-error-for="age" hidden></p>
+            </div>
+        </div>
+        <div class="field">
+            <span class="label" id="appt-species-label">Species</span>
+            <div class="species" role="radiogroup" aria-labelledby="appt-species-label">
+                {
+                    species.map((item, index) => (
+                        <label class="animal">
+                            <input type="radio" name="species" value={item.value} required={index === 0} />
+                            <span class="animal-face"><Icon name={item.icon} size={30} /></span>
+                            <span class="animal-name">{item.label}</span>
+                        </label>
+                    ))
+                }
+            </div>
+            <p class="error" data-error-for="species" hidden></p>
+        </div>
+    </fieldset>
+
+    <fieldset class="group">
+        <legend><span class="step">3</span> What’s the visit for?</legend>
+        <div class="field">
+            <label for="appt-reason">Reason</label>
+            <select id="appt-reason" name="reason" required>
+                <option value="">Choose one</option>
+                {reasons.map((item) => <option value={item.value}>{item.label}</option>)}
+            </select>
+            <p class="error" data-error-for="reason" hidden></p>
+        </div>
+        <div class="field">
+            <label for="appt-details">Anything we should know? <span class="optional">(optional)</span></label>
+            <textarea id="appt-details" name="details" rows="4" maxlength="2000" placeholder="Symptoms, how long it has been going on, nerves, medicines..."></textarea>
+            <p class="error" data-error-for="details" hidden></p>
+        </div>
+        <fieldset class="field inner">
+            <legend class="label">When suits you? <span class="optional">(tick any)</span></legend>
+            <div class="chips">
+                {
+                    times.map((item) => (
+                        <label class="chip">
+                            <input type="checkbox" name="preferred_times" value={item.value} />
+                            <span>{item.label}</span>
+                        </label>
+                    ))
+                }
+            </div>
+            <p class="error" data-error-for="preferred_times" hidden></p>
+        </fieldset>
+    </fieldset>
+
+    <fieldset class="group">
+        <legend><span class="step">4</span> How do we reach you?</legend>
+        <div class="field">
+            <label for="appt-name">Your name</label>
+            <input id="appt-name" name="name" type="text" autocomplete="name" required maxlength="100" />
+            <p class="error" data-error-for="name" hidden></p>
+        </div>
+        <div class="row">
+            <div class="field">
+                <label for="appt-phone">Phone</label>
+                <input id="appt-phone" name="phone" type="tel" autocomplete="tel" required maxlength="30" />
+                <p class="error" data-error-for="phone" hidden></p>
+            </div>
+            <div class="field">
+                <label for="appt-email">Email</label>
+                <input id="appt-email" name="email" type="email" autocomplete="email" required maxlength="254" />
+                <p class="error" data-error-for="email" hidden></p>
+            </div>
+        </div>
+        <fieldset class="field inner">
+            <legend class="label">Best way to confirm</legend>
+            <div class="chips">
+                <label class="chip"><input type="radio" name="contact_by" value="phone" checked /> <span>Phone call</span></label>
+                <label class="chip"><input type="radio" name="contact_by" value="text" /> <span>Text message</span></label>
+                <label class="chip"><input type="radio" name="contact_by" value="email" /> <span>Email</span></label>
+            </div>
+        </fieldset>
+    </fieldset>
+
+    <div class="trap" aria-hidden="true">
+        <label for="appt-website">Leave this empty</label>
+        <input id="appt-website" name={HONEYPOT} type="text" tabindex="-1" autocomplete="off" />
+    </div>
+
+    <p class="status" role="status" aria-live="polite" data-status></p>
+
+    <div class="submit-row">
+        <button class="button button-tomato button-large" type="submit"><Icon name="calendar" /> Request my appointment</button>
+        <p class="note">This is a request: we call or text within one working day to confirm a time. Is your pet very unwell? <a href="/emergency/">Don’t wait, call us.</a></p>
+    </div>
+</form>
+
+<script>
+    import { enhanceForms } from '../scripts/forms';
+
+    enhanceForms(document);
+</script>
+
+<style>
+    .form {
+        display: grid;
+        gap: var(--space-10);
+        padding: clamp(1.25rem, 0.75rem + 2.5vw, 2.75rem);
+        background: var(--paper);
+        box-shadow: var(--pop-large);
+    }
+
+    fieldset {
+        min-width: 0;
+        margin: 0;
+        padding: 0;
+        border: 0;
+    }
+
+    .group {
+        display: grid;
+        gap: var(--space-5);
+    }
+
+    .group > legend {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        margin-bottom: var(--space-5);
+        font-family: var(--font-display);
+        font-size: clamp(1.4rem, 1.2rem + 0.8vw, 1.8rem);
+        font-weight: 600;
+        line-height: 1.1;
+    }
+
+    .step {
+        display: inline-grid;
+        flex: none;
+        place-items: center;
+        width: 2.4rem;
+        height: 2.4rem;
+        border: var(--stroke) solid var(--line);
+        border-radius: 50%;
+        background: var(--sun);
+        font-size: 1.15rem;
+        font-weight: 700;
+    }
+
+    .row {
+        display: grid;
+        gap: var(--space-5);
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+    }
+
+    .field {
+        display: grid;
+        gap: var(--space-2);
+    }
+
+    label,
+    .label {
+        font-weight: 800;
+    }
+
+    .inner > legend {
+        margin-bottom: var(--space-2);
+        padding: 0;
+    }
+
+    .optional {
+        color: var(--muted);
+        font-weight: 600;
+    }
+
+    input:not([type='radio'], [type='checkbox']),
+    select,
+    textarea {
+        width: 100%;
+        min-height: 3.25rem;
+        padding: 0.75rem 1rem;
+        border: var(--stroke) solid var(--line);
+        border-radius: var(--radius-small);
+        background: #ffffff;
+        color: var(--ink);
+        font: inherit;
+        font-weight: 600;
+        transition: box-shadow 0.15s ease, translate 0.15s ease;
+    }
+
+    ::placeholder {
+        color: #6b7b7e;
+        font-weight: 500;
+    }
+
+    input:not([type='radio'], [type='checkbox']):focus,
+    select:focus,
+    textarea:focus {
+        outline: none;
+        box-shadow: 4px 4px 0 var(--sun), 4px 4px 0 3px var(--line);
+        translate: -2px -2px;
+    }
+
+    [aria-invalid='true'] {
+        border-color: var(--error) !important;
+    }
+
+    /* New or existing: two big toggles. */
+    .toggles {
+        display: grid;
+        gap: var(--space-4);
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+    }
+
+    .toggle {
+        position: relative;
+        display: flex;
+        gap: var(--space-3);
+        align-items: flex-start;
+        padding: var(--space-4) var(--space-5);
+        border: var(--stroke) solid var(--line);
+        border-radius: var(--radius);
+        background: #ffffff;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.15s ease, box-shadow 0.2s var(--spring), translate 0.2s var(--spring);
+    }
+
+    .toggle span {
+        display: grid;
+        line-height: 1.35;
+    }
+
+    .toggle strong {
+        font-family: var(--font-display);
+        font-size: 1.2rem;
+        font-weight: 600;
+    }
+
+    .toggle input,
+    .chip input {
+        flex: none;
+        width: 1.25rem;
+        height: 1.25rem;
+        margin: 0.2rem 0 0;
+        accent-color: var(--tomato-ink);
+    }
+
+    .toggle:has(input:checked) {
+        background: var(--sun);
+        box-shadow: var(--pop-small);
+        translate: -2px -2px;
+    }
+
+    .toggle:has(input:focus-visible),
+    .animal:has(input:focus-visible),
+    .chip:has(input:focus-visible) {
+        outline: 3px solid var(--focus);
+        outline-offset: 3px;
+    }
+
+    /* Species: a row of faces to pick from. */
+    .species {
+        display: grid;
+        gap: var(--space-3);
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .animal {
+        position: relative;
+        display: grid;
+        justify-items: center;
+        gap: var(--space-2);
+        padding: var(--space-4) var(--space-2) var(--space-3);
+        border: var(--stroke) solid var(--line);
+        border-radius: var(--radius);
+        background: #ffffff;
+        font-weight: 800;
+        line-height: 1.2;
+        text-align: center;
+        cursor: pointer;
+        transition: background-color 0.15s ease, box-shadow 0.2s var(--spring), translate 0.2s var(--spring), rotate 0.3s var(--spring);
+    }
+
+    .animal input {
+        position: absolute;
+        opacity: 0;
+        inset: 0;
+        cursor: pointer;
+    }
+
+    .animal-face {
+        display: inline-grid;
+        place-items: center;
+        width: 3.25rem;
+        height: 3.25rem;
+        border: 2px solid var(--line);
+        border-radius: 50%;
+        background: var(--sun-soft);
+    }
+
+    .animal-name {
+        font-size: 0.92rem;
+    }
+
+    .animal:hover {
+        rotate: -2deg;
+    }
+
+    .animal:has(input:checked) {
+        background: var(--mint);
+        box-shadow: var(--pop-small);
+        translate: -2px -2px;
+    }
+
+    .animal:has(input:checked) .animal-face {
+        background: var(--paper);
+    }
+
+    .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+    }
+
+    .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        padding: 0.5rem 1rem 0.5rem 0.75rem;
+        border: 2px solid var(--line);
+        border-radius: 999px;
+        background: #ffffff;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .chip input {
+        margin: 0;
+    }
+
+    .chip:has(input:checked) {
+        background: var(--sun-soft);
+    }
+
+    .error {
+        margin: 0;
+        color: var(--error);
+        font-size: 0.95rem;
+        font-weight: 700;
+    }
+
+    .status:empty {
+        display: none;
+    }
+
+    .status {
+        margin: 0;
+        padding: var(--space-4) var(--space-5);
+        border: var(--stroke) solid var(--line);
+        border-radius: var(--radius);
+        font-weight: 800;
+    }
+
+    .status[data-kind='sent'] {
+        background: var(--mint);
+    }
+
+    .status[data-kind='invalid'],
+    .status[data-kind='failed'] {
+        background: var(--tomato-soft);
+        color: var(--error);
+    }
+
+    /* Off screen rather than display:none, which some bots check for. */
+    .trap {
+        position: absolute;
+        left: -10000px;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+    }
+
+    .submit-row {
+        display: grid;
+        gap: var(--space-4);
+        justify-items: start;
+    }
+
+    .note {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.95rem;
+        font-weight: 600;
+    }
+
+    @media (max-width: 30rem) {
+        .submit-row .button {
+            width: 100%;
+        }
+    }
+</style>

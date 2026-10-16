@@ -1,0 +1,95 @@
+---
+/** Every service, as the sticker sheet, with how we price and where urgent care fits. */
+import Base from '../../layouts/Base.astro';
+import Hero from '../../components/Hero.astro';
+import ServiceStickers from '../../components/ServiceStickers.astro';
+import UrgentBand from '../../components/UrgentBand.astro';
+import PawTrail from '../../components/PawTrail.astro';
+import Icon from '../../components/Icon.astro';
+import { services } from '../../data/services';
+
+const promises = [
+    { title: 'Prices before anything happens', text: 'A written estimate for anything beyond the exam, and a call if it changes.', icon: 'check' },
+    { title: 'One team, start to finish', text: 'The vet who examines your pet is the one who calls you with results.', icon: 'heart' },
+    { title: 'Notes in your inbox', text: 'A summary of every visit, emailed before you are home.', icon: 'mail' },
+] as const;
+---
+
+<Base
+    title="Vet services in Bramblewick"
+    description="Wellness exams and vaccines, dental care, surgery, same-day urgent care, puppy and kitten care, senior pets and exotics, all at Paws & Whiskers in Bramblewick."
+    breadcrumbs={[{ name: 'Services', href: '/services/' }]}
+>
+    <Hero
+        tone="sun"
+        icon="stethoscope"
+        eyebrow="Our services"
+        heading="Seven kinds of care, one friendly roof"
+        lead="From a puppy’s first vaccine to a tortoise’s pre-hibernation weigh-in, here is everything we do. Pick a sticker to find out more."
+        photo="goldenPuppy"
+        shape="blob"
+        primary={{ label: 'Book a visit', href: '/book/' }}
+        secondary={{ label: 'Wellness plans', href: '/wellness-plans/' }}
+    />
+
+    <section class="band" aria-labelledby="all-heading">
+        <div class="container">
+            <h2 id="all-heading" class="visually-hidden">All our services</h2>
+            <ServiceStickers services={services} />
+        </div>
+    </section>
+
+    <PawTrail tone="teal" />
+
+    <section class="band band-paper" aria-labelledby="promise-heading">
+        <div class="container">
+            <div class="band-head">
+                <p class="eyebrow"><Icon name="shield" />Our promise</p>
+                <h2 id="promise-heading">However big or small the visit</h2>
+            </div>
+            <ul class="promises">
+                {promises.map((item, index) => (
+                    <li class:list={['sticker', 'promise', index === 1 ? 'sticker-mint' : index === 2 ? 'sticker-tomato' : 'sticker-sun']}>
+                        <Icon name={item.icon} size={30} />
+                        <h3>{item.title}</h3>
+                        <p>{item.text}</p>
+                    </li>
+                ))}
+            </ul>
+        </div>
+    </section>
+
+    <UrgentBand />
+</Base>
+
+<style>
+    .promises {
+        display: grid;
+        gap: var(--space-8);
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .promise {
+        padding: var(--space-6);
+    }
+
+    .promise:nth-child(odd) {
+        rotate: -1.2deg;
+    }
+
+    .promise:nth-child(even) {
+        rotate: 1deg;
+    }
+
+    .promise h3 {
+        margin: var(--space-3) 0 var(--space-2);
+    }
+
+    .promise p {
+        margin: 0;
+        font-weight: 600;
+    }
+</style>

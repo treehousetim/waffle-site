@@ -1,0 +1,82 @@
+---
+/**
+ * Chunky rounded line icons drawn for this site, decorative only
+ * (aria-hidden): the text next to an icon always says what it means. Each is
+ * an SVG file in src/icons/, imported as an Astro SVG component; add one by
+ * adding its file and a line below.
+ */
+import Paw from '../icons/paw.svg';
+import Bone from '../icons/bone.svg';
+import Stethoscope from '../icons/stethoscope.svg';
+import Tooth from '../icons/tooth.svg';
+import Bandage from '../icons/bandage.svg';
+import FirstAid from '../icons/firstAid.svg';
+import Ball from '../icons/ball.svg';
+import Heart from '../icons/heart.svg';
+import Feather from '../icons/feather.svg';
+import Phone from '../icons/phone.svg';
+import Clock from '../icons/clock.svg';
+import Pin from '../icons/pin.svg';
+import Mail from '../icons/mail.svg';
+import Calendar from '../icons/calendar.svg';
+import Check from '../icons/check.svg';
+import Arrow from '../icons/arrow.svg';
+import Menu from '../icons/menu.svg';
+import Close from '../icons/close.svg';
+import Alert from '../icons/alert.svg';
+import Moon from '../icons/moon.svg';
+import Dog from '../icons/dog.svg';
+import Cat from '../icons/cat.svg';
+import Rabbit from '../icons/rabbit.svg';
+import Bird from '../icons/bird.svg';
+import Turtle from '../icons/turtle.svg';
+import Sparkle from '../icons/sparkle.svg';
+import Leaf from '../icons/leaf.svg';
+import Shield from '../icons/shield.svg';
+import Smile from '../icons/smile.svg';
+
+const icons = {
+    paw: Paw,
+    bone: Bone,
+    stethoscope: Stethoscope,
+    tooth: Tooth,
+    bandage: Bandage,
+    firstAid: FirstAid,
+    ball: Ball,
+    heart: Heart,
+    feather: Feather,
+    phone: Phone,
+    clock: Clock,
+    pin: Pin,
+    mail: Mail,
+    calendar: Calendar,
+    check: Check,
+    arrow: Arrow,
+    menu: Menu,
+    close: Close,
+    alert: Alert,
+    moon: Moon,
+    dog: Dog,
+    cat: Cat,
+    rabbit: Rabbit,
+    bird: Bird,
+    turtle: Turtle,
+    sparkle: Sparkle,
+    leaf: Leaf,
+    shield: Shield,
+    smile: Smile,
+} as const;
+
+export type IconName = keyof typeof icons;
+
+interface Props {
+    name: IconName;
+    size?: number;
+    class?: string;
+}
+
+const { name, size = 24, class: className } = Astro.props;
+const Svg = icons[name];
+---
+
+<Svg width={size} height={size} aria-hidden="true" focusable="false" class={className} />

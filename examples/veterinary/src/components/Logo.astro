@@ -1,0 +1,144 @@
+---
+/**
+ * The mark and the name: a floppy-eared dog with whiskers (paws and
+ * whiskers, both) on a sunny badge, with a tail that wags (motion.css). The
+ * mark is decorative, so the name is the link's text. The same drawing is
+ * public/favicon.svg and, rendered, public/logo.png (brand/).
+ */
+
+interface Props {
+    tone?: 'ink' | 'cream';
+    /** The footer's is bigger and says the full name. */
+    size?: 'header' | 'footer';
+}
+
+const { tone = 'ink', size = 'header' } = Astro.props;
+---
+
+<a class:list={['logo', tone, size]} href="/">
+    <svg class="mark" viewBox="0 0 120 120" width="56" height="56" aria-hidden="true" focusable="false">
+        <g class="tail">
+            <path d="M90 88 C108 84 116 68 110 50" fill="none" stroke="#17323A" stroke-width="16" stroke-linecap="round"></path>
+            <path d="M90 88 C108 84 116 68 110 50" fill="none" stroke="#0B4F55" stroke-width="8" stroke-linecap="round"></path>
+        </g>
+        <circle cx="56" cy="62" r="46" fill="#FFC93C" stroke="#17323A" stroke-width="6"></circle>
+        <path d="M56 33 C73 33 82 45 82 60 C82 77 70 88 56 88 C42 88 30 77 30 60 C30 45 39 33 56 33 Z" fill="#FFF6E3" stroke="#17323A" stroke-width="5"></path>
+        <ellipse cx="66" cy="55" rx="8.5" ry="9.5" fill="#9FD8D3"></ellipse>
+        <path class="ear ear-left" d="M40 36 C27 33 15 46 17 63 C18 73 27 75 31 67 C34 59 35 48 40 36 Z" fill="#F2542D" stroke="#17323A" stroke-width="5" stroke-linejoin="round"></path>
+        <path class="ear ear-right" d="M72 36 C85 33 97 46 95 63 C94 73 85 75 81 67 C78 59 77 48 72 36 Z" fill="#F2542D" stroke="#17323A" stroke-width="5" stroke-linejoin="round"></path>
+        <g class="eyes">
+            <circle cx="46" cy="56" r="4.3" fill="#17323A"></circle>
+            <circle cx="66" cy="56" r="4.3" fill="#17323A"></circle>
+            <circle cx="47.5" cy="54.5" r="1.4" fill="#fff"></circle>
+            <circle cx="67.5" cy="54.5" r="1.4" fill="#fff"></circle>
+        </g>
+        <path d="M50 66 h12 a2.4 2.4 0 0 1 1.7 4 l-4.8 4.6 a2.4 2.4 0 0 1-3.4 0 l-4.8-4.6 A2.4 2.4 0 0 1 50 66 z" fill="#17323A"></path>
+        <path d="M56 75 v3.5 M49.5 79 q6.5 5 13 0" fill="none" stroke="#17323A" stroke-width="3" stroke-linecap="round"></path>
+        <path d="M44 70 L32 68 M44 75 L33 78 M68 70 L80 68 M68 75 L79 78" stroke="#17323A" stroke-width="2.6" stroke-linecap="round"></path>
+    </svg>
+    <span class="words">
+        <span class="name">Paws <span class="amp">&amp;</span> Whiskers</span>
+        <span class="kind">Animal Hospital</span>
+    </span>
+    <span class="visually-hidden">: home</span>
+</a>
+
+<style>
+    .logo {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        color: var(--ink);
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    .logo:hover {
+        color: inherit;
+    }
+
+    .mark {
+        flex: none;
+        width: 3.5rem;
+        height: 3.5rem;
+        overflow: visible;
+    }
+
+    .tail {
+        transform-box: view-box;
+        transform-origin: 90px 88px;
+    }
+
+    .ear {
+        transform-box: fill-box;
+    }
+
+    .ear-left {
+        transform-origin: 80% 10%;
+    }
+
+    .ear-right {
+        transform-origin: 20% 10%;
+    }
+
+    .words {
+        display: grid;
+        line-height: 1;
+    }
+
+    .name {
+        font-family: var(--font-display);
+        font-size: 1.45rem;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+    }
+
+    .amp {
+        color: var(--tomato-ink);
+    }
+
+    .kind {
+        margin-top: 0.2rem;
+        color: var(--muted);
+        font-size: 0.72rem;
+        font-weight: 900;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+    }
+
+    .cream {
+        color: var(--cream);
+    }
+
+    .cream .amp {
+        color: var(--sun);
+    }
+
+    .cream .kind {
+        color: var(--mint);
+    }
+
+    .footer .mark {
+        width: 5rem;
+        height: 5rem;
+    }
+
+    .footer .name {
+        font-size: 2rem;
+    }
+
+    .footer .kind {
+        font-size: 0.85rem;
+    }
+
+    @media (max-width: 24rem) {
+        .header .name {
+            font-size: 1.2rem;
+        }
+
+        .header .mark {
+            width: 2.9rem;
+            height: 2.9rem;
+        }
+    }
+</style>

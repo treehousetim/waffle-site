@@ -1,0 +1,199 @@
+---
+/**
+ * For people bringing a pet to us for the first time: how a first visit
+ * goes, what to bring, how to make the trip easy, and the questions new
+ * clients ask (with FAQPage markup).
+ */
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+import FirstVisit from '../components/FirstVisit.astro';
+import PawTrail from '../components/PawTrail.astro';
+import Faq from '../components/Faq.astro';
+import Icon from '../components/Icon.astro';
+import Photo from '../components/Photo.astro';
+import { faqPage } from '@core/lib/jsonld.js';
+import { site } from '../site';
+
+const steps = [
+    { title: 'Request a visit', text: 'Use the booking form or call. Tell us your pet’s name, age and anything worrying you.', icon: 'calendar' },
+    { title: 'Send old records', text: 'Give us your previous vet’s name and we will ask for the history for you.', icon: 'mail' },
+    { title: 'Come ten minutes early', text: 'A short form, a cup of tea, and time for your pet to sniff the place out.', icon: 'clock' },
+    { title: 'Meet your vet', text: 'A full exam, at your pet’s pace, and a plan we agree together.', icon: 'stethoscope' },
+] as const;
+
+const bring = [
+    'Your pet, on a lead or in a secure carrier (one pet per carrier, please)',
+    'Vaccination cards and any paperwork from a breeder, shelter or old vet',
+    'The names and doses of any medicines or supplements',
+    'A photo of the food bag, or the food itself',
+    'For exotics: photos of the cage, tank or vivarium and its lighting',
+    'A list of questions, because everyone forgets one in the room',
+];
+
+const faq = [
+    { question: 'Are you taking new patients?', answer: 'Yes: dogs, cats, rabbits, small mammals, birds and reptiles. New patients can usually be seen within a week, and on the same day for urgent problems.' },
+    { question: 'How much is a first visit?', answer: 'A first visit is a standard exam. We tell you the exam price when you book, and give you a written estimate before any tests, vaccines or treatment.' },
+    { question: 'Can I bring two pets to one appointment?', answer: 'Yes. Mention it when you book and we will give you a longer appointment so neither is rushed.' },
+    { question: 'Do you take pet insurance?', answer: 'We work with every insurer. Pay us on the day and claim back, or ask us about sending the claim straight to your insurer for larger bills.' },
+];
+---
+
+<Base
+    title="New clients: your first vet visit"
+    description="New to Paws & Whiskers? How a first visit works, what to bring, how to make the trip calm for your pet, and answers to the questions new clients ask."
+    breadcrumbs={[{ name: 'New clients', href: '/new-clients/' }]}
+    jsonLd={[faqPage(faq)]}
+>
+    <Hero
+        tone="tomato"
+        icon="smile"
+        eyebrow="New clients welcome"
+        heading="Hello! Let’s make the first visit easy."
+        lead="We’re taking new patients of every shape, size and number of legs. Here is how a first visit goes, and how to make the trip calm."
+        photo="kittenCheckup"
+        shape="blob"
+        primary={{ label: 'Book a first visit', href: '/book/' }}
+        secondary={{ label: `Call ${site.business.phone}`, href: `tel:${site.business.phoneE164}` }}
+    />
+
+    <section class="band" aria-labelledby="steps-heading">
+        <div class="container">
+            <div class="band-head">
+                <p class="eyebrow"><Icon name="pin" />Step by step</p>
+                <h2 id="steps-heading">From hello to home time</h2>
+            </div>
+            <FirstVisit steps={[...steps]} />
+        </div>
+    </section>
+
+    <PawTrail />
+
+    <section class="band band-sun pattern" aria-labelledby="bring-heading">
+        <div class="container bring">
+            <div>
+                <p class="eyebrow"><Icon name="check" />Checklist</p>
+                <h2 id="bring-heading">What to bring</h2>
+                <ul class="paw-list checklist">
+                    {bring.map((item) => <li>{item}</li>)}
+                </ul>
+            </div>
+            <div class="cut cut-arch bring-photo">
+                <Photo name="vetInjectingDachshund" sizes="(min-width: 64rem) 24rem, 80vw" />
+            </div>
+        </div>
+    </section>
+
+    <section class="band" aria-labelledby="calm-heading">
+        <div class="container">
+            <div class="band-head">
+                <p class="eyebrow"><Icon name="heart" />Calm travel</p>
+                <h2 id="calm-heading">Getting there without the drama</h2>
+            </div>
+            <div class="tips">
+                <article class="tip sticker sticker-mint tilt-left">
+                    <span class="tip-icon"><Icon name="cat" size={32} /></span>
+                    <h3>For cats</h3>
+                    <ul class="paw-list">
+                        <li>Leave the carrier out at home for a week, with a blanket and treats inside.</li>
+                        <li>A top-opening carrier lets us examine your cat without tipping them out.</li>
+                        <li>Cover it with a towel in the car and the waiting room.</li>
+                    </ul>
+                </article>
+                <article class="tip sticker sticker-sun tilt-right">
+                    <span class="tip-icon"><Icon name="dog" size={32} /></span>
+                    <h3>For dogs</h3>
+                    <ul class="paw-list">
+                        <li>A short walk before you come in, so nobody is bursting.</li>
+                        <li>Bring the treats they love most. We have ours too.</li>
+                        <li>If your dog is nervous of other dogs, tell us: you can wait in the car and we will call you in.</li>
+                    </ul>
+                </article>
+                <article class="tip sticker sticker-tomato tilt-left">
+                    <span class="tip-icon"><Icon name="rabbit" size={32} /></span>
+                    <h3>For small pets</h3>
+                    <ul class="paw-list">
+                        <li>A small, secure carrier with familiar bedding and some hay or food.</li>
+                        <li>Keep them warm and out of draughts, and the car quiet.</li>
+                        <li>Bonded rabbits travel better together: bring the pair.</li>
+                    </ul>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <section class="band band-paper" aria-labelledby="new-faq-heading">
+        <div class="container">
+            <div class="band-head">
+                <p class="eyebrow"><Icon name="sparkle" />Questions</p>
+                <h2 id="new-faq-heading">New clients often ask</h2>
+            </div>
+            <Faq items={faq} />
+        </div>
+    </section>
+</Base>
+
+<style>
+    .bring {
+        display: grid;
+        gap: var(--space-12);
+        align-items: center;
+    }
+
+    .checklist {
+        margin-top: var(--space-6);
+        font-size: 1.1rem;
+        font-weight: 700;
+    }
+
+    .checklist li::before {
+        background: var(--ink);
+    }
+
+    .bring-photo {
+        justify-self: center;
+        width: min(100%, 24rem);
+        aspect-ratio: 4 / 5;
+        box-shadow: var(--pop-large);
+    }
+
+    .bring-photo :global(picture) {
+        display: block;
+        width: 100%;
+        height: 100%;
+    }
+
+    @media (min-width: 64rem) {
+        .bring {
+            grid-template-columns: 1.2fr 0.8fr;
+        }
+    }
+
+    .tips {
+        display: grid;
+        gap: var(--space-10) var(--space-8);
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+    }
+
+    .tip {
+        padding: var(--space-6);
+    }
+
+    .tip-icon {
+        display: inline-grid;
+        place-items: center;
+        width: 3.75rem;
+        height: 3.75rem;
+        margin-bottom: var(--space-3);
+        border: var(--stroke) solid var(--line);
+        border-radius: 50%;
+        background: var(--paper);
+    }
+
+    .tip .paw-list {
+        font-weight: 600;
+    }
+
+    .tip .paw-list li::before {
+        background: var(--ink);
+    }
+</style>

@@ -1,0 +1,9 @@
+{
+  "name": "veterinary",
+  "label": "Veterinary clinic",
+  "description": "A neighbourhood animal hospital: a page per service, wellness plans by species and life stage from the waffle app, the team, new-client and emergency guidance, pet-health resources, an appointment request form and a blog of pet-health advice.",
+  "kind": "Health",
+  "schemaType": "VeterinaryCare",
+  "look": "Bright and joyful: sunshine yellow, deep teal, tomato and cream; chunky rounded Fredoka over Nunito; sticker cards with thick outlines and offset shadows, pets cut into playful shapes, springy motion and a calm urgent-care band",
+  "waffleEndpoints": ["GET /api/site/wellness-plans", "POST /api/site/forms/appointment"]
+}

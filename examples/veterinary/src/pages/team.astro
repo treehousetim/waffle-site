@@ -1,0 +1,191 @@
+---
+/**
+ * The vets, nurses and front desk, each pictured with their own pet (the
+ * people are fictional, so their photos are of the animals). Grouped by
+ * role, with a short bio and what to ask them about.
+ */
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+import Photo from '../components/Photo.astro';
+import Icon from '../components/Icon.astro';
+import { team } from '../data/team';
+
+const groups = [
+    { key: 'vets', title: 'Our vets', intro: 'Three vets with very different favourite patients, who share every case they are unsure of.' },
+    { key: 'nurses', title: 'Our nurses', intro: 'Registered veterinary nurses: anaesthesia, wards, clinics and the gentlest hands in the building.' },
+    { key: 'front', title: 'The front desk', intro: 'Where every visit starts, and every question finds its way to the right person.' },
+] as const;
+---
+
+<Base
+    title="Meet our vets and nurses"
+    description="Meet the vets, nurses and front desk team at Paws & Whiskers Animal Hospital in Bramblewick, and the pets who keep them in order at home."
+    breadcrumbs={[{ name: 'Our team', href: '/team/' }]}
+>
+    <Hero
+        tone="mint"
+        icon="heart"
+        eyebrow="Our team"
+        heading="The humans (and their pets)"
+        lead="Six people who chose this job because they love animals, and who will still be here when your puppy is a grey-muzzled old friend."
+        photo="pug"
+        shape="circle"
+    />
+
+    {
+        groups.map((group, groupIndex) => (
+            <section class:list={['band', groupIndex % 2 === 1 ? 'band-paper' : '']} aria-labelledby={`${group.key}-heading`}>
+                <div class="container">
+                    <div class="band-head">
+                        <h2 id={`${group.key}-heading`}>{group.title}</h2>
+                        <p class="lead">{group.intro}</p>
+                    </div>
+                    <ul class="people">
+                        {team
+                            .filter((member) => member.group === group.key)
+                            .map((member, index) => (
+                                <li class:list={['person', index % 2 === 0 ? 'flip' : '']}>
+                                    <figure class="polaroid">
+                                        <div class="snap">
+                                            <Photo name={member.pet.photo} sizes="(min-width: 64rem) 20rem, 80vw" />
+                                        </div>
+                                        <figcaption>{member.pet.name}, {member.pet.kind}</figcaption>
+                                    </figure>
+                                    <div class="about sticker">
+                                        <h3>
+                                            {member.name}
+                                            {member.credentials && <span class="creds">{member.credentials}</span>}
+                                        </h3>
+                                        <p class="role">{member.role}</p>
+                                        <p>{member.bio}</p>
+                                        <p class="ask">
+                                            <Icon name="sparkle" size={20} /> <span><strong>Ask me about:</strong> {member.askMe}</span>
+                                        </p>
+                                    </div>
+                                </li>
+                            ))}
+                    </ul>
+                </div>
+            </section>
+        ))
+    }
+</Base>
+
+<style>
+    .people {
+        display: grid;
+        gap: var(--space-16) var(--space-10);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    @media (min-width: 64rem) {
+        .people {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    .person {
+        display: grid;
+        gap: var(--space-6);
+        align-items: start;
+    }
+
+    @media (min-width: 40rem) {
+        .person {
+            grid-template-columns: 13rem 1fr;
+        }
+    }
+
+    .polaroid {
+        margin: 0;
+        padding: var(--space-3) var(--space-3) var(--space-4);
+        border: var(--stroke) solid var(--line);
+        border-radius: 0.5rem;
+        background: #ffffff;
+        box-shadow: var(--pop);
+        rotate: -3deg;
+        transition: rotate 0.35s var(--spring);
+    }
+
+    .flip .polaroid {
+        rotate: 2.5deg;
+    }
+
+    .person:hover .polaroid {
+        rotate: 0deg;
+    }
+
+    .snap {
+        overflow: hidden;
+        aspect-ratio: 1;
+        border: 2px solid var(--line);
+    }
+
+    .snap :global(picture),
+    .snap :global(img) {
+        display: block;
+        width: 100%;
+        height: 100%;
+    }
+
+    .snap :global(img) {
+        object-fit: cover;
+    }
+
+    figcaption {
+        margin-top: var(--space-3);
+        color: var(--tomato-ink);
+        font-family: var(--font-display);
+        font-size: 1.05rem;
+        line-height: 1.25;
+    }
+
+    .about {
+        padding: var(--space-6);
+    }
+
+    .about h3 {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: var(--space-2);
+        margin-bottom: var(--space-1);
+        font-size: 1.6rem;
+    }
+
+    .creds {
+        padding: 0.05rem 0.5rem;
+        border: 2px solid var(--line);
+        border-radius: 999px;
+        background: var(--sun);
+        font-family: var(--font-body);
+        font-size: 0.8rem;
+        font-weight: 900;
+    }
+
+    .role {
+        color: var(--muted);
+        font-weight: 800;
+    }
+
+    .about p {
+        font-weight: 600;
+    }
+
+    .ask {
+        display: flex;
+        gap: var(--space-2);
+        margin: 0;
+        padding: var(--space-3) var(--space-4);
+        border-radius: var(--radius-small);
+        background: var(--mint-soft);
+    }
+
+    .ask :global(svg) {
+        flex: none;
+        margin-top: 0.15rem;
+        color: var(--teal);
+    }
+</style>

@@ -1,0 +1,71 @@
+---
+/**
+ * The bar fixed to the bottom of a phone's screen: call, or book. Most
+ * worried owners are on a phone and want one of the two. Hidden on wider
+ * screens, where the header carries both.
+ */
+import Icon from './Icon.astro';
+import { site } from '../site';
+---
+
+<nav class="mobile-actions" aria-label="Quick actions">
+    <a class="call" href={`tel:${site.business.phoneE164}`}>
+        <Icon name="phone" size={20} />
+        Call us
+    </a>
+    <a class="book" href={site.cta.href}>
+        <Icon name="calendar" size={20} />
+        {site.cta.label}
+    </a>
+</nav>
+
+<style>
+    .mobile-actions {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 25;
+        display: grid;
+        grid-template-columns: 1fr 1.3fr;
+        gap: var(--space-3);
+        padding: var(--space-3) var(--space-3) calc(var(--space-3) + env(safe-area-inset-bottom));
+        background: var(--cream);
+        border-top: var(--stroke) solid var(--line);
+    }
+
+    a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--space-2);
+        min-height: 3.1rem;
+        border: var(--stroke) solid var(--line);
+        border-radius: 999px;
+        font-family: var(--font-display);
+        font-size: 1.1rem;
+        font-weight: 600;
+        text-decoration: none;
+        box-shadow: 3px 3px 0 var(--line);
+    }
+
+    .call {
+        background: var(--paper);
+        color: var(--ink);
+    }
+
+    .book {
+        background: var(--tomato-ink);
+        color: #ffffff;
+    }
+
+    .book:hover {
+        color: #ffffff;
+    }
+
+    @media (min-width: 40.01rem) {
+        .mobile-actions {
+            display: none;
+        }
+    }
+</style>

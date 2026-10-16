@@ -1,0 +1,143 @@
+{
+  "success": true,
+  "data": {
+    "updated": "2026-10-01",
+    "currency": "USD",
+    "plans": [
+      {
+        "id": "dog-puppy",
+        "name": "Puppy Pack",
+        "species": "dog",
+        "lifeStage": "young",
+        "ages": "8 weeks to 12 months",
+        "monthlyPrice": 3900,
+        "popular": false,
+        "inclusions": [
+          "Full puppy vaccine course",
+          "Three exams with a vet",
+          "Microchip, fitted and registered",
+          "Flea, tick and worm prevention",
+          "Unlimited nurse weigh-ins and nail trims",
+          "20% off spay or neuter"
+        ]
+      },
+      {
+        "id": "dog-adult",
+        "name": "Adult Dog",
+        "species": "dog",
+        "lifeStage": "adult",
+        "ages": "1 to 7 years",
+        "monthlyPrice": 3400,
+        "popular": true,
+        "inclusions": [
+          "Two exams with a vet a year",
+          "Yearly vaccines and boosters",
+          "Yearly blood screen",
+          "Flea, tick and worm prevention",
+          "Unlimited nurse visits",
+          "10% off dental cleaning"
+        ]
+      },
+      {
+        "id": "dog-senior",
+        "name": "Golden Years Dog",
+        "species": "dog",
+        "lifeStage": "senior",
+        "ages": "8 years and up",
+        "monthlyPrice": 5200,
+        "popular": false,
+        "inclusions": [
+          "Exams with a vet every six months",
+          "Senior blood and urine panel twice a year",
+          "Blood pressure check",
+          "Yearly vaccines and boosters",
+          "Arthritis and comfort review",
+          "15% off dental cleaning"
+        ]
+      },
+      {
+        "id": "cat-kitten",
+        "name": "Kitten Kit",
+        "species": "cat",
+        "lifeStage": "young",
+        "ages": "8 weeks to 12 months",
+        "monthlyPrice": 3200,
+        "popular": false,
+        "inclusions": [
+          "Full kitten vaccine course",
+          "Three exams with a vet",
+          "Microchip, fitted and registered",
+          "Flea and worm prevention",
+          "Unlimited nurse weigh-ins",
+          "20% off spay or neuter"
+        ]
+      },
+      {
+        "id": "cat-adult",
+        "name": "Adult Cat",
+        "species": "cat",
+        "lifeStage": "adult",
+        "ages": "1 to 10 years",
+        "monthlyPrice": 2700,
+        "popular": true,
+        "inclusions": [
+          "Two exams with a vet a year",
+          "Yearly vaccines",
+          "Yearly blood screen",
+          "Flea and worm prevention",
+          "Unlimited nurse visits",
+          "10% off dental cleaning"
+        ]
+      },
+      {
+        "id": "cat-senior",
+        "name": "Golden Years Cat",
+        "species": "cat",
+        "lifeStage": "senior",
+        "ages": "11 years and up",
+        "monthlyPrice": 4500,
+        "popular": false,
+        "inclusions": [
+          "Exams with a vet every six months",
+          "Kidney and thyroid blood panel twice a year",
+          "Blood pressure check",
+          "Yearly vaccines",
+          "Weight and mobility review",
+          "15% off dental cleaning"
+        ]
+      },
+      {
+        "id": "rabbit-adult",
+        "name": "Bunny Basics",
+        "species": "rabbit",
+        "lifeStage": "adult",
+        "ages": "6 months to 5 years",
+        "monthlyPrice": 2200,
+        "popular": false,
+        "inclusions": [
+          "Two exams with our exotics vet a year",
+          "Yearly myxomatosis and RHD vaccines",
+          "Tooth and gut checks at every exam",
+          "Nail trims whenever you need them",
+          "Diet and hay advice"
+        ]
+      },
+      {
+        "id": "rabbit-senior",
+        "name": "Golden Years Bunny",
+        "species": "rabbit",
+        "lifeStage": "senior",
+        "ages": "6 years and up",
+        "monthlyPrice": 2900,
+        "popular": false,
+        "inclusions": [
+          "Exams with our exotics vet every six months",
+          "Yearly vaccines",
+          "Yearly blood screen",
+          "Tooth, gut and joint checks",
+          "Nail trims whenever you need them"
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,113 @@
+---
+/**
+ * Questions and answers as <details>, readable without script. Pass the same
+ * items to faqPage() in the page's jsonLd so search engines can read them too.
+ * They open smoothly where the browser can animate to auto height
+ * (interpolate-size, motion.css).
+ */
+export interface FaqItem {
+    question: string;
+    answer: string;
+}
+
+interface Props {
+    items: FaqItem[];
+}
+
+const { items } = Astro.props;
+---
+
+<div class="faq">
+    {
+        items.map((item) => (
+            <details>
+                <summary>
+                    <span>{item.question}</span>
+                    <span class="marker" aria-hidden="true" />
+                </summary>
+                <div class="answer">
+                    <p>{item.answer}</p>
+                </div>
+            </details>
+        ))
+    }
+</div>
+
+<style>
+    .faq {
+        display: grid;
+        gap: var(--space-4);
+        max-width: 50rem;
+    }
+
+    details {
+        border: var(--stroke) solid var(--line);
+        border-radius: var(--radius);
+        background: var(--paper);
+        box-shadow: var(--pop-small);
+        transition: box-shadow 0.2s var(--spring), translate 0.2s var(--spring);
+    }
+
+    details[open] {
+        background: var(--sun-soft);
+        box-shadow: var(--pop);
+        translate: -2px -2px;
+    }
+
+    summary {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-4);
+        padding: var(--space-4) var(--space-5);
+        font-family: var(--font-display);
+        font-size: 1.2rem;
+        font-weight: 600;
+        line-height: 1.25;
+        list-style: none;
+        cursor: pointer;
+    }
+
+    summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .marker {
+        position: relative;
+        flex: none;
+        width: 2.1rem;
+        height: 2.1rem;
+        border: var(--stroke) solid var(--line);
+        border-radius: 50%;
+        background: var(--sun);
+        transition: rotate 0.35s var(--spring), background-color 0.2s ease;
+    }
+
+    .marker::before,
+    .marker::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0.8rem;
+        height: 3px;
+        margin: -1.5px 0 0 -0.4rem;
+        border-radius: 2px;
+        background: var(--ink);
+    }
+
+    .marker::after {
+        rotate: 90deg;
+    }
+
+    details[open] .marker {
+        rotate: 135deg;
+        background: var(--tomato);
+    }
+
+    .answer p {
+        margin: 0;
+        padding: 0 var(--space-5) var(--space-5);
+        font-weight: 600;
+    }
+</style>

@@ -1,0 +1,347 @@
+---
+/**
+ * Every page ends the same way: a sunny "ready when they are" call to book,
+ * then the deep-teal footer with the hospital's name, address, phone and
+ * hours written exactly as in src/site.ts, and the links.
+ */
+import Logo from './Logo.astro';
+import Icon from './Icon.astro';
+import Photo from './Photo.astro';
+import { addressLine, site } from '../site';
+import { buildTime } from '@core/settings';
+
+interface Props {
+    /** The call to book above the footer; off on pages that are already the booking. */
+    closing?: boolean;
+}
+
+const { closing = true } = Astro.props;
+---
+
+{
+    closing && (
+        <section class="closing pattern" aria-labelledby="closing-heading">
+            <div class="container closing-inner">
+                <div class="closing-copy">
+                    <h2 id="closing-heading">Ready when they are.</h2>
+                    <p class="lead">Tell us who is coming in and when suits you. We’ll call back within one working day to confirm.</p>
+                    <p class="actions">
+                        <a class="button button-tomato button-large" href={site.cta.href}>
+                            <Icon name="calendar" /> {site.cta.label}
+                        </a>
+                        <a class="button button-cream button-large" href={`tel:${site.business.phoneE164}`}>
+                            <Icon name="phone" /> {site.business.phone}
+                        </a>
+                    </p>
+                </div>
+                <div class="closing-photo" aria-hidden="true">
+                    <div class="paw-cut">
+                        <Photo name="samoyed" sizes="(min-width: 64rem) 40rem, 100vw" class="closing-image" />
+                    </div>
+                </div>
+            </div>
+        </section>
+    )
+}
+
+<footer class="site-footer">
+    <svg class="scallop" viewBox="0 0 1200 40" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+        <path d="M0 40V20c50 0 50-20 100-20s50 20 100 20 50-20 100-20 50 20 100 20 50-20 100-20 50 20 100 20 50-20 100-20 50 20 100 20 50-20 100-20 50 20 100 20 50-20 100-20 50 20 100 20 50-20 100-20 50 20 100 20v20z"></path>
+    </svg>
+    <div class="container grid">
+        <div class="brand">
+            <Logo tone="cream" size="footer" />
+            <p class="tagline">{site.tagline} since {site.business.founded}, seeing pets from {site.areas.slice(1, -1).join(', ')} and {site.areas.at(-1)} too.</p>
+            <address>
+                <span class="line"><Icon name="pin" size={20} /> {addressLine}</span>
+                <a class="line" href={`tel:${site.business.phoneE164}`}><Icon name="phone" size={20} /> {site.business.phone}</a>
+                <a class="line" href={`mailto:${site.business.email}`}><Icon name="mail" size={20} /> {site.business.email}</a>
+            </address>
+        </div>
+
+        <div class="hours sticker sticker-sun tilt-right">
+            <h2>Opening hours</h2>
+            <dl>
+                {
+                    site.business.hoursText.map((row) => (
+                        <div>
+                            <dt>{row.days}</dt>
+                            <dd>{row.time}</dd>
+                        </div>
+                    ))
+                }
+            </dl>
+            <p class="after">
+                <span class="after-head"><Icon name="moon" size={18} /> After hours</span>
+                <span>{site.afterHours.name}, <a href={`tel:${site.afterHours.phoneE164}`}>{site.afterHours.phone}</a></span>
+            </p>
+        </div>
+
+        {
+            site.footer.map((column) => (
+                <nav aria-label={column.heading} class="column">
+                    <h2>{column.heading}</h2>
+                    <ul>
+                        {column.links.map((link) => (
+                            <li>
+                                <a href={link.href}>{link.label}</a>
+                            </li>
+                        ))}
+                    </ul>
+                </nav>
+            ))
+        }
+    </div>
+    <div class="container legal">
+        <p>© {buildTime.getUTCFullYear()} {site.business.legalName} · {site.business.licence}</p>
+        <p><a href="/credits/">Photo credits</a> · <a href="/blog/rss.xml">RSS feed</a> · <a href="/privacy/">Privacy</a></p>
+    </div>
+</footer>
+
+<style>
+    .closing {
+        position: relative;
+        padding: clamp(3.5rem, 2rem + 5vw, 6rem) 0 clamp(5rem, 3rem + 5vw, 7rem);
+        background-color: var(--sun);
+        border-top: var(--stroke) solid var(--line);
+        overflow: hidden;
+    }
+
+    .closing-inner {
+        display: grid;
+        gap: var(--space-10);
+        align-items: center;
+    }
+
+    .closing h2 {
+        color: var(--ink);
+        font-size: clamp(2.6rem, 1.6rem + 4vw, 4.75rem);
+    }
+
+    .closing .lead {
+        max-width: 34rem;
+        color: var(--ink);
+    }
+
+    .closing .actions {
+        margin-top: var(--space-8);
+    }
+
+    /* A paw print stamped in white Samoyed fur: the shadow on the outer box,
+       the paw-shaped cut on the inner one, the photo zoomed into the fluff. */
+    .closing-photo {
+        justify-self: center;
+        width: min(16rem, 64vw);
+        aspect-ratio: 1;
+        filter: drop-shadow(8px 8px 0 var(--line));
+    }
+
+    .paw-cut {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        -webkit-mask: var(--paw-mask) center / contain no-repeat;
+        mask: var(--paw-mask) center / contain no-repeat;
+    }
+
+    .paw-cut :global(picture) {
+        display: block;
+        width: 100%;
+        height: 100%;
+    }
+
+    .paw-cut :global(.closing-image) {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: 50% 50%;
+        scale: 2.4;
+        transform-origin: 46% 74%;
+    }
+
+    @media (min-width: 56rem) {
+        .closing-inner {
+            grid-template-columns: 1fr auto;
+        }
+
+        .closing-photo {
+            width: 22rem;
+            rotate: 8deg;
+        }
+    }
+
+    .site-footer {
+        position: relative;
+        margin-top: -1px;
+        padding: var(--space-16) 0 var(--space-8);
+        background: var(--teal-deep);
+        color: var(--mint-soft);
+        font-size: 1rem;
+    }
+
+    .scallop {
+        position: absolute;
+        left: 0;
+        top: -39px;
+        width: 100%;
+        height: 40px;
+        fill: var(--teal-deep);
+    }
+
+    .grid {
+        display: grid;
+        gap: var(--space-10) var(--space-8);
+        grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    }
+
+    .brand {
+        grid-column: 1 / -1;
+        max-width: 30rem;
+    }
+
+    .hours {
+        grid-column: 1 / -1;
+        max-width: 24rem;
+        padding: var(--space-6);
+        color: var(--ink);
+    }
+
+    @media (min-width: 64rem) {
+        .grid {
+            grid-template-columns: 1.35fr 1.5fr 0.95fr 0.85fr 0.85fr;
+        }
+
+        .brand,
+        .hours {
+            grid-column: auto;
+        }
+    }
+
+    .tagline {
+        margin: var(--space-5) 0;
+    }
+
+    address {
+        display: grid;
+        gap: var(--space-2);
+        font-style: normal;
+    }
+
+    .line {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-3);
+        color: var(--cream);
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+    .line :global(svg) {
+        flex: none;
+        color: var(--sun);
+    }
+
+    a.line:hover {
+        color: var(--sun);
+    }
+
+    h2 {
+        margin-bottom: var(--space-4);
+        color: var(--sun);
+        font-size: 1.3rem;
+    }
+
+    .hours h2 {
+        color: var(--ink);
+    }
+
+    dl {
+        display: grid;
+        gap: var(--space-2);
+        margin: 0 0 var(--space-4);
+    }
+
+    dl div {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 0 var(--space-4);
+        padding-bottom: var(--space-2);
+        border-bottom: 2px dashed rgb(23 50 58 / 0.35);
+    }
+
+    dt {
+        font-weight: 800;
+    }
+
+    dd {
+        margin: 0;
+    }
+
+    .after {
+        display: grid;
+        gap: var(--space-1);
+        margin: 0;
+        font-size: 0.95rem;
+        line-height: 1.4;
+    }
+
+    .after-head {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        font-weight: 900;
+    }
+
+    .after :global(svg) {
+        flex: none;
+    }
+
+    .after a {
+        color: var(--ink);
+    }
+
+    ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    li + li {
+        margin-top: var(--space-3);
+    }
+
+    .column a,
+    .legal a {
+        color: var(--mint-soft);
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .column a:hover,
+    .legal a:hover {
+        color: var(--sun);
+        text-decoration: underline;
+    }
+
+    .legal {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: var(--space-4);
+        margin-top: var(--space-16);
+        padding-top: var(--space-6);
+        border-top: 2px dashed rgb(216 240 237 / 0.25);
+        font-size: 0.9rem;
+    }
+
+    .legal p {
+        margin: 0;
+    }
+
+    @media (max-width: 40rem) {
+        .site-footer {
+            padding-bottom: calc(var(--space-8) + 5rem);
+        }
+    }
+</style>

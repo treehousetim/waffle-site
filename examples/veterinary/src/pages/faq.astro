@@ -1,0 +1,164 @@
+---
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+import Faq from '../components/Faq.astro';
+import Icon from '../components/Icon.astro';
+import PawTrail from '../components/PawTrail.astro';
+import { faqPage } from '@core/lib/jsonld.js';
+import { site } from '../site';
+
+const groups = [
+    {
+        id: 'visits',
+        title: 'Visits and appointments',
+        items: [
+            { question: 'How do I book an appointment?', answer: `Use the booking form on this site or call us on ${site.business.phone}. We confirm every request within one working day.` },
+            { question: 'How long is an appointment?', answer: 'Routine appointments are 20 to 30 minutes, and first visits a little longer. We would rather run five minutes late than rush your pet.' },
+            { question: 'Can I stay with my pet?', answer: 'For exams and vaccines, always. For X-rays, surgery and some procedures your pet goes to our treatment room with a nurse, and we call you as soon as we are done.' },
+            { question: 'What if I need to cancel?', answer: 'Please let us know a day ahead if you can, so we can offer the time to someone else. We understand things happen.' },
+        ],
+    },
+    {
+        id: 'costs',
+        title: 'Costs and payment',
+        items: [
+            { question: 'Will I know the price before treatment?', answer: 'Yes. We give you a written estimate for anything beyond the exam, and call you if anything changes before we go ahead.' },
+            { question: 'How can I pay?', answer: 'Card, cash, or a phone payment. Bills over a certain amount can be split over several months: ask Mags at the front desk.' },
+            { question: 'Do you work with pet insurance?', answer: 'With every insurer. For larger bills we can often send the claim straight to your insurer.' },
+            { question: 'What do wellness plans include?', answer: 'Routine care for a monthly fee, by species and life stage: exams, vaccines, parasite prevention and nurse visits. See the wellness plans page for every plan and price.' },
+        ],
+    },
+    {
+        id: 'care',
+        title: 'Care and health',
+        items: [
+            { question: 'Which pets do you see?', answer: 'Dogs, cats, rabbits, guinea pigs, rats, ferrets, budgies and other pet birds, tortoises, lizards and snakes. If yours is unusual, call and ask.' },
+            { question: 'Do you offer home visits?', answer: 'For older pets who find travel hard, and for end-of-life care, yes. Call us to arrange one.' },
+            { question: 'Do you sell pet food and parasite treatments?', answer: 'We stock the parasite treatments and the prescription diets we recommend, and can advise on everyday food whatever brand you use.' },
+            { question: 'What happens if my pet is sick when you are closed?', answer: `Call ${site.afterHours.name} on ${site.afterHours.phone}. They are open every night, weekend and holiday, and send us notes the next morning.` },
+        ],
+    },
+];
+---
+
+<Base
+    title="Frequently asked questions"
+    description="Answers to the questions Bramblewick pet owners ask us most: booking, costs, payment, insurance, wellness plans, which pets we see and after-hours care."
+    breadcrumbs={[{ name: 'FAQ', href: '/faq/' }]}
+    jsonLd={[faqPage(groups.flatMap((group) => group.items))]}
+>
+    <Hero
+        tone="sun"
+        icon="sparkle"
+        eyebrow="FAQ"
+        heading="Questions? We’ve got answers (and treats)"
+        lead="Can’t see yours here? Call the front desk, or ask when you book. There is no such thing as a silly question about your pet."
+        photo="catSunglasses"
+        shape="blob"
+    >
+        <ul class="jump" aria-label="Topics">
+            {groups.map((group) => <li><a href={`#${group.id}`}>{group.title}</a></li>)}
+        </ul>
+    </Hero>
+
+    {
+        groups.map((group, index) => (
+            <>
+                <section id={group.id} class:list={['band', 'faq-band', index % 2 === 1 ? 'band-paper' : '']} aria-labelledby={`${group.id}-heading`}>
+                    <div class="container faq-layout">
+                        <div class="side">
+                            <span class="number">{index + 1}</span>
+                            <h2 id={`${group.id}-heading`}>{group.title}</h2>
+                        </div>
+                        <Faq items={group.items} />
+                    </div>
+                </section>
+                {index === 0 && <PawTrail tone="teal" />}
+            </>
+        ))
+    }
+
+    <section class="band band-mint" aria-labelledby="still-heading">
+        <div class="container still">
+            <h2 id="still-heading">Still wondering?</h2>
+            <p class="lead">Ring the front desk on <a href={`tel:${site.business.phoneE164}`}>{site.business.phone}</a> or drop us a line at <a href={`mailto:${site.business.email}`}>{site.business.email}</a>. A real person answers.</p>
+            <p class="actions"><a class="button button-tomato" href="/book/"><Icon name="calendar" /> Book a visit</a></p>
+        </div>
+    </section>
+</Base>
+
+<style>
+    .jump {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .jump a {
+        display: inline-block;
+        padding: 0.35rem 0.95rem;
+        border: 2px solid var(--line);
+        border-radius: 999px;
+        background: var(--paper);
+        color: var(--ink);
+        font-weight: 800;
+        text-decoration: none;
+    }
+
+    .jump a:hover {
+        background: var(--mint);
+    }
+
+    .faq-band {
+        scroll-margin-top: var(--header-height);
+    }
+
+    .faq-layout {
+        display: grid;
+        gap: var(--space-8);
+    }
+
+    @media (min-width: 64rem) {
+        .faq-layout {
+            grid-template-columns: 20rem 1fr;
+            align-items: start;
+        }
+
+        .side {
+            position: sticky;
+            top: calc(var(--header-height) + var(--space-8));
+        }
+    }
+
+    .side h2 {
+        font-size: clamp(2rem, 1.4rem + 1.6vw, 2.6rem);
+        overflow-wrap: anywhere;
+    }
+
+    .number {
+        display: inline-grid;
+        place-items: center;
+        width: 3.5rem;
+        height: 3.5rem;
+        margin-bottom: var(--space-4);
+        border: var(--stroke) solid var(--line);
+        border-radius: 50%;
+        background: var(--tomato-ink);
+        color: #ffffff;
+        font-family: var(--font-display);
+        font-size: 1.6rem;
+        font-weight: 700;
+        box-shadow: var(--pop-small);
+    }
+
+    .still {
+        max-width: 46rem;
+    }
+
+    .still .lead {
+        color: var(--ink);
+    }
+</style>

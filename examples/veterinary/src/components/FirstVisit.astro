@@ -1,0 +1,171 @@
+---
+/**
+ * The first visit, step by step, as stops along a winding dotted path. The
+ * path draws itself as it scrolls into view (motion.css); without that it is
+ * simply drawn. On phones the stops stack and the path runs down the side.
+ */
+import Icon, { type IconName } from './Icon.astro';
+
+interface Step {
+    title: string;
+    text: string;
+    icon: IconName;
+}
+
+interface Props {
+    steps: Step[];
+    level?: 'h2' | 'h3';
+}
+
+const { steps, level = 'h3' } = Astro.props;
+const Heading = level;
+---
+
+<div class="first-visit">
+    <svg class="path" viewBox="0 0 1000 300" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+        <path class="route" d="M0 140 C60 140 80 140 125 140 C240 140 260 22 375 22 C490 22 510 140 625 140 C740 140 760 22 875 22 C940 22 970 50 1000 70" pathLength="1"></path>
+    </svg>
+    <ol class="stops">
+        {
+            steps.map((step, index) => (
+                <li class="stop">
+                    <span class="number" aria-hidden="true">{index + 1}</span>
+                    <div class="card sticker">
+                        <span class="icon"><Icon name={step.icon} size={26} /></span>
+                        <Heading class="title">{step.title}</Heading>
+                        <p>{step.text}</p>
+                    </div>
+                </li>
+            ))
+        }
+    </ol>
+</div>
+
+<style>
+    .first-visit {
+        position: relative;
+    }
+
+    .path {
+        display: none;
+    }
+
+    .route {
+        fill: none;
+        stroke: var(--teal);
+        stroke-width: 5;
+        stroke-linecap: round;
+        stroke-dasharray: 0.012 0.014;
+        vector-effect: non-scaling-stroke;
+    }
+
+    .stops {
+        position: relative;
+        display: grid;
+        gap: var(--space-8);
+        margin: 0;
+        padding: 0 0 0 3.25rem;
+        list-style: none;
+        counter-reset: stop;
+    }
+
+    /* The phone's path: a dotted line down the side. */
+    .stops::before {
+        content: '';
+        position: absolute;
+        left: 1.15rem;
+        top: 1rem;
+        bottom: 1rem;
+        border-left: 5px dotted var(--teal);
+    }
+
+    .stop {
+        position: relative;
+    }
+
+    .number {
+        position: absolute;
+        left: -3.25rem;
+        top: 0;
+        display: inline-grid;
+        place-items: center;
+        width: 2.75rem;
+        height: 2.75rem;
+        border: var(--stroke) solid var(--line);
+        border-radius: 50%;
+        background: var(--tomato-ink);
+        color: #ffffff;
+        font-family: var(--font-display);
+        font-size: 1.3rem;
+        font-weight: 700;
+        box-shadow: 3px 3px 0 var(--line);
+    }
+
+    .card {
+        padding: var(--space-5) var(--space-6);
+    }
+
+    .icon {
+        display: inline-flex;
+        margin-bottom: var(--space-2);
+        color: var(--tomato-ink);
+    }
+
+    .title {
+        margin-bottom: var(--space-2);
+    }
+
+    .card p {
+        margin: 0;
+        font-weight: 600;
+        line-height: 1.5;
+    }
+
+    @media (min-width: 64rem) {
+        .path {
+            position: absolute;
+            inset: 0 0 auto;
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .stops {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: var(--space-8);
+            padding: 0;
+        }
+
+        .stops::before {
+            display: none;
+        }
+
+        .stop {
+            display: grid;
+            gap: var(--space-4);
+        }
+
+        .stop:nth-child(even) {
+            padding-top: 0;
+        }
+
+        .stop:nth-child(odd) {
+            padding-top: 9rem;
+        }
+
+        .number {
+            position: static;
+            justify-self: center;
+            width: 3.25rem;
+            height: 3.25rem;
+        }
+
+        .stop:nth-child(odd) .card {
+            rotate: -1.5deg;
+        }
+
+        .stop:nth-child(even) .card {
+            rotate: 1.5deg;
+        }
+    }
+</style>

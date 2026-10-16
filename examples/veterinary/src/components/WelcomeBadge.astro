@@ -1,0 +1,76 @@
+---
+/**
+ * The "new clients welcome" sticker: a scalloped starburst that wobbles
+ * gently (motion.css). It is a link to the new-client page, and its text is
+ * the link's name.
+ */
+interface Props {
+    class?: string;
+}
+
+const { class: className } = Astro.props;
+
+// A 20-point scalloped burst around (100, 100).
+const points = Array.from({ length: 40 }, (_, index) => {
+    const radius = index % 2 === 0 ? 96 : 82;
+    const angle = (Math.PI * 2 * index) / 40 - Math.PI / 2;
+
+    return `${(100 + radius * Math.cos(angle)).toFixed(1)},${(100 + radius * Math.sin(angle)).toFixed(1)}`;
+}).join(' ');
+---
+
+<a class:list={['welcome', className]} href="/new-clients/">
+    <svg viewBox="0 0 200 200" aria-hidden="true" focusable="false">
+        <polygon points={points} fill="#C2361A" stroke="#17323A" stroke-width="6" stroke-linejoin="round"></polygon>
+        <circle cx="100" cy="100" r="66" fill="none" stroke="#FFF6E3" stroke-width="3" stroke-dasharray="6 7"></circle>
+    </svg>
+    <span class="text">
+        <span class="small">New clients</span>
+        <span class="big">welcome!</span>
+        <span class="small">Book a first visit</span>
+    </span>
+</a>
+
+<style>
+    .welcome {
+        position: relative;
+        display: inline-grid;
+        place-items: center;
+        width: 9.5rem;
+        aspect-ratio: 1;
+        color: #ffffff;
+        text-align: center;
+        text-decoration: none;
+        filter: drop-shadow(5px 5px 0 var(--line));
+    }
+
+    .welcome:hover {
+        color: #ffffff;
+    }
+
+    svg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+    }
+
+    .text {
+        position: relative;
+        display: grid;
+        line-height: 1.05;
+    }
+
+    .small {
+        font-size: 0.78rem;
+        font-weight: 900;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
+
+    .big {
+        font-family: var(--font-display);
+        font-size: 1.7rem;
+        font-weight: 700;
+    }
+</style>

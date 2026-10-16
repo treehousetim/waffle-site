@@ -1,0 +1,352 @@
+---
+/**
+ * Pet resources: the handy, keep-it-on-the-fridge things owners ask for.
+ * Common household dangers, normal vital signs, a first-aid kit list, and
+ * the guides from the blog.
+ */
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+import Icon from '../components/Icon.astro';
+import PostGrid from '../components/PostGrid.astro';
+import { site } from '../site';
+import { buildTime } from '@core/settings';
+import { visiblePosts } from '@core/lib/posts.js';
+
+const dangers = [
+    { name: 'Chocolate', who: 'Dogs and cats', why: 'Theobromine: the darker the chocolate, the worse.' },
+    { name: 'Grapes and raisins', who: 'Dogs', why: 'Can cause sudden kidney failure, even in small amounts.' },
+    { name: 'Xylitol', who: 'Dogs', why: 'A sweetener in sugar-free gum, peanut butter and baking. Drops blood sugar fast.' },
+    { name: 'Lilies', who: 'Cats', why: 'Every part, even the pollen or vase water, can cause kidney failure.' },
+    { name: 'Onions, garlic, leeks', who: 'Dogs and cats', why: 'Damage red blood cells, cooked or raw.' },
+    { name: 'Ibuprofen and paracetamol', who: 'Dogs and cats', why: 'Human painkillers are dangerous to pets. Paracetamol can kill a cat.' },
+    { name: 'Antifreeze', who: 'Dogs and cats', why: 'Sweet-tasting and deadly. Wipe up any drips at once.' },
+    { name: 'Slug and rat bait', who: 'Every pet', why: 'Bring the packet with you: the treatment depends on the poison.' },
+];
+
+const vitals = [
+    { pet: 'Dog', temp: '101 to 102.5°F', breaths: '10 to 30', heart: '60 to 140' },
+    { pet: 'Cat', temp: '100.5 to 102.5°F', breaths: '20 to 30', heart: '140 to 220' },
+    { pet: 'Rabbit', temp: '101.3 to 104°F', breaths: '30 to 60', heart: '130 to 325' },
+];
+
+const kit = [
+    'Our phone number and the after-hours number, written inside the lid',
+    'Gauze pads, a bandage roll and self-adhesive wrap',
+    'Saline solution for rinsing eyes and wounds',
+    'Blunt-ended scissors and tweezers, and a tick remover',
+    'A digital thermometer and some lubricant',
+    'A soft muzzle (even kind dogs bite when they hurt)',
+    'A towel or blanket for carrying and keeping warm',
+    'Disposable gloves',
+];
+
+const posts = visiblePosts(await getCollection('blog'), { includeDrafts: false, now: buildTime }).slice(0, 6);
+---
+
+<Base
+    title="Pet resources and safety guides"
+    description="Handy pet-owner resources from Paws & Whiskers: foods and things that are poisonous to pets, normal vital signs, a first-aid kit list and our care guides."
+    breadcrumbs={[{ name: 'Pet resources', href: '/resources/' }]}
+>
+    <Hero
+        tone="paper"
+        icon="leaf"
+        eyebrow="Pet resources"
+        heading="Handy things to know (and stick on the fridge)"
+        lead="The facts we find ourselves writing on the back of appointment cards: what is dangerous, what is normal, and what to keep in the cupboard."
+        photo="labradorTulip"
+        shape="arch"
+    >
+        <ul class="jump" aria-label="On this page">
+            <li><a href="#dangers">Household dangers</a></li>
+            <li><a href="#vitals">Normal vital signs</a></li>
+            <li><a href="#kit">First-aid kit</a></li>
+            <li><a href="#guides">Care guides</a></li>
+        </ul>
+    </Hero>
+
+    <section id="dangers" class="band" aria-labelledby="dangers-heading">
+        <div class="container">
+            <div class="band-head">
+                <p class="eyebrow"><Icon name="alert" />Keep out of reach</p>
+                <h2 id="dangers-heading">Everyday things that are dangerous to pets</h2>
+                <p class="lead">If your pet has eaten any of these, call us straight away, even if they seem fine. Many work slowly, and early treatment matters.</p>
+            </div>
+            <ul class="dangers">
+                {dangers.map((item) => (
+                    <li class="danger sticker">
+                        <p class="who">{item.who}</p>
+                        <h3>{item.name}</h3>
+                        <p>{item.why}</p>
+                    </li>
+                ))}
+            </ul>
+            <p class="danger-call calm">
+                <Icon name="phone" size={22} />
+                <span>Swallowed something? Call <a href={`tel:${site.business.phoneE164}`}>{site.business.phone}</a>, or after hours {site.afterHours.name} on <a href={`tel:${site.afterHours.phoneE164}`}>{site.afterHours.phone}</a>. Bring the packet.</span>
+            </p>
+        </div>
+    </section>
+
+    <section id="vitals" class="band band-mint" aria-labelledby="vitals-heading">
+        <div class="container vitals">
+            <div>
+                <p class="eyebrow"><Icon name="heart" />What is normal</p>
+                <h2 id="vitals-heading">Normal vital signs at rest</h2>
+                <p class="lead">Rough ranges for a healthy adult pet, resting and calm. Count breaths by watching the chest rise for 30 seconds and doubling it. Every pet varies: learn your own pet’s normal while they are well.</p>
+            </div>
+            <div class="table-wrap sticker">
+                <table>
+                    <caption class="visually-hidden">Normal resting temperature, breathing and heart rates for dogs, cats and rabbits</caption>
+                    <thead>
+                        <tr>
+                            <th scope="col">Pet</th>
+                            <th scope="col">Temperature</th>
+                            <th scope="col">Breaths a minute</th>
+                            <th scope="col">Heartbeats a minute</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {vitals.map((row) => (
+                            <tr>
+                                <th scope="row">{row.pet}</th>
+                                <td>{row.temp}</td>
+                                <td>{row.breaths}</td>
+                                <td>{row.heart}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+                <p class="table-note">A sleeping dog or cat breathing more than 40 times a minute should be checked by a vet that day.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="kit" class="band" aria-labelledby="kit-heading">
+        <div class="container kit">
+            <div class="kit-box sticker sticker-sun tilt-left">
+                <span class="kit-icon"><Icon name="firstAid" size={40} /></span>
+                <h2 id="kit-heading">A pet <span class="nowrap">first-aid</span> kit</h2>
+                <p>Everything fits in a shoebox. Keep one at home and one in the car.</p>
+            </div>
+            <ul class="paw-list kit-list">
+                {kit.map((item) => <li>{item}</li>)}
+            </ul>
+        </div>
+    </section>
+
+    <section id="guides" class="band band-paper" aria-labelledby="guides-heading">
+        <div class="container">
+            <div class="band-head">
+                <p class="eyebrow"><Icon name="leaf" />Care guides</p>
+                <h2 id="guides-heading">Longer reads from our vets and nurses</h2>
+            </div>
+            <PostGrid posts={posts} level="h3" />
+            <p class="more"><a class="button button-cream" href="/blog/">All our pet-health advice <Icon name="arrow" /></a></p>
+        </div>
+    </section>
+</Base>
+
+<style>
+    .jump {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .jump a {
+        display: inline-block;
+        padding: 0.35rem 0.95rem;
+        border: 2px solid var(--line);
+        border-radius: 999px;
+        background: var(--sun);
+        color: var(--ink);
+        font-weight: 800;
+        text-decoration: none;
+    }
+
+    .jump a:hover {
+        background: var(--mint);
+    }
+
+    section[id] {
+        scroll-margin-top: var(--header-height);
+    }
+
+    .dangers {
+        display: grid;
+        gap: var(--space-6);
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .danger {
+        padding: var(--space-5);
+        background: #ffffff;
+        box-shadow: var(--pop-small);
+    }
+
+    .danger:nth-child(4n + 1) {
+        border-top: 10px solid var(--tomato);
+    }
+
+    .danger:nth-child(4n + 2) {
+        border-top: 10px solid var(--sun);
+    }
+
+    .danger:nth-child(4n + 3) {
+        border-top: 10px solid var(--teal);
+    }
+
+    .danger:nth-child(4n + 4) {
+        border-top: 10px solid var(--mint);
+    }
+
+    .who {
+        margin: 0 0 var(--space-1);
+        color: var(--muted);
+        font-size: 0.8rem;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .danger h3 {
+        margin-bottom: var(--space-2);
+    }
+
+    .danger p:last-child {
+        margin: 0;
+        font-weight: 600;
+        line-height: 1.45;
+    }
+
+    .danger-call {
+        display: flex;
+        gap: var(--space-3);
+        align-items: flex-start;
+        margin: var(--space-10) 0 0;
+        padding: var(--space-5) var(--space-6);
+        border-radius: var(--radius);
+        background: var(--teal-deep);
+        color: var(--cream);
+        font-weight: 700;
+    }
+
+    .danger-call :global(svg) {
+        flex: none;
+        color: var(--mint);
+    }
+
+    .danger-call a {
+        color: var(--sun);
+    }
+
+    .vitals {
+        display: grid;
+        gap: var(--space-10);
+        align-items: center;
+    }
+
+    @media (min-width: 64rem) {
+        .vitals {
+            grid-template-columns: 0.9fr 1.1fr;
+        }
+    }
+
+    .vitals .lead {
+        color: var(--ink);
+    }
+
+    .table-wrap {
+        padding: var(--space-4);
+        overflow-x: auto;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th,
+    td {
+        padding: 0.7rem 0.6rem;
+        border-bottom: 2px dashed rgb(23 50 58 / 0.3);
+        text-align: left;
+    }
+
+    thead th {
+        font-size: 0.8rem;
+        font-weight: 900;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+    }
+
+    tbody th {
+        font-family: var(--font-display);
+        font-size: 1.2rem;
+        font-weight: 600;
+    }
+
+    td {
+        font-weight: 700;
+    }
+
+    .table-note {
+        margin: var(--space-4) 0 0;
+        font-size: 0.95rem;
+        font-weight: 700;
+    }
+
+    .kit {
+        display: grid;
+        gap: var(--space-10);
+        align-items: center;
+    }
+
+    @media (min-width: 64rem) {
+        .kit {
+            grid-template-columns: 0.8fr 1.2fr;
+        }
+    }
+
+    .kit-box {
+        padding: var(--space-8);
+    }
+
+    .kit-icon {
+        display: inline-grid;
+        place-items: center;
+        width: 4.5rem;
+        height: 4.5rem;
+        margin-bottom: var(--space-4);
+        border: var(--stroke) solid var(--line);
+        border-radius: 50%;
+        background: var(--paper);
+    }
+
+    .nowrap {
+        white-space: nowrap;
+    }
+
+    .kit-box p {
+        margin: 0;
+        font-weight: 700;
+    }
+
+    .kit-list {
+        font-size: 1.1rem;
+        font-weight: 700;
+    }
+
+    .more {
+        margin: var(--space-12) 0 0;
+        text-align: center;
+    }
+</style>

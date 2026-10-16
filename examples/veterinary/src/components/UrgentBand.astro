@@ -1,0 +1,166 @@
+---
+/**
+ * Urgent care, said plainly. A calm, clearly separate band: deep teal, a
+ * straight edge, no tilt, no bounce, nothing that moves (the `calm` class
+ * also switches motion off inside it, motion.css). Someone reading it may
+ * be frightened; it should read like a steady voice.
+ */
+import Icon from './Icon.astro';
+import { site } from '../site';
+
+interface Props {
+    /** The heading level: h2 in a page, h3 where it sits inside a section. */
+    level?: 'h2' | 'h3';
+}
+
+const { level = 'h2' } = Astro.props;
+const Heading = level;
+const openHours = site.business.hoursText
+    .slice(0, site.business.hours.length)
+    .map((row) => `${row.days} ${row.time}`)
+    .join(', ');
+---
+
+<section class="urgent calm" aria-labelledby="urgent-heading">
+    <div class="container inner">
+        <div class="intro">
+            <p class="label"><Icon name="firstAid" size={20} /> Urgent care</p>
+            <Heading id="urgent-heading" class="heading">Worried about your pet right now?</Heading>
+            <p class="text">Call us first. A nurse will talk it through with you and, if your pet needs to be seen, we will fit you in today. We keep appointments free every day for exactly this.</p>
+        </div>
+        <div class="options">
+            <div class="option">
+                <h3><Icon name="clock" size={20} /> While we are open</h3>
+                <p>{openHours}.</p>
+                <a class="call" href={`tel:${site.business.phoneE164}`}><Icon name="phone" size={20} /> Call {site.business.phone}</a>
+            </div>
+            <div class="option">
+                <h3><Icon name="moon" size={20} /> Nights, Sundays and holidays</h3>
+                <p>{site.afterHours.name}, {site.afterHours.address}. {site.afterHours.note}</p>
+                <a class="call" href={`tel:${site.afterHours.phoneE164}`}><Icon name="phone" size={20} /> Call {site.afterHours.phone}</a>
+            </div>
+        </div>
+        <p class="signs"><a href="/emergency/">Signs that mean go now, and what to do on the way <Icon name="arrow" size={18} /></a></p>
+    </div>
+</section>
+
+<style>
+    .urgent {
+        padding: clamp(3rem, 2rem + 4vw, 5rem) 0;
+        background: var(--teal-deep);
+        border-top: 8px solid var(--mint);
+        color: var(--mint-soft);
+    }
+
+    .inner {
+        display: grid;
+        gap: var(--space-8);
+    }
+
+    .label {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        margin-bottom: var(--space-3);
+        color: var(--mint);
+        font-weight: 900;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+    }
+
+    .heading {
+        color: var(--cream);
+        font-size: clamp(1.9rem, 1.4rem + 2vw, 2.75rem);
+    }
+
+    .text {
+        max-width: 34rem;
+        margin: 0;
+        font-size: 1.1rem;
+    }
+
+    .options {
+        display: grid;
+        gap: var(--space-5);
+    }
+
+    .option {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-2);
+        padding: var(--space-6);
+        border: 2px solid rgb(159 216 211 / 0.45);
+        border-radius: var(--radius);
+        background: var(--teal);
+    }
+
+    .option h3 {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        margin: 0;
+        color: var(--cream);
+        font-size: 1.25rem;
+    }
+
+    .option h3 :global(svg) {
+        flex: none;
+        color: var(--mint);
+    }
+
+    .option p {
+        flex: 1;
+        margin: 0;
+    }
+
+    .call {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        align-self: flex-start;
+        margin-top: var(--space-2);
+        padding: 0.6rem 1.1rem;
+        border-radius: var(--radius-small);
+        background: var(--cream);
+        color: var(--teal-deep);
+        font-family: var(--font-display);
+        font-size: 1.15rem;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .call:hover {
+        background: #ffffff;
+        color: var(--teal-deep);
+    }
+
+    .signs {
+        margin: 0;
+    }
+
+    .signs a {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        color: var(--sun);
+    }
+
+    .signs a:hover {
+        color: #ffffff;
+    }
+
+    @media (min-width: 64rem) {
+        .inner {
+            grid-template-columns: 1fr 1.4fr;
+            align-items: start;
+        }
+
+        .options {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .signs {
+            grid-column: 2;
+        }
+    }
+</style>
