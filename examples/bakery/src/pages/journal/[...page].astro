@@ -1,0 +1,127 @@
+---
+/** /journal/, then /journal/2/ and on: every post the build shows, newest first. */
+import type { GetStaticPaths, Page } from 'astro';
+import { getCollection, type CollectionEntry } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import PageHero from '../../components/PageHero.astro';
+import PostGrid from '../../components/PostGrid.astro';
+import { site } from '../../site';
+import { buildTime, settings } from '@core/settings';
+import { tagIndex, visiblePosts } from '@core/lib/posts.js';
+
+export const getStaticPaths = (async ({ paginate }) => {
+    const posts = visiblePosts(await getCollection('blog'), { includeDrafts: !settings.production, now: buildTime });
+
+    return paginate(posts, { pageSize: 6, props: { tags: tagIndex(posts) } });
+}) satisfies GetStaticPaths;
+
+interface Props {
+    page: Page<CollectionEntry<'blog'>>;
+    tags: ReturnType<typeof tagIndex>;
+}
+
+const { page, tags } = Astro.props;
+const first = page.currentPage === 1;
+// Page 2 and on need their own title and description (docs/seo.md, 12).
+const title = first ? `${site.blog.title}: recipes and baking notes` : `${site.blog.title}, page ${page.currentPage}`;
+const description = first ? site.blog.description : `${site.blog.description} Page ${page.currentPage} of ${page.lastPage}.`;
+---
+
+<Base title={title} description={description} breadcrumbs={[{ name: site.blog.title, href: site.blog.path }]}>
+    <PageHero
+        eyebrow={first ? 'Notes from the bakehouse' : `Page ${page.currentPage} of ${page.lastPage}`}
+        heading={first ? 'The journal' : `The journal, page ${page.currentPage}`}
+        lead="Recipes scaled for a home oven, how we do things and why, and news from Cooper’s Row. Flour on the pages, probably."
+        doodle="whisk"
+    >
+        {
+            tags.length > 0 && (
+                <ul class="topics" aria-label="Topics">
+                    {tags.map((tag) => (
+                        <li>
+                            <a href={`${site.blog.path}tags/${tag.slug}/`}>
+                                {tag.tag} <span>{tag.count}</span>
+                            </a>
+                        </li>
+                    ))}
+                </ul>
+            )
+        }
+    </PageHero>
+
+    <div class="container list">
+        {page.data.length === 0 && <p>No posts yet.</p>}
+        <PostGrid posts={page.data} />
+
+        {
+            page.lastPage > 1 && (
+                <nav class="pager" aria-label="More posts">
+                    {page.url.prev ? <a class="button button-plain" href={page.url.prev}>← Newer</a> : <span />}
+                    <span class="count hand">Page {page.currentPage} of {page.lastPage}</span>
+                    {page.url.next ? <a class="button button-plain" href={page.url.next}>Older →</a> : <span />}
+                </nav>
+            )
+        }
+    </div>
+</Base>
+
+<style>
+    .topics {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+        margin: var(--space-8) 0 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .topics a {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        padding: 0.25rem 0.35rem 0.25rem 0.9rem;
+        border: 2px solid var(--cocoa);
+        border-radius: 999px;
+        background: var(--cream);
+        color: var(--cocoa);
+        font-size: 1rem;
+        font-weight: 750;
+        text-decoration: none;
+        transition: background-color 0.15s ease, rotate 0.2s ease;
+    }
+
+    .topics a:hover {
+        background: var(--butter);
+        rotate: -2deg;
+    }
+
+    .topics span {
+        display: inline-grid;
+        place-items: center;
+        min-width: 1.6rem;
+        height: 1.6rem;
+        border-radius: 999px;
+        background: var(--cocoa);
+        color: var(--cream);
+        font-size: 0.85rem;
+    }
+
+    .list {
+        padding: var(--space-12) 0 var(--section);
+    }
+
+    .pager {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-4);
+        margin-top: var(--space-16);
+        padding-top: var(--space-8);
+        border-top: 2px dashed var(--color-line-strong);
+    }
+
+    .count {
+        color: var(--terracotta);
+        font-size: 1.5rem;
+    }
+</style>

@@ -1,0 +1,19 @@
+---
+/**
+ * Where the waffle app sends a browser without script after a good cake
+ * order. Kept out of search results (src/site.ts, noindex).
+ */
+import Base from '../../../layouts/Base.astro';
+import PageHero from '../../../components/PageHero.astro';
+---
+
+<Base title="Thanks, we have your cake order" description="We have your cake order. Priya will reply within a working day to confirm the details, the price and the deposit that holds your date.">
+    <PageHero
+        eyebrow="Order received"
+        heading="Thank you, it’s in the book"
+        lead="Priya will reply within a working day to confirm the details and the price. Nothing is charged until you have said yes."
+        doodle="slice"
+        primary={{ label: 'See today’s bakes', href: '/menu/' }}
+        secondary={{ label: 'Read the journal', href: '/journal/' }}
+    />
+</Base>

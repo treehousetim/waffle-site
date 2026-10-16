@@ -1,0 +1,47 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @font-face { font-family: 'Bagel'; src: url('../src/assets/fonts/bagel-fat-one-latin-400.woff2'); }
+  @font-face { font-family: 'Caveat'; src: url('../src/assets/fonts/caveat-latin-wght.woff2'); font-weight: 400 700; }
+  @font-face { font-family: 'Alegreya'; src: url('../src/assets/fonts/alegreya-latin-wght.woff2'); font-weight: 400 900; }
+  html, body { margin: 0; width: 1200px; height: 630px; overflow: hidden; }
+  body { position: relative; background: #fbf3e4; font-family: 'Alegreya'; color: #3a2318; }
+  .band { position: absolute; left: 0; right: 0; bottom: 0; height: 120px; background: #3a2318; }
+  .band::before { content: ''; position: absolute; left: 0; right: 0; bottom: 100%; height: 20px;
+    background: radial-gradient(circle at 20px 20px, #3a2318 19.5px, transparent 20px) repeat-x 0 0 / 40px 40px; }
+  .ticker { position: absolute; left: 70px; bottom: 38px; color: #f4c95d; font-family: 'Bagel'; font-size: 34px; white-space: nowrap; }
+  .ticker span { color: #fbf3e4; margin: 0 16px; }
+  .copy { position: absolute; left: 70px; top: 70px; width: 640px; }
+  .logo { display: flex; align-items: center; gap: 14px; }
+  .logo img { width: 92px; height: 92px; }
+  .word { font-family: 'Bagel'; font-size: 44px; display: flex; align-items: baseline; gap: 8px; }
+  .amp { font-family: 'Caveat'; font-weight: 700; color: #b34a24; font-size: 58px; line-height: 0.5; transform: rotate(-8deg); margin-right: 10px; }
+  h1 { font-family: 'Bagel'; font-weight: 400; font-size: 92px; line-height: 0.95; margin: 34px 0 18px; letter-spacing: -1px; }
+  h1 em { font-style: normal; color: #b34a24; }
+  p { font-size: 30px; margin: 0; line-height: 1.3; }
+  .hand { font-family: 'Caveat'; font-weight: 700; color: #b34a24; font-size: 34px; transform: rotate(-3deg); display: inline-block; margin-top: 10px; }
+  .blob { position: absolute; right: -40px; top: -30px; width: 560px; height: 560px; border-radius: 46% 54% 42% 58% / 52% 44% 56% 48%; background: #f4c95d; }
+  .stamp { position: absolute; right: 90px; top: 70px; width: 380px; height: 380px; }
+</style>
+</head>
+<body>
+  <div class="blob"></div>
+  <svg class="stamp" viewBox="0 0 200 200">
+    <defs><path id="r" d="M100 100 m-74 0 a74 74 0 1 1 148 0 a74 74 0 1 1 -148 0"/></defs>
+    <circle cx="100" cy="100" r="97" fill="#fbf3e4" stroke="#3a2318" stroke-width="3"/>
+    <circle cx="100" cy="100" r="90" fill="none" stroke="#b34a24" stroke-width="3"/>
+    <circle cx="100" cy="100" r="54" fill="none" stroke="#b34a24" stroke-width="2.5" stroke-dasharray="2 6" stroke-linecap="round"/>
+    <text fill="#b34a24" font-family="Bagel" font-size="20"><textPath href="#r" textLength="462" lengthAdjust="spacing">BAKED FRESH DAILY · SINCE 2014 · LARKHAVEN · </textPath></text>
+    <image href="mark.svg" x="58" y="56" width="84" height="84"/>
+  </svg>
+  <div class="copy">
+    <div class="logo"><img src="mark.svg" alt=""><div class="word">Crumb<span class="amp">&amp;</span>Kettle</div></div>
+    <h1>Bread worth <em>getting</em> up for.</h1>
+    <p>Sourdough bakery and café on Cooper’s Row.</p>
+    <span class="hand">Today’s bakes, celebration cakes, the kettle’s on.</span>
+  </div>
+  <div class="band"><div class="ticker">Country sourdough<span>✦</span>Butter croissant<span>✦</span>Kettle chai<span>✦</span>Lemon drizzle<span>✦</span>Seeded rye</div></div>
+</body>
+</html>

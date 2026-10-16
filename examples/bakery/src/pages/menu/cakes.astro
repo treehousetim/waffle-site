@@ -1,0 +1,55 @@
+---
+import CategoryPage from '../../layouts/CategoryPage.astro';
+---
+
+<CategoryPage
+    slug="cakes"
+    title="Cake by the slice"
+    description="Lemon drizzle, brown butter banana loaf, vegan chocolate olive oil cake and the seasonal fruit cake, cut thick every day at Crumb & Kettle."
+    eyebrow="Cut thick, every day"
+    heading="Cake for an ordinary Tuesday"
+    lead="Loaf cakes and tray bakes on the counter, sliced to order. For a whole cake with candles, see our celebration cakes."
+    faq={[
+        {
+            question: 'Can I buy a whole loaf cake?',
+            answer: 'Usually, yes: a whole lemon drizzle or banana loaf serves eight to ten. Call the day before and we will bake one for you, or ask at the counter if there is an uncut one left.',
+        },
+        {
+            question: 'Do you have gluten-free cake?',
+            answer: 'The apple and cider cake is made without gluten, using almond and rice flour. Our kitchen is full of wheat flour, though, so we cannot promise any cake is free of traces of gluten.',
+        },
+        {
+            question: 'Can you write on a slice?',
+            answer: 'Not on a slice, but for a whole cake to order we pipe whatever words you like, up to about forty letters. Use the cake order form.',
+        },
+    ]}
+    closing={{
+        heading: 'Want the whole cake?',
+        text: 'Every cake on the counter can be baked whole, and our celebration cakes come in seven flavors, from 6 inches to three tiers.',
+        primary: { label: 'See celebration cakes', href: '/cakes/' },
+        secondary: { label: 'Order a cake', href: '/cakes/order/' },
+    }}
+>
+    <h2>What is on the cake stand</h2>
+    <p>
+        There are four cakes on the counter every day, and two of them never change. The lemon drizzle is Priya’s recipe, sharp enough to make
+        you squint, with a crackling sugar crust; we tried to retire it once and the neighbors would not let us. The brown butter banana loaf
+        uses the bananas we buy for the café and forget about.
+    </p>
+    <p>
+        The other two follow the season: apple and cider now, with a cider caramel, and a chocolate olive oil cake that happens to be vegan
+        and is the darkest, dampest thing we bake.
+    </p>
+
+    <h2>Weekends</h2>
+    <p>
+        On Saturdays and Sundays there is carrot cake, with brown sugar cream cheese frosting and no raisins. We know some of you want raisins.
+        We are not changing it.
+    </p>
+
+    <h2>Cake for a celebration</h2>
+    <p>
+        For birthdays, weddings and anything with candles, we bake whole layer cakes to order with five days’ notice. See the <a href="/cakes/">celebration cake menu</a> for flavors and sizes, or read <a href="/journal/how-to-order-a-celebration-cake/">how to
+        order a celebration cake</a> before you choose.
+    </p>
+</CategoryPage>

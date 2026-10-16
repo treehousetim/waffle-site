@@ -1,0 +1,316 @@
+---
+/**
+ * The one template every journal post uses (docs/blog.md): the headline on
+ * a recipe card, the picture taped beside it (the post's cover, or its
+ * topic's photo), the article, who wrote it, and more to read. A wavy line
+ * along the top tracks how far you have read (styles/motion.css).
+ */
+import type { CollectionEntry } from 'astro:content';
+import { getImage } from 'astro:assets';
+import Base from './Base.astro';
+import FormattedDate from '../components/FormattedDate.astro';
+import Photo from '../components/Photo.astro';
+import PostGrid from '../components/PostGrid.astro';
+import Doodle from '../components/Doodle.astro';
+import { site } from '../site';
+import { settings } from '@core/settings';
+import { defaultPostPhoto, photos, topicPhotos } from '../data/photos';
+import { blogPosting } from '@core/lib/jsonld.js';
+import { absoluteUrl, canonicalUrl } from '@core/lib/seo.js';
+import { readingMinutes, tagSlug } from '@core/lib/posts.js';
+
+interface Props {
+    post: CollectionEntry<'blog'>;
+    related: CollectionEntry<'blog'>[];
+}
+
+const { post, related } = Astro.props;
+const { title, description, pubDate, updatedDate, tags, cover, coverAlt, draft } = post.data;
+const author = post.data.author ?? site.blog.defaultAuthor;
+const url = canonicalUrl(Astro.url.pathname, settings.siteUrl);
+const firstTag = tags[0];
+const topicPhoto = (firstTag !== undefined ? topicPhotos[tagSlug(firstTag)] : undefined) ?? defaultPostPhoto;
+
+// The link preview: the cover, or the topic photo, cropped to 1200x630.
+const preview = await getImage({ src: cover ?? photos[topicPhoto].src, width: 1200, height: 630, fit: 'cover', format: 'jpg' });
+const image = { src: absoluteUrl(preview.src, settings.siteUrl), alt: cover !== undefined ? (coverAlt ?? '') : photos[topicPhoto].alt };
+---
+
+<Base
+    title={title}
+    description={description}
+    type="article"
+    image={image}
+    breadcrumbs={[
+        { name: site.blog.title, href: site.blog.path },
+        { name: title, href: Astro.url.pathname },
+    ]}
+    article={{ published: pubDate, updated: updatedDate, tags }}
+    jsonLd={[
+        blogPosting(
+            { url, title, description, image: image.src, published: pubDate, updated: updatedDate, author, tags },
+            settings.siteUrl,
+        ),
+    ]}
+>
+    <div class="reading-progress" aria-hidden="true"></div>
+    <article class="post">
+        <header class="container head">
+            <div class="card">
+                <p class="crumbs">
+                    <a href={site.blog.path}>{site.blog.title}</a>
+                    {firstTag && (
+                        <>
+                            <span aria-hidden="true">/</span>
+                            <a href={`${site.blog.path}tags/${tagSlug(firstTag)}/`}>{firstTag}</a>
+                        </>
+                    )}
+                </p>
+                {draft && <p class="draft">Draft: not published in production.</p>}
+                <h1>{title}</h1>
+                <p class="lead">{description}</p>
+                <p class="meta">
+                    <span class="by hand">by {author}</span>
+                    <span>
+                        <FormattedDate date={pubDate} /> · {readingMinutes(post.body ?? '')} min read
+                        {updatedDate && (
+                            <>
+                                {' '}
+                                · Updated <FormattedDate date={updatedDate} />
+                            </>
+                        )}
+                    </span>
+                </p>
+            </div>
+            <figure class="snap">
+                {
+                    cover && coverAlt ? (
+                        <Photo src={cover} alt={coverAlt} sizes="(min-width: 64rem) 30rem, 90vw" priority />
+                    ) : (
+                        <Photo name={topicPhoto} sizes="(min-width: 64rem) 30rem, 90vw" priority />
+                    )
+                }
+                <span class="tape" aria-hidden="true"></span>
+            </figure>
+        </header>
+
+        <div class="prose body">
+            <slot />
+        </div>
+
+        <footer class="prose foot">
+            {
+                tags.length > 0 && (
+                    <ul class="tags" aria-label="Topics">
+                        {tags.map((tag) => (
+                            <li>
+                                <a href={`${site.blog.path}tags/${tagSlug(tag)}/`}>{tag}</a>
+                            </li>
+                        ))}
+                    </ul>
+                )
+            }
+
+            <div class="signoff">
+                <Doodle name="boule" class="signoff-doodle" />
+                <div>
+                    <p class="signoff-title">Rather we baked it for you?</p>
+                    <p>Everything in the journal is on the counter at {site.business.address.street}, most mornings from 7.</p>
+                    <p class="actions">
+                        <a class="button" href="/menu/">See today’s bakes</a>
+                        <a class="button button-plain" href={site.cta.href}>{site.cta.label}</a>
+                    </p>
+                </div>
+            </div>
+        </footer>
+    </article>
+
+    {
+        related.length > 0 && (
+            <section class="related">
+                <div class="container">
+                    <h2>Keep reading</h2>
+                    <PostGrid posts={related} level="h3" />
+                </div>
+            </section>
+        )
+    }
+</Base>
+
+<style>
+    .post {
+        padding-top: clamp(2.5rem, 2rem + 3vw, 4.5rem);
+    }
+
+    .head {
+        display: grid;
+        gap: var(--space-10);
+        align-items: center;
+    }
+
+    .card {
+        padding: clamp(1.5rem, 1rem + 3vw, 3.25rem);
+        border: 2px solid var(--cocoa);
+        border-radius: var(--radius-small);
+        background-color: #fffaf0;
+        background-image:
+            linear-gradient(to bottom, transparent 5.2rem, rgb(179 74 36 / 0.45) 5.2rem, rgb(179 74 36 / 0.45) calc(5.2rem + 2px), transparent calc(5.2rem + 2px)),
+            repeating-linear-gradient(to bottom, transparent 0, transparent calc(2.2rem - 1px), rgb(90 130 170 / 0.15) calc(2.2rem - 1px), rgb(90 130 170 / 0.15) 2.2rem);
+        box-shadow: var(--shadow-print);
+        rotate: -0.6deg;
+    }
+
+    .crumbs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+        margin-bottom: var(--space-8);
+        font-weight: 800;
+    }
+
+    .crumbs a {
+        text-decoration: none;
+    }
+
+    .draft {
+        display: inline-block;
+        padding: 0.15rem 0.6rem;
+        border: 2px solid var(--terracotta);
+        border-radius: 0.3rem;
+        color: var(--terracotta);
+        font-weight: 800;
+    }
+
+    h1 {
+        font-size: clamp(2.4rem, 1.6rem + 3.2vw, 4.4rem);
+    }
+
+    .meta {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: var(--space-2) var(--space-4);
+        margin: var(--space-6) 0 0;
+        color: var(--crust);
+        font-size: 1rem;
+    }
+
+    .by {
+        color: var(--terracotta);
+        font-size: 1.5rem;
+        line-height: 1;
+    }
+
+    .snap {
+        position: relative;
+        width: min(100%, 30rem);
+        margin: 0;
+        justify-self: center;
+        padding: 0.7rem 0.7rem 2.5rem;
+        background: #fffaf0;
+        box-shadow: var(--shadow-soft), 0 0 0 1px rgb(58 35 24 / 0.08);
+        rotate: 2deg;
+    }
+
+    .snap :global(img) {
+        width: 100%;
+        aspect-ratio: 4 / 4.4;
+        object-fit: cover;
+    }
+
+    .tape {
+        position: absolute;
+        top: -0.9rem;
+        left: 50%;
+        width: 7rem;
+        height: 1.8rem;
+        translate: -50% 0;
+        rotate: -5deg;
+        background: rgb(244 201 93 / 0.8);
+    }
+
+    @media (min-width: 64rem) {
+        .head {
+            grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.65fr);
+        }
+    }
+
+    .body {
+        margin-top: var(--section);
+        font-size: 1.22rem;
+        line-height: 1.72;
+    }
+
+    .body :global(h2) {
+        position: relative;
+    }
+
+    .foot {
+        margin-top: var(--space-12);
+    }
+
+    .tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+        margin: 0 0 var(--space-10);
+        padding: 0;
+        list-style: none;
+    }
+
+    .tags a {
+        display: inline-block;
+        padding: var(--space-1) var(--space-4);
+        border: 2px solid var(--cocoa);
+        border-radius: 999px;
+        background: var(--butter-soft);
+        color: var(--cocoa);
+        font-size: 1rem;
+        font-weight: 750;
+        text-decoration: none;
+    }
+
+    .tags a:hover {
+        background: var(--butter);
+    }
+
+    .signoff {
+        display: flex;
+        gap: var(--space-6);
+        padding: var(--space-8);
+        border: 2px dashed var(--color-line-strong);
+        border-radius: var(--radius-large);
+    }
+
+    .signoff :global(.signoff-doodle) {
+        flex: none;
+        width: 4.5rem;
+    }
+
+    .signoff-title {
+        margin-bottom: var(--space-2);
+        font-family: var(--font-display);
+        font-size: 1.7rem;
+        line-height: 1.05;
+    }
+
+    .signoff .actions {
+        margin: var(--space-5) 0 0;
+    }
+
+    .related {
+        margin-top: var(--section);
+        padding: var(--section) 0;
+        background: var(--cream-deep);
+    }
+
+    .related h2 {
+        margin-bottom: var(--space-10);
+    }
+
+    @media (max-width: 40rem) {
+        .signoff {
+            flex-direction: column;
+        }
+    }
+</style>

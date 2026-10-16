@@ -1,0 +1,23 @@
+---
+/**
+ * A hand-drawn wiggly line under a link or a word. It sits in a parent with
+ * `position: relative`; styles/global.css clips it away and styles/motion.css
+ * uncovers it, left to right, when the link is hovered or focused, or is the
+ * current page. Purely decorative.
+ */
+interface Props {
+    /** Which of the hand-drawn lines: they differ a little, like real pen strokes. */
+    variant?: 1 | 2 | 3;
+}
+
+const { variant = 1 } = Astro.props;
+const paths = {
+    1: 'M2 6 C10 1 16 10 25 5 S40 1 48 6 S64 10 72 5 S88 1 98 5',
+    2: 'M2 5 C12 9 18 1 28 5 S44 9 54 4 S70 1 80 6 S92 8 98 4',
+    3: 'M2 7 C9 2 19 3 27 6 S45 9 55 5 S73 1 83 5 S94 8 98 6',
+};
+---
+
+<svg class="squiggle" viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+    <path d={paths[variant]} vector-effect="non-scaling-stroke" />
+</svg>

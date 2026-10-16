@@ -1,0 +1,279 @@
+---
+/**
+ * Wholesale for cafés, restaurants and shops: what we deliver, where and
+ * when, the ordering rhythm and how to start. Enquiries by email or phone
+ * (there is no wholesale form in the waffle app yet).
+ */
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Band from '../components/Band.astro';
+import Photo from '../components/Photo.astro';
+import Faq from '../components/Faq.astro';
+import RollingPin from '../components/RollingPin.astro';
+import { site } from '../site';
+import { faqPage } from '@core/lib/jsonld.js';
+
+const range = [
+    { name: 'Country sourdough', detail: '900 g boules or 1.8 kg sandwich loaves for slicing', days: 'Tue–Sat' },
+    { name: 'Seeded rye and spelt tins', detail: 'Tin loaves that slice thin and keep', days: 'Tue–Sat' },
+    { name: 'Baguettes and demi-baguettes', detail: 'Baked at 4am for 6am delivery', days: 'Tue–Sat' },
+    { name: 'Burger buns and brioche', detail: 'Brioche or potato buns, to order by the dozen', days: 'Thu–Sat' },
+    { name: 'Croissants and pastries', detail: 'Baked, or frozen unbaked for your own oven', days: 'Tue–Sat' },
+    { name: 'Loaf cakes', detail: 'Whole lemon drizzle, banana and chocolate olive oil', days: 'Tue–Sat' },
+];
+
+const faq = [
+    {
+        question: 'Is there a minimum order?',
+        answer: 'Forty dollars a delivery, which is about eight loaves. Below that, you are welcome to collect from the back door at 6:30am at the same wholesale prices.',
+    },
+    {
+        question: 'When do I need to order by?',
+        answer: 'By 2pm for delivery the next morning, because the dough for tomorrow is mixed in the afternoon. Standing orders run every week until you change them, and changes need the same 2pm notice.',
+    },
+    {
+        question: 'Do you deliver on Sundays and Mondays?',
+        answer: 'No. The van runs Tuesday to Saturday. Saturday’s delivery can include bread for Sunday and Monday, and our sourdough keeps three days well; we will show your staff how to refresh it.',
+    },
+    {
+        question: 'Can we say we serve your bread?',
+        answer: 'Please do. We will give you a small card for the counter, and we list the cafés we bake for on request, so people can find our bread on a Monday.',
+    },
+];
+---
+
+<Base
+    title="Wholesale bread for cafés and restaurants"
+    description="Sourdough, baguettes, buns and croissants delivered by 6am, Tuesday to Saturday, to cafés, restaurants and shops in Larkhaven and four nearby towns."
+    breadcrumbs={[{ name: 'Wholesale', href: '/wholesale/' }]}
+    jsonLd={[faqPage(faq)]}
+>
+    <PageHero
+        eyebrow="Wholesale for cafés"
+        heading="Your bread, baked at four"
+        lead="We bake for eighteen cafés, restaurants and shops. The van leaves at half past five, so it is on your doorstep before you open."
+        photo="breadOven"
+        doodle="loaf"
+        stamp="ON YOUR DOORSTEP BY SIX · TUESDAY TO SATURDAY · "
+        primary={{ label: 'Email June', href: `mailto:${site.business.email}?subject=Wholesale` }}
+        secondary={{ label: `Call ${site.business.phone}`, href: `tel:${site.business.phoneE164}` }}
+    />
+
+    <Band tone="kraft" edge="zigzag" eyebrow="The range" heading="What the van carries">
+        <ul class="range">
+            {
+                range.map((item) => (
+                    <li class="pinned">
+                        <h3>{item.name}</h3>
+                        <p>{item.detail}</p>
+                        <p class="days stamp">{item.days}</p>
+                    </li>
+                ))
+            }
+        </ul>
+        <p class="note">Wholesale prices on request: about 30% under the counter price, less for standing orders over $150 a week.</p>
+    </Band>
+
+    <Band eyebrow="The route" heading="Five towns, every morning but Monday">
+        <div class="route">
+            <ol class="stops reveal">
+                {
+                    site.deliveryTowns.map((town, index) => (
+                        <li>
+                            <span class="time">{['5:30', '5:45', '6:00', '6:10', '6:25'][index]}am</span>
+                            <span class="town">{town}</span>
+                        </li>
+                    ))
+                }
+            </ol>
+            <div class="route-photo drift reveal">
+                <Photo name="paperBagBread" sizes="(min-width: 64rem) 26rem, 90vw" />
+            </div>
+        </div>
+        <p class="note">Times are approximate and depend on the order of drops. Outside these towns, we can meet you in Larkhaven at 6:30.</p>
+    </Band>
+
+    <RollingPin note="How it works" />
+
+    <Band tone="flour" heading="Starting is simple">
+        <ol class="steps facts">
+            <li><h3>Taste first</h3><p>Come in, or we will drop off a tasting box of loaves and pastries, free.</p></li>
+            <li><h3>Set a standing order</h3><p>What you need, on which days. We will help you size it from your covers.</p></li>
+            <li><h3>Change it by 2pm</h3><p>By email or text, the afternoon before. Busy weekend? Add to Saturday.</p></li>
+            <li><h3>Monthly invoices</h3><p>One invoice at the end of each month, payable in 14 days.</p></li>
+        </ol>
+    </Band>
+
+    <Band eyebrow="Questions" heading="Wholesale questions">
+        <Faq items={faq} />
+    </Band>
+
+    <Band tone="terracotta" edge="wave">
+        <div class="contact reveal">
+            <h2>Talk to June</h2>
+            <p>She runs wholesale and the van. Email <a href={`mailto:${site.business.email}?subject=Wholesale`}>{site.business.email}</a> or call {site.business.phone} after 10am, and tell her what you serve and how many covers.</p>
+        </div>
+    </Band>
+</Base>
+
+<style>
+    .range {
+        display: grid;
+        gap: var(--space-6);
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 21rem), 1fr));
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .range li {
+        position: relative;
+        padding: var(--space-6);
+        border: 2px solid var(--cocoa);
+        border-radius: var(--radius);
+        background: #fffaf0;
+        box-shadow: var(--shadow-print);
+    }
+
+    .range li:nth-child(odd) {
+        rotate: -0.6deg;
+    }
+
+    .range p {
+        font-size: 1.05rem;
+    }
+
+    .days {
+        width: auto;
+        margin: 0;
+        padding-inline: 0.6em;
+        color: var(--terracotta);
+    }
+
+    .note {
+        max-width: 44rem;
+        margin: var(--space-8) 0 0;
+        font-style: italic;
+    }
+
+    .route {
+        display: grid;
+        gap: var(--space-12);
+        align-items: center;
+    }
+
+    .stops {
+        position: relative;
+        display: grid;
+        gap: var(--space-5);
+        margin: 0;
+        padding: 0 0 0 2.5rem;
+        list-style: none;
+    }
+
+    /* The road: a dashed line with a stop at each town. */
+    .stops::before {
+        content: '';
+        position: absolute;
+        top: 0.8rem;
+        bottom: 0.8rem;
+        left: 0.7rem;
+        border-left: 4px dashed var(--kraft-deep);
+    }
+
+    .stops li {
+        position: relative;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 0 var(--space-4);
+    }
+
+    .stops li::before {
+        content: '';
+        position: absolute;
+        top: 0.55rem;
+        left: -2.35rem;
+        width: 1.3rem;
+        height: 1.3rem;
+        border: 3px solid var(--cocoa);
+        border-radius: 50%;
+        background: var(--butter);
+    }
+
+    .time {
+        min-width: 5.5rem;
+        color: var(--terracotta);
+        font-family: var(--font-hand);
+        font-size: 1.6rem;
+        font-weight: 700;
+    }
+
+    .town {
+        font-family: var(--font-display);
+        font-size: clamp(1.6rem, 1.3rem + 1.2vw, 2.4rem);
+        line-height: 1.1;
+    }
+
+    .route-photo {
+        overflow: hidden;
+        border: 3px solid var(--cocoa);
+        border-radius: var(--radius-large);
+        box-shadow: 10px 10px 0 var(--terracotta);
+        rotate: -1.5deg;
+    }
+
+    .route-photo :global(img) {
+        width: 100%;
+        aspect-ratio: 4 / 4.5;
+        object-fit: cover;
+    }
+
+    @media (min-width: 60rem) {
+        .route {
+            grid-template-columns: 1fr 0.8fr;
+        }
+    }
+
+    .steps {
+        display: grid;
+        gap: var(--space-6);
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        counter-reset: step;
+    }
+
+    .steps li {
+        padding-top: var(--space-5);
+        border-top: 3px solid var(--cocoa);
+        counter-increment: step;
+    }
+
+    .steps li::before {
+        content: counter(step, decimal-leading-zero);
+        display: block;
+        margin-bottom: var(--space-2);
+        color: var(--terracotta);
+        font-family: var(--font-display);
+        font-size: 2.2rem;
+        line-height: 1;
+    }
+
+    .steps p {
+        font-size: 1.08rem;
+    }
+
+    .contact {
+        max-width: 42rem;
+    }
+
+    .contact h2 {
+        color: var(--cream);
+    }
+
+    .contact p {
+        font-size: 1.25rem;
+    }
+</style>

@@ -1,0 +1,24 @@
+---
+/**
+ * Served by Caddy, with status 404, for any path that is not in the build
+ * (docker/caddy/Caddyfile). Kept out of search results (src/site.ts).
+ */
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Band from '../components/Band.astro';
+import SectionCards from '../components/SectionCards.astro';
+---
+
+<Base title="Page not found" description="That page is not on the counter. It may have moved, or the link may be mistyped. Try today’s bakes, the celebration cakes or the journal instead.">
+    <PageHero
+        eyebrow="404: all sold out"
+        heading="This page has gone, like the croissants"
+        lead="It may have moved, or the link may have a typo in it. Here is what is still on the counter."
+        doodle="croissant"
+        primary={{ label: 'Today’s bakes', href: '/menu/' }}
+        secondary={{ label: 'Back to the front door', href: '/' }}
+    />
+    <Band tone="flour" heading="The counter">
+        <SectionCards />
+    </Band>
+</Base>

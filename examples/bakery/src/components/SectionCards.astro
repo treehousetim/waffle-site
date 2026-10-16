@@ -1,0 +1,134 @@
+---
+/**
+ * The counter's sections as arched windows: the photo, the name in the
+ * chunky face, one line, and a hand-drawn underline that draws itself on
+ * hover. Each photo carries a view-transition name, so it grows into the
+ * section page's hero when followed (styles/motion.css).
+ */
+import Photo from './Photo.astro';
+import Squiggle from './Squiggle.astro';
+import Doodle from './Doodle.astro';
+import { sections, sectionUrl, type MenuSection } from '../data/menu';
+
+interface Props {
+    items?: MenuSection[];
+    /** Counts of today's bakes, by section slug, from the waffle app's menu. */
+    today?: Record<string, number>;
+    level?: 'h2' | 'h3';
+}
+
+const { items = sections, today, level: Heading = 'h3' } = Astro.props;
+---
+
+<ul class="cards sections">
+    {
+        items.map((section, index) => (
+            <li class="pinned">
+                <a href={sectionUrl(section.slug)}>
+                    <div class:list={['window', `morph-${section.slug}`]}>
+                        <Photo name={section.photo} sizes="(min-width: 64rem) 18rem, (min-width: 40rem) 45vw, 92vw" decorative />
+                    </div>
+                    <Doodle name={section.doodle} class="badge" />
+                    <Heading class="name">
+                        <span class="underlined">
+                            {section.name}
+                            <Squiggle variant={((index % 3) + 1) as 1 | 2 | 3} />
+                        </span>
+                    </Heading>
+                    <p>{section.summary}</p>
+                    {today && today[section.slug] !== undefined && <p class="count hand">{today[section.slug]} on the counter today</p>}
+                </a>
+            </li>
+        ))
+    }
+</ul>
+
+<style>
+    .sections {
+        display: grid;
+        gap: clamp(1.5rem, 1rem + 2vw, 2.5rem);
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    li:nth-child(odd) {
+        rotate: -1.2deg;
+    }
+
+    li:nth-child(even) {
+        rotate: 1deg;
+        margin-top: var(--space-6);
+    }
+
+    a {
+        position: relative;
+        display: block;
+        height: 100%;
+        padding: var(--space-3) var(--space-3) var(--space-6);
+        border: 2px solid var(--cocoa);
+        border-radius: 999px 999px var(--radius) var(--radius);
+        background: var(--cream);
+        color: var(--cocoa);
+        box-shadow: var(--shadow-print);
+        text-decoration: none;
+        transition: box-shadow 0.25s ease;
+    }
+
+    a:hover {
+        color: var(--cocoa);
+        box-shadow: 8px 8px 0 var(--terracotta);
+    }
+
+    .window {
+        overflow: hidden;
+        border-radius: 999px 999px 0.5rem 0.5rem;
+        background: var(--kraft);
+    }
+
+    .window :global(img) {
+        width: 100%;
+        aspect-ratio: 4 / 4.4;
+        object-fit: cover;
+        transition: scale 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    a:hover .window :global(img) {
+        scale: 1.06;
+    }
+
+    a :global(.badge) {
+        position: absolute;
+        top: calc(var(--space-3) + 1rem);
+        right: -0.75rem;
+        width: 4.2rem;
+        padding: 0.55rem;
+        border: 2px solid var(--cocoa);
+        border-radius: 50%;
+        background: var(--butter);
+    }
+
+    .name {
+        margin: var(--space-5) var(--space-3) var(--space-2);
+        font-size: 1.75rem;
+    }
+
+    .underlined {
+        position: relative;
+        display: inline-block;
+    }
+
+    p {
+        margin: 0 var(--space-3);
+        font-size: 1.05rem;
+        line-height: 1.45;
+    }
+
+    .count {
+        margin-top: var(--space-3);
+        color: var(--terracotta);
+        font-size: 1.4rem;
+        line-height: 1.1;
+    }
+</style>

@@ -1,0 +1,303 @@
+---
+/**
+ * The frame every counter section shares (src/pages/menu/<slug>.astro): the
+ * hero with the section's photo (grown from its card, by view transition),
+ * what is on the counter today from the waffle app, the page's own copy
+ * beside the regular bake calendar, its questions, and the other sections.
+ *
+ * The copy in the slot is the page: write it for this section, from what
+ * customers actually ask at the counter.
+ */
+import Base from './Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Band from '../components/Band.astro';
+import MenuBoard from '../components/MenuBoard.astro';
+import DietaryKey from '../components/DietaryKey.astro';
+import SectionCards from '../components/SectionCards.astro';
+import Faq, { type FaqItem } from '../components/Faq.astro';
+import CallToOrder from '../components/CallToOrder.astro';
+import RollingPin from '../components/RollingPin.astro';
+import Photo from '../components/Photo.astro';
+import { sectionFor, sections } from '../data/menu';
+import { photos } from '../data/photos';
+import { inCategory, menuDay, menuJsonLd, parseMenu, type Category } from '../lib/menu';
+import { waffle, settings } from '@core/settings';
+import { faqPage } from '@core/lib/jsonld.js';
+import { absoluteUrl, canonicalUrl } from '@core/lib/seo.js';
+import { getImage } from 'astro:assets';
+
+interface Props {
+    slug: Category;
+    title: string;
+    description: string;
+    eyebrow: string;
+    heading: string;
+    lead: string;
+    stamp?: string;
+    faq: FaqItem[];
+    /** The closing band; the cake order by default. */
+    closing?: { heading: string; text: string; primary: { label: string; href: string }; secondary: { label: string; href: string } };
+}
+
+const { slug, title, description, eyebrow, heading, lead, stamp, faq, closing } = Astro.props;
+const section = sectionFor(slug);
+const menu = parseMenu(await waffle.get('/api/site/menu'));
+const today = inCategory(menu, slug);
+const url = canonicalUrl(Astro.url.pathname, settings.siteUrl);
+const others = sections.filter((item) => item.slug !== slug);
+const preview = await getImage({ src: photos[section.photo].src, width: 1200, height: 630, fit: 'cover', format: 'jpg' });
+---
+
+<Base
+    title={title}
+    description={description}
+    image={{ src: absoluteUrl(preview.src, settings.siteUrl), alt: photos[section.photo].alt }}
+    breadcrumbs={[
+        { name: 'Today’s bakes', href: '/menu/' },
+        { name: section.name, href: Astro.url.pathname },
+    ]}
+    jsonLd={[menuJsonLd(menu, [{ slug, name: section.name, url }], url, settings.siteUrl), faqPage(faq)]}
+>
+    <PageHero eyebrow={eyebrow} heading={heading} lead={lead} photo={section.photo} morph={slug} doodle={section.doodle} stamp={stamp} />
+
+    <Band tone="kraft" edge="zigzag" eyebrow={`The board for ${menuDay(menu.date)}`} heading={`${section.name} on the counter today`}>
+        <div class="today">
+            <div class="slip reveal">
+                {today.length > 0 ? <MenuBoard items={today} /> : <p>Nothing from this part of the counter on today’s board. Come back tomorrow.</p>}
+                <div class="slip-foot">
+                    <DietaryKey />
+                    <p class="small">As of the morning bake. Things sell out; call ahead to keep one aside.</p>
+                </div>
+            </div>
+            <div class="side">
+                <figure class="polaroid drift reveal">
+                    <Photo name={section.sidePhoto} sizes="(min-width: 64rem) 22rem, 80vw" />
+                    <figcaption class="hand">{today.filter((item) => !item.soldOut).length} still on the counter</figcaption>
+                </figure>
+                <p class="all"><a href="/menu/">Everything on today’s board →</a></p>
+            </div>
+        </div>
+    </Band>
+
+    <div class="container body">
+        <div class="prose-column">
+            <slot />
+        </div>
+        <aside class="calendar" aria-labelledby="calendar-heading">
+            <h2 id="calendar-heading">The regular bake</h2>
+            <ul>
+                {
+                    section.regulars.map((regular) => (
+                        <li>
+                            <span class="when">{regular.when}</span>
+                            <strong>{regular.name}</strong>
+                            <span class="note">{regular.note}</span>
+                        </li>
+                    ))
+                }
+            </ul>
+        </aside>
+    </div>
+
+    <RollingPin note="More from the counter" />
+
+    <Band tone="flour" eyebrow="Questions" heading={`About our ${section.name.toLowerCase()}`}>
+        <Faq items={faq} />
+    </Band>
+
+    <Band heading="The rest of the counter">
+        <SectionCards items={others} />
+    </Band>
+
+    <CallToOrder {...closing} />
+</Base>
+
+<style>
+    .today {
+        display: grid;
+        gap: var(--space-12);
+        align-items: start;
+    }
+
+    .side {
+        display: grid;
+        gap: var(--space-6);
+        justify-items: center;
+    }
+
+    .polaroid {
+        width: min(100%, 22rem);
+        margin: 0;
+        padding: 0.7rem 0.7rem 0;
+        overflow: hidden;
+        background: #fffaf0;
+        box-shadow: var(--shadow-soft), 0 0 0 1px rgb(58 35 24 / 0.08);
+        rotate: 3deg;
+    }
+
+    .polaroid :global(picture) {
+        display: block;
+        overflow: hidden;
+    }
+
+    .polaroid :global(img) {
+        width: 100%;
+        aspect-ratio: 4 / 5;
+        object-fit: cover;
+    }
+
+    .polaroid figcaption {
+        padding: var(--space-3) 0 var(--space-4);
+        color: var(--terracotta);
+        font-size: 1.5rem;
+        line-height: 1.1;
+        text-align: center;
+    }
+
+    @media (min-width: 64rem) {
+        .today {
+            grid-template-columns: minmax(0, 1.5fr) minmax(0, 0.7fr);
+        }
+
+        .side {
+            position: sticky;
+            top: calc(var(--header-height) + var(--space-8));
+        }
+    }
+
+    .slip {
+        position: relative;
+        padding: clamp(1.5rem, 1rem + 2.5vw, 3rem);
+        border: 2px solid var(--cocoa);
+        background: #fffaf0 var(--grain);
+        box-shadow: var(--shadow-print);
+        rotate: -0.4deg;
+    }
+
+    .slip::after {
+        content: '';
+        position: absolute;
+        left: -2px;
+        right: -2px;
+        top: 100%;
+        height: 12px;
+        background: #fffaf0;
+        mask: var(--zigzag) repeat-x top / 20px 12px;
+        -webkit-mask: var(--zigzag) repeat-x top / 20px 12px;
+        transform: scaleY(-1);
+    }
+
+    .slip-foot {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-4);
+        margin-top: var(--space-8);
+        padding-top: var(--space-5);
+        border-top: 2px dashed var(--color-line-strong);
+    }
+
+    .small {
+        margin: 0;
+        color: var(--crust);
+        font-size: 0.98rem;
+        font-style: italic;
+    }
+
+    .all {
+        margin: 0;
+        font-weight: 800;
+    }
+
+    .all a {
+        color: var(--cocoa);
+    }
+
+    .body {
+        display: grid;
+        gap: var(--space-12);
+        padding: var(--section) 0 var(--space-8);
+    }
+
+    .prose-column {
+        max-width: var(--width-prose);
+    }
+
+    .prose-column :global(h2) {
+        font-size: clamp(1.7rem, 1.35rem + 1.4vw, 2.4rem);
+    }
+
+    .prose-column :global(* + h2) {
+        margin-top: var(--space-12);
+    }
+
+    .prose-column :global(ul) {
+        padding-left: 1.3em;
+    }
+
+    .prose-column :global(li::marker) {
+        color: var(--terracotta);
+    }
+
+    .calendar {
+        align-self: start;
+        padding: var(--space-8) var(--space-6);
+        border: 2px solid var(--cocoa);
+        border-radius: var(--radius);
+        background: var(--butter-soft);
+        box-shadow: var(--shadow-print);
+    }
+
+    .calendar h2 {
+        font-size: 1.9rem;
+    }
+
+    .calendar ul {
+        display: grid;
+        gap: var(--space-4);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .calendar li {
+        display: grid;
+        gap: 0.1rem;
+        padding-bottom: var(--space-4);
+        border-bottom: 2px dotted var(--color-line-strong);
+    }
+
+    .calendar li:last-child {
+        padding-bottom: 0;
+        border-bottom: 0;
+    }
+
+    .when {
+        color: var(--terracotta-deep);
+        font-family: var(--font-hand);
+        font-size: 1.35rem;
+        font-weight: 700;
+        line-height: 1.1;
+    }
+
+    .calendar strong {
+        font-size: 1.15rem;
+    }
+
+    .note {
+        font-size: 1rem;
+        line-height: 1.45;
+    }
+
+    @media (min-width: 64rem) {
+        .body {
+            grid-template-columns: minmax(0, 1fr) 24rem;
+        }
+
+        .calendar {
+            position: sticky;
+            top: calc(var(--header-height) + var(--space-6));
+        }
+    }
+</style>

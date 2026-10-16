@@ -1,0 +1,182 @@
+---
+/**
+ * Journal posts as recipe cards: a taped-on photo, the title in the chunky
+ * face on a ruled index card, the topic, the date and how long it takes to
+ * read. Cards sit a little askew, like a recipe box spilled on the table,
+ * and straighten up when pointed at (styles/motion.css).
+ */
+import type { CollectionEntry } from 'astro:content';
+import Photo from './Photo.astro';
+import FormattedDate from './FormattedDate.astro';
+import { defaultPostPhoto, topicPhotos } from '../data/photos';
+import { readingMinutes, tagSlug } from '@core/lib/posts.js';
+
+interface Props {
+    posts: CollectionEntry<'blog'>[];
+    level?: 'h2' | 'h3';
+}
+
+const { posts, level: Heading = 'h2' } = Astro.props;
+const photoFor = (post: CollectionEntry<'blog'>) => {
+    const tag = post.data.tags[0];
+
+    return (tag !== undefined ? topicPhotos[tagSlug(tag)] : undefined) ?? defaultPostPhoto;
+};
+---
+
+<ul class="posts">
+    {
+        posts.map((post) => (
+            <li class="pinned">
+                <article>
+                    <div class="snap">
+                        {post.data.cover && post.data.coverAlt ? (
+                            <Photo src={post.data.cover} alt={post.data.coverAlt} sizes="(min-width: 64rem) 22rem, (min-width: 40rem) 45vw, 90vw" decorative />
+                        ) : (
+                            <Photo name={photoFor(post)} sizes="(min-width: 64rem) 22rem, (min-width: 40rem) 45vw, 90vw" decorative />
+                        )}
+                        <span class="tape" aria-hidden="true" />
+                    </div>
+                    <div class="card">
+                        {post.data.tags[0] && <p class="topic hand">{post.data.tags[0]}</p>}
+                        <Heading class="title">
+                            <a href={`/journal/${post.id}/`}>{post.data.title}</a>
+                        </Heading>
+                        <p class="description">{post.data.description}</p>
+                        <p class="meta">
+                            <FormattedDate date={post.data.pubDate} /> · {readingMinutes(post.body ?? '')} min read
+                            {post.data.draft && <strong> · Draft</strong>}
+                        </p>
+                    </div>
+                </article>
+            </li>
+        ))
+    }
+</ul>
+
+<style>
+    .posts {
+        display: grid;
+        gap: clamp(2rem, 1.5rem + 2vw, 3rem) clamp(1.5rem, 1rem + 2vw, 2.5rem);
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    li:nth-child(3n + 1) {
+        rotate: -1deg;
+    }
+
+    li:nth-child(3n + 2) {
+        rotate: 0.8deg;
+    }
+
+    li:nth-child(3n) {
+        rotate: -0.4deg;
+    }
+
+    article {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    .snap {
+        position: relative;
+        z-index: 1;
+        width: 86%;
+        margin: 0 auto -1.5rem;
+        padding: 0.5rem 0.5rem 0;
+        background: #fffaf0;
+        box-shadow: var(--shadow-soft);
+        rotate: 1.5deg;
+    }
+
+    li:nth-child(even) .snap {
+        rotate: -2deg;
+    }
+
+    .snap :global(img) {
+        width: 100%;
+        aspect-ratio: 4 / 3;
+        object-fit: cover;
+    }
+
+    .tape {
+        position: absolute;
+        top: -0.7rem;
+        left: 50%;
+        width: 5rem;
+        height: 1.4rem;
+        translate: -50% 0;
+        rotate: -4deg;
+        background: rgb(244 201 93 / 0.75);
+        mask: var(--zigzag) repeat-x left / 8px 100%;
+    }
+
+    /* A ruled index card: a red line, then pale blue ones. */
+    .card {
+        flex: 1;
+        padding: var(--space-10) var(--space-6) var(--space-6);
+        border: 2px solid var(--cocoa);
+        border-radius: var(--radius-small);
+        background-color: #fffaf0;
+        background-image:
+            linear-gradient(to bottom, transparent 4.6rem, rgb(179 74 36 / 0.45) 4.6rem, rgb(179 74 36 / 0.45) calc(4.6rem + 2px), transparent calc(4.6rem + 2px)),
+            repeating-linear-gradient(to bottom, transparent 0, transparent calc(1.9rem - 1px), rgb(90 130 170 / 0.16) calc(1.9rem - 1px), rgb(90 130 170 / 0.16) 1.9rem);
+        box-shadow: var(--shadow-print);
+    }
+
+    .topic {
+        margin: 0 0 var(--space-3);
+        color: var(--terracotta);
+        font-size: 1.4rem;
+        line-height: 1;
+    }
+
+    .title {
+        margin-bottom: var(--space-3);
+        font-size: clamp(1.45rem, 1.3rem + 0.5vw, 1.75rem);
+        line-height: 1.05;
+    }
+
+    .title a {
+        color: var(--cocoa);
+        text-decoration: none;
+    }
+
+    /* The whole card is the link's target. */
+    .title a::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+    }
+
+    .title a:hover {
+        color: var(--terracotta-deep);
+    }
+
+    .title a:focus-visible {
+        outline: none;
+    }
+
+    article:has(.title a:focus-visible) .card {
+        outline: 3px solid var(--color-focus);
+        outline-offset: 4px;
+    }
+
+    .description {
+        margin-bottom: var(--space-4);
+        font-size: 1.05rem;
+        line-height: 1.5;
+    }
+
+    .meta {
+        margin: 0;
+        color: var(--crust);
+        font-size: 0.95rem;
+    }
+</style>

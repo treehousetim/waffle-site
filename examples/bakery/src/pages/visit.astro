@@ -1,0 +1,247 @@
+---
+/**
+ * Visiting: the hours (from src/site.ts), where the bakery is, getting
+ * there and parking, access, and the quiet times. The map is drawn, not a
+ * map service (components/TownMap.astro).
+ */
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Band from '../components/Band.astro';
+import TownMap from '../components/TownMap.astro';
+import Doodle from '../components/Doodle.astro';
+import Photo from '../components/Photo.astro';
+import CallToOrder from '../components/CallToOrder.astro';
+import { addressLine, clock, site } from '../site';
+
+const week = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] as const;
+const hoursFor = (day: (typeof week)[number]) => site.business.hours.find((hours) => (hours.days as readonly string[]).includes(day));
+---
+
+<Base
+    title="Visit us: hours, parking and directions"
+    description="Crumb & Kettle is at 14 Cooper’s Row, Larkhaven, by the old market cross. Open Tuesday to Sunday from 7am; free parking behind St. Brigid’s on weekdays."
+    breadcrumbs={[{ name: 'Visit us', href: '/visit/' }]}
+>
+    <PageHero
+        eyebrow="Come in, the kettle’s on"
+        heading="Finding Crumb & Kettle"
+        lead={`${addressLine}. A green door and a striped awning, by the old market cross, where Cooper’s Row meets Mill Street.`}
+        photo="cafeInterior"
+        doodle="cup"
+        primary={{ label: `Call ${site.business.phone}`, href: `tel:${site.business.phoneE164}` }}
+        secondary={{ label: 'See today’s bakes', href: '/menu/' }}
+    />
+
+    <Band tone="cocoa" edge="wave" eyebrow="Opening hours" heading="When we’re open">
+        <div class="hours-grid">
+            <ul class="week">
+                {
+                    week.map((day) => {
+                        const hours = hoursFor(day);
+
+                        return (
+                            <li class:list={{ closed: hours === undefined }}>
+                                <span class="day">{day}</span>
+                                <span class="dots" aria-hidden="true" />
+                                <span class="time">{hours ? `${clock(hours.opens)} – ${clock(hours.closes)}` : 'Closed'}</span>
+                            </li>
+                        );
+                    })
+                }
+            </ul>
+            <div class="quiet reveal">
+                <Doodle name="cup" class="quiet-cup" />
+                <h3>The quiet hours</h3>
+                <p>Weekday mornings after nine, and every afternoon after one. Saturday from eight until eleven is the busiest the bakery ever gets; there is usually a short line out the door, and it moves.</p>
+                <p class="hand">{site.business.closed}</p>
+            </div>
+        </div>
+    </Band>
+
+    <Band eyebrow="Getting here" heading="By car, bike, bus or on foot">
+        <div class="map-grid">
+            <TownMap />
+            <div class="ways">
+                <section class="way reveal">
+                    <h3>Parking</h3>
+                    <p>Free on weekdays in the lot behind St. Brigid’s church, two minutes’ walk down Church Lane. On Saturdays the church lot is for the market, so use the market lot across Mill Street (free before 10am, then $1 an hour).</p>
+                    <p>There are two 15-minute spaces outside the door for picking up a cake order.</p>
+                </section>
+                <section class="way reveal">
+                    <h3>Bike and foot</h3>
+                    <p>There is a bike rack out front and a water bowl for dogs. The River Wend path comes up Mill Street right to the market cross.</p>
+                </section>
+                <section class="way reveal">
+                    <h3>Bus</h3>
+                    <p>The town loop stops at the market cross every half hour on weekdays, and hourly on Saturdays.</p>
+                </section>
+            </div>
+        </div>
+    </Band>
+
+    <Band tone="flour" eyebrow="Inside" heading="Eleven tables and a long bench">
+        <div class="inside">
+            <ul class="facts">
+                <li><h3>Step-free</h3><p>A level entrance, a wide door, and an accessible restroom at the back.</p></li>
+                <li><h3>Small people</h3><p>Two high chairs, a changing table, and a basket of crayons by the window.</p></li>
+                <li><h3>Dogs</h3><p>Welcome on the sidewalk tables, and inside on rainy days if they are polite.</p></li>
+                <li><h3>Wifi</h3><p>Yes. On weekend mornings we ask laptops to give up tables to people eating.</p></li>
+            </ul>
+            <div class="inside-photo drift">
+                <Photo name="pastryCase" sizes="(min-width: 64rem) 24rem, 90vw" />
+            </div>
+        </div>
+    </Band>
+
+    <CallToOrder heading="Collecting a cake?" text="Cake orders are ready at the counter from 8am on the day. Park in one of the two short-stay spaces outside, and we will bring it out if you call ahead." />
+</Base>
+
+<style>
+    .hours-grid {
+        display: grid;
+        gap: var(--space-12);
+        align-items: start;
+    }
+
+    .week {
+        display: grid;
+        gap: var(--space-2);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .week li {
+        display: flex;
+        align-items: baseline;
+        gap: var(--space-3);
+        font-size: clamp(1.25rem, 1.1rem + 0.6vw, 1.6rem);
+    }
+
+    .day {
+        font-family: var(--font-display);
+    }
+
+    .dots {
+        flex: 1;
+        border-bottom: 3px dotted rgb(251 243 228 / 0.35);
+    }
+
+    .time {
+        color: var(--butter);
+        font-weight: 800;
+        font-variant-numeric: lining-nums;
+    }
+
+    .closed {
+        opacity: 0.6;
+    }
+
+    .closed .time {
+        color: var(--cream);
+        font-family: var(--font-hand);
+        font-size: 1.5em;
+        line-height: 1;
+    }
+
+    .quiet {
+        padding: var(--space-8);
+        border: 2px dashed rgb(251 243 228 / 0.4);
+        border-radius: var(--radius-large);
+    }
+
+    .quiet :global(.quiet-cup) {
+        width: 4.5rem;
+        margin-bottom: var(--space-4);
+        color: var(--cream);
+    }
+
+    .quiet :global(.quiet-cup .wisp) {
+        stroke: var(--kraft);
+    }
+
+    .quiet h3 {
+        color: var(--cream);
+    }
+
+    .quiet p {
+        color: var(--color-on-dark-muted);
+    }
+
+    .quiet .hand {
+        margin: 0;
+        color: var(--butter);
+        font-size: 1.5rem;
+        line-height: 1.15;
+    }
+
+    .map-grid,
+    .inside {
+        display: grid;
+        gap: var(--space-12);
+        align-items: start;
+    }
+
+    .ways {
+        display: grid;
+        gap: var(--space-8);
+    }
+
+    .way {
+        padding-top: var(--space-5);
+        border-top: 3px solid var(--cocoa);
+    }
+
+    .way p {
+        font-size: 1.08rem;
+    }
+
+    .facts {
+        display: grid;
+        gap: var(--space-6);
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .facts li {
+        padding: var(--space-6);
+        border: 2px solid var(--cocoa);
+        border-radius: var(--radius);
+        background: var(--cream);
+    }
+
+    .facts p {
+        margin: 0;
+        font-size: 1.05rem;
+    }
+
+    .inside-photo {
+        overflow: hidden;
+        border: 3px solid var(--cocoa);
+        border-radius: var(--radius-arch);
+        box-shadow: 10px 10px 0 var(--terracotta);
+    }
+
+    .inside-photo :global(img) {
+        width: 100%;
+        aspect-ratio: 4 / 5;
+        object-fit: cover;
+    }
+
+    @media (min-width: 60rem) {
+        .hours-grid {
+            grid-template-columns: 1.1fr 0.9fr;
+        }
+
+        .map-grid {
+            grid-template-columns: 1.1fr 0.9fr;
+        }
+
+        .inside {
+            grid-template-columns: 1.3fr 0.7fr;
+            align-items: center;
+        }
+    }
+</style>

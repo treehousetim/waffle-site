@@ -1,0 +1,276 @@
+---
+/**
+ * The footer: a cocoa band torn like the top of a paper bag, the bakery's
+ * name, address, phone and hours on every page (written exactly as in
+ * src/site.ts, on a sign hung like the one on the shop door), then the links.
+ */
+import Logo from './Logo.astro';
+import Doodle from './Doodle.astro';
+import { addressLine, clock, dayRange, site } from '../site';
+import { buildTime } from '@core/settings';
+---
+
+<footer class="site-footer">
+    <div class="container top">
+        <div class="brand">
+            <Logo tone="light" size="large" />
+            <p class="tagline">{site.tagline}. Bread, pastry and coffee for Larkhaven since {site.business.founded}.</p>
+            <address>
+                <span>{addressLine}</span>
+                <a href={`tel:${site.business.phoneE164}`}>{site.business.phone}</a>
+                <a href={`mailto:${site.business.email}`}>{site.business.email}</a>
+            </address>
+        </div>
+
+        <div class="sign">
+            <span class="string" aria-hidden="true"></span>
+            <div class="card">
+                <h2 class="sign-title">Come in, we’re open</h2>
+                <dl>
+                    {
+                        site.business.hours.map((hours) => (
+                            <div>
+                                <dt>{dayRange(hours.days)}</dt>
+                                <dd>{clock(hours.opens)}–{clock(hours.closes)}</dd>
+                            </div>
+                        ))
+                    }
+                </dl>
+                <p class="closed">{site.business.closed}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="container links">
+        {
+            site.footer.map((column) => (
+                <nav aria-label={column.heading}>
+                    <h2>{column.heading}</h2>
+                    <ul>
+                        {column.links.map((link) => (
+                            <li>
+                                <a href={link.href}>{link.label}</a>
+                            </li>
+                        ))}
+                    </ul>
+                </nav>
+            ))
+        }
+        <div class="cup">
+            <Doodle name="cup" />
+            <p class="hand">The kettle’s always on.</p>
+        </div>
+    </div>
+
+    <div class="container legal">
+        <p>© {buildTime.getUTCFullYear()} {site.business.legalName}. A fictional bakery in an invented town.</p>
+        <p><a href="/privacy/">Privacy</a> · <a href="/credits/">Photo credits</a> · <a href="/journal/rss.xml">RSS</a></p>
+    </div>
+</footer>
+
+<style>
+    .site-footer {
+        position: relative;
+        margin-top: 0;
+        padding: var(--space-20) 0 var(--space-8);
+        background: var(--cocoa);
+        color: var(--color-on-dark-muted);
+        font-size: 1.05rem;
+    }
+
+    /* The torn top of a paper bag. */
+    .site-footer::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: calc(100% - 3px);
+        height: 17px;
+        background: var(--cocoa);
+        mask: var(--zigzag) repeat-x top / 28px 14px, linear-gradient(black, black) no-repeat bottom / 100% 4px;
+        -webkit-mask: var(--zigzag) repeat-x top / 28px 14px, linear-gradient(black, black) no-repeat bottom / 100% 4px;
+    }
+
+    a {
+        color: var(--cream);
+        text-decoration-color: rgb(251 243 228 / 0.3);
+    }
+
+    a:hover {
+        color: var(--butter);
+    }
+
+    .top {
+        display: grid;
+        gap: var(--space-12);
+        align-items: start;
+    }
+
+    .tagline {
+        max-width: 30rem;
+        margin: var(--space-6) 0;
+        color: var(--cream);
+        font-size: 1.2rem;
+    }
+
+    address {
+        display: grid;
+        gap: var(--space-1);
+        font-style: normal;
+    }
+
+    .sign {
+        position: relative;
+        justify-self: start;
+        padding-top: var(--space-10);
+    }
+
+    .string {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        width: 7rem;
+        height: 3.2rem;
+        translate: -50% 0;
+        border: 2px solid var(--kraft-deep);
+        border-bottom: 0;
+        border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+    }
+
+    .string::before {
+        content: '';
+        position: absolute;
+        top: -0.4rem;
+        left: 50%;
+        width: 0.7rem;
+        height: 0.7rem;
+        translate: -50% 0;
+        border-radius: 50%;
+        background: var(--kraft-deep);
+    }
+
+    .card {
+        position: relative;
+        width: min(22rem, 100%);
+        padding: var(--space-6) var(--space-8);
+        border: 3px solid var(--cocoa);
+        border-radius: var(--radius);
+        outline: 2px dashed rgb(58 35 24 / 0.4);
+        outline-offset: -10px;
+        background: var(--butter);
+        color: var(--cocoa);
+        rotate: -2.5deg;
+        transform-origin: 50% -2rem;
+    }
+
+    .sign-title {
+        margin-bottom: var(--space-3);
+        color: var(--cocoa);
+        font-size: 1.6rem;
+    }
+
+    dl {
+        display: grid;
+        gap: var(--space-1);
+        margin: 0;
+    }
+
+    dl div {
+        display: flex;
+        justify-content: space-between;
+        gap: var(--space-4);
+        border-bottom: 2px dotted rgb(58 35 24 / 0.3);
+    }
+
+    dt {
+        font-weight: 800;
+    }
+
+    dd {
+        margin: 0;
+        font-variant-numeric: lining-nums;
+    }
+
+    .closed {
+        margin: var(--space-3) 0 0;
+        font-family: var(--font-hand);
+        font-size: 1.35rem;
+        font-weight: 700;
+        line-height: 1.15;
+    }
+
+    .links {
+        display: grid;
+        gap: var(--space-8);
+        grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+        margin-top: var(--space-16);
+        padding-top: var(--space-10);
+        border-top: 1.5px dashed rgb(251 243 228 / 0.25);
+    }
+
+    .links h2 {
+        margin-bottom: var(--space-3);
+        color: var(--butter);
+        font-size: 1.35rem;
+    }
+
+    .links ul {
+        display: grid;
+        gap: var(--space-1);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .links a {
+        text-decoration: none;
+    }
+
+    .links a:hover {
+        text-decoration: underline;
+    }
+
+    .cup {
+        color: var(--cream);
+    }
+
+    .cup :global(svg) {
+        width: 5rem;
+        color: var(--cream);
+    }
+
+    .cup :global(.wisp) {
+        stroke: var(--kraft);
+    }
+
+    .cup p {
+        margin: var(--space-2) 0 0;
+        color: var(--butter);
+        font-size: 1.45rem;
+        line-height: 1.1;
+        rotate: -3deg;
+    }
+
+    .legal {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: var(--space-2) var(--space-6);
+        margin-top: var(--space-12);
+        font-size: 0.95rem;
+    }
+
+    .legal p {
+        margin: 0;
+    }
+
+    @media (min-width: 56rem) {
+        .top {
+            grid-template-columns: 1.4fr 1fr;
+        }
+
+        .sign {
+            justify-self: end;
+        }
+    }
+</style>

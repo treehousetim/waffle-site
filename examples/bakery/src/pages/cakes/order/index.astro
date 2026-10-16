@@ -1,0 +1,131 @@
+---
+/**
+ * The cake order form (POST /api/site/forms/cake-order), with the lead
+ * times and a reminder of the sizes beside it.
+ */
+import Base from '../../../layouts/Base.astro';
+import PageHero from '../../../components/PageHero.astro';
+import CakeOrderForm from '../../../components/CakeOrderForm.astro';
+import StampBadge from '../../../components/StampBadge.astro';
+import { leadTimes, sizes } from '../../../data/cakes';
+import { site } from '../../../site';
+---
+
+<Base
+    title="Order a celebration cake"
+    description="Order a birthday, wedding or celebration cake from Crumb & Kettle: choose the size, flavor and date, and Priya will reply within a working day to confirm."
+    breadcrumbs={[
+        { name: 'Celebration cakes', href: '/cakes/' },
+        { name: 'Order a cake', href: '/cakes/order/' },
+    ]}
+>
+    <PageHero
+        eyebrow="Three steps, two minutes"
+        heading="Order a cake"
+        lead="Tell us about the cake and the day. Nothing is charged until Priya has replied, confirmed the price and you have said yes."
+        doodle="slice"
+    />
+
+    <div class="container layout">
+        <div class="form-col">
+            <CakeOrderForm thanks="/cakes/order/thanks/" />
+        </div>
+        <aside class="aside">
+            <StampBadge text="FIVE DAYS’ NOTICE · TIERS THREE WEEKS · " center={{ doodle: 'whisk' }} tone="butter" class="aside-stamp" />
+            <h2>Good to know</h2>
+            <ul class="leads">
+                {leadTimes.map((lead) => <li><strong>{lead.notice}</strong> {lead.what.toLowerCase()}</li>)}
+            </ul>
+            <h3>Sizes</h3>
+            <ul class="sizes">
+                {sizes.map((size) => <li><span>{size.label}</span> <span class="serves">serves {size.serves}</span></li>)}
+            </ul>
+            <p class="small">Rather talk it through? Call Priya on <a href={`tel:${site.business.phoneE164}`}>{site.business.phone}</a>, weekday afternoons.</p>
+        </aside>
+    </div>
+</Base>
+
+<style>
+    .layout {
+        display: grid;
+        gap: var(--space-12);
+        padding: var(--space-8) 0 var(--section);
+    }
+
+    .form-col {
+        min-width: 0;
+    }
+
+    .aside {
+        position: relative;
+        align-self: start;
+        padding: var(--space-8) var(--space-6);
+        border: 2px dashed var(--color-line-strong);
+        border-radius: var(--radius-large);
+    }
+
+    .aside :global(.aside-stamp) {
+        --stamp-size: 7.5rem;
+
+        margin: -4rem 0 var(--space-4) auto;
+    }
+
+    .aside h2 {
+        font-size: 2rem;
+    }
+
+    .aside h3 {
+        margin-top: var(--space-8);
+        font-size: 1.5rem;
+    }
+
+    ul {
+        display: grid;
+        gap: var(--space-3);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .leads li,
+    .sizes li {
+        padding-bottom: var(--space-3);
+        border-bottom: 2px dotted var(--color-line-strong);
+        font-size: 1.05rem;
+        line-height: 1.4;
+    }
+
+    .leads strong {
+        display: block;
+        color: var(--terracotta);
+    }
+
+    .sizes li {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 0 var(--space-3);
+    }
+
+    .serves {
+        color: var(--crust);
+        font-style: italic;
+    }
+
+    .small {
+        margin: var(--space-6) 0 0;
+        font-size: 1rem;
+    }
+
+    @media (min-width: 64rem) {
+        .layout {
+            grid-template-columns: minmax(0, 1fr) 21rem;
+        }
+
+        .aside {
+            position: sticky;
+            top: calc(var(--header-height) + var(--space-8));
+            margin-top: var(--space-8);
+        }
+    }
+</style>

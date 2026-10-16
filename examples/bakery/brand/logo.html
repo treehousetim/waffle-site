@@ -1,0 +1,27 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @font-face { font-family: 'Bagel'; src: url('../src/assets/fonts/bagel-fat-one-latin-400.woff2'); }
+  @font-face { font-family: 'Caveat'; src: url('../src/assets/fonts/caveat-latin-wght.woff2'); font-weight: 400 700; }
+  html, body { margin: 0; width: 512px; height: 512px; }
+  body { display: grid; place-items: center; background: #fbf3e4; }
+  .disc { position: relative; width: 480px; height: 480px; border-radius: 50%; background: #f4c95d; border: 10px solid #3a2318; box-sizing: border-box; display: grid; place-items: center; }
+  .inner { display: grid; justify-items: center; gap: 4px; margin-top: -10px; }
+  img { width: 250px; height: 250px; }
+  .word { font-family: 'Bagel'; font-size: 52px; color: #3a2318; line-height: 1; letter-spacing: -0.5px; display: flex; align-items: baseline; gap: 10px; }
+  .amp { font-family: 'Caveat'; font-weight: 700; color: #b34a24; font-size: 76px; line-height: 0.5; transform: rotate(-8deg); margin-right: 10px; }
+  .sub { font-family: 'Caveat'; font-weight: 700; font-size: 30px; color: #8f3518; margin-top: 6px; }
+</style>
+</head>
+<body>
+  <div class="disc">
+    <div class="inner">
+      <img src="mark.svg" alt="">
+      <div class="word">Crumb<span class="amp">&amp;</span>Kettle</div>
+      <div class="sub">sourdough bakery · since 2014</div>
+    </div>
+  </div>
+</body>
+</html>

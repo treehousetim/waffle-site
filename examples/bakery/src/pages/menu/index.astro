@@ -1,0 +1,167 @@
+---
+/**
+ * Today's bakes: the whole board from the waffle app (GET /api/site/menu),
+ * by section, dated, with what has sold out stamped. The bakers change it in
+ * the app each morning and the site is rebuilt to publish it.
+ */
+import Base from '../../layouts/Base.astro';
+import PageHero from '../../components/PageHero.astro';
+import Band from '../../components/Band.astro';
+import MenuBoard from '../../components/MenuBoard.astro';
+import DietaryKey from '../../components/DietaryKey.astro';
+import SectionCards from '../../components/SectionCards.astro';
+import Doodle from '../../components/Doodle.astro';
+import CallToOrder from '../../components/CallToOrder.astro';
+import { sections, sectionUrl } from '../../data/menu';
+import { inCategory, menuDay, menuJsonLd, parseMenu } from '../../lib/menu';
+import { waffle, settings } from '@core/settings';
+import { canonicalUrl } from '@core/lib/seo.js';
+import { site } from '../../site';
+
+const menu = parseMenu(await waffle.get('/api/site/menu'));
+const url = canonicalUrl(Astro.url.pathname, settings.siteUrl);
+const day = menuDay(menu.date);
+const soldOut = menu.items.filter((item) => item.soldOut).length;
+const groups = sections.map((section) => ({ section, items: inCategory(menu, section.slug) })).filter(({ items }) => items.length > 0);
+---
+
+<Base
+    title="Today’s bakes: the counter board"
+    description={`What is on the Crumb & Kettle counter for ${day}: bread, pastries, cake and coffee, with prices, dietary marks and what has already sold out.`}
+    breadcrumbs={[{ name: 'Today’s bakes', href: '/menu/' }]}
+    jsonLd={[menuJsonLd(menu, sections.map((section) => ({ slug: section.slug, name: section.name, url: canonicalUrl(sectionUrl(section.slug), settings.siteUrl) })), url, settings.siteUrl)]}
+>
+    <PageHero
+        eyebrow={`The board for ${day}`}
+        heading="Today’s bakes"
+        lead={`${menu.items.length} things on the counter this morning${soldOut > 0 ? `, and ${soldOut} already gone` : ''}. Prices as marked; the board changes every day.`}
+        doodle="croissant"
+        tone="kraft"
+    >
+        <p class="dated">
+            <span class="stamp-date">{menuDay(menu.date, { weekday: 'short', month: 'short', day: 'numeric' })}</span>
+            <span class="hand">Printed at the morning bake. Call {site.business.phone} to keep one aside.</span>
+        </p>
+    </PageHero>
+
+    <div class="container boards">
+        <div class="key-row reveal">
+            <DietaryKey />
+        </div>
+        {
+            groups.map(({ section, items }) => (
+                <section class="slip" aria-labelledby={`board-${section.slug}`} data-section={section.slug}>
+                    <header class="slip-head">
+                        <Doodle name={section.doodle} class="slip-doodle" />
+                        <h2 id={`board-${section.slug}`}>{section.name}</h2>
+                    </header>
+                    <MenuBoard items={items} />
+                    <p class="more"><a href={sectionUrl(section.slug)}>About our {section.name.toLowerCase()} →</a></p>
+                </section>
+            ))
+        }
+    </div>
+
+    <Band tone="flour" eyebrow="Every day, not just today" heading="The counter, section by section" intro="What we bake on which days, and why it takes as long as it does.">
+        <SectionCards level="h3" />
+    </Band>
+
+    <CallToOrder />
+</Base>
+
+<style>
+    .dated {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-3) var(--space-5);
+        margin: var(--space-6) 0 0;
+    }
+
+    .stamp-date {
+        display: inline-block;
+        padding: 0.35rem 0.9rem;
+        border: 3px solid var(--terracotta-deep);
+        border-radius: 0.5rem;
+        color: var(--terracotta-deep);
+        font-family: var(--font-display);
+        font-size: 1.5rem;
+        line-height: 1;
+        text-transform: uppercase;
+        rotate: -5deg;
+        mask: var(--stamp-mask);
+        -webkit-mask: var(--stamp-mask);
+    }
+
+    .dated .hand {
+        color: var(--cocoa);
+        font-size: 1.4rem;
+        line-height: 1.15;
+    }
+
+    .boards {
+        display: grid;
+        gap: clamp(2rem, 1.5rem + 2vw, 3.5rem);
+        padding: var(--section) 0;
+    }
+
+    .key-row {
+        padding: var(--space-4) var(--space-5);
+        border: 2px dashed var(--color-line-strong);
+        border-radius: var(--radius);
+    }
+
+    .slip {
+        position: relative;
+        padding: clamp(1.5rem, 1rem + 2.5vw, 3rem);
+        border: 2px solid var(--cocoa);
+        background: #fffaf0 var(--grain);
+        box-shadow: var(--shadow-print);
+    }
+
+    .slip:nth-of-type(odd) {
+        rotate: 0.35deg;
+    }
+
+    .slip:nth-of-type(even) {
+        rotate: -0.35deg;
+    }
+
+    .slip-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-3) var(--space-5);
+        margin-bottom: var(--space-8);
+        padding-bottom: var(--space-5);
+        border-bottom: 3px double var(--color-line-strong);
+    }
+
+    .slip-head h2 {
+        margin: 0;
+    }
+
+    .slip-head :global(.slip-doodle) {
+        width: 3.5rem;
+    }
+
+    .more {
+        margin: var(--space-8) 0 0;
+        padding-top: var(--space-4);
+        border-top: 2px dashed var(--color-line-strong);
+        font-weight: 800;
+        text-align: right;
+    }
+
+    @media (min-width: 64rem) {
+        .boards {
+            grid-template-columns: 1fr 1fr;
+            align-items: start;
+        }
+
+        .key-row {
+            grid-column: 1 / -1;
+        }
+    }
+
+</style>

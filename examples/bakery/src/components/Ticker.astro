@@ -1,0 +1,145 @@
+---
+/**
+ * The ticker of today's bakes from the waffle app, crawling across a butter
+ * yellow band like the board behind the counter. The list is written twice
+ * so the crawl loops without a seam; the copy is hidden from screen readers,
+ * which read the first list once. Still (and wrapping) when motion is
+ * reduced (styles/motion.css).
+ */
+import type { Menu } from '../lib/menu';
+import { menuDay } from '../lib/menu';
+
+interface Props {
+    menu: Menu;
+    tone?: 'butter' | 'cocoa';
+}
+
+const { menu, tone = 'butter' } = Astro.props;
+const day = menuDay(menu.date, { weekday: 'long' });
+---
+
+<section class:list={['ticker', tone]} aria-label={`On the counter ${day}`}>
+    <div class="track">
+        {
+            [false, true].map((copy) => (
+                <ul class="run" aria-hidden={copy ? 'true' : undefined}>
+                    <li class="day">{day}’s bakes</li>
+                    {menu.items.map((item) => (
+                        <li class:list={{ out: item.soldOut }}>
+                            {item.name}
+                            {item.soldOut && <span class="gone">sold out</span>}
+                        </li>
+                    ))}
+                </ul>
+            ))
+        }
+    </div>
+</section>
+
+<style>
+    .ticker {
+        position: relative;
+        overflow: hidden;
+        padding: 0.85rem 0;
+        border-block: 2px solid var(--cocoa);
+        background: var(--butter);
+        color: var(--cocoa);
+    }
+
+    .cocoa {
+        background: var(--cocoa);
+        color: var(--cream);
+        border-color: var(--cocoa);
+    }
+
+    .track {
+        display: flex;
+        width: max-content;
+    }
+
+    .run {
+        display: flex;
+        flex: none;
+        align-items: center;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    li {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-family: var(--font-display);
+        font-size: clamp(1.15rem, 1rem + 0.6vw, 1.5rem);
+        line-height: 1.2;
+        white-space: nowrap;
+    }
+
+    li::after {
+        content: '';
+        width: 1.1rem;
+        height: 1.1rem;
+        margin: 0 1.4rem;
+        background: var(--terracotta);
+        mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M32 4 C34 22 42 30 60 32 C42 34 34 42 32 60 C30 42 22 34 4 32 C22 30 30 22 32 4Z'/%3E%3C/svg%3E") center / contain no-repeat;
+        -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M32 4 C34 22 42 30 60 32 C42 34 34 42 32 60 C30 42 22 34 4 32 C22 30 30 22 32 4Z'/%3E%3C/svg%3E") center / contain no-repeat;
+    }
+
+    .cocoa li::after {
+        background: var(--butter);
+    }
+
+    .day {
+        color: var(--terracotta-deep);
+        font-family: var(--font-hand);
+        font-size: clamp(1.5rem, 1.3rem + 0.7vw, 1.9rem);
+        font-weight: 700;
+    }
+
+    .cocoa .day {
+        color: var(--butter);
+    }
+
+    .out {
+        text-decoration: line-through;
+        text-decoration-thickness: 3px;
+        text-decoration-color: var(--terracotta);
+    }
+
+    .gone {
+        padding: 0.05rem 0.45rem;
+        border: 2px solid var(--terracotta-deep);
+        border-radius: 0.3rem;
+        color: var(--terracotta-deep);
+        font-family: var(--font-serif);
+        font-size: 0.8rem;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        rotate: -6deg;
+    }
+
+    .cocoa .gone {
+        border-color: var(--butter);
+        color: var(--butter);
+    }
+
+    /* Without motion the list simply wraps, all of it readable. */
+    @media (prefers-reduced-motion: reduce) {
+        .track {
+            width: auto;
+        }
+
+        .run {
+            flex-wrap: wrap;
+            justify-content: center;
+            padding-inline: var(--gutter);
+            row-gap: 0.4rem;
+        }
+
+        .run[aria-hidden] {
+            display: none;
+        }
+    }
+</style>

@@ -1,0 +1,37 @@
+---
+/** What the little stamps on the menu mean. */
+import { DIETARY } from '../lib/menu';
+---
+
+<dl class="key">
+    {
+        Object.entries(DIETARY).map(([flag, mark]) => (
+            <div>
+                <dt>
+                    <span class:list={['stamp', { 'stamp-nuts': flag === 'contains-nuts' }]}>{mark.short}</span>
+                </dt>
+                <dd>{mark.label}</dd>
+            </div>
+        ))
+    }
+</dl>
+
+<style>
+    .key {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2) var(--space-5);
+        margin: 0;
+        font-size: 0.98rem;
+    }
+
+    .key div {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+    }
+
+    dd {
+        margin: 0;
+    }
+</style>

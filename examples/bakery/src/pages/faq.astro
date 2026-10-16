@@ -1,0 +1,115 @@
+---
+/** Questions people ask at the counter, by topic, with FAQPage markup for all of them. */
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Band from '../components/Band.astro';
+import Faq, { type FaqItem } from '../components/Faq.astro';
+import CallToOrder from '../components/CallToOrder.astro';
+import { faqPage } from '@core/lib/jsonld.js';
+import { site } from '../site';
+
+const groups: { heading: string; tone: 'cream' | 'flour'; items: FaqItem[] }[] = [
+    {
+        heading: 'The counter',
+        tone: 'cream',
+        items: [
+            {
+                question: 'What time should I come for the best choice?',
+                answer: 'Between 7 and 9am on weekdays, and before 9 on Saturdays. Country loaves and croissants are often gone by noon at weekends. The afternoon baguettes come out at 1pm every day.',
+            },
+            {
+                question: 'Can I reserve bread or pastries for the day?',
+                answer: `Yes. Call ${site.business.phone} the day before, or before 9am on the day, and we will hold it with your name on until 2pm. Twelve or more of one pastry needs 48 hours’ notice.`,
+            },
+            {
+                question: 'Is the menu online the same as what is on the counter?',
+                answer: 'The board on our website is updated each morning from the same list the bakers use, and published when the site is rebuilt. Things sell out during the day, so call if you are coming for something particular.',
+            },
+            {
+                question: 'Do you take cards?',
+                answer: 'Cards, phones and cash. There is no minimum spend.',
+            },
+        ],
+    },
+    {
+        heading: 'Allergies and diets',
+        tone: 'flour',
+        items: [
+            {
+                question: 'Do you have gluten-free bread?',
+                answer: 'No. Our kitchen is full of wheat, rye and spelt flour, and we cannot keep anything free of gluten. The apple and cider cake is made without gluten-containing ingredients, but it is baked in the same kitchen, so it is not safe for anyone with celiac disease.',
+            },
+            {
+                question: 'What is vegan?',
+                answer: 'Most of our breads (not the spelt and honey tin or the brioche), the fougasse, the chocolate olive oil cake and the filter coffee. The daily board marks everything vegan with VG. Oat milk is free.',
+            },
+            {
+                question: 'Do you use nuts?',
+                answer: 'Yes: almonds, walnuts, pecans and pistachios, on the same benches as everything else. Anything containing nuts is stamped N on the board, but traces could be in anything. Please ask us before buying if you have an allergy.',
+            },
+        ],
+    },
+    {
+        heading: 'Cakes and orders',
+        tone: 'cream',
+        items: [
+            {
+                question: 'How much notice do you need for a cake?',
+                answer: 'Five days for a single-tier cake, three weeks for two tiers and six weeks for three tiers or a wedding. Order through the cake order form, and Priya replies within a working day.',
+            },
+            {
+                question: 'Can I order for an office or a party?',
+                answer: 'Yes. Trays of pastries, loaf cakes and morning buns for twelve or more need 48 hours’ notice. Use the cake order form and choose “Office or team celebration”, or call us.',
+            },
+            {
+                question: 'Do you supply cafés and restaurants?',
+                answer: 'Yes, Tuesday to Saturday, delivered by 6am in Larkhaven and four nearby towns. See the wholesale page for the range and how to start.',
+            },
+        ],
+    },
+    {
+        heading: 'Visiting',
+        tone: 'flour',
+        items: [
+            {
+                question: 'Why are you closed on Mondays?',
+                answer: 'The ovens rest, get cleaned and serviced, and so do the bakers. Two of us still come in on Monday afternoon to mix Tuesday’s dough. Buy Monday’s bread on Sunday: it keeps three days.',
+            },
+            {
+                question: 'Where do I park?',
+                answer: 'Free on weekdays behind St. Brigid’s church, two minutes’ walk. On Saturdays use the market lot across Mill Street. There are two 15-minute spaces outside for cake pickups.',
+            },
+            {
+                question: 'Can I bring my dog, or my laptop?',
+                answer: 'Dogs are welcome at the sidewalk tables, and inside on rainy days. Laptops are welcome on weekdays; on weekend mornings we ask them to give up tables to people eating.',
+            },
+        ],
+    },
+];
+
+const all = groups.flatMap((group) => group.items);
+---
+
+<Base
+    title="Questions we hear at the counter"
+    description="Answers to what people ask at Crumb & Kettle: the best time to come, reserving bread, allergies and vegan bakes, cake notice, wholesale, parking and Mondays."
+    breadcrumbs={[{ name: 'Questions', href: '/faq/' }]}
+    jsonLd={[faqPage(all)]}
+>
+    <PageHero
+        eyebrow="Asked and answered"
+        heading="Questions at the counter"
+        lead="The things people ask us every day, so you can know before you come. Anything else, ask Sam at the till."
+        doodle="cup"
+    />
+
+    {
+        groups.map((group) => (
+            <Band tone={group.tone} heading={group.heading}>
+                <Faq items={group.items} />
+            </Band>
+        ))
+    }
+
+    <CallToOrder heading="Still wondering?" text={`Call ${site.business.phone} any time we are open, or email ${site.business.email}. We answer emails within a working day.`} primary={{ label: 'Contact us', href: '/contact/' }} secondary={{ label: 'Plan your visit', href: '/visit/' }} />
+</Base>

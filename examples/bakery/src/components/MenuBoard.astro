@@ -1,0 +1,162 @@
+---
+/**
+ * A list of bakes from the waffle app's menu (src/lib/menu.ts), printed
+ * like the slip in a paper bag: the name, a dotted leader, the price; the
+ * description under it; dietary marks as little ink stamps; and a "sold
+ * out" stamp across anything that has gone. The items bounce in, one after
+ * another (styles/motion.css).
+ */
+import { DIETARY, formatPrice, type MenuItem } from '../lib/menu';
+
+interface Props {
+    items: MenuItem[];
+    /** The heading level of each bake's name. */
+    level?: 'h3' | 'h4';
+    compact?: boolean;
+}
+
+const { items, level: Name = 'h3', compact = false } = Astro.props;
+---
+
+<ul class:list={['board', { compact }]}>
+    {
+        items.map((item) => (
+            <li class="item" data-id={item.id} data-sold-out={item.soldOut ? 'true' : undefined}>
+                <div class="line">
+                    <Name class="name">{item.name}</Name>
+                    {compact && item.dietary.length > 0 && (
+                        <span class="marks-inline">
+                            {item.dietary.map((flag) => (
+                                <span class:list={['stamp', { 'stamp-nuts': flag === 'contains-nuts' }]} title={DIETARY[flag].label}>
+                                    <span aria-hidden="true">{DIETARY[flag].short}</span>
+                                    <span class="visually-hidden">{DIETARY[flag].label}</span>
+                                </span>
+                            ))}
+                        </span>
+                    )}
+                    <span class="leader" aria-hidden="true" />
+                    <span class="price">
+                        <span class="visually-hidden">Price: </span>
+                        {formatPrice(item.priceCents, item.currency)}
+                    </span>
+                </div>
+                {!compact && <p class="description">{item.description}</p>}
+                {((!compact && item.dietary.length > 0) || item.soldOut) && (
+                    <p class="marks">
+                        {!compact && item.dietary.map((flag) => (
+                            <span class:list={['stamp', { 'stamp-nuts': flag === 'contains-nuts' }]} title={DIETARY[flag].label}>
+                                <span aria-hidden="true">{DIETARY[flag].short}</span>
+                                <span class="visually-hidden">{DIETARY[flag].label}</span>
+                            </span>
+                        ))}
+                        {item.soldOut && <span class="sold-out">Sold out today</span>}
+                    </p>
+                )}
+            </li>
+        ))
+    }
+</ul>
+
+<style>
+    .board {
+        display: grid;
+        gap: var(--space-5);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .compact {
+        gap: var(--space-3);
+    }
+
+    .item {
+        position: relative;
+    }
+
+    .line {
+        display: flex;
+        align-items: baseline;
+        gap: var(--space-2);
+    }
+
+    .name {
+        margin: 0;
+        font-family: var(--font-serif);
+        font-size: clamp(1.2rem, 1.1rem + 0.35vw, 1.4rem);
+        font-weight: 800;
+        line-height: 1.25;
+        letter-spacing: 0;
+    }
+
+    .compact .name {
+        font-size: 1.15rem;
+    }
+
+    .marks-inline {
+        display: inline-flex;
+        flex: none;
+        gap: 0.3rem;
+        align-self: center;
+    }
+
+    .leader {
+        flex: 1 1 1.5rem;
+        min-width: 1.5rem;
+        border-bottom: 3px dotted var(--color-line-strong);
+        translate: 0 -0.3em;
+    }
+
+    .price {
+        font-family: var(--font-display);
+        font-size: 1.3rem;
+        line-height: 1;
+        color: var(--terracotta);
+        font-variant-numeric: lining-nums tabular-nums;
+    }
+
+    .description {
+        max-width: 34rem;
+        margin: var(--space-1) 0 0;
+        color: var(--crust);
+        font-size: 1.05rem;
+        font-style: italic;
+        line-height: 1.45;
+    }
+
+    .marks {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-2);
+        margin: var(--space-2) 0 0;
+    }
+
+    /* Gone for today: faded, struck through, and stamped. */
+    [data-sold-out] .name,
+    [data-sold-out] .price,
+    [data-sold-out] .description {
+        opacity: 0.55;
+    }
+
+    [data-sold-out] .name {
+        text-decoration: line-through;
+        text-decoration-thickness: 3px;
+        text-decoration-color: var(--terracotta);
+    }
+
+    .sold-out {
+        display: inline-block;
+        padding: 0.15rem 0.6rem;
+        border: 2.5px solid var(--terracotta-deep);
+        border-radius: 0.35rem;
+        color: var(--terracotta-deep);
+        font-family: var(--font-display);
+        font-size: 0.85rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        rotate: -4deg;
+        mask: var(--stamp-mask);
+        -webkit-mask: var(--stamp-mask);
+    }
+</style>

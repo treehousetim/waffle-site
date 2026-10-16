@@ -1,0 +1,9 @@
+{
+  "name": "bakery",
+  "label": "Bakery and café",
+  "description": "A neighborhood sourdough bakery and café: today's bakes from the waffle app, the counter by section, celebration cakes to order, wholesale for cafés, visiting, the bakers and a journal of recipes and baking notes.",
+  "kind": "Food",
+  "schemaType": "Bakery",
+  "look": "Warm and handmade: cream paper, terracotta, cocoa and butter yellow; chunky Bagel Fat One over Alegreya, Caveat in the margins; wavy and torn-paper edges, rubber stamps, hand-drawn doodles",
+  "waffleEndpoints": ["GET /api/site/menu", "POST /api/site/forms/cake-order"]
+}
