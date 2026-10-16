@@ -1,0 +1,115 @@
+---
+/**
+ * The band most pages end on: a big line, a nudge, and both ways in (the
+ * tap list and a visit). Bubbles rise behind it.
+ */
+import Bubbles from './Bubbles.astro';
+import { clock, dayRange, site } from '../site';
+
+interface Props {
+    heading?: string;
+    text?: string;
+}
+
+const { heading = 'Pull up a stool', text = 'Twelve taps, long tables, a food truck outside most nights, and a brewer usually somewhere about to answer questions.' } = Astro.props;
+---
+
+<section class="last-call">
+    <Bubbles count={20} tone="copper" />
+    <div class="container inner">
+        <div>
+            <p class="eyebrow">Last call</p>
+            <h2>{heading}</h2>
+            <p class="lead">{text}</p>
+            <p class="actions">
+                <a class="button button-large" href="/on-tap/">See what is pouring</a>
+                <a class="button button-ghost button-large" href="/contact/">Find us</a>
+            </p>
+        </div>
+        <ul class="hours plate" aria-label="Taproom hours">
+            {
+                site.business.hours.map((hours) => (
+                    <li>
+                        <span class="days">{dayRange(hours.days)}</span>
+                        <span class="times">
+                            {clock(hours.opens)}–{clock(hours.closes)}
+                        </span>
+                    </li>
+                ))
+            }
+            <li class="closed"><span class="days">Mon–Tue</span><span class="times">Brewing</span></li>
+        </ul>
+    </div>
+</section>
+
+<style>
+    .last-call {
+        position: relative;
+        overflow: hidden;
+        padding-block: var(--section);
+        background:
+            radial-gradient(60rem 30rem at 50% 120%, rgb(220 141 80 / 0.28), transparent 70%),
+            var(--char);
+        border-top: 1px solid var(--seam);
+    }
+
+    .inner {
+        position: relative;
+        display: grid;
+        gap: var(--space-12);
+        align-items: center;
+    }
+
+    h2 {
+        font-size: clamp(3.2rem, 1.5rem + 7vw, 8rem);
+        line-height: 0.85;
+    }
+
+    .actions {
+        margin-top: var(--space-8);
+    }
+
+    .hours {
+        margin: 0;
+        padding: var(--space-8) var(--space-8) var(--space-6);
+        list-style: none;
+    }
+
+    .hours li {
+        display: flex;
+        justify-content: space-between;
+        gap: var(--space-6);
+        padding: var(--space-3) 0;
+        border-bottom: 1px dashed var(--seam);
+    }
+
+    .hours li:last-child {
+        border-bottom: 0;
+    }
+
+    .days {
+        color: var(--copper);
+        font-family: var(--font-stencil);
+        font-size: 1.15rem;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+    }
+
+    .times {
+        font-family: var(--font-display);
+        font-size: 1.6rem;
+        font-weight: 800;
+        line-height: 1.1;
+    }
+
+    .closed .times {
+        color: var(--slag);
+    }
+
+    @media (min-width: 60rem) {
+        .inner {
+            grid-template-columns: 1.5fr 1fr;
+        }
+    }
+</style>

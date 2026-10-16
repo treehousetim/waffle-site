@@ -1,0 +1,48 @@
+---
+/**
+ * Served by Caddy, with status 404, for any path that is not in the build
+ * (docker/caddy/Caddyfile). Kept out of search results (src/site.ts).
+ */
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import CanCard from '../components/CanCard.astro';
+import { beers } from '../data/beers';
+---
+
+<Base title="Page not found" description="That page has run dry. It may have moved, or the link may be mistyped. Try the tap list, our beers or the taproom instead.">
+    <PageHead eyebrow="404 · Keg empty" heading="This one has run dry" lead="The page you were after is not on tap. It may have moved, or the link may have a typo in it." ghost="404">
+        <p class="actions">
+            <a class="button button-large" href="/on-tap/">See what is on tap</a>
+            <a class="button button-ghost button-large" href="/">Home</a>
+        </p>
+    </PageHead>
+    <section class="section">
+        <div class="container">
+            <h2 class="title">Try one of these</h2>
+            <ul class="can-grid">
+                {
+                    beers.slice(0, 3).map((beer) => (
+                        <li>
+                            <CanCard beer={beer} />
+                        </li>
+                    ))
+                }
+            </ul>
+        </div>
+    </section>
+</Base>
+
+<style>
+    .title {
+        margin-bottom: var(--space-10);
+    }
+
+    .can-grid {
+        display: grid;
+        gap: var(--space-12) var(--space-8);
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+</style>

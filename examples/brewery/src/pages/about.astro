@@ -1,0 +1,249 @@
+---
+/**
+ * Our story: the foundry, the brewery, the people. The years run along a
+ * horizontal track that moves sideways as the page scrolls down, on wide
+ * screens where scroll-driven animation is supported; everywhere else it is
+ * a row you can swipe or scroll.
+ */
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import Photo from '../components/Photo.astro';
+import LastCall from '../components/LastCall.astro';
+import { site } from '../site';
+
+const years = [
+    { year: '1888', title: 'The stove works', text: 'The Wrenford Iron & Stove Works opens at the foot of Foundry Row, where barges can unload pig iron and coke straight from the river.' },
+    { year: '1902', title: 'The iron bridge', text: 'The rope ferry is replaced by a bridge cast, in part, on this floor. The ferry rope is coiled above our bar.' },
+    { year: '1931', title: 'Two hundred men', text: 'At its height the foundry runs two shifts and ships a stove an hour, black-iron parlour stoves to most of the Ohio valley.' },
+    { year: '1967', title: 'The last pour', text: 'Gas heating ends the stove trade. The cupola is cold by Christmas, and the building stands empty for nearly fifty years.' },
+    { year: '2016', title: 'A garage on Mill Street', text: 'Hal and June Okafor brew Bellows Saison on a ten-gallon system in their garage, and sell it at the Saturday market.' },
+    { year: '2019', title: 'Into the foundry', text: 'With a loan, a lot of friends and the town’s blessing, a fifteen-barrel brewhouse goes in where the moulding floor used to be.' },
+    { year: '2023', title: 'The Pattern Shop', text: 'The carpenters’ room where wooden patterns were carved for every stove reopens as our private bar.' },
+    { year: 'Now', title: 'Twelve taps', text: 'Six core beers, six that come and go, eleven people on the payroll and a dog called Slag who runs the loading dock.' },
+];
+
+const people = [
+    { name: 'Hal Okafor', role: 'Co-founder, head brewer', text: 'Twenty years a chemistry teacher at Wrenford High. Still grades every batch.' },
+    { name: 'June Okafor', role: 'Co-founder, taproom and events', text: 'Ran the Saturday market for a decade. Knows everyone, and what they drink.' },
+    { name: 'Ruth Castellanos', role: 'Brewer, lagers and cask', text: 'Trained in Bavaria and Bohemia. The reason Pour Line takes six weeks.' },
+];
+---
+
+<Base
+    title="Our story"
+    description="How a small brewery came to fill an 1888 stove foundry on the Tamsen River: the building, the people, and the beer we make in it."
+    breadcrumbs={[{ name: 'Our story', href: '/about/' }]}
+>
+    <PageHead
+        eyebrow={`Est. ${site.business.founded} · Built ${site.business.built}`}
+        heading="Our story"
+        lead="For eighty years this building made iron stoves. For fifty it stood empty. Since 2019 it has made beer, and it smells a great deal better."
+        photo="brickMill"
+        ghost="Story"
+    />
+
+    <section class="years" aria-labelledby="years-title">
+        <div class="years-sticky">
+            <div class="container">
+                <p class="eyebrow">The foundry, year by year</p>
+                <h2 id="years-title">From iron to beer</h2>
+            </div>
+            <ol class="track">
+                {
+                    years.map((entry) => (
+                        <li class="year plate">
+                            <span class="year-no">{entry.year}</span>
+                            <h3>{entry.title}</h3>
+                            <p>{entry.text}</p>
+                        </li>
+                    ))
+                }
+            </ol>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container story-grid">
+            <div class="prose-col reveal">
+                <p class="eyebrow">Why here</p>
+                <h2>A building that wanted to work again</h2>
+                <p>Breweries and foundries want the same things: high ceilings, floors that can take weight, a lot of water and somewhere to send the heat. The stove works had all four, and a loading dock over the river into the bargain.</p>
+                <p>We kept everything we could. The steel trusses, the gantry crane, the pour line cut into the floor, the brick that is still black with eighty years of soot above the old cupola. The taproom tables are the foundry’s own pattern-shop timber, planed back to the grain.</p>
+                <p>And we brew the way we think the building deserves: in small batches, slowly, the lagers given the six weeks they need, the stout poured on nitro, every beer at the right temperature in the right glass.</p>
+            </div>
+            <figure class="plate story-photo">
+                <Photo name="brewhouseKettles" sizes="(min-width: 64rem) 40vw, 100vw" class="smoke-in" />
+                <figcaption>The brewhouse, where the moulding floor used to be.</figcaption>
+            </figure>
+        </div>
+    </section>
+
+    <section class="section people-band">
+        <div class="container">
+            <p class="eyebrow">Who is behind the bar</p>
+            <h2>The people</h2>
+            <ul class="people">
+                {
+                    people.map((person) => (
+                        <li class="person plate">
+                            <span class="initials" aria-hidden="true">{person.name.split(' ').map((word) => word[0]).join('')}</span>
+                            <h3>{person.name}</h3>
+                            <p class="role stencil">{person.role}</p>
+                            <p class="muted">{person.text}</p>
+                        </li>
+                    ))
+                }
+            </ul>
+        </div>
+    </section>
+
+    <LastCall heading="Come and see it" />
+</Base>
+
+<style>
+    .years {
+        position: relative;
+        padding-block: var(--section);
+        background: var(--soot);
+        border-bottom: 1px solid var(--seam);
+        view-timeline-name: --years;
+    }
+
+    .track {
+        display: flex;
+        gap: var(--space-5);
+        margin: var(--space-10) 0 0;
+        padding: 0 var(--gutter) var(--space-6) max(var(--gutter), (100vw - var(--width-content)) / 2);
+        overflow-x: auto;
+        list-style: none;
+        scroll-snap-type: x mandatory;
+        scroll-padding-inline: max(var(--gutter), (100vw - var(--width-content)) / 2);
+        scrollbar-color: var(--copper) var(--plate);
+    }
+
+    .year {
+        flex: 0 0 min(80vw, 21rem);
+        padding: var(--space-8) var(--space-6);
+        scroll-snap-align: start;
+    }
+
+    .year-no {
+        display: block;
+        margin-bottom: var(--space-4);
+        color: var(--copper);
+        font-family: var(--font-display);
+        font-size: 4.5rem;
+        font-weight: 900;
+        line-height: 0.85;
+    }
+
+    .year p {
+        margin: 0;
+        color: var(--ash);
+    }
+
+    /* Wide screens: the page's scroll drives the track sideways. */
+    @media (prefers-reduced-motion: no-preference) and (min-width: 64rem) {
+        @supports (animation-timeline: view()) {
+            .years {
+                height: 260vh;
+                padding: 0;
+            }
+
+            .years-sticky {
+                position: sticky;
+                top: var(--header-height);
+                display: grid;
+                align-content: center;
+                height: calc(100vh - var(--header-height));
+                overflow: hidden;
+            }
+
+            .track {
+                width: max-content;
+                overflow: visible;
+                padding-left: max(var(--gutter), (100vw - var(--width-content)) / 2);
+                padding-right: 10vw;
+                animation: track-slide linear both;
+                animation-timeline: --years;
+                animation-range: contain 0% contain 100%;
+            }
+
+            @keyframes track-slide {
+                to { transform: translateX(calc(-100% + 100vw)); }
+            }
+        }
+    }
+
+    .story-grid {
+        display: grid;
+        gap: var(--space-12);
+        align-items: center;
+    }
+
+    .prose-col p {
+        color: #ddd2c1;
+    }
+
+    .story-photo {
+        margin: 0;
+        padding: 10px;
+    }
+
+    .story-photo :global(img) {
+        width: 100%;
+        aspect-ratio: 4 / 3.4;
+        object-fit: cover;
+        border-radius: 2px;
+    }
+
+    figcaption {
+        padding: var(--space-3) var(--space-2) var(--space-1);
+        color: var(--ash);
+        font-size: 0.9rem;
+    }
+
+    @media (min-width: 64rem) {
+        .story-grid {
+            grid-template-columns: 1.1fr 0.9fr;
+        }
+    }
+
+    .people-band {
+        background: var(--soot);
+        border-top: 1px solid var(--seam);
+    }
+
+    .people {
+        display: grid;
+        gap: var(--space-6);
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+        margin: var(--space-10) 0 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .person {
+        padding: var(--space-8) var(--space-6);
+    }
+
+    .initials {
+        display: inline-grid;
+        place-items: center;
+        width: 4rem;
+        height: 4rem;
+        margin-bottom: var(--space-5);
+        background: var(--copper);
+        color: var(--soot);
+        font-family: var(--font-stencil);
+        font-size: 1.6rem;
+        font-weight: 900;
+        clip-path: polygon(25% 5%, 75% 5%, 100% 50%, 75% 95%, 25% 95%, 0 50%);
+    }
+
+    .role {
+        margin-bottom: var(--space-3);
+        color: var(--hop);
+        font-size: 0.9rem;
+    }
+</style>

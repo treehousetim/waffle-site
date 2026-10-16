@@ -1,0 +1,191 @@
+---
+/** Private hire: the three spaces, what is included, and the enquiry form (POST /api/site/forms/private-event). */
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import Photo from '../components/Photo.astro';
+import PrivateEventForm from '../components/PrivateEventForm.astro';
+import Faq from '../components/Faq.astro';
+import { spaces } from '../data/spaces';
+import { faqPage } from '@core/lib/jsonld.js';
+
+const questions = [
+    { question: 'Is there a minimum spend?', answer: 'For the Pattern Shop, a $400 bar minimum on Friday and Saturday evenings and $250 at other times. The loading dock and the foundry floor are priced per event; we send a written quote with every enquiry.' },
+    { question: 'Can we bring our own food?', answer: 'Yes, or we will book one of our regular trucks to park up for your guests only. A cake is always welcome. We do not charge a corkage or cake fee.' },
+    { question: 'Can under-21s come?', answer: 'Yes, until 8pm, with their parents. We serve root beer and sodas from the tap. Nobody under 21 is served alcohol, and every drinker is asked for photo ID at the bar.' },
+    { question: 'How far ahead should we book?', answer: 'Four to six weeks for the Pattern Shop, three months or more for the whole foundry floor on a Saturday. Weeknights often have space at short notice.' },
+];
+---
+
+<Base
+    title="Private hire and events"
+    description="Hire the Pattern Shop, the riverside loading dock or the whole foundry floor at Ironwood for birthdays, rehearsal dinners, team nights and weddings."
+    breadcrumbs={[{ name: 'Private hire', href: '/private-hire/' }]}
+    jsonLd={[faqPage(questions)]}
+>
+    <PageHead
+        eyebrow="Private hire"
+        heading="Have the place to yourselves"
+        lead="Three spaces for eight to a hundred and fifty, with our own beer, a bartender who knows it, and a food truck at the door if you want one."
+        photo="cheers"
+        ghost="Hire"
+    />
+
+    <section class="section">
+        <div class="container">
+            <ul class="space-grid">
+                {
+                    spaces.map((space) => (
+                        <li class="space-card plate">
+                            <Photo name={space.photo} sizes="(min-width: 64rem) 30vw, 100vw" class="space-photo" decorative />
+                            <div class="space-body">
+                                <p class="cap stencil">{space.capacity}</p>
+                                <h2>{space.name}</h2>
+                                <p class="muted">{space.summary}</p>
+                                <p class="counts">
+                                    <span><strong>{space.seated}</strong> seated</span>
+                                    <span><strong>{space.standing}</strong> standing</span>
+                                </p>
+                                <ul class="details">
+                                    {space.details.map((detail) => <li>{detail}</li>)}
+                                </ul>
+                            </div>
+                        </li>
+                    ))
+                }
+            </ul>
+        </div>
+    </section>
+
+    <section class="section enquiry" id="enquire">
+        <div class="container enquiry-grid">
+            <div class="enquiry-copy">
+                <p class="eyebrow">Enquire</p>
+                <h2>Tell us what you are planning</h2>
+                <p class="muted">Send the form and our events lead will reply within two working days with availability, a written quote and any questions. Nothing is booked until you say so.</p>
+                <ol class="next">
+                    <li>We check the date and hold it for a week.</li>
+                    <li>You get a quote: room, bar minimum, any truck or tour.</li>
+                    <li>A deposit confirms it; we plan the rest together.</li>
+                </ol>
+            </div>
+            <PrivateEventForm thanks="/contact/thanks/" />
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container narrow">
+            <h2>Before you ask</h2>
+            <Faq items={questions} />
+        </div>
+    </section>
+</Base>
+
+<style>
+    .space-grid {
+        display: grid;
+        gap: var(--space-8);
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .space-card {
+        display: grid;
+        align-content: start;
+        padding: 10px;
+    }
+
+    .space-card :global(.space-photo) {
+        width: 100%;
+        aspect-ratio: 3 / 2;
+        object-fit: cover;
+        border-radius: 2px;
+    }
+
+    .space-body {
+        padding: var(--space-6) var(--space-4) var(--space-4);
+    }
+
+    .cap {
+        margin-bottom: var(--space-2);
+        color: var(--copper);
+    }
+
+    .counts {
+        display: flex;
+        gap: var(--space-6);
+        color: var(--ash);
+    }
+
+    .counts strong {
+        color: var(--hop);
+        font-family: var(--font-display);
+        font-size: 1.8rem;
+    }
+
+    .details {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .details li {
+        padding: var(--space-2) 0;
+        border-top: 1px dashed var(--seam);
+        color: var(--bone);
+        font-size: 0.95rem;
+    }
+
+    .enquiry {
+        background: var(--soot);
+        border-block: 1px solid var(--seam);
+    }
+
+    .enquiry-grid {
+        display: grid;
+        gap: var(--space-10);
+    }
+
+    @media (min-width: 64rem) {
+        .enquiry-grid {
+            grid-template-columns: 0.7fr 1.3fr;
+            align-items: start;
+        }
+
+        .enquiry-copy {
+            position: sticky;
+            top: calc(var(--header-height) + var(--space-8));
+        }
+    }
+
+    .next {
+        display: grid;
+        gap: var(--space-3);
+        margin: var(--space-8) 0 0;
+        padding: 0;
+        list-style: none;
+        counter-reset: step;
+    }
+
+    .next li {
+        display: grid;
+        grid-template-columns: 2.5rem 1fr;
+        gap: var(--space-3);
+        align-items: baseline;
+        counter-increment: step;
+        color: var(--bone);
+    }
+
+    .next li::before {
+        content: counter(step, decimal-leading-zero);
+        color: var(--copper);
+        font-family: var(--font-stencil);
+        font-size: 1.4rem;
+        font-weight: 900;
+    }
+
+    .narrow {
+        max-width: 54rem;
+    }
+</style>

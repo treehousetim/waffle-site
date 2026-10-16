@@ -1,0 +1,77 @@
+---
+/**
+ * The mark and the wordmark, linking home. The mark is decorative, so the
+ * name is the link's text. `size` "large" is the footer's.
+ */
+import LogoMark from './LogoMark.astro';
+import { site } from '../site';
+
+interface Props {
+    size?: 'regular' | 'large';
+}
+
+const { size = 'regular' } = Astro.props;
+---
+
+<a class:list={['logo', size]} href="/">
+    <LogoMark size={size === 'large' ? 64 : 46} class="logo-mark" />
+    <span class="words">
+        <span class="name">Ironwood</span>
+        <span class="sub">Brewing Co. · Est. {site.business.founded}</span>
+    </span>
+    <span class="visually-hidden">, home</span>
+</a>
+
+<style>
+    .logo {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.7rem;
+        color: var(--bone);
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    .logo:hover {
+        color: var(--foam);
+    }
+
+    .words {
+        display: grid;
+        line-height: 1;
+    }
+
+    .name {
+        font-family: var(--font-display);
+        font-size: 1.95rem;
+        font-weight: 850;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+    }
+
+    .sub {
+        margin-top: 0.2rem;
+        color: var(--copper);
+        font-family: var(--font-stencil);
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.24em;
+        text-transform: uppercase;
+    }
+
+    .large .name {
+        font-size: 2.6rem;
+    }
+
+    .large .sub {
+        font-size: 0.85rem;
+    }
+
+    .logo :global(.logo-mark) {
+        transition: transform 0.5s cubic-bezier(0.3, 1.5, 0.5, 1);
+    }
+
+    .logo:hover :global(.logo-mark) {
+        transform: rotate(60deg);
+    }
+</style>

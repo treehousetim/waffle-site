@@ -1,0 +1,68 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import Faq from '../components/Faq.astro';
+import LastCall from '../components/LastCall.astro';
+import { faqPage } from '@core/lib/jsonld.js';
+import { site } from '../site';
+
+const visiting = [
+    { question: 'Do I need to be 21?', answer: `To drink, yes. ${site.agePolicy.long}` },
+    { question: 'What ID do you accept?', answer: 'A current driver’s licence or state ID card from any US state, a passport or passport card, or a military ID. It must be in date and have your photo. Photos of ID on a phone are not accepted.' },
+    { question: 'Can I bring my kids?', answer: 'Yes, until 8pm, at tables with an adult. There is root beer on tap, board games on the shelf and a changing table in the accessible restroom.' },
+    { question: 'Can I bring my dog?', answer: 'Yes, on a lead, on the foundry floor and the loading dock. Water bowls are by the door. Dogs stay out of the Pattern Shop during private events.' },
+    { question: 'Do you serve food?', answer: 'Pretzels and snacks at the bar, and a food truck outside Wednesday to Sunday. You are welcome to bring your own food or order delivery to the door.' },
+    { question: 'Do you take reservations?', answer: 'Not for tables in the taproom: it is first come, first served. For groups of more than twelve, or to have a room to yourselves, see private hire.' },
+];
+
+const beer = [
+    { question: 'Can I try before I buy?', answer: 'Always. Ask the bartender for a taste of anything on the board. Paid tasters (5 oz) and flights of four are also on the menu.' },
+    { question: 'Do you sell beer to take home?', answer: 'Yes: 16 oz cans of the core range from the cooler, 32 oz crowlers filled and sealed at the bar, and growler fills if you bring a clean 64 oz growler. Over-21s only, with ID.' },
+    { question: 'Do you have anything gluten-free or alcohol-free?', answer: 'We always have a guest cider on tap, which is naturally gluten-free, plus root beer, ginger soda and cold brew coffee. Our beers are all brewed with barley and are not gluten-free.' },
+    { question: 'Where else can I find your beer?', answer: 'A handful of bars and bottle shops in the valley carry our cans and kegs. Ask at the bar for the current list: it changes with the seasons.' },
+];
+---
+
+<Base
+    title="Frequently asked questions"
+    description="Answers to what people ask about Ironwood most: the 21+ rule and ID, kids and dogs, food, reservations, tasters, cans and crowlers to take home."
+    breadcrumbs={[{ name: 'FAQ', href: '/faq/' }]}
+    jsonLd={[faqPage([...visiting, ...beer])]}
+>
+    <PageHead eyebrow="FAQ" heading="Questions at the bar" lead="The things we are asked most, answered once. Anything else: call the taproom or ask whoever is pouring." ghost="FAQ" />
+
+    <section class="section">
+        <div class="container faq-grid">
+            <h2>Visiting</h2>
+            <Faq items={visiting} />
+        </div>
+    </section>
+
+    <section class="section beer-band">
+        <div class="container faq-grid">
+            <h2>The beer</h2>
+            <Faq items={beer} />
+        </div>
+    </section>
+
+    <LastCall heading="Still wondering?" text={`Call the taproom on ${site.business.phone} during opening hours, or email ${site.business.email} and we will answer within a day or two.`} />
+</Base>
+
+<style>
+    .faq-grid {
+        display: grid;
+        gap: var(--space-8);
+    }
+
+    @media (min-width: 64rem) {
+        .faq-grid {
+            grid-template-columns: 0.6fr 1.4fr;
+            align-items: start;
+        }
+    }
+
+    .beer-band {
+        background: var(--soot);
+        border-top: 1px solid var(--seam);
+    }
+</style>

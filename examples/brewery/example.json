@@ -1,0 +1,9 @@
+{
+  "name": "brewery",
+  "label": "Craft brewery and taproom",
+  "description": "A small-batch brewery with a taproom in an old foundry: the beers pouring now and upcoming events from the waffle app, a page per core beer, the taproom, tours, private hire with an enquiry form, and a blog of brewing notes.",
+  "kind": "Hospitality",
+  "schemaType": "Brewery",
+  "look": "Dark industrial: charcoal and soot with copper and hop green, Big Shoulders condensed display and stencil over a Bitter slab, riveted plates, can-label beer cards, carbonation bubbles and a split-flap tap board",
+  "waffleEndpoints": ["GET /api/site/taplist", "GET /api/site/events", "POST /api/site/forms/private-event"]
+}

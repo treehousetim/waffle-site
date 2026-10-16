@@ -1,0 +1,272 @@
+---
+/**
+ * The one template every blog post uses (docs/blog.md): the headline, the
+ * picture (the post's cover, or its topic's photo), the article, who wrote
+ * it, an invitation to the taproom, and more to read.
+ */
+import type { CollectionEntry } from 'astro:content';
+import { getImage } from 'astro:assets';
+import Base from './Base.astro';
+import FormattedDate from '../components/FormattedDate.astro';
+import Photo from '../components/Photo.astro';
+import PostGrid from '../components/PostGrid.astro';
+import LogoMark from '../components/LogoMark.astro';
+import { site } from '../site';
+import { settings } from '@core/settings';
+import { defaultPostPhoto, photos, topicPhotos } from '../data/photos';
+import { blogPosting } from '@core/lib/jsonld.js';
+import { absoluteUrl, canonicalUrl } from '@core/lib/seo.js';
+import { readingMinutes, tagSlug } from '@core/lib/posts.js';
+
+interface Props {
+    post: CollectionEntry<'blog'>;
+    related: CollectionEntry<'blog'>[];
+}
+
+const { post, related } = Astro.props;
+const { title, description, pubDate, updatedDate, tags, cover, coverAlt, draft } = post.data;
+const author = post.data.author ?? site.blog.defaultAuthor;
+const url = canonicalUrl(Astro.url.pathname, settings.siteUrl);
+const firstTag = tags[0];
+const topicPhoto = (firstTag !== undefined ? topicPhotos[tagSlug(firstTag)] : undefined) ?? defaultPostPhoto;
+
+// The link preview: the cover, or the topic photo, cropped to 1200x630.
+const preview = await getImage({ src: cover ?? photos[topicPhoto].src, width: 1200, height: 630, fit: 'cover', format: 'jpg' });
+const image = { src: absoluteUrl(preview.src, settings.siteUrl), alt: cover !== undefined ? (coverAlt ?? '') : photos[topicPhoto].alt };
+---
+
+<Base
+    title={title}
+    description={description}
+    type="article"
+    image={image}
+    breadcrumbs={[
+        { name: site.blog.title, href: '/blog/' },
+        { name: title, href: Astro.url.pathname },
+    ]}
+    article={{ published: pubDate, updated: updatedDate, tags }}
+    jsonLd={[blogPosting({ url, title, description, image: image.src, published: pubDate, updated: updatedDate, author, tags }, settings.siteUrl)]}
+>
+    <div class="reading-progress" aria-hidden="true"></div>
+    <article class="post">
+        <header class="head">
+            <p class="crumbs">
+                <a href="/blog/">{site.blog.title}</a>
+                {
+                    firstTag && (
+                        <>
+                            <span aria-hidden="true">/</span>
+                            <a href={`/blog/tags/${tagSlug(firstTag)}/`}>{firstTag}</a>
+                        </>
+                    )
+                }
+            </p>
+            {draft && <p class="draft flag flag-limited">Draft: not published in production</p>}
+            <h1>{title}</h1>
+            <p class="lead">{description}</p>
+            <p class="meta">
+                <span class="by">
+                    <LogoMark size={40} />
+                    <span>
+                        <strong>{author}</strong>
+                        <span class="muted">
+                            <FormattedDate date={pubDate} /> · {readingMinutes(post.body ?? '')} min read
+                            {
+                                updatedDate && (
+                                    <>
+                                        {' '}
+                                        · Updated <FormattedDate date={updatedDate} />
+                                    </>
+                                )
+                            }
+                        </span>
+                    </span>
+                </span>
+            </p>
+        </header>
+
+        <figure class="cover plate">
+            {
+                cover && coverAlt ? (
+                    <Photo src={cover} alt={coverAlt} sizes="(min-width: 64rem) 64rem, 100vw" priority />
+                ) : (
+                    <Photo name={topicPhoto} sizes="(min-width: 64rem) 64rem, 100vw" priority />
+                )
+            }
+        </figure>
+
+        <div class="prose body">
+            <slot />
+        </div>
+
+        <footer class="prose foot">
+            {
+                tags.length > 0 && (
+                    <ul class="tags" aria-label="Topics">
+                        {tags.map((tag) => (
+                            <li>
+                                <a href={`/blog/tags/${tagSlug(tag)}/`}>{tag}</a>
+                            </li>
+                        ))}
+                    </ul>
+                )
+            }
+
+            <div class="invite plate">
+                <p class="invite-title">Taste it where it was brewed</p>
+                <p class="muted">Ask at the bar for a taster of anything on the board; the brewer who made it is usually somewhere about. {site.agePolicy.short}</p>
+                <p class="actions">
+                    <a class="button" href="/on-tap/">See what is on tap</a>
+                    <a class="button button-ghost" href="/tours/">Book a tour</a>
+                </p>
+            </div>
+        </footer>
+    </article>
+
+    {
+        related.length > 0 && (
+            <section class="related">
+                <div class="container">
+                    <p class="eyebrow">More brewing notes</p>
+                    <h2>Keep reading</h2>
+                    <PostGrid posts={related} level="h3" />
+                </div>
+            </section>
+        )
+    }
+</Base>
+
+<style>
+    .post {
+        padding-top: clamp(2.5rem, 2rem + 3vw, 5rem);
+    }
+
+    .head {
+        width: min(100% - 2 * var(--gutter), var(--width-prose));
+        margin-inline: auto;
+    }
+
+    .crumbs {
+        display: flex;
+        gap: var(--space-2);
+        margin-bottom: var(--space-5);
+        color: var(--slag);
+        font-family: var(--font-stencil);
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+    }
+
+    .crumbs a {
+        text-decoration: none;
+    }
+
+    .draft {
+        margin-bottom: var(--space-5);
+    }
+
+    h1 {
+        font-size: clamp(3rem, 1.8rem + 4vw, 5.5rem);
+        line-height: 0.88;
+    }
+
+    .meta {
+        margin: var(--space-8) 0 0;
+        font-size: 0.95rem;
+        line-height: 1.4;
+    }
+
+    .by {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-3);
+    }
+
+    .by strong {
+        display: block;
+    }
+
+    .cover {
+        width: min(100% - 2 * var(--gutter), 68rem);
+        margin: var(--space-10) auto 0;
+        padding: 10px;
+    }
+
+    .cover :global(img) {
+        width: 100%;
+        aspect-ratio: 16 / 8;
+        object-fit: cover;
+        border-radius: 2px;
+    }
+
+    @media (max-width: 40rem) {
+        .cover :global(img) {
+            aspect-ratio: 3 / 2;
+        }
+    }
+
+    .body {
+        margin-top: var(--space-12);
+        font-size: 1.125rem;
+        line-height: 1.8;
+    }
+
+    .foot {
+        margin-top: var(--space-12);
+    }
+
+    .tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+        margin: 0 0 var(--space-10);
+        padding: 0;
+        list-style: none;
+    }
+
+    .tags a {
+        display: inline-block;
+        padding: 0.3rem 0.8rem 0.25rem;
+        border: 1px solid var(--seam-strong);
+        border-radius: 2px;
+        color: var(--bone);
+        font-family: var(--font-stencil);
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-decoration: none;
+        text-transform: uppercase;
+    }
+
+    .tags a:hover {
+        border-color: var(--copper);
+        color: var(--copper-bright);
+    }
+
+    .invite {
+        padding: var(--space-8);
+    }
+
+    .invite-title {
+        margin-bottom: var(--space-2);
+        font-family: var(--font-display);
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1;
+        text-transform: uppercase;
+    }
+
+    .invite .actions {
+        margin-top: var(--space-5);
+    }
+
+    .related {
+        margin-top: var(--section);
+        padding: var(--section) 0;
+        border-top: 1px solid var(--seam);
+        background: var(--soot);
+    }
+
+    .related h2 {
+        margin-bottom: var(--space-10);
+    }
+</style>

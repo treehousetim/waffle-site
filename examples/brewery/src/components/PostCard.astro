@@ -1,0 +1,162 @@
+---
+/**
+ * One post in a list: the blog index, a tag page, the home page. Its picture
+ * is the post's cover, or its topic's photo (src/data/photos.ts), toned down
+ * and warmed up until it is hovered, so the cards sit in the dark.
+ */
+import type { CollectionEntry } from 'astro:content';
+import FormattedDate from './FormattedDate.astro';
+import Photo from './Photo.astro';
+import { defaultPostPhoto, topicPhotos } from '../data/photos';
+import { readingMinutes, tagSlug } from '@core/lib/posts.js';
+
+interface Props {
+    post: CollectionEntry<'blog'>;
+    /** h2 on a page of posts; h3 inside a section that has its own h2. */
+    level?: 'h2' | 'h3';
+    featured?: boolean;
+}
+
+const { post, level = 'h2', featured = false } = Astro.props;
+const Heading = level;
+const firstTag = post.data.tags[0];
+const topicPhoto = (firstTag !== undefined ? topicPhotos[tagSlug(firstTag)] : undefined) ?? defaultPostPhoto;
+const sizes = featured ? '(min-width: 64rem) 55vw, 100vw' : '(min-width: 64rem) 33vw, (min-width: 40rem) 50vw, 100vw';
+---
+
+<article class:list={['post-card', { featured }]}>
+    <a class="photo" href={`/blog/${post.id}/`} tabindex="-1" aria-hidden="true">
+        {post.data.cover && post.data.coverAlt ? <Photo src={post.data.cover} alt="" sizes={sizes} /> : <Photo name={topicPhoto} sizes={sizes} decorative />}
+    </a>
+    <div class="body">
+        <p class="meta">
+            {firstTag && <span class="tag">{firstTag}</span>}
+            {post.data.draft && <span class="flag flag-limited">Draft</span>}
+            <span><FormattedDate date={post.data.pubDate} /> · {readingMinutes(post.body ?? '')} min read</span>
+        </p>
+        <Heading class="title"><a href={`/blog/${post.id}/`}>{post.data.title}</a></Heading>
+        <p class="description">{post.data.description}</p>
+    </div>
+</article>
+
+<style>
+    .post-card {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        overflow: hidden;
+        border: 1px solid var(--seam);
+        border-radius: var(--radius);
+        background: var(--plate);
+        transition: border-color 0.25s ease, transform 0.25s ease;
+    }
+
+    .post-card:hover {
+        border-color: var(--copper);
+        transform: translateY(-4px);
+    }
+
+    .photo {
+        display: block;
+        overflow: hidden;
+        aspect-ratio: 16 / 10;
+        background: var(--soot);
+    }
+
+    .photo :global(img) {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        filter: grayscale(0.55) sepia(0.25) brightness(0.85);
+        transition: transform 0.6s ease, filter 0.4s ease;
+    }
+
+    .post-card:hover .photo :global(img) {
+        filter: none;
+        transform: scale(1.05);
+    }
+
+    .body {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        padding: var(--space-6);
+    }
+
+    .meta {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-2) var(--space-3);
+        margin-bottom: var(--space-3);
+        color: var(--slag);
+        font-size: 0.86rem;
+    }
+
+    .tag {
+        color: var(--hop);
+        font-family: var(--font-stencil);
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+    }
+
+    .title {
+        margin-bottom: var(--space-3);
+        font-size: clamp(1.5rem, 1.3rem + 0.6vw, 1.85rem);
+    }
+
+    .title a {
+        color: var(--bone);
+        text-decoration: none;
+    }
+
+    .title a::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+    }
+
+    .title a:hover {
+        color: var(--copper-bright);
+    }
+
+    .description {
+        margin: 0;
+        color: var(--ash);
+        font-size: 0.97rem;
+        line-height: 1.6;
+    }
+
+    @media (min-width: 64rem) {
+        .featured {
+            display: grid;
+            grid-template-columns: 1.25fr 1fr;
+        }
+
+        .featured .photo {
+            position: relative;
+            aspect-ratio: auto;
+            min-height: 24rem;
+        }
+
+        .featured .photo :global(img) {
+            position: absolute;
+            inset: 0;
+        }
+
+        .featured .body {
+            justify-content: center;
+            padding: var(--space-12);
+        }
+
+        .featured .title {
+            font-size: clamp(2.2rem, 1.6rem + 1.6vw, 3.25rem);
+        }
+
+        .featured .description {
+            font-size: 1.08rem;
+        }
+    }
+</style>

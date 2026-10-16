@@ -1,0 +1,319 @@
+---
+/**
+ * The private event enquiry, received by the waffle app (docs/forms.md).
+ *
+ * It posts to /api/site/forms/private-event on this site; Caddy forwards
+ * that to the waffle app with the site key (docs/waffle-api.md). It works
+ * without script: the browser checks the fields, posts the form, and the
+ * app answers with a redirect to `thanks`. With script (src/scripts/forms.ts)
+ * it sends JSON and shows the answer in place, field by field.
+ *
+ * Fields the app receives: event_type, date, guests, space, name, email,
+ * phone, message, age_ok, and the honeypot.
+ */
+import { HONEYPOT } from '@core/lib/forms.js';
+import { eventTypes, spaces } from '../data/spaces';
+import { site } from '../site';
+
+interface Props {
+    /** Where the app sends a browser without script after a good submission. */
+    thanks: string;
+    /** A space to have chosen already. */
+    space?: string;
+    /** An event type to have chosen already. */
+    type?: string;
+}
+
+const { thanks, space = 'pattern-shop', type } = Astro.props;
+---
+
+<form class="form plate plate-inset" method="post" action="/api/site/forms/private-event" data-site-form>
+    <input type="hidden" name="redirect" value={thanks} />
+
+    <p class="form-title">Event enquiry</p>
+
+    <div class="row">
+        <div class="field">
+            <label for="event-type">What are you celebrating?</label>
+            <select id="event-type" name="event_type" required>
+                <option value="">Choose one</option>
+                {eventTypes.map(([value, label]) => <option value={value} selected={value === type}>{label}</option>)}
+            </select>
+            <p class="error" data-error-for="event_type" hidden></p>
+        </div>
+
+        <div class="field">
+            <label for="event-date">Date you have in mind</label>
+            <input id="event-date" name="date" type="date" required />
+            <p class="error" data-error-for="date" hidden></p>
+        </div>
+
+        <div class="field">
+            <label for="event-guests">How many guests?</label>
+            <input id="event-guests" name="guests" type="number" inputmode="numeric" min="8" max="150" step="1" required />
+            <p class="error" data-error-for="guests" hidden></p>
+        </div>
+    </div>
+
+    <fieldset class="field">
+        <legend>Which space?</legend>
+        <div class="spaces">
+            {
+                spaces.map((item) => (
+                    <label class="space">
+                        <input type="radio" name="space" value={item.id} checked={item.id === space} required />
+                        <span class="space-name">{item.name}</span>
+                        <span class="space-cap">{item.capacity}</span>
+                    </label>
+                ))
+            }
+            <label class="space">
+                <input type="radio" name="space" value="not-sure" />
+                <span class="space-name">Not sure yet</span>
+                <span class="space-cap">Advise me</span>
+            </label>
+        </div>
+        <p class="error" data-error-for="space" hidden></p>
+    </fieldset>
+
+    <div class="row">
+        <div class="field">
+            <label for="event-name">Your name</label>
+            <input id="event-name" name="name" type="text" autocomplete="name" required maxlength="100" />
+            <p class="error" data-error-for="name" hidden></p>
+        </div>
+
+        <div class="field">
+            <label for="event-email">Email</label>
+            <input id="event-email" name="email" type="email" autocomplete="email" required maxlength="254" />
+            <p class="error" data-error-for="email" hidden></p>
+        </div>
+
+        <div class="field">
+            <label for="event-phone">Phone <span class="optional">(optional)</span></label>
+            <input id="event-phone" name="phone" type="tel" autocomplete="tel" maxlength="30" />
+            <p class="error" data-error-for="phone" hidden></p>
+        </div>
+    </div>
+
+    <div class="field">
+        <label for="event-message">Tell us about it</label>
+        <textarea id="event-message" name="message" rows="5" maxlength="4000" placeholder="Times, food, a keg of something special, a toast at nine..."></textarea>
+        <p class="error" data-error-for="message" hidden></p>
+    </div>
+
+    <label class="check">
+        <input type="checkbox" name="age_ok" value="yes" required />
+        <span>I understand that guests must be <strong>21 or over, with photo ID</strong>, to be served, and that under-21s are welcome only until 8pm.</span>
+    </label>
+    <p class="error" data-error-for="age_ok" hidden></p>
+
+    <div class="trap" aria-hidden="true">
+        <label for="event-website">Leave this empty</label>
+        <input id="event-website" name={HONEYPOT} type="text" tabindex="-1" autocomplete="off" />
+    </div>
+
+    <p class="status" role="status" aria-live="polite" data-status></p>
+
+    <p class="actions">
+        <button class="button button-large" type="submit">Send the enquiry</button>
+    </p>
+    <p class="small">We reply within two working days, usually sooner. In a hurry? Call the taproom on <a href={`tel:${site.business.phoneE164}`}>{site.business.phone}</a>.</p>
+</form>
+
+<script>
+    import { enhanceForms } from '../scripts/forms';
+
+    enhanceForms(document);
+</script>
+
+<style>
+    .form {
+        display: grid;
+        gap: var(--space-6);
+        padding: clamp(1.5rem, 1rem + 2.5vw, 3rem);
+    }
+
+    .form-title {
+        margin: 0;
+        color: var(--copper);
+        font-family: var(--font-stencil);
+        font-size: 1.1rem;
+        font-weight: 800;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+    }
+
+    .row {
+        display: grid;
+        gap: var(--space-6);
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+    }
+
+    .field {
+        display: grid;
+        align-content: start;
+        gap: var(--space-2);
+        min-width: 0;
+        margin: 0;
+        padding: 0;
+        border: 0;
+    }
+
+    label,
+    legend {
+        color: var(--bone);
+        font-weight: 700;
+    }
+
+    legend {
+        margin-bottom: var(--space-3);
+        padding: 0;
+    }
+
+    .optional {
+        color: var(--slag);
+        font-weight: 400;
+    }
+
+    input:not([type='radio'], [type='checkbox']),
+    select,
+    textarea {
+        width: 100%;
+        min-height: 3.1rem;
+        padding: 0.7rem 0.9rem;
+        border: 1px solid var(--seam-strong);
+        border-radius: var(--radius-small);
+        background: var(--soot);
+        color: var(--bone);
+        font: inherit;
+        color-scheme: dark;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    textarea::placeholder {
+        color: var(--slag);
+    }
+
+    input:not([type='radio'], [type='checkbox']):focus,
+    select:focus,
+    textarea:focus {
+        border-color: var(--copper);
+        outline: none;
+        box-shadow: 0 0 0 4px var(--copper-glow);
+    }
+
+    .spaces {
+        display: grid;
+        gap: var(--space-3);
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+    }
+
+    .space {
+        position: relative;
+        display: grid;
+        gap: var(--space-1);
+        padding: var(--space-4) var(--space-4) var(--space-4) 3rem;
+        border: 1px solid var(--seam-strong);
+        border-radius: var(--radius-small);
+        background: var(--soot);
+        cursor: pointer;
+        transition: border-color 0.15s ease, background-color 0.15s ease;
+    }
+
+    .space input {
+        position: absolute;
+        left: 1rem;
+        top: 1.15rem;
+        width: 1.1rem;
+        height: 1.1rem;
+        accent-color: var(--copper);
+    }
+
+    .space:hover {
+        border-color: var(--ash);
+    }
+
+    .space:has(input:checked) {
+        border-color: var(--copper);
+        background: rgb(220 141 80 / 0.1);
+    }
+
+    .space-name {
+        font-family: var(--font-display);
+        font-size: 1.3rem;
+        font-weight: 800;
+        letter-spacing: 0.03em;
+        line-height: 1.05;
+        text-transform: uppercase;
+    }
+
+    .space-cap {
+        color: var(--ash);
+        font-size: 0.9rem;
+        font-weight: 400;
+    }
+
+    .check {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: var(--space-3);
+        align-items: start;
+        font-weight: 400;
+    }
+
+    .check input {
+        width: 1.25rem;
+        height: 1.25rem;
+        margin-top: 0.2rem;
+        accent-color: var(--copper);
+    }
+
+    [aria-invalid='true'] {
+        border-color: var(--error) !important;
+    }
+
+    .error {
+        margin: 0;
+        color: var(--error);
+        font-size: 0.9rem;
+    }
+
+    .status:empty {
+        display: none;
+    }
+
+    .status {
+        margin: 0;
+        padding: var(--space-3) var(--space-4);
+        border-left: 4px solid var(--copper);
+        background: var(--soot);
+        font-weight: 700;
+    }
+
+    .status[data-kind='sent'] {
+        border-color: var(--success);
+        color: var(--success);
+    }
+
+    .status[data-kind='invalid'],
+    .status[data-kind='failed'] {
+        border-color: var(--error);
+        color: var(--error);
+    }
+
+    /* Off screen rather than display:none, which some bots check for. */
+    .trap {
+        position: absolute;
+        left: -10000px;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+    }
+
+    .small {
+        margin: 0;
+        color: var(--ash);
+        font-size: 0.92rem;
+    }
+</style>

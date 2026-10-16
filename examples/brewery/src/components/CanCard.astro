@@ -1,0 +1,91 @@
+---
+/**
+ * One core beer as its can (CanArt), and beneath it the name, style,
+ * strength and a line about it. The whole card is one link, through its
+ * heading; hover or focus it and the can turns.
+ */
+import CanArt from './CanArt.astro';
+import type { Beer } from '../data/beers';
+import { abv, beerUrl } from '../data/beers';
+
+interface Props {
+    beer: Beer;
+    level?: 'h2' | 'h3';
+}
+
+const { beer, level = 'h3' } = Astro.props;
+const Heading = level;
+const href = beerUrl(beer.slug);
+---
+
+<article class="can-card">
+    <CanArt beer={beer} href={href} />
+    <div class="info">
+        <p class="style">{beer.style}</p>
+        <Heading class="title"><a href={href}>{beer.name}</a></Heading>
+        <p class="numbers"><span>{abv(beer.abv)} ABV</span><span>{beer.ibu} IBU</span></p>
+        <p class="summary">{beer.summary}</p>
+    </div>
+</article>
+
+<style>
+    .can-card {
+        position: relative;
+        display: grid;
+        gap: var(--space-5);
+        align-content: start;
+    }
+
+    .info {
+        text-align: center;
+    }
+
+    .style {
+        margin: 0 0 var(--space-2);
+        color: var(--copper);
+        font-family: var(--font-stencil);
+        font-size: 0.95rem;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+    }
+
+    .title {
+        margin-bottom: var(--space-3);
+    }
+
+    .title a {
+        color: var(--bone);
+        text-decoration: none;
+    }
+
+    .title a::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+    }
+
+    .title a:hover {
+        color: var(--copper-bright);
+    }
+
+    .numbers {
+        display: flex;
+        justify-content: center;
+        gap: var(--space-4);
+        margin-bottom: var(--space-3);
+        color: var(--hop);
+        font-family: var(--font-display);
+        font-size: 1.25rem;
+        font-weight: 750;
+        letter-spacing: 0.06em;
+    }
+
+    .summary {
+        max-width: 22rem;
+        margin: 0 auto;
+        color: var(--ash);
+        font-size: 0.97rem;
+        line-height: 1.6;
+    }
+</style>

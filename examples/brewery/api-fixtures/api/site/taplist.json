@@ -1,0 +1,32 @@
+{
+  "success": true,
+  "data": {
+    "updated": "2026-10-15T16:42:00-04:00",
+    "taps": [
+      { "tap": 1, "name": "Pour Line Pilsner", "style": "Czech-style pilsner", "abv": 4.9, "ibu": 34, "beer": "pour-line-pilsner", "new": false, "limited": false, "dispense": "draft",
+        "pours": [{ "size": "Taster", "ounces": 5, "price_cents": 300 }, { "size": "Half", "ounces": 10, "price_cents": 500 }, { "size": "Pint", "ounces": 16, "price_cents": 700 }] },
+      { "tap": 2, "name": "Bellows Saison", "style": "Farmhouse saison", "abv": 6.1, "ibu": 26, "beer": "bellows-saison", "new": false, "limited": false, "dispense": "draft",
+        "pours": [{ "size": "Taster", "ounces": 5, "price_cents": 300 }, { "size": "Tulip", "ounces": 12, "price_cents": 750 }] },
+      { "tap": 3, "name": "Tamsen Haze", "style": "Hazy pale ale", "abv": 5.6, "ibu": 28, "beer": "tamsen-haze", "new": false, "limited": false, "dispense": "draft",
+        "pours": [{ "size": "Taster", "ounces": 5, "price_cents": 300 }, { "size": "Half", "ounces": 10, "price_cents": 550 }, { "size": "Pint", "ounces": 16, "price_cents": 750 }] },
+      { "tap": 4, "name": "Cupola IPA", "style": "West Coast IPA", "abv": 6.8, "ibu": 62, "beer": "cupola-ipa", "new": false, "limited": false, "dispense": "draft",
+        "pours": [{ "size": "Taster", "ounces": 5, "price_cents": 300 }, { "size": "Half", "ounces": 10, "price_cents": 550 }, { "size": "Pint", "ounces": 16, "price_cents": 750 }] },
+      { "tap": 5, "name": "Ferryman's Rye", "style": "Rye amber ale", "abv": 5.4, "ibu": 30, "beer": "ferrymans-rye", "new": false, "limited": false, "dispense": "draft",
+        "pours": [{ "size": "Taster", "ounces": 5, "price_cents": 300 }, { "size": "Half", "ounces": 10, "price_cents": 500 }, { "size": "Pint", "ounces": 16, "price_cents": 700 }] },
+      { "tap": 6, "name": "Cast Iron Stout", "style": "Oatmeal stout, on nitro", "abv": 6.2, "ibu": 38, "beer": "cast-iron-stout", "new": false, "limited": false, "dispense": "nitro",
+        "pours": [{ "size": "Taster", "ounces": 5, "price_cents": 300 }, { "size": "Imperial pint", "ounces": 20, "price_cents": 800 }] },
+      { "tap": 7, "name": "Wet Bine Harvest Ale", "style": "Fresh-hop pale ale", "abv": 5.8, "ibu": 40, "new": true, "limited": true, "dispense": "draft",
+        "pours": [{ "size": "Taster", "ounces": 5, "price_cents": 350 }, { "size": "Pint", "ounces": 16, "price_cents": 800 }] },
+      { "tap": 8, "name": "Lantern Märzen", "style": "Festbier-style märzen", "abv": 5.9, "ibu": 24, "new": false, "limited": true, "dispense": "draft",
+        "pours": [{ "size": "Taster", "ounces": 5, "price_cents": 300 }, { "size": "Half liter", "ounces": 17, "price_cents": 800 }, { "size": "Liter stein", "ounces": 34, "price_cents": 1500 }] },
+      { "tap": 9, "name": "Slag Glass Sour", "style": "Raspberry kettle sour", "abv": 4.6, "ibu": null, "new": true, "limited": true, "dispense": "draft",
+        "pours": [{ "size": "Taster", "ounces": 5, "price_cents": 350 }, { "size": "Tulip", "ounces": 12, "price_cents": 750 }] },
+      { "tap": 10, "name": "Sandcast Brown", "style": "English brown ale, on cask", "abv": 4.4, "ibu": 22, "new": false, "limited": true, "dispense": "cask",
+        "pours": [{ "size": "Taster", "ounces": 5, "price_cents": 300 }, { "size": "Imperial pint", "ounces": 20, "price_cents": 750 }] },
+      { "tap": 11, "name": "Banked Fire Imperial Stout", "style": "Bourbon barrel-aged imperial stout", "abv": 11.2, "ibu": 55, "new": true, "limited": true, "dispense": "draft",
+        "pours": [{ "size": "Snifter", "ounces": 8, "price_cents": 900 }] },
+      { "tap": 12, "name": "Orchard Row Cider", "style": "Dry farmhouse cider (guest)", "abv": 6.4, "ibu": null, "new": false, "limited": false, "dispense": "draft",
+        "pours": [{ "size": "Taster", "ounces": 5, "price_cents": 300 }, { "size": "Glass", "ounces": 12, "price_cents": 700 }] }
+    ]
+  }
+}

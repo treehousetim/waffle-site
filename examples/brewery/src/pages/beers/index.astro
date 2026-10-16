@@ -1,0 +1,72 @@
+---
+/** The core range: every year-round beer as its can, each linking to its own page. */
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import CanCard from '../../components/CanCard.astro';
+import Kinetic from '../../components/Kinetic.astro';
+import LastCall from '../../components/LastCall.astro';
+import { beers, abv } from '../../data/beers';
+
+const lightest = Math.min(...beers.map((beer) => beer.abv));
+const strongest = Math.max(...beers.map((beer) => beer.abv));
+---
+
+<Base
+    title="Our beers: the core range"
+    description="Ironwood's six year-round beers, from a six-week Czech-style pilsner to a nitro oatmeal stout: style, strength, bitterness and tasting notes."
+    breadcrumbs={[{ name: 'Our beers', href: '/beers/' }]}
+>
+    <PageHead
+        eyebrow="The core range"
+        heading="Our beers"
+        lead={`Six beers we brew all year round, from ${abv(lightest)} to ${abv(strongest)}, each named for a piece of the foundry or the river it stands on. Specials and one-offs come and go on the tap list.`}
+        ghost="Beers"
+    />
+
+    <section class="section">
+        <div class="container">
+            <ul class="can-grid">
+                {
+                    beers.map((beer) => (
+                        <li>
+                            <CanCard beer={beer} level="h2" />
+                        </li>
+                    ))
+                }
+            </ul>
+            <p class="also">Looking for this week’s specials? <a href="/on-tap/">See everything on tap now</a>.</p>
+        </div>
+    </section>
+
+    <Kinetic lines={['Pilsner · IPA · Haze', 'Stout · Rye · Saison']} />
+
+    <LastCall />
+</Base>
+
+<style>
+    .can-grid {
+        display: grid;
+        gap: var(--space-16) var(--space-8);
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .also {
+        margin: var(--space-16) 0 0;
+        color: var(--ash);
+        text-align: center;
+    }
+
+    @media (max-width: 34rem) {
+        .can-grid {
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-12) var(--space-4);
+        }
+
+        .can-grid :global(.summary) {
+            display: none;
+        }
+    }
+</style>

@@ -1,0 +1,15 @@
+{
+  "success": true,
+  "data": {
+    "events": [
+      { "id": "trivia-oct-21", "date": "2026-10-21", "time": "19:00", "title": "Wednesday Quiz in the Pattern Shop", "description": "Six rounds, teams of up to six, and a picture round that is always about the river. Winners drink free for the night. No booking; get here by 6:30 for a table.", "kind": "trivia" },
+      { "id": "wet-hop-release", "date": "2026-10-23", "time": "15:00", "title": "Wet Bine Harvest Ale: last call", "description": "The last keg of this year's fresh-hop beer goes on at three. Brewed with hops picked at Hollis Farm the same morning. When it is gone, it is gone until next September.", "kind": "release" },
+      { "id": "foundry-sessions-oct-24", "date": "2026-10-24", "time": "20:00", "title": "Foundry Sessions: The Low Water Marks", "description": "Bluegrass and old-time from a four-piece who met at the Wrenford fiddle contest. Free, all ages until 8pm. The Smoke Signal barbecue truck is outside.", "kind": "music" },
+      { "id": "makers-market-oct-25", "date": "2026-10-25", "time": "12:00", "title": "Riverside Makers Market", "description": "Twenty local makers on the loading dock and the foundry floor: ceramics, prints, leather, honey and hot sauce. Dogs welcome on the dock.", "kind": "market" },
+      { "id": "homebrew-class-nov-01", "date": "2026-11-01", "time": "11:00", "title": "Brew Day 101 with our head brewer", "description": "Three hours on the brewhouse floor learning all-grain brewing on our pilot system. You take home a fermenter of your own pale ale and a recipe sheet. Twelve places, 21+.", "kind": "class" },
+      { "id": "pierogi-night-nov-06", "date": "2026-11-06", "time": "17:00", "title": "Pierogi Night with the Ferry Street Wagon", "description": "Potato and cheese, sauerkraut and mushroom, and a sweet plum one for afters, all made by hand. Best with a Pour Line Pilsner.", "kind": "food" },
+      { "id": "stout-day-nov-07", "date": "2026-11-07", "time": null, "title": "Stout Day: the Banked Fire pour", "description": "Our bourbon barrel-aged imperial stout goes on tap all day, with a vertical of last year's batch for comparison. Limited 750 ml bottles to take home, two per person.", "kind": "release" },
+      { "id": "river-cleanup-nov-08", "date": "2026-11-08", "time": "09:00", "title": "Tamsen River clean-up", "description": "Gloves, bags and coffee from 9am at the foot of Foundry Row, with the Wrenford River Trust. Everyone who helps gets a pint on us when the taproom opens at noon.", "kind": "community" }
+    ]
+  }
+}

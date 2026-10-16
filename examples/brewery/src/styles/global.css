@@ -1,0 +1,525 @@
+/*
+ * Ironwood's design system: tokens, type, layout helpers, plates and
+ * buttons. Components carry their own scoped <style>; this file is what they
+ * share. Motion lives in motion.css.
+ *
+ * Dark on purpose: a taproom in a foundry, lit low. Charcoal and soot for
+ * the ground, bone for text, copper for actions and hop green for what is
+ * fresh. Three faces from Astro's Fonts API (src/fonts.ts): Big Shoulders
+ * Display for headings, its stencil cut for labels, Bitter for reading.
+ */
+
+:root {
+    /* The ground, darkest to lightest. */
+    --soot: #0c0b0a;
+    --char: #151311;
+    --plate: #1e1b18;
+    --plate-raised: #282420;
+    --seam: #3b352f;
+    --seam-strong: #574e45;
+
+    /* Text on the dark. Bone reads 15:1 on char, ash 8:1, slag 5:1. */
+    --bone: #f2e9da;
+    --ash: #bdb1a1;
+    --slag: #968a7b;
+
+    /* Copper: actions, rules, the pour line. Reads 6.9:1 on char. */
+    --copper: #dc8d50;
+    --copper-bright: #f0a76b;
+    --copper-deep: #9a5328;
+    --copper-glow: rgb(220 141 80 / 0.18);
+
+    /* Hop green: new, fresh, open. Reads 9.6:1 on char. */
+    --hop: #aecb5c;
+    --hop-deep: #4f6a1c;
+    --hop-glow: rgb(174 203 92 / 0.16);
+
+    /* Foam and the beer itself, for the pint and the cans. */
+    --foam: #fbf4e6;
+    --beer: #e6a640;
+    --beer-deep: #b36b19;
+
+    /* Limited releases and the age stamp. */
+    --signal: #ef6f4a;
+
+    --focus: #f6c75e;
+    --error: #ff8a70;
+    --success: #b9dc6a;
+
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+    --radius-small: 3px;
+    --radius: 6px;
+
+    --space-1: 0.25rem;
+    --space-2: 0.5rem;
+    --space-3: 0.75rem;
+    --space-4: 1rem;
+    --space-5: 1.25rem;
+    --space-6: 1.5rem;
+    --space-8: 2rem;
+    --space-10: 2.5rem;
+    --space-12: 3rem;
+    --space-16: 4rem;
+    --space-20: 5rem;
+    --space-24: 6rem;
+
+    --section: clamp(4.5rem, 3rem + 6vw, 8.5rem);
+    --width-content: 78rem;
+    --width-prose: 42rem;
+    --gutter: clamp(1rem, 0.25rem + 3.5vw, 2.5rem);
+    --header-height: 6.6rem;
+
+    /* A rivet: a dark dome with a lit edge. Used at a plate's four corners. */
+    --rivet: radial-gradient(circle at 40% 35%, #a49482 0 1px, #5c5249 1.6px 3px, #221e1b 3.6px, transparent 4.4px);
+    --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.9 0 0 0 0 0.85 0 0 0 0 0.78 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+
+    color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    scroll-padding-top: calc(var(--header-height) + 1rem);
+    background: var(--soot);
+}
+
+body {
+    margin: 0;
+    background: var(--grain), var(--char);
+    color: var(--bone);
+    font-family: var(--font-text);
+    font-size: 1.0625rem;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: clip;
+}
+
+img,
+svg {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
+/* Astro's <Picture> wraps each photo; let the <img> be the layout's child. */
+picture {
+    display: contents;
+}
+
+/* Type: tall, condensed, heavy headings; a calm slab for reading. */
+
+h1,
+h2,
+h3,
+h4 {
+    margin: 0 0 var(--space-4);
+    color: var(--bone);
+    font-family: var(--font-display);
+    font-weight: 800;
+    line-height: 0.92;
+    letter-spacing: 0.005em;
+    text-transform: uppercase;
+    text-wrap: balance;
+}
+
+h1 {
+    font-size: clamp(3.4rem, 1.6rem + 7.4vw, 8.75rem);
+    line-height: 0.84;
+    font-weight: 850;
+}
+
+h2 {
+    font-size: clamp(2.5rem, 1.5rem + 3.6vw, 4.75rem);
+}
+
+h3 {
+    font-size: clamp(1.55rem, 1.3rem + 0.8vw, 2rem);
+    font-weight: 750;
+    line-height: 1;
+}
+
+h4 {
+    font-size: 1.3rem;
+}
+
+p {
+    margin: 0 0 var(--space-4);
+    text-wrap: pretty;
+}
+
+a {
+    color: var(--copper-bright);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.22em;
+    transition: color 0.15s ease;
+}
+
+a:hover {
+    color: var(--foam);
+}
+
+strong {
+    font-weight: 700;
+    color: var(--foam);
+}
+
+:focus-visible {
+    outline: 3px solid var(--focus);
+    outline-offset: 3px;
+    border-radius: var(--radius-small);
+}
+
+::selection {
+    background: var(--copper);
+    color: var(--soot);
+}
+
+/* Layout helpers. */
+
+.container {
+    width: min(100% - 2 * var(--gutter), var(--width-content));
+    margin-inline: auto;
+}
+
+.prose {
+    width: min(100% - 2 * var(--gutter), var(--width-prose));
+    margin-inline: auto;
+}
+
+.section {
+    padding-block: var(--section);
+}
+
+/* Stencil labels: what a crate, a keg or a tank is marked with. */
+.stencil {
+    font-family: var(--font-stencil);
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin: 0 0 var(--space-5);
+    color: var(--copper);
+    font-family: var(--font-stencil);
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    line-height: 1.2;
+    text-transform: uppercase;
+}
+
+.eyebrow::before {
+    content: '';
+    width: 2.25rem;
+    height: 3px;
+    background: currentColor;
+}
+
+.lead {
+    max-width: 38rem;
+    color: var(--ash);
+    font-size: clamp(1.1rem, 1rem + 0.45vw, 1.3rem);
+    line-height: 1.6;
+}
+
+.muted {
+    color: var(--ash);
+}
+
+.big-number {
+    font-family: var(--font-display);
+    font-weight: 850;
+    line-height: 0.85;
+}
+
+/*
+ * A riveted plate: a raised steel panel with a seam and a rivet in each
+ * corner. Cards, panels and the tap board are plates.
+ */
+.plate {
+    position: relative;
+    border: 1px solid var(--seam);
+    border-radius: var(--radius);
+    background:
+        var(--rivet) 6px 6px / 14px 14px no-repeat,
+        var(--rivet) calc(100% - 6px) 6px / 14px 14px no-repeat,
+        var(--rivet) 6px calc(100% - 6px) / 14px 14px no-repeat,
+        var(--rivet) calc(100% - 6px) calc(100% - 6px) / 14px 14px no-repeat,
+        linear-gradient(180deg, rgb(255 255 255 / 0.035), transparent 40%),
+        var(--plate);
+    box-shadow:
+        inset 0 1px 0 rgb(255 255 255 / 0.05),
+        0 18px 40px -24px rgb(0 0 0 / 0.9);
+}
+
+/* A plate's inner border, like a stamped panel. */
+.plate-inset::after {
+    content: '';
+    position: absolute;
+    inset: 10px;
+    border: 1px dashed rgb(255 255 255 / 0.07);
+    border-radius: 2px;
+    pointer-events: none;
+}
+
+/* A rail of rivets: the seam between two bands. */
+.rivet-rail {
+    height: 14px;
+    background:
+        var(--rivet) 0 50% / 36px 14px repeat-x,
+        linear-gradient(180deg, transparent 6px, var(--seam) 6px 8px, transparent 8px);
+}
+
+/* Buttons are links or buttons with a class, never a div. */
+
+.button {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-3);
+    min-height: 3.1rem;
+    padding: 0.75rem 1.5rem 0.7rem;
+    border: 2px solid var(--copper);
+    border-radius: var(--radius-small);
+    background: var(--copper);
+    color: var(--soot);
+    font-family: var(--font-stencil);
+    font-size: 1.15rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    line-height: 1.1;
+    text-decoration: none;
+    text-transform: uppercase;
+    white-space: nowrap;
+    cursor: pointer;
+    box-shadow: 0 4px 0 var(--copper-deep);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.button:hover {
+    background: var(--copper-bright);
+    border-color: var(--copper-bright);
+    color: var(--soot);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 var(--copper-deep);
+}
+
+.button:active {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 var(--copper-deep);
+}
+
+.button-ghost {
+    background: transparent;
+    border-color: var(--seam-strong);
+    color: var(--bone);
+    box-shadow: 0 4px 0 var(--soot);
+}
+
+.button-ghost:hover {
+    background: rgb(242 233 218 / 0.06);
+    border-color: var(--bone);
+    color: var(--foam);
+    box-shadow: 0 6px 0 var(--soot);
+}
+
+.button-hop {
+    background: var(--hop);
+    border-color: var(--hop);
+    color: var(--soot);
+    box-shadow: 0 4px 0 var(--hop-deep);
+}
+
+.button-hop:hover {
+    background: #c3dd78;
+    border-color: #c3dd78;
+    box-shadow: 0 6px 0 var(--hop-deep);
+}
+
+.button-large {
+    min-height: 3.6rem;
+    padding: 0.95rem 1.9rem 0.9rem;
+    font-size: 1.3rem;
+}
+
+.button[disabled] {
+    opacity: 0.6;
+    cursor: progress;
+    transform: none;
+}
+
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+    margin: 0;
+}
+
+@media (max-width: 30rem) {
+    .actions > .button {
+        flex: 1 1 100%;
+    }
+}
+
+/* Small flags on the tap board and cards: NEW, LIMITED, NITRO. */
+.flag {
+    display: inline-block;
+    padding: 0.2rem 0.45rem 0.12rem;
+    border-radius: 2px;
+    font-family: var(--font-stencil);
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    line-height: 1.1;
+    text-transform: uppercase;
+    vertical-align: 0.2em;
+}
+
+.flag-new {
+    background: var(--hop);
+    color: var(--soot);
+}
+
+.flag-limited {
+    background: var(--signal);
+    color: var(--soot);
+}
+
+.flag-plain {
+    border: 1px solid var(--seam-strong);
+    color: var(--ash);
+}
+
+/* The age policy, stamped. */
+.age-stamp {
+    display: inline-grid;
+    place-items: center;
+    width: 5.5rem;
+    height: 5.5rem;
+    flex: none;
+    border: 3px double var(--signal);
+    border-radius: 50%;
+    color: var(--signal);
+    font-family: var(--font-stencil);
+    font-size: 2rem;
+    font-weight: 900;
+    line-height: 1;
+    transform: rotate(-12deg);
+}
+
+/* Reading. */
+
+.prose > * + h2 {
+    margin-top: var(--space-12);
+}
+
+.prose h2 {
+    font-size: clamp(2rem, 1.6rem + 1.4vw, 2.75rem);
+}
+
+.prose h3 {
+    margin-top: var(--space-8);
+}
+
+.prose p,
+.prose li {
+    color: #e2d8c7;
+}
+
+.prose ul,
+.prose ol {
+    margin: 0 0 var(--space-6);
+    padding-left: 1.3em;
+}
+
+.prose li + li {
+    margin-top: var(--space-2);
+}
+
+.prose li::marker {
+    color: var(--copper);
+}
+
+.prose blockquote {
+    margin: var(--space-8) 0;
+    padding: var(--space-6) var(--space-8);
+    border-left: 4px solid var(--copper);
+    background: var(--plate);
+    color: var(--foam);
+    font-size: 1.15rem;
+    font-style: italic;
+}
+
+.prose blockquote p:last-child {
+    margin-bottom: 0;
+}
+
+.prose code {
+    padding: 0.1em 0.35em;
+    border-radius: var(--radius-small);
+    background: var(--plate-raised);
+    font-family: var(--font-mono);
+    font-size: 0.88em;
+}
+
+.prose table {
+    width: 100%;
+    margin: var(--space-6) 0 var(--space-8);
+    border-collapse: collapse;
+    font-size: 0.98rem;
+}
+
+.prose th,
+.prose td {
+    padding: var(--space-3) var(--space-3);
+    border-bottom: 1px solid var(--seam);
+    text-align: left;
+    vertical-align: top;
+}
+
+.prose th {
+    color: var(--copper);
+    font-family: var(--font-stencil);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.prose hr {
+    height: 14px;
+    margin: var(--space-12) 0;
+    border: 0;
+    background:
+        var(--rivet) 0 50% / 36px 14px repeat-x,
+        linear-gradient(180deg, transparent 6px, var(--seam) 6px 8px, transparent 8px);
+}
+
+.prose a {
+    font-weight: 600;
+}
+
+/* For screen readers only. */
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+}
