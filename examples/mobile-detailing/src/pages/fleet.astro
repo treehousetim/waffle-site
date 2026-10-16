@@ -1,0 +1,233 @@
+---
+/**
+ * Fleet and business accounts: company cars, vans, dealer stock and office
+ * car days, washed where they park. Bookings for a fleet go through the
+ * same booking form, which a fleet manager fills with "not sure" and a note.
+ */
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Band from '../components/Band.astro';
+import Faq from '../components/Faq.astro';
+import Photo from '../components/Photo.astro';
+import Icon from '../components/Icon.astro';
+import Closing from '../components/Closing.astro';
+import { faqPage } from '@core/lib/jsonld.js';
+
+const accounts = [
+    { icon: 'van' as const, title: 'Vans and service fleets', text: 'Liveried vans washed on a set rota, so your name on the side is always clean. Exterior washes from the yard, overnight if that suits the shift pattern.' },
+    { icon: 'car' as const, title: 'Company and pool cars', text: 'Monthly washes and twice-yearly full details, scheduled for us to come to your lot. Each car has its own record of what was done and when.' },
+    { icon: 'building' as const, title: 'Office car days', text: 'We park in your lot for the day and staff book their own cars in at a team rate. A perk that costs the company nothing but a parking space.' },
+    { icon: 'shield' as const, title: 'Dealers and lease returns', text: 'Pre-delivery preparation and end-of-lease reconditioning, at your forecourt or the customer’s address, with photos for the file.' },
+];
+
+const terms = [
+    { value: '1', label: 'Invoice a month, with every vehicle itemised' },
+    { value: '5+', label: 'Vehicles to open an account' },
+    { value: '15%', label: 'Off list prices on rota work' },
+    { value: '48 h', label: 'Notice to add a vehicle to a day' },
+];
+
+const questions = [
+    { question: 'Do you need water or power on site?', answer: 'No. Each van is self-contained with 120 gallons of deionised water and its own generator, and we catch our runoff. We need a parking space next to the vehicles and permission from whoever manages the lot.' },
+    { question: 'Can you work outside business hours?', answer: 'Yes. Early mornings and evenings are common for service fleets, so vehicles are clean before the first shift. Overnight work in a lit yard can be arranged.' },
+    { question: 'Are you insured to work on our premises?', answer: 'Yes. We carry general liability and garage keepers insurance, and send certificates to facilities teams before the first visit.' },
+    { question: 'How do we start?', answer: 'Send a booking request with "Not sure yet" as the package and tell us about the fleet in the notes. We will visit, look at the vehicles and send a written rota and price.' },
+];
+---
+
+<Base
+    title="Fleet and business detailing accounts"
+    description="Mobile fleet washing and detailing in Port Alder: vans, company cars, dealer stock and office car days, done in your lot with one monthly invoice."
+    breadcrumbs={[{ name: 'Fleet', href: '/fleet/' }]}
+    jsonLd={[faqPage(questions)]}
+>
+    <PageHero
+        eyebrow="Fleet and business"
+        heading="Clean fleets, no downtime"
+        lead="Your vehicles are worth most when they are working or parked, never when they are queuing at a car wash. We come to where they already are, on a rota that fits around them."
+        photo="vanOfficeEntrance"
+        primary={{ label: 'Start an account', href: '/book/?package=not-sure' }}
+        secondary={{ label: 'Call the office', href: '/contact/' }}
+    />
+
+    <section class="terms" aria-label="Account terms">
+        <ul class="container terms-list">
+            {
+                terms.map((term) => (
+                    <li>
+                        <strong class="chrome">{term.value}</strong>
+                        <span class="spec">{term.label}</span>
+                    </li>
+                ))
+            }
+        </ul>
+    </section>
+
+    <Band index="01" eyebrow="Who it is for" heading="Four kinds of account">
+        <ul class="accounts">
+            {
+                accounts.map((account) => (
+                    <li>
+                        <span class="icon"><Icon name={account.icon} size={22} /></span>
+                        <h3>{account.title}</h3>
+                        <p>{account.text}</p>
+                    </li>
+                ))
+            }
+        </ul>
+    </Band>
+
+    <Band index="02" eyebrow="Office car days" heading="The perk that parks itself" tone="raised">
+        <div class="day">
+            <figure class="day-photo parallax">
+                <Photo name="whiteVanNight" sizes="(min-width: 64rem) 45vw, 100vw" />
+            </figure>
+            <div class="prose-ish">
+                <p class="lead">Pick a day. We send a booking link round your building, staff choose a package and leave their keys at reception, and we work through the lot from eight until five.</p>
+                <ul>
+                    <li>15% off every package for staff, with no cost to the company</li>
+                    <li>Two vans for ten or more cars</li>
+                    <li>Every car photographed before and after</li>
+                    <li>Building management and insurance certificates arranged by us</li>
+                </ul>
+                <p><a class="arrow-link" href="/zones/northgate/">We do this every week in Northgate</a></p>
+            </div>
+        </div>
+    </Band>
+
+    <Band index="03" eyebrow="Questions" heading="For fleet managers" split>
+        <Faq items={questions} />
+    </Band>
+
+    <Closing heading="Put your fleet on the rota" action={{ label: 'Start an account', href: '/book/?package=not-sure' }} />
+</Base>
+
+<style>
+    .terms {
+        border-block: 1px solid var(--color-line);
+        background: var(--color-raised);
+    }
+
+    .terms-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+        margin-block: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .terms-list li {
+        display: grid;
+        gap: var(--space-2);
+        padding: var(--space-8) var(--space-6);
+        border-left: 1px solid var(--color-line);
+    }
+
+    .terms-list li:first-child {
+        padding-left: 0;
+        border-left: 0;
+    }
+
+    .terms-list strong {
+        font-size: clamp(2.2rem, 1.6rem + 2vw, 3.5rem);
+        font-weight: 900;
+        font-stretch: 125%;
+        line-height: 1;
+    }
+
+    .terms-list .spec {
+        color: var(--color-muted);
+        font-size: 0.7rem;
+    }
+
+    .accounts {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+        gap: var(--space-4);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .accounts li {
+        padding: var(--space-8) var(--space-6);
+        border: 1px solid var(--color-line);
+        border-radius: var(--radius);
+        background: var(--color-raised);
+    }
+
+    .icon {
+        display: inline-grid;
+        place-items: center;
+        width: 3rem;
+        height: 3rem;
+        margin-bottom: var(--space-6);
+        border: 1px solid rgb(46 230 255 / 0.35);
+        border-radius: 50%;
+        color: var(--color-cyan);
+    }
+
+    .accounts h3 {
+        text-transform: uppercase;
+    }
+
+    .accounts p {
+        margin: 0;
+        color: var(--color-muted);
+        font-size: 0.95rem;
+    }
+
+    .day {
+        display: grid;
+        gap: var(--space-10);
+        align-items: center;
+    }
+
+    @media (min-width: 64rem) {
+        .day {
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            gap: var(--space-16);
+        }
+    }
+
+    .day-photo {
+        margin: 0;
+        overflow: hidden;
+        border-radius: var(--radius);
+    }
+
+    .day-photo :global(img) {
+        width: 100%;
+        aspect-ratio: 5 / 4;
+        object-fit: cover;
+    }
+
+    .prose-ish ul {
+        margin: var(--space-6) 0;
+        padding-left: 1.2em;
+        color: #d3dbe2;
+    }
+
+    .prose-ish li + li {
+        margin-top: var(--space-2);
+    }
+
+    .prose-ish li::marker {
+        color: var(--color-cyan);
+    }
+
+    @media (max-width: 40rem) {
+        .terms-list li {
+            border-left: 0;
+            border-top: 1px solid var(--color-line);
+        }
+
+        .terms-list li {
+            padding-inline: 0;
+        }
+
+        .terms-list li:first-child {
+            border-top: 0;
+        }
+    }
+</style>

@@ -1,0 +1,135 @@
+---
+/**
+ * Where the vans go: the zone map with the daily route, each zone's days,
+ * and what happens outside them.
+ */
+import Base from '../../layouts/Base.astro';
+import PageHero from '../../components/PageHero.astro';
+import Band from '../../components/Band.astro';
+import ZoneMap from '../../components/ZoneMap.astro';
+import Photo from '../../components/Photo.astro';
+import Closing from '../../components/Closing.astro';
+import { zones, zoneUrl } from '../../data/zones';
+---
+
+<Base
+    title="Service zones across Port Alder"
+    description="Where Gloss Theory's detailing vans go and on which days: Old Harbor, Cinder Hill, Brightwater, Fenwick Park and Northgate Business Park."
+    breadcrumbs={[{ name: 'Zones', href: '/zones/' }]}
+>
+    <PageHero
+        eyebrow="We come to you"
+        heading="Service zones"
+        lead="Five parts of Port Alder, each on its regular days. The vans do one loop of the city a day, so booking on your zone's day is how we keep prices without a travel charge."
+        primary={{ label: 'Book in your zone', href: '/book/' }}
+    />
+
+    <Band>
+        <ZoneMap />
+    </Band>
+
+    <Band index="02" eyebrow="Zone by zone" heading="Every zone is different" tone="raised">
+        <ul class="zone-cards">
+            {
+                zones.map((zone) => (
+                    <li>
+                        <a href={zoneUrl(zone.slug)}>
+                            <span class:list={['media', `vt-zone-${zone.slug}`]}>
+                                <Photo name={zone.photo} decorative sizes="(min-width: 64rem) 30vw, 100vw" />
+                            </span>
+                            <span class="spec days">{zone.days}</span>
+                            <span class="name">{zone.name}</span>
+                            <span class="summary">{zone.summary}</span>
+                        </a>
+                    </li>
+                ))
+            }
+        </ul>
+    </Band>
+
+    <Band index="03" eyebrow="Outside the zones" heading="Just over the line?">
+        <div class="outside">
+            <p class="lead">
+                Within ten miles of the yard we will still come, for a flat $25 travel charge, on whichever day a van is nearest. Further out, ask:
+                for a fleet or a ceramic coating, it is often worth the drive.
+            </p>
+            <p><a class="arrow-link" href="/contact/">Ask about your address</a></p>
+        </div>
+    </Band>
+
+    <Closing />
+</Base>
+
+<style>
+    .zone-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+        gap: var(--space-4);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .zone-cards a {
+        display: grid;
+        gap: var(--space-2);
+        height: 100%;
+        padding-bottom: var(--space-6);
+        overflow: hidden;
+        border: 1px solid var(--color-line);
+        border-radius: var(--radius);
+        background: var(--color-raised);
+        color: var(--color-text);
+        text-decoration: none;
+        transition: border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .zone-cards a:hover {
+        border-color: rgb(46 230 255 / 0.5);
+        box-shadow: var(--glow);
+    }
+
+    .media {
+        display: block;
+        margin-bottom: var(--space-3);
+        overflow: hidden;
+    }
+
+    .media :global(img) {
+        width: 100%;
+        aspect-ratio: 16 / 10;
+        object-fit: cover;
+        transition: transform 0.8s var(--ease-out);
+    }
+
+    .zone-cards a:hover .media :global(img) {
+        transform: scale(1.05);
+    }
+
+    .days,
+    .name,
+    .summary {
+        padding-inline: var(--space-6);
+    }
+
+    .days {
+        color: var(--color-cyan);
+        font-size: 0.68rem;
+    }
+
+    .name {
+        font-size: 1.25rem;
+        font-weight: 850;
+        font-stretch: 125%;
+        text-transform: uppercase;
+    }
+
+    .summary {
+        color: var(--color-muted);
+        font-size: 0.95rem;
+    }
+
+    .outside {
+        max-width: 44rem;
+    }
+</style>

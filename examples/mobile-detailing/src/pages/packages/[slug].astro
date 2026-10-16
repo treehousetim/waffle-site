@@ -1,0 +1,365 @@
+---
+/**
+ * /packages/<slug>/: one page per package the waffle app lists
+ * (src/lib/catalog.ts), each with its prices and times by vehicle size and
+ * what is included, from the app, and the site's own words for it from
+ * src/data/packages.ts: who it is for, how the visit goes, what we need,
+ * and its questions. Structured data says this business offers this
+ * service in these zones.
+ */
+import type { GetStaticPaths } from 'astro';
+import { getImage } from 'astro:assets';
+import Base from '../../layouts/Base.astro';
+import PageHero from '../../components/PageHero.astro';
+import Band from '../../components/Band.astro';
+import Steps from '../../components/Steps.astro';
+import Faq from '../../components/Faq.astro';
+import Photo from '../../components/Photo.astro';
+import Compare from '../../components/Compare.astro';
+import Closing from '../../components/Closing.astro';
+import Icon from '../../components/Icon.astro';
+import { loadCatalog, type CatalogPackage } from '../../lib/catalog';
+import type { VehicleSize } from '../../lib/packages';
+import { formatDuration, formatPrice, formatUpdated } from '../../lib/packages';
+import { photos } from '../../data/photos';
+import { zoneNames } from '../../data/zones';
+import { settings } from '@core/settings';
+import { faqPage, service } from '@core/lib/jsonld.js';
+import { absoluteUrl, canonicalUrl } from '@core/lib/seo.js';
+
+export const getStaticPaths = (async () => {
+    const catalog = await loadCatalog();
+
+    return catalog.packages.map((item) => ({
+        params: { slug: item.slug },
+        props: { item, sizes: catalog.sizes, updated: catalog.updated, others: catalog.packages.filter((other) => other.slug !== item.slug) },
+    }));
+}) satisfies GetStaticPaths;
+
+interface Props {
+    item: CatalogPackage;
+    sizes: VehicleSize[];
+    updated: string;
+    others: CatalogPackage[];
+}
+
+const { item, sizes, updated, others } = Astro.props;
+const { copy } = item;
+const url = canonicalUrl(Astro.url.pathname, settings.siteUrl);
+const preview = await getImage({ src: photos[copy.photo].src, width: 1200, height: 630, fit: 'cover', format: 'jpg' });
+const bookHref = `/book/?package=${item.slug}`;
+---
+
+<Base
+    title={copy.title}
+    description={copy.description}
+    image={{ src: absoluteUrl(preview.src, settings.siteUrl), alt: photos[copy.photo].alt }}
+    breadcrumbs={[
+        { name: 'Packages', href: '/packages/' },
+        { name: item.name, href: Astro.url.pathname },
+    ]}
+    jsonLd={[service({ url, name: item.name, description: copy.description, areas: zoneNames }, settings.siteUrl), faqPage(copy.faq)]}
+>
+    <PageHero eyebrow={copy.kicker} heading={item.name} lead={copy.lead} photo={copy.photo} transition={`vt-${item.slug}`}>
+        <dl class="sizes">
+            {
+                sizes.map((size) => (
+                    <div>
+                        <dt class="spec">{size.label}</dt>
+                        <dd>
+                            <strong>{formatPrice(item.pricesCents[size.id] ?? 0)}</strong>
+                            <span class="spec">{formatDuration(item.durationMinutes[size.id] ?? 0)}</span>
+                        </dd>
+                    </div>
+                ))
+            }
+        </dl>
+        <p class="actions">
+            <a class="button button-large" href={bookHref}>Book {item.name.toLowerCase()}</a>
+            <a class="button button-ghost button-large" href="/packages/">All packages</a>
+        </p>
+        <p class="updated spec">Prices updated {formatUpdated(updated)}</p>
+    </PageHero>
+
+    <Band index="01" eyebrow="What’s included" heading={copy.headline}>
+        <div class="included">
+            <ul class="checks">
+                {
+                    item.included.map((line) => (
+                        <li>
+                            <Icon name="check" size={18} />
+                            <span>{line}</span>
+                        </li>
+                    ))
+                }
+            </ul>
+            <aside class="best">
+                <figure class="detail-photo photo-rise">
+                    <Photo name={copy.detailPhoto} sizes="(min-width: 64rem) 30vw, 100vw" />
+                </figure>
+                <h3>Best for</h3>
+                <ul>
+                    {copy.bestFor.map((line) => <li>{line}</li>)}
+                </ul>
+            </aside>
+        </div>
+    </Band>
+
+    {
+        item.slug === 'paint-correction' && (
+            <Band index="02" eyebrow="Before and after" heading="What correction removes" tone="raised">
+                <Compare photo="silverNight" id="correction-compare" caption="Illustration: haze and swirl marks on one side of the line, the corrected finish on the other. Scroll, or drag the slider." />
+            </Band>
+        )
+    }
+
+    <Band index={item.slug === 'paint-correction' ? '03' : '02'} eyebrow="The visit" heading="How it goes" tone={item.slug === 'paint-correction' ? 'floor' : 'raised'}>
+        <Steps steps={copy.visit} />
+    </Band>
+
+    <Band index={item.slug === 'paint-correction' ? '04' : '03'} eyebrow="Good to know" heading="What we need from you">
+        <div class="needs">
+            <ul>
+                {
+                    copy.needs.map((line) => (
+                        <li>
+                            <Icon name="arrow" size={18} />
+                            <span>{line}</span>
+                        </li>
+                    ))
+                }
+            </ul>
+            <p class="cadence">
+                <span class="spec">How often</span>
+                {copy.cadence}
+            </p>
+        </div>
+    </Band>
+
+    <Band index={item.slug === 'paint-correction' ? '05' : '04'} eyebrow="Questions" heading="Asked and answered" tone="raised" split>
+        <Faq items={copy.faq} />
+    </Band>
+
+    <Band index={item.slug === 'paint-correction' ? '06' : '05'} eyebrow="Other packages" heading="Or perhaps">
+        <ul class="others">
+            {
+                others.map((other) => (
+                    <li>
+                        <a href={other.url}>
+                            <span class="spec">{other.copy.kicker}</span>
+                            <span class="name">{other.name}</span>
+                            <span class="from">from {formatPrice(Math.min(...Object.values(other.pricesCents)))}</span>
+                        </a>
+                    </li>
+                ))
+            }
+        </ul>
+    </Band>
+
+    <Closing heading={`Book ${item.name.toLowerCase()}`} action={{ label: 'Choose a day', href: bookHref }} />
+</Base>
+
+<style>
+    .sizes {
+        display: grid;
+        grid-auto-columns: minmax(0, 1fr);
+        grid-auto-flow: column;
+        gap: 1px;
+        max-width: 36rem;
+        margin: var(--space-8) 0 0;
+        border: 1px solid var(--color-line);
+        border-radius: var(--radius);
+        background: var(--color-line);
+        overflow: hidden;
+    }
+
+    .sizes div {
+        padding: var(--space-4) clamp(0.6rem, 0.3rem + 1vw, 1rem);
+        background: var(--color-raised);
+    }
+
+    .sizes dt {
+        color: var(--color-muted);
+        font-size: 0.68rem;
+    }
+
+    .sizes dd {
+        margin: var(--space-1) 0 0;
+    }
+
+    .sizes strong {
+        display: block;
+        font-size: clamp(1.15rem, 0.8rem + 1.6vw, 1.6rem);
+        font-weight: 850;
+        font-stretch: 125%;
+        line-height: 1.1;
+    }
+
+    .sizes dd .spec {
+        color: var(--color-cyan);
+        font-size: 0.7rem;
+    }
+
+    .actions {
+        margin: var(--space-8) 0 0;
+    }
+
+    .updated {
+        margin: var(--space-4) 0 0;
+        color: var(--color-subtle);
+        font-size: 0.68rem;
+    }
+
+    .included {
+        display: grid;
+        gap: var(--space-12);
+    }
+
+    @media (min-width: 64rem) {
+        .included {
+            grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+            gap: var(--space-16);
+        }
+    }
+
+    .checks {
+        display: grid;
+        gap: 0;
+        align-content: start;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        border-top: 1px solid var(--color-line);
+    }
+
+    .checks li {
+        display: flex;
+        gap: var(--space-4);
+        padding: var(--space-4) 0;
+        border-bottom: 1px solid var(--color-line);
+        font-size: 1.05rem;
+    }
+
+    .checks :global(svg),
+    .needs :global(svg) {
+        flex: none;
+        margin-top: 0.3rem;
+        color: var(--color-cyan);
+    }
+
+    .detail-photo {
+        margin: 0 0 var(--space-6);
+        overflow: hidden;
+        border-radius: var(--radius);
+        clip-path: polygon(0 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% 100%, 0 100%);
+    }
+
+    .detail-photo :global(img) {
+        width: 100%;
+        aspect-ratio: 3 / 2;
+        object-fit: cover;
+    }
+
+    .best h3 {
+        color: var(--color-cyan);
+        text-transform: uppercase;
+    }
+
+    .best ul {
+        margin: 0;
+        padding-left: 1.2em;
+        color: var(--color-muted);
+    }
+
+    .best li + li {
+        margin-top: var(--space-2);
+    }
+
+    .best li::marker {
+        color: var(--color-cyan);
+    }
+
+    .needs {
+        display: grid;
+        gap: var(--space-10);
+    }
+
+    @media (min-width: 64rem) {
+        .needs {
+            grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+            align-items: start;
+        }
+    }
+
+    .needs ul {
+        display: grid;
+        gap: var(--space-5);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .needs li {
+        display: flex;
+        gap: var(--space-4);
+        font-size: 1.15rem;
+    }
+
+    .cadence {
+        display: grid;
+        gap: var(--space-2);
+        margin: 0;
+        padding: var(--space-6);
+        border-left: 2px solid var(--color-cyan);
+        background: linear-gradient(90deg, var(--color-cyan-soft), transparent);
+        font-size: 1.1rem;
+    }
+
+    .cadence .spec {
+        color: var(--color-cyan);
+    }
+
+    .others {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+        gap: var(--space-4);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .others a {
+        display: grid;
+        gap: var(--space-2);
+        height: 100%;
+        padding: var(--space-6);
+        border: 1px solid var(--color-line);
+        border-radius: var(--radius);
+        background: var(--color-raised);
+        color: var(--color-text);
+        text-decoration: none;
+        transition: border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .others a:hover {
+        border-color: rgb(46 230 255 / 0.5);
+        box-shadow: var(--glow);
+    }
+
+    .others .spec {
+        color: var(--color-cyan);
+        font-size: 0.68rem;
+    }
+
+    .others .name {
+        font-size: 1.15rem;
+        font-weight: 850;
+        font-stretch: 125%;
+        text-transform: uppercase;
+    }
+
+    .others .from {
+        color: var(--color-muted);
+        font-size: 0.9rem;
+    }
+</style>

@@ -1,0 +1,93 @@
+---
+/**
+ * Who took the photographs, and whose typefaces these are. The example
+ * photos are from Unsplash, free under the Unsplash License; credit is not
+ * required, but given. Kept out of search results (src/site.ts, noindex).
+ */
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Photo from '../components/Photo.astro';
+import { photos, type PhotoName } from '../data/photos';
+
+const credits = Object.entries(photos) as [PhotoName, (typeof photos)[PhotoName]][];
+---
+
+<Base
+    title="Photo and type credits"
+    description="The photographers whose work appears on this site, with links to the originals on Unsplash, and the open-licence typefaces it is set in."
+    breadcrumbs={[{ name: 'Credits', href: '/credits/' }]}
+>
+    <PageHero eyebrow="Credits" heading="Credits" lead="With thanks to the photographers whose work stands in for ours on this example site." />
+
+    <div class="container page">
+        <p class="muted intro">Photographs from <a href="https://unsplash.com/">Unsplash</a>, used under the <a href="https://unsplash.com/license">Unsplash License</a>. They are not covered by this site's code licence.</p>
+        <ul class="credits">
+            {
+                credits.map(([name, photo]) => (
+                    <li>
+                        <Photo name={name} decorative sizes="8rem" />
+                        <div>
+                            <p class="alt">{photo.alt}</p>
+                            <p class="by spec">Photo: <a href={photo.credit.url}>{photo.credit.name}</a></p>
+                        </div>
+                    </li>
+                ))
+            }
+        </ul>
+        <h2 class="type-heading">Typefaces</h2>
+        <p class="muted"><a href="https://github.com/Omnibus-Type/Archivo">Archivo</a> by Omnibus-Type, and <a href="https://github.com/JetBrains/JetBrainsMono">JetBrains Mono</a> by JetBrains, both under the <a href="https://openfontlicense.org/">SIL Open Font License</a>.</p>
+    </div>
+</Base>
+
+<style>
+    .page {
+        padding-bottom: var(--section);
+    }
+
+    .intro {
+        max-width: 44rem;
+    }
+
+    .credits {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
+        gap: var(--space-4);
+        margin: var(--space-8) 0 var(--space-12);
+        padding: 0;
+        list-style: none;
+    }
+
+    .credits li {
+        display: grid;
+        grid-template-columns: 5.5rem 1fr;
+        gap: var(--space-4);
+        align-items: center;
+        padding: var(--space-3);
+        border: 1px solid var(--color-line);
+        border-radius: var(--radius);
+        background: var(--color-raised);
+    }
+
+    .credits :global(img) {
+        width: 5.5rem;
+        height: 5.5rem;
+        border-radius: var(--radius-small);
+        object-fit: cover;
+    }
+
+    .alt {
+        margin: 0 0 var(--space-1);
+        font-size: 0.88rem;
+        line-height: 1.45;
+    }
+
+    .by {
+        margin: 0;
+        color: var(--color-muted);
+        font-size: 0.68rem;
+    }
+
+    .type-heading {
+        font-size: 1.4rem;
+    }
+</style>

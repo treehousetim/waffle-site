@@ -1,0 +1,235 @@
+---
+/**
+ * /zones/<slug>/: one page per zone in src/data/zones.ts, each saying what is
+ * particular about detailing there (docs/pages.md, "Town pages"): the
+ * facts, where the van parks, the days, and the package that suits it.
+ */
+import type { GetStaticPaths } from 'astro';
+import { getImage } from 'astro:assets';
+import Base from '../../layouts/Base.astro';
+import PageHero from '../../components/PageHero.astro';
+import Band from '../../components/Band.astro';
+import ZoneMap from '../../components/ZoneMap.astro';
+import Closing from '../../components/Closing.astro';
+import Icon from '../../components/Icon.astro';
+import { zones, zoneUrl, type Zone } from '../../data/zones';
+import { photos } from '../../data/photos';
+import { loadCatalog } from '../../lib/catalog';
+import { formatDuration, formatPrice } from '../../lib/packages';
+import { settings } from '@core/settings';
+import { absoluteUrl } from '@core/lib/seo.js';
+
+export const getStaticPaths = (() => zones.map((zone, index) => ({ params: { slug: zone.slug }, props: { zone, index } }))) satisfies GetStaticPaths;
+
+interface Props {
+    zone: Zone;
+    index: number;
+}
+
+const { zone, index } = Astro.props;
+const catalog = await loadCatalog();
+const suggested = catalog.packages.find((item) => item.slug === zone.suggested);
+const firstSize = catalog.sizes[0];
+const others = zones.filter((other) => other.slug !== zone.slug);
+const preview = await getImage({ src: photos[zone.photo].src, width: 1200, height: 630, fit: 'cover', format: 'jpg' });
+---
+
+<Base
+    title={zone.title}
+    description={zone.description}
+    image={{ src: absoluteUrl(preview.src, settings.siteUrl), alt: photos[zone.photo].alt }}
+    breadcrumbs={[
+        { name: 'Zones', href: '/zones/' },
+        { name: zone.name, href: Astro.url.pathname },
+    ]}
+>
+    <PageHero
+        eyebrow={`Zone ${String(index + 1).padStart(2, '0')} · ${zone.days}`}
+        heading={zone.name}
+        lead={zone.lead}
+        photo={zone.photo}
+        transition={`vt-zone-${zone.slug}`}
+        primary={{ label: `Book in ${zone.name}`, href: `/book/?zone=${zone.slug}` }}
+        secondary={{ label: 'All zones', href: '/zones/' }}
+    />
+
+    <Band index="01" eyebrow={`Detailing in ${zone.name}`} heading="What is different here">
+        <ol class="facts">
+            {
+                zone.facts.map((fact, at) => (
+                    <li>
+                        <span class="spec num">{String(at + 1).padStart(2, '0')}</span>
+                        <h3>{fact.title}</h3>
+                        <p>{fact.text}</p>
+                    </li>
+                ))
+            }
+        </ol>
+    </Band>
+
+    <Band index="02" eyebrow="Parking" heading="Where the van goes" tone="raised">
+        <div class="parking">
+            <div>
+                <p class="lead">{zone.parking}</p>
+                <p class="days">
+                    <Icon name="calendar" size={18} />
+                    <span>In {zone.name} <strong>{zone.days}</strong></span>
+                </p>
+            </div>
+            <ZoneMap current={zone.slug} legend={false} />
+        </div>
+    </Band>
+
+    {
+        suggested && firstSize && (
+            <Band index="03" eyebrow="Popular here" heading={suggested.name}>
+                <div class="suggest">
+                    <p class="lead">{suggested.summary}</p>
+                    <p class="price">
+                        <span class="spec">{firstSize.label} from</span>
+                        <strong>{formatPrice(suggested.pricesCents[firstSize.id] ?? 0)}</strong>
+                        <span class="spec">{formatDuration(suggested.durationMinutes[firstSize.id] ?? 0)}</span>
+                    </p>
+                    <p class="actions">
+                        <a class="button" href={suggested.url}>About {suggested.name.toLowerCase()}</a>
+                        <a class="button button-ghost" href="/packages/">Every package</a>
+                    </p>
+                </div>
+            </Band>
+        )
+    }
+
+    <Band index="04" eyebrow="Other zones" heading="Elsewhere in Port Alder" tone="raised">
+        <ul class="others">
+            {
+                others.map((other) => (
+                    <li>
+                        <a href={zoneUrl(other.slug)}>
+                            <span class="name">{other.name}</span>
+                            <span class="spec">{other.days}</span>
+                        </a>
+                    </li>
+                ))
+            }
+        </ul>
+    </Band>
+
+    <Closing heading={`Gloss, in ${zone.name}`} action={{ label: 'Book a visit', href: `/book/?zone=${zone.slug}` }} />
+</Base>
+
+<style>
+    .facts {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+        gap: var(--space-4);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .facts li {
+        padding: var(--space-8) var(--space-6);
+        border: 1px solid var(--color-line);
+        border-radius: var(--radius);
+        background: linear-gradient(170deg, var(--color-panel-strong), var(--color-raised) 70%);
+    }
+
+    .num {
+        display: block;
+        margin-bottom: var(--space-6);
+        color: var(--color-cyan);
+    }
+
+    .facts h3 {
+        text-transform: uppercase;
+    }
+
+    .facts p {
+        margin: 0;
+        color: var(--color-muted);
+    }
+
+    .parking {
+        display: grid;
+        gap: var(--space-10);
+        align-items: center;
+    }
+
+    @media (min-width: 64rem) {
+        .parking {
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+        }
+    }
+
+    .days {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        color: var(--color-muted);
+    }
+
+    .days :global(svg) {
+        color: var(--color-cyan);
+    }
+
+    .days strong {
+        color: var(--color-text);
+    }
+
+    .suggest {
+        max-width: 44rem;
+    }
+
+    .price {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: var(--space-3);
+        margin: var(--space-6) 0;
+    }
+
+    .price .spec {
+        color: var(--color-muted);
+    }
+
+    .price strong {
+        font-size: 2.5rem;
+        font-weight: 900;
+        font-stretch: 125%;
+    }
+
+    .others {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+        gap: var(--space-3);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .others a {
+        display: grid;
+        gap: var(--space-1);
+        padding: var(--space-5);
+        border: 1px solid var(--color-line);
+        border-radius: var(--radius);
+        color: var(--color-text);
+        text-decoration: none;
+        transition: border-color 0.25s ease;
+    }
+
+    .others a:hover {
+        border-color: var(--color-cyan);
+    }
+
+    .others .name {
+        font-weight: 850;
+        font-stretch: 125%;
+        text-transform: uppercase;
+    }
+
+    .others .spec {
+        color: var(--color-muted);
+        font-size: 0.68rem;
+    }
+</style>

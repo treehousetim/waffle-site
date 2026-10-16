@@ -1,0 +1,187 @@
+---
+/**
+ * Who the crew are, why the business is mobile, and what it promises.
+ * Fictional people and history for the example: replace every word with
+ * the real story (PLAYBOOK.md).
+ */
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Band from '../components/Band.astro';
+import Photo from '../components/Photo.astro';
+import Closing from '../components/Closing.astro';
+import { site } from '../site';
+
+const promises = [
+    { title: 'We measure before we polish', text: 'Paint depth readings on every panel, every time. Clear coat does not grow back.' },
+    { title: 'We say what will not come out', text: 'Before we start, not after. Some scratches are deeper than polish should go.' },
+    { title: 'We leave nothing behind', text: 'No water in your drains, no towels in your trash, no marks on your driveway.' },
+    { title: 'We photograph the finish', text: 'Every car, before and after, sent to you the same day.' },
+];
+
+const timeline = [
+    { year: String(site.business.founded), text: 'One van, one detailer, weekends in Fenwick Park.' },
+    { year: '2021', text: 'The deionised tank and the reclaim mat, after Brightwater asked how we handled runoff.' },
+    { year: '2023', text: 'The second van, and the first office car day in Northgate.' },
+    { year: '2025', text: 'Infrared curing lamps, so coatings could be done at home in two days.' },
+];
+---
+
+<Base
+    title="About the Gloss Theory crew"
+    description="Who we are: a small mobile detailing crew in Port Alder that measures paint, catches its runoff and treats every car as if it were going to a show."
+    breadcrumbs={[{ name: 'About', href: '/about/' }]}
+>
+    <PageHero
+        eyebrow="About"
+        heading="The theory is simple"
+        lead="A car looks its best when nobody has hurried it, nothing gritty has touched it, and the light shows the truth. We built a business on doing that where the car already is."
+        photo="handWaxGarage"
+    />
+
+    <Band index="01" eyebrow="Why mobile" heading="Your time is worth more than a car wash queue">
+        <div class="story">
+            <div class="text">
+                <p class="lead">Gloss Theory started in {site.business.founded} with one van and a stubborn idea: that the best detailing does not need you to drive anywhere, wait anywhere, or lose a Saturday.</p>
+                <p>So we put the workshop in the van. Filtered water, our own power, inspection lights, extraction and steam, and a mat that catches every drop. Then we drew a loop round Port Alder and gave every part of the city its regular days.</p>
+                <p>We are still small on purpose. Two vans, a crew that knows the cars it sees every month, and a rule that nobody books more cars in a day than can be done properly.</p>
+            </div>
+            <figure class="photo parallax">
+                <Photo name="dashboardBrush" sizes="(min-width: 64rem) 40vw, 100vw" />
+            </figure>
+        </div>
+    </Band>
+
+    <Band index="02" eyebrow="Promises" heading="Four things we always do" tone="raised">
+        <ul class="promises">
+            {
+                promises.map((item, index) => (
+                    <li>
+                        <span class="spec num">{String(index + 1).padStart(2, '0')}</span>
+                        <h3>{item.title}</h3>
+                        <p>{item.text}</p>
+                    </li>
+                ))
+            }
+        </ul>
+    </Band>
+
+    <Band index="03" eyebrow="So far" heading="A short history">
+        <ol class="timeline">
+            {
+                timeline.map((item) => (
+                    <li>
+                        <span class="year chrome">{item.year}</span>
+                        <p>{item.text}</p>
+                    </li>
+                ))
+            }
+        </ol>
+        <p class="note">An example business: the people and history here are fictional.</p>
+    </Band>
+
+    <Closing />
+</Base>
+
+<style>
+    .story {
+        display: grid;
+        gap: var(--space-10);
+        align-items: center;
+    }
+
+    @media (min-width: 64rem) {
+        .story {
+            grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+            gap: var(--space-16);
+        }
+    }
+
+    .text p:not(.lead) {
+        color: #d3dbe2;
+    }
+
+    .photo {
+        margin: 0;
+        overflow: hidden;
+        border-radius: var(--radius);
+    }
+
+    .photo :global(img) {
+        width: 100%;
+        aspect-ratio: 4 / 3;
+        object-fit: cover;
+    }
+
+    .promises {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+        gap: var(--space-4);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .promises li {
+        padding: var(--space-8) var(--space-6);
+        border-top: 2px solid var(--color-cyan);
+        background: linear-gradient(180deg, var(--color-panel), transparent);
+    }
+
+    .num {
+        display: block;
+        margin-bottom: var(--space-5);
+        color: var(--color-cyan);
+    }
+
+    .promises h3 {
+        text-transform: uppercase;
+    }
+
+    .promises p {
+        margin: 0;
+        color: var(--color-muted);
+    }
+
+    .timeline {
+        display: grid;
+        gap: 0;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        border-top: 1px solid var(--color-line);
+    }
+
+    .timeline li {
+        display: grid;
+        grid-template-columns: minmax(6rem, 14rem) 1fr;
+        align-items: baseline;
+        gap: var(--space-6);
+        padding: var(--space-6) 0;
+        border-bottom: 1px solid var(--color-line);
+    }
+
+    .year {
+        font-size: clamp(2rem, 1.4rem + 2.4vw, 3.5rem);
+        font-weight: 900;
+        font-stretch: 125%;
+        line-height: 1;
+    }
+
+    .timeline p {
+        margin: 0;
+        font-size: 1.1rem;
+    }
+
+    .note {
+        margin-top: var(--space-6);
+        color: var(--color-subtle);
+        font-size: 0.85rem;
+    }
+
+    @media (max-width: 40rem) {
+        .timeline li {
+            grid-template-columns: 1fr;
+            gap: var(--space-2);
+        }
+    }
+</style>

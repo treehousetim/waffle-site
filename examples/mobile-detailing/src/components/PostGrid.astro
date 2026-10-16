@@ -1,0 +1,45 @@
+---
+/**
+ * A list of posts: rows, numbered like a contents page, or tiles in a grid.
+ */
+import type { CollectionEntry } from 'astro:content';
+import PostCard from './PostCard.astro';
+
+interface Props {
+    posts: CollectionEntry<'blog'>[];
+    level?: 'h2' | 'h3';
+    shape?: 'row' | 'tile';
+    /** The number of the first post, when rows are numbered. */
+    start?: number;
+}
+
+const { posts, level = 'h2', shape = 'row', start } = Astro.props;
+---
+
+<ul class:list={['posts', shape]}>
+    {
+        posts.map((post, index) => (
+            <li>
+                <PostCard post={post} level={level} shape={shape} number={start === undefined ? undefined : start + index} />
+            </li>
+        ))
+    }
+</ul>
+
+<style>
+    .posts {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .row {
+        border-top: 1px solid var(--color-line);
+    }
+
+    .tile {
+        display: grid;
+        gap: var(--space-10) var(--space-6);
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+    }
+</style>

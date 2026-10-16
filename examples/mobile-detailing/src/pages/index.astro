@@ -1,0 +1,347 @@
+---
+/**
+ * The home page. A dark studio hero (a car picked out by its own
+ * highlights, three strip lights overhead, water beads drifting), then the
+ * packages with live prices from the waffle app, paint correction before
+ * and after, the van, the zones and the route, the visit, what customers
+ * said, fleet accounts, the journal, and the closing band.
+ */
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import Band from '../components/Band.astro';
+import Bubbles from '../components/Bubbles.astro';
+import Closing from '../components/Closing.astro';
+import Compare from '../components/Compare.astro';
+import Icon from '../components/Icon.astro';
+import Marquee from '../components/Marquee.astro';
+import PackageCards from '../components/PackageCards.astro';
+import Photo from '../components/Photo.astro';
+import PostGrid from '../components/PostGrid.astro';
+import Quotes from '../components/Quotes.astro';
+import Steps from '../components/Steps.astro';
+import VanKit from '../components/VanKit.astro';
+import ZoneMap from '../components/ZoneMap.astro';
+import { loadCatalog } from '../lib/catalog';
+import { formatPrice } from '../lib/packages';
+import { site } from '../site';
+import { zones } from '../data/zones';
+import { buildTime, settings } from '@core/settings';
+import { visiblePosts } from '@core/lib/posts.js';
+
+const catalog = await loadCatalog();
+const posts = visiblePosts(await getCollection('blog'), { includeDrafts: !settings.production, now: buildTime }).slice(0, 3);
+const firstSize = catalog.sizes[0];
+const cheapest = Math.min(...catalog.packages.map((item) => (firstSize === undefined ? 0 : (item.pricesCents[firstSize.id] ?? 0))));
+
+const specs = [
+    { icon: 'drop' as const, value: '120 gal', label: 'Deionised water on board' },
+    { icon: 'bolt' as const, value: 'Silent', label: 'Our own power, never your outlet' },
+    { icon: 'recycle' as const, value: '100%', label: 'Runoff caught and taken away' },
+    { icon: 'pin' as const, value: `${zones.length} zones`, label: 'Six days a week across Port Alder' },
+];
+---
+
+<Base title={`${site.name}: mobile car detailing in Port Alder`} description={site.description}>
+    <section class="home-hero">
+        <div class="lights" aria-hidden="true"><span></span><span></span><span></span></div>
+        <div class="stage">
+            <Photo name="sedanSilhouette" priority sizes="100vw" />
+        </div>
+        <Bubbles />
+        <div class="container inner">
+            <div class="copy">
+                <p class="eyebrow">Port Alder · Fully mobile</p>
+                <h1 class="chrome">Showroom gloss, in your driveway</h1>
+                <p class="lead">
+                    A detailing crew in a van with its own water, power and lights. We come to your home or your office lot and leave your car
+                    better than the day it was new. Washes from {formatPrice(cheapest)}.
+                </p>
+                <p class="actions">
+                    <a class="button button-large" href={site.cta.href}>{site.cta.label}</a>
+                    <a class="button button-ghost button-large" href="/packages/">See the packages</a>
+                </p>
+            </div>
+            <ul class="specs">
+                {
+                    specs.map((item) => (
+                        <li>
+                            <Icon name={item.icon} size={18} />
+                            <strong>{item.value}</strong>
+                            <span>{item.label}</span>
+                        </li>
+                    ))
+                }
+            </ul>
+        </div>
+    </section>
+
+    <Marquee words={catalog.packages.map((item) => item.name)} />
+
+    <Band
+        index="01"
+        eyebrow="Packages"
+        heading="Five ways to shine"
+        lead="From a scratch-safe hand wash to a five-year ceramic coating. Pick your vehicle size for its price and how long we will be."
+        link={{ label: 'Compare every package', href: '/packages/' }}
+    >
+        <div class="reveal">
+            <PackageCards packages={catalog.packages} sizes={catalog.sizes} transitions />
+        </div>
+    </Band>
+
+    <Band
+        index="02"
+        eyebrow="Paint correction"
+        heading="Swirls out. Depth back."
+        lead="The spiderwebs you see in low sun are fine scratches in the clear coat. Machine polishing levels them out instead of hiding them under wax."
+        link={{ label: 'How paint correction works', href: '/packages/paint-correction/' }}
+        tone="raised"
+    >
+        <div class="reveal">
+            <Compare
+                photo="redCoupeRain"
+                id="home-compare"
+                caption="Illustration: the same panel with its swirl marks and haze, and after correction. Scroll, or drag the slider."
+            />
+        </div>
+    </Band>
+
+    <Band
+        index="03"
+        eyebrow="The rig"
+        heading="A workshop that parks at the curb"
+        lead="Everything a detailing bay has, packed into a van. It is why we can do a proper job anywhere there is room to walk round the car."
+        link={{ label: 'How a visit works', href: '/how-it-works/' }}
+    >
+        <VanKit />
+    </Band>
+
+    <Band
+        index="04"
+        eyebrow="We come to you"
+        heading="Five zones. One loop a day."
+        lead="The vans leave the yard each morning and work their way round Port Alder. Each zone has its regular days and its own quirks."
+        link={{ label: 'All service zones', href: '/zones/' }}
+        tone="raised"
+    >
+        <ZoneMap />
+    </Band>
+
+    <Band index="05" eyebrow="How it works" heading="Four steps, none of them yours to drive" link={{ label: 'The full walkthrough', href: '/how-it-works/' }}>
+        <Steps />
+    </Band>
+
+    <Band index="06" eyebrow="Overheard in driveways" heading="What people said" tone="raised">
+        <Quotes />
+    </Band>
+
+    <section class="fleet-band">
+        <div class="container fleet">
+            <figure class="fleet-photo photo-rise">
+                <Photo name="vanOfficeEntrance" sizes="(min-width: 64rem) 40vw, 100vw" />
+            </figure>
+            <div class="fleet-copy">
+                <p class="eyebrow"><span class="index">07</span> Fleet and business</p>
+                <h2 class="chrome">Your whole lot, done by five</h2>
+                <p class="lead">
+                    Company cars, delivery vans, dealer stock and office car days. One invoice a month, the same crew every time, and work done
+                    while the vehicles would have sat still anyway.
+                </p>
+                <a class="button" href="/fleet/">Fleet accounts</a>
+            </div>
+        </div>
+    </section>
+
+    <Band index="08" eyebrow={site.blog.title} heading="Car care, written down" link={{ label: 'Read the journal', href: '/blog/' }}>
+        <PostGrid posts={posts} level="h3" shape="tile" />
+    </Band>
+
+    <Closing />
+</Base>
+
+<style>
+    .home-hero {
+        position: relative;
+        display: flex;
+        align-items: flex-end;
+        min-height: min(calc(100svh - var(--header-height)), 58rem);
+        overflow: hidden;
+        padding: clamp(6rem, 4rem + 8vw, 11rem) 0 var(--space-10);
+        isolation: isolate;
+    }
+
+    /* Three strip lights across the studio ceiling. */
+    .lights {
+        position: absolute;
+        top: 8%;
+        left: 50%;
+        z-index: -1;
+        display: grid;
+        gap: 2.2rem;
+        width: min(70%, 54rem);
+        transform: translateX(-50%) perspective(600px) rotateX(58deg);
+    }
+
+    .lights span {
+        height: 6px;
+        border-radius: 3px;
+        background: linear-gradient(90deg, transparent, #f4fbff 15%, #ffffff 50%, #f4fbff 85%, transparent);
+        box-shadow: 0 0 30px 6px rgb(220 245 255 / 0.35), 0 0 80px 20px rgb(46 230 255 / 0.12);
+    }
+
+    .stage {
+        position: absolute;
+        inset: 0;
+        z-index: -2;
+    }
+
+    .stage :global(img) {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: 60% 62%;
+    }
+
+    .stage::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background:
+            linear-gradient(90deg, rgb(5 6 7 / 0.9) 0%, rgb(5 6 7 / 0.55) 45%, rgb(5 6 7 / 0) 75%),
+            linear-gradient(0deg, var(--color-bg) 0%, rgb(5 6 7 / 0) 35%);
+    }
+
+    .inner {
+        position: relative;
+        width: min(100% - 2 * var(--gutter), var(--width-content));
+    }
+
+    .copy {
+        max-width: 64rem;
+    }
+
+    h1 {
+        font-size: clamp(2.4rem, 0.9rem + 5.8vw, 6.5rem);
+        line-height: 0.9;
+        margin-bottom: var(--space-6);
+    }
+
+    .lead {
+        max-width: 36rem;
+        color: #c3ccd5;
+    }
+
+    .actions {
+        margin: var(--space-8) 0 0;
+    }
+
+    .specs {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+        gap: 1px;
+        margin: clamp(3rem, 2rem + 4vw, 6rem) 0 0;
+        padding: 0;
+        list-style: none;
+        border: 1px solid var(--color-line);
+        border-radius: var(--radius);
+        background: var(--color-line);
+        overflow: hidden;
+    }
+
+    .specs li {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        align-items: baseline;
+        gap: 0.2rem var(--space-3);
+        padding: var(--space-4) var(--space-5);
+        background: rgb(5 6 7 / 0.78);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+    }
+
+    .specs :global(svg) {
+        align-self: center;
+        color: var(--color-cyan);
+    }
+
+    .specs strong {
+        font-size: 1.15rem;
+        font-weight: 850;
+        font-stretch: 125%;
+        text-transform: uppercase;
+    }
+
+    .specs span {
+        grid-column: 1 / -1;
+        color: var(--color-muted);
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+    }
+
+    .fleet-band {
+        padding: var(--section) 0;
+        border-top: 1px solid var(--color-line);
+    }
+
+    .fleet {
+        display: grid;
+        gap: var(--space-10);
+        align-items: center;
+    }
+
+    .fleet-photo {
+        margin: 0;
+        overflow: hidden;
+        border-radius: var(--radius);
+        clip-path: polygon(var(--cut) 0, 100% 0, 100% 100%, 0 100%, 0 var(--cut));
+    }
+
+    .fleet-photo :global(img) {
+        width: 100%;
+        aspect-ratio: 4 / 5;
+        max-height: 40rem;
+        object-fit: cover;
+    }
+
+    .fleet-copy h2 {
+        max-width: 14ch;
+    }
+
+    .fleet-copy .index {
+        color: var(--color-text);
+    }
+
+    .fleet-copy .button {
+        margin-top: var(--space-4);
+    }
+
+    @media (min-width: 64rem) {
+        .fleet {
+            grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr);
+            gap: var(--space-20);
+        }
+    }
+
+    @media (max-width: 40rem) {
+        .home-hero {
+            padding-top: 8rem;
+        }
+
+        .lights {
+            top: 1.75rem;
+            gap: 1.4rem;
+            width: 86%;
+        }
+
+        .stage :global(img) {
+            object-position: 70% 50%;
+        }
+
+        .stage::after {
+            background:
+                linear-gradient(0deg, var(--color-bg) 10%, rgb(5 6 7 / 0.7) 55%, rgb(5 6 7 / 0.2) 100%);
+        }
+    }
+</style>

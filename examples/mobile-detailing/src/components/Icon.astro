@@ -1,0 +1,57 @@
+---
+/**
+ * A small set of line icons, decorative only (aria-hidden): the text next to
+ * an icon always says what it means. Each is an SVG file in src/icons/,
+ * imported as an Astro SVG component; add one by adding its file and a line
+ * below.
+ */
+import Arrow from '../icons/arrow.svg';
+import Bolt from '../icons/bolt.svg';
+import Building from '../icons/building.svg';
+import Calendar from '../icons/calendar.svg';
+import Car from '../icons/car.svg';
+import Check from '../icons/check.svg';
+import Clock from '../icons/clock.svg';
+import Close from '../icons/close.svg';
+import Drop from '../icons/drop.svg';
+import Mail from '../icons/mail.svg';
+import Menu from '../icons/menu.svg';
+import Phone from '../icons/phone.svg';
+import Pin from '../icons/pin.svg';
+import Recycle from '../icons/recycle.svg';
+import Shield from '../icons/shield.svg';
+import Spark from '../icons/spark.svg';
+import Van from '../icons/van.svg';
+
+const icons = {
+    arrow: Arrow,
+    bolt: Bolt,
+    building: Building,
+    calendar: Calendar,
+    car: Car,
+    check: Check,
+    clock: Clock,
+    close: Close,
+    drop: Drop,
+    mail: Mail,
+    menu: Menu,
+    phone: Phone,
+    pin: Pin,
+    recycle: Recycle,
+    shield: Shield,
+    spark: Spark,
+    van: Van,
+} as const;
+
+export type IconName = keyof typeof icons;
+
+interface Props {
+    name: IconName;
+    size?: number;
+}
+
+const { name, size = 24 } = Astro.props;
+const Svg = icons[name];
+---
+
+<Svg width={size} height={size} aria-hidden="true" focusable="false" />

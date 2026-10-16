@@ -1,0 +1,29 @@
+---
+/**
+ * Where the waffle app sends a browser without script after a good booking
+ * request. Kept out of search results (src/site.ts, noindex).
+ */
+import Base from '../../layouts/Base.astro';
+import PageHero from '../../components/PageHero.astro';
+import Bubbles from '../../components/Bubbles.astro';
+---
+
+<Base title="Thanks, we have your booking request" description="We have your booking request and will text you a time within one working day. Nothing has been charged, and nothing is booked until you confirm.">
+    <div class="thanks">
+        <Bubbles />
+        <PageHero
+            eyebrow="Request received"
+            heading="Thanks. We’re on it."
+            lead="We will check which van is in your zone on the days you gave, and text you a time within one working day. Nothing has been charged."
+            primary={{ label: 'Back to the home page', href: '/' }}
+            secondary={{ label: 'Read car-care advice', href: '/blog/' }}
+        />
+    </div>
+</Base>
+
+<style>
+    .thanks {
+        position: relative;
+        min-height: 60vh;
+    }
+</style>

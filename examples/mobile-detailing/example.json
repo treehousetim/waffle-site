@@ -1,0 +1,9 @@
+{
+  "name": "mobile-detailing",
+  "label": "Mobile auto detailing",
+  "description": "A fully mobile car detailing crew that comes to driveways and office lots: packages priced by vehicle size, service zones with a route map, fleet accounts, a booking form and a car-care journal.",
+  "kind": "Local service, mobile",
+  "schemaType": "AutoWash",
+  "look": "Near-black studio, liquid chrome and electric cyan, extended Archivo display type, light sweeping over wet-paint gloss",
+  "waffleEndpoints": ["GET /api/site/packages", "POST /api/site/forms/booking"]
+}

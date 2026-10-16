@@ -1,0 +1,103 @@
+---
+/**
+ * The mark and the name. The mark is a chrome water drop inside a chamfered
+ * badge, with a cyan reflection on its shoulder; every few seconds a band
+ * of light glides across it, like a strip light across a wet panel
+ * (motion.css, .logo-sweep). The same drawing is public/favicon.svg and,
+ * rendered, public/logo.png (brand/).
+ *
+ * The mark is decorative; the name is the link's text. `id` keeps the SVG's
+ * gradient ids unique when the logo is drawn twice on a page.
+ */
+import { site } from '../site';
+
+interface Props {
+    id: string;
+    /** Show "Mobile detailing" under the name. */
+    descriptor?: boolean;
+}
+
+const { id, descriptor = true } = Astro.props;
+const chrome = `${id}-chrome`;
+const rim = `${id}-rim`;
+const drop = `${id}-drop`;
+---
+
+<a class="logo" href="/" aria-label={`${site.name}, home`}>
+    <svg class="mark" viewBox="0 0 48 48" width="40" height="40" aria-hidden="true" focusable="false">
+        <defs>
+            <linearGradient id={chrome} x1="0" y1="0" x2="0.15" y2="1">
+                <stop offset="0" stop-color="#ffffff" />
+                <stop offset="0.45" stop-color="#9aa7b4" />
+                <stop offset="0.52" stop-color="#f4f7fa" />
+                <stop offset="1" stop-color="#7f8c99" />
+            </linearGradient>
+            <linearGradient id={rim} x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#eef3f7" />
+                <stop offset="0.5" stop-color="#4b5662" />
+                <stop offset="1" stop-color="#cfd8e0" />
+            </linearGradient>
+            <clipPath id={drop}>
+                <path d="M24 8.5C24 8.5 12.5 21.5 12.5 29.5a11.5 11.5 0 0 0 23 0C35.5 21.5 24 8.5 24 8.5Z" />
+            </clipPath>
+        </defs>
+        <path d="M11 2h26l9 9v26l-9 9H11l-9-9V11z" fill="#0b0e12" stroke={`url(#${rim})`} stroke-width="1.5" />
+        <path d="M24 8.5C24 8.5 12.5 21.5 12.5 29.5a11.5 11.5 0 0 0 23 0C35.5 21.5 24 8.5 24 8.5Z" fill={`url(#${chrome})`} />
+        <g clip-path={`url(#${drop})`}>
+            <rect class="logo-sweep" x="-6" y="0" width="7" height="48" fill="#ffffff" opacity="0.85" transform="skewX(-18)" />
+        </g>
+        <path d="M18.2 30.5c-.2-3.6 1.6-7.4 4.4-10.6" fill="none" stroke="#2ee6ff" stroke-width="2.2" stroke-linecap="round" />
+    </svg>
+    <span class="words">
+        <span class="name">Gloss Theory</span>
+        {descriptor && <span class="descriptor">Mobile detailing</span>}
+    </span>
+</a>
+
+<style>
+    .logo {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.7rem;
+        color: var(--color-text);
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    .mark {
+        flex: none;
+        width: 2.5rem;
+        height: 2.5rem;
+        transition: transform 0.4s var(--ease-out);
+    }
+
+    .logo:hover .mark {
+        transform: rotate(-8deg) scale(1.05);
+    }
+
+    .words {
+        display: grid;
+        line-height: 1;
+    }
+
+    .name {
+        font-size: 1.02rem;
+        font-weight: 850;
+        font-stretch: 125%;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
+
+    .descriptor {
+        margin-top: 0.3rem;
+        color: var(--color-cyan);
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        letter-spacing: 0.24em;
+        text-transform: uppercase;
+    }
+
+    .logo:hover {
+        color: var(--color-text);
+    }
+</style>

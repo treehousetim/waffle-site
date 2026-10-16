@@ -1,0 +1,223 @@
+---
+/**
+ * The footer: name, base address, phone, email and hours on every page,
+ * written exactly as in src/site.ts, then the links, then the name again,
+ * huge and in chrome, running off the bottom of the page.
+ */
+import Logo from './Logo.astro';
+import Icon from './Icon.astro';
+import { addressLine, site } from '../site';
+import { zones, zoneUrl } from '../data/zones';
+import { buildTime } from '@core/settings';
+
+const dayRange = (days: readonly string[]) =>
+    days.length === 1 ? (days[0] ?? '').slice(0, 3) : `${(days[0] ?? '').slice(0, 3)}–${(days[days.length - 1] ?? '').slice(0, 3)}`;
+---
+
+<footer class="site-footer">
+    <div class="container grid">
+        <div class="brand">
+            <Logo id="footer-logo" />
+            <p class="tagline">{site.tagline}. Across Port Alder since {site.business.founded}.</p>
+            <address>
+                <a class="line" href={`tel:${site.business.phoneE164}`}><Icon name="phone" size={16} /> {site.business.phone}</a>
+                <a class="line" href={`mailto:${site.business.email}`}><Icon name="mail" size={16} /> {site.business.email}</a>
+                <span class="line"><Icon name="pin" size={16} /> <span>Yard: {addressLine}</span></span>
+            </address>
+            <dl class="hours spec">
+                {
+                    site.business.hours.map((hours) => (
+                        <div>
+                            <dt>{dayRange(hours.days)}</dt>
+                            <dd>{hours.opens}–{hours.closes}</dd>
+                        </div>
+                    ))
+                }
+            </dl>
+            <p class="note">{site.business.hoursNote}</p>
+        </div>
+        {
+            site.footer.map((column) => (
+                <nav aria-label={column.heading}>
+                    <h2 class="spec">{column.heading}</h2>
+                    <ul>
+                        {column.links.map((link) => (
+                            <li>
+                                <a href={link.href}>{link.label}</a>
+                            </li>
+                        ))}
+                    </ul>
+                </nav>
+            ))
+        }
+        <nav aria-label="Service zones">
+            <h2 class="spec">Zones</h2>
+            <ul>
+                {
+                    zones.map((zone) => (
+                        <li>
+                            <a href={zoneUrl(zone.slug)}>{zone.name}</a>
+                        </li>
+                    ))
+                }
+            </ul>
+        </nav>
+    </div>
+
+    <div class="container legal">
+        <p>© {buildTime.getUTCFullYear()} {site.business.legalName} · {site.business.licence}</p>
+        <p><a href="/credits/">Photo credits</a> · <a href="/blog/rss.xml">RSS</a> · <a href="/privacy/">Privacy</a></p>
+    </div>
+
+    <p class="giant chrome" aria-hidden="true">Gloss Theory</p>
+</footer>
+
+<style>
+    .site-footer {
+        position: relative;
+        overflow: hidden;
+        padding: var(--space-20) 0 0;
+        border-top: 1px solid var(--color-line);
+        background:
+            radial-gradient(60rem 24rem at 50% 110%, rgb(46 230 255 / 0.12), transparent 70%),
+            var(--color-bg);
+    }
+
+    .grid {
+        display: grid;
+        gap: var(--space-10) var(--space-8);
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 9.5rem), 1fr));
+    }
+
+    .brand {
+        grid-column: 1 / -1;
+        max-width: 26rem;
+    }
+
+    @media (min-width: 64rem) {
+        .grid {
+            grid-template-columns: 1.6fr repeat(4, 1fr);
+        }
+
+        .brand {
+            grid-column: auto;
+        }
+    }
+
+    .tagline {
+        margin: var(--space-5) 0;
+        color: var(--color-muted);
+        font-size: 0.95rem;
+    }
+
+    address {
+        display: grid;
+        gap: var(--space-2);
+        font-style: normal;
+    }
+
+    .line {
+        display: inline-flex;
+        align-items: flex-start;
+        gap: var(--space-3);
+        color: var(--color-text);
+        font-size: 0.95rem;
+        text-decoration: none;
+    }
+
+    .line :global(svg) {
+        flex: none;
+        margin-top: 0.3rem;
+        color: var(--color-cyan);
+    }
+
+    a.line:hover {
+        color: var(--color-cyan);
+    }
+
+    .hours {
+        display: grid;
+        gap: var(--space-1);
+        margin: var(--space-6) 0 var(--space-2);
+        color: var(--color-muted);
+    }
+
+    .hours div {
+        display: flex;
+        gap: var(--space-4);
+    }
+
+    .hours dt {
+        min-width: 5.5rem;
+        color: var(--color-text);
+    }
+
+    .hours dd {
+        margin: 0;
+    }
+
+    .note {
+        color: var(--color-subtle);
+        font-size: 0.85rem;
+    }
+
+    h2 {
+        margin-bottom: var(--space-4);
+        color: var(--color-cyan);
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-stretch: normal;
+    }
+
+    ul {
+        display: grid;
+        gap: var(--space-2);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    nav a {
+        color: var(--color-muted);
+        font-size: 0.95rem;
+        text-decoration: none;
+    }
+
+    nav a:hover {
+        color: var(--color-text);
+    }
+
+    .legal {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: var(--space-2) var(--space-6);
+        margin-top: var(--space-16);
+        padding-top: var(--space-6);
+        border-top: 1px solid var(--color-line);
+        color: var(--color-subtle);
+        font-size: 0.82rem;
+    }
+
+    .legal p {
+        margin: 0;
+    }
+
+    .legal a {
+        color: var(--color-muted);
+    }
+
+    /* The name, wider than the page, cut off by the bottom edge. */
+    .giant {
+        margin: var(--space-8) 0 -0.18em;
+        font-size: clamp(1.8rem, 9.2vw, 8.6rem);
+        font-weight: 900;
+        font-stretch: 125%;
+        line-height: 0.8;
+        letter-spacing: -0.03em;
+        text-align: center;
+        text-transform: uppercase;
+        white-space: nowrap;
+        opacity: 0.9;
+    }
+</style>

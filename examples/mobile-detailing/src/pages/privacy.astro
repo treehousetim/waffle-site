@@ -1,0 +1,33 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import { site } from '../site';
+---
+
+<Base
+    title="Privacy policy"
+    description="What Gloss Theory collects on this website and at your booking, why, how long we keep it, and how to ask us to delete it. No tracking cookies."
+    breadcrumbs={[{ name: 'Privacy', href: '/privacy/' }]}
+>
+    <PageHero eyebrow="Legal" heading="Privacy policy" />
+
+    <div class="prose page">
+        <p class="muted">Example text. Replace it with your own policy before you launch.</p>
+        <h2>What this website collects</h2>
+        <p>This website sets no tracking cookies and runs no third-party analytics. When you send the booking form, we receive what you typed in it: your name, phone, email, the car, the address where it will be and the days that suit you.</p>
+        <h2>What we do with it</h2>
+        <p>We use it to schedule your visit, to find the car on the day, and to send you the before-and-after photos. We do not sell it or share it, except with our payment processor when you pay.</p>
+        <h2>Photographs</h2>
+        <p>We photograph every car before and after. We only post a photo of your car anywhere if you have said yes, and never with its plate showing.</p>
+        <h2>How long we keep it</h2>
+        <p>Booking requests that did not become a visit are deleted after six months. Visit records and photos are kept for three years, so we can tell you what was done to the car and when.</p>
+        <h2>Your rights</h2>
+        <p>Ask us to see, correct or delete anything we hold about you at <a href={`mailto:${site.business.email}`}>{site.business.email}</a>.</p>
+    </div>
+</Base>
+
+<style>
+    .page {
+        padding-bottom: var(--section);
+    }
+</style>

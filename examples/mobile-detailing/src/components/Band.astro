@@ -1,0 +1,107 @@
+---
+/**
+ * One band of a page: a numbered spec label, a wide chrome heading, an
+ * optional lead set to the right of it on wide screens, then the content.
+ * Bands alternate between the black floor and a slightly raised panel; the
+ * heading glints as it scrolls into view (motion.css, .band-head).
+ */
+interface Props {
+    /** "01", "02"...: the band's number in the page, in the spec style. */
+    index?: string;
+    eyebrow?: string;
+    heading?: string;
+    lead?: string;
+    link?: { label: string; href: string };
+    tone?: 'floor' | 'raised';
+    /** Heading on the left, content on the right, on wide screens (FAQs). */
+    split?: boolean;
+    id?: string;
+    /** h2 normally; h3 is never right for a band. */
+    class?: string;
+}
+
+const { index, eyebrow, heading, lead, link, tone = 'floor', split = false, id, class: className } = Astro.props;
+---
+
+<section class:list={['band', tone, { split }, className]} id={id}>
+    <div class="container inner">
+        {
+            heading && (
+                <header class="band-head">
+                    <div class="titles">
+                        {(index || eyebrow) && (
+                            <p class="eyebrow">
+                                {index && <span class="index">{index}</span>}
+                                {eyebrow}
+                            </p>
+                        )}
+                        <h2 class="chrome">{heading}</h2>
+                    </div>
+                    {(lead || link) && (
+                        <div class="aside">
+                            {lead && <p class="lead">{lead}</p>}
+                            {link && <a class="arrow-link" href={link.href}>{link.label}</a>}
+                        </div>
+                    )}
+                </header>
+            )
+        }
+        <div class="content"><slot /></div>
+    </div>
+</section>
+
+<style>
+    .band {
+        position: relative;
+        padding: var(--section) 0;
+    }
+
+    .raised {
+        background: linear-gradient(180deg, var(--color-raised), var(--color-bg));
+        border-top: 1px solid var(--color-line);
+    }
+
+    .band-head {
+        display: grid;
+        gap: var(--space-6) var(--space-12);
+        margin-bottom: clamp(2.5rem, 1.5rem + 3vw, 4.5rem);
+    }
+
+    .index {
+        color: var(--color-text);
+    }
+
+    h2 {
+        margin: 0;
+        max-width: 18ch;
+    }
+
+    .aside .lead {
+        margin-bottom: var(--space-4);
+    }
+
+    @media (min-width: 60rem) {
+        .band-head {
+            grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+            align-items: end;
+        }
+
+        .split .inner {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1.7fr);
+            gap: var(--space-16);
+            align-items: start;
+        }
+
+        .split .band-head {
+            position: sticky;
+            top: calc(var(--header-height) + var(--space-8));
+            grid-template-columns: 1fr;
+            margin-bottom: 0;
+        }
+
+        .split h2 {
+            font-size: clamp(1.75rem, 1rem + 1.8vw, 2.75rem);
+        }
+    }
+</style>

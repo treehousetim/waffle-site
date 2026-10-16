@@ -1,0 +1,135 @@
+---
+/**
+ * How to reach the crew, with the details from src/site.ts. Bookings go
+ * through /book/; this page is for everything else.
+ */
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Band from '../components/Band.astro';
+import Icon from '../components/Icon.astro';
+import { addressLine, site } from '../site';
+
+const dayRange = (days: readonly string[]) =>
+    days.length === 1 ? (days[0] ?? '') : `${days[0] ?? ''} to ${days[days.length - 1] ?? ''}`;
+---
+
+<Base
+    title="Contact the crew"
+    description="Phone, text or email Gloss Theory Mobile Detailing in Port Alder. Our hours, our yard, and the quickest way to get a booking confirmed."
+    breadcrumbs={[{ name: 'Contact', href: '/contact/' }]}
+>
+    <PageHero
+        eyebrow="Contact"
+        heading="Talk to the crew"
+        lead="The fastest way to a booking is the booking form. For anything else, call or text while the vans are out, or email any time."
+        primary={{ label: 'Book a detail', href: '/book/' }}
+    />
+
+    <Band>
+        <ul class="ways">
+            <li>
+                <Icon name="phone" size={22} />
+                <span class="spec">Call or text</span>
+                <a class="big" href={`tel:${site.business.phoneE164}`}>{site.business.phone}</a>
+                <p>Answered by whoever is not holding a polisher. If we miss you, we call back within the hour.</p>
+            </li>
+            <li>
+                <Icon name="mail" size={22} />
+                <span class="spec">Email</span>
+                <a class="big" href={`mailto:${site.business.email}`}>{site.business.email}</a>
+                <p>For fleet accounts, invoices and anything with photos attached. Replies within one working day.</p>
+            </li>
+            <li>
+                <Icon name="clock" size={22} />
+                <span class="spec">Hours</span>
+                <dl class="hours">
+                    {
+                        site.business.hours.map((hours) => (
+                            <div>
+                                <dt>{dayRange(hours.days)}</dt>
+                                <dd class="spec">{hours.opens}–{hours.closes}</dd>
+                            </div>
+                        ))
+                    }
+                </dl>
+                <p>{site.business.hoursNote}</p>
+            </li>
+            <li>
+                <Icon name="pin" size={22} />
+                <span class="spec">The yard</span>
+                <p class="address">{addressLine}</p>
+                <p>Where the vans sleep and the water is filtered. We do not detail cars here: we come to you.</p>
+            </li>
+        </ul>
+    </Band>
+</Base>
+
+<style>
+    .ways {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+        gap: var(--space-4);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .ways li {
+        display: grid;
+        align-content: start;
+        gap: var(--space-3);
+        padding: var(--space-8) var(--space-6);
+        border: 1px solid var(--color-line);
+        border-radius: var(--radius);
+        background: var(--color-raised);
+    }
+
+    .ways :global(svg) {
+        color: var(--color-cyan);
+    }
+
+    .ways .spec {
+        color: var(--color-muted);
+    }
+
+    .big {
+        color: var(--color-text);
+        font-size: 1.2rem;
+        font-weight: 850;
+        font-stretch: 112%;
+        overflow-wrap: anywhere;
+        text-decoration: none;
+    }
+
+    .big:hover {
+        color: var(--color-cyan);
+    }
+
+    .ways p {
+        margin: 0;
+        color: var(--color-muted);
+        font-size: 0.95rem;
+    }
+
+    .ways .address {
+        color: var(--color-text);
+        font-weight: 650;
+    }
+
+    .hours {
+        display: grid;
+        gap: var(--space-1);
+        margin: 0;
+    }
+
+    .hours div {
+        display: flex;
+        justify-content: space-between;
+        gap: var(--space-4);
+    }
+
+    .hours dd {
+        margin: 0;
+        color: var(--color-text);
+    }
+</style>

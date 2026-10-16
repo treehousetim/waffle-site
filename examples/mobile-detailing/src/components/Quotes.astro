@@ -1,0 +1,111 @@
+---
+/**
+ * What customers said, as plain text quotations (no review markup: see
+ * src/data/reviews.ts). Staggered like notes left on a dashboard.
+ */
+import { reviews } from '../data/reviews';
+---
+
+<ul class="quotes">
+    {
+        reviews.map((review) => (
+            <li>
+                <figure>
+                    <blockquote>
+                        <p>{review.quote}</p>
+                    </blockquote>
+                    <figcaption>
+                        <strong>{review.name}</strong>
+                        <span class="spec">{review.detail}</span>
+                    </figcaption>
+                </figure>
+            </li>
+        ))
+    }
+</ul>
+<p class="note">Example reviews, written for this demonstration site.</p>
+
+<style>
+    .quotes {
+        display: grid;
+        gap: var(--space-4);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    @media (min-width: 48rem) {
+        .quotes {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .quotes > li:nth-child(even) {
+            margin-top: var(--space-10);
+        }
+    }
+
+    @media (min-width: 80rem) {
+        .quotes {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+    }
+
+    figure {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: var(--space-6);
+        height: 100%;
+        margin: 0;
+        padding: var(--space-6);
+        border: 1px solid var(--color-line);
+        border-radius: var(--radius);
+        background: linear-gradient(160deg, var(--color-panel-strong), var(--color-raised) 60%);
+    }
+
+    blockquote {
+        position: relative;
+        margin: 0;
+    }
+
+    blockquote::before {
+        content: '“';
+        display: block;
+        height: 2.5rem;
+        color: var(--color-cyan);
+        font-size: 4rem;
+        font-weight: 900;
+        font-stretch: 125%;
+        line-height: 1;
+    }
+
+    blockquote p {
+        margin: 0;
+        font-size: 1.02rem;
+        line-height: 1.55;
+    }
+
+    figcaption {
+        display: grid;
+        gap: var(--space-1);
+        padding-top: var(--space-4);
+        border-top: 1px solid var(--color-line);
+    }
+
+    figcaption .spec {
+        color: var(--color-muted);
+        font-size: 0.68rem;
+    }
+
+    .note {
+        margin: var(--space-8) 0 0;
+        color: var(--color-subtle);
+        font-size: 0.82rem;
+    }
+
+    @media (min-width: 48rem) {
+        .note {
+            margin-top: var(--space-16);
+        }
+    }
+</style>

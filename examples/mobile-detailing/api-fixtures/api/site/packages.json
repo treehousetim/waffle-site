@@ -1,0 +1,98 @@
+{
+  "success": true,
+  "data": {
+    "updated": "2026-10-01",
+    "currency": "USD",
+    "sizes": [
+      { "id": "coupe-sedan", "label": "Coupe / sedan" },
+      { "id": "suv", "label": "SUV / crossover" },
+      { "id": "truck-van", "label": "Truck / van" }
+    ],
+    "packages": [
+      {
+        "slug": "express-wash",
+        "name": "Express Wash",
+        "summary": "A scratch-safe hand wash and dry, wheels and glass, done in under an hour while the car sits in your driveway.",
+        "prices_cents": { "coupe-sedan": 6500, "suv": 7500, "truck-van": 8500 },
+        "duration_minutes": { "coupe-sedan": 45, "suv": 55, "truck-van": 65 },
+        "included": [
+          "Snow-foam pre-soak to lift grit before anything touches the paint",
+          "Two-bucket hand wash with grit guards",
+          "Wheel faces, tires and arches cleaned with their own brushes",
+          "Deionised rinse that dries without water spots",
+          "Filtered-air blow dry, then a plush microfiber pass",
+          "Exterior glass and mirrors",
+          "Satin tire dressing"
+        ]
+      },
+      {
+        "slug": "full-detail",
+        "name": "Full Detail",
+        "summary": "Inside and out: decontaminated paint with three months of sealant, and a vacuumed, wiped and steamed cabin.",
+        "prices_cents": { "coupe-sedan": 24500, "suv": 29500, "truck-van": 34500 },
+        "duration_minutes": { "coupe-sedan": 240, "suv": 270, "truck-van": 300 },
+        "included": [
+          "Everything in the Express Wash",
+          "Iron fallout remover and clay bar decontamination",
+          "Spray sealant, about three months of protection",
+          "Door jambs, fuel door and tailgate shuts",
+          "Full vacuum, including under the seats and the trunk",
+          "Steamed vents, cupholders, consoles and door pockets",
+          "Dash and trim cleaned and left with a non-greasy UV finish",
+          "Streak-free glass inside and out"
+        ]
+      },
+      {
+        "slug": "interior-deep-clean",
+        "name": "Interior Deep Clean",
+        "summary": "Hot-water extraction for seats and carpets, steam for every hard surface, leather cleaned and conditioned.",
+        "prices_cents": { "coupe-sedan": 18500, "suv": 21500, "truck-van": 24500 },
+        "duration_minutes": { "coupe-sedan": 180, "suv": 210, "truck-van": 240 },
+        "included": [
+          "Compressed-air blowout of seams, rails and vents",
+          "Hot-water extraction of carpets, mats and cloth seats",
+          "Leather cleaned with a soft brush, then conditioned",
+          "Steam on consoles, buttons, cupholders and door cards",
+          "Headliner spot-cleaned by hand",
+          "Enzyme treatment for food, pet and sports-kit odors",
+          "Pet hair removal",
+          "Glass and screens cleaned with the right products for each"
+        ]
+      },
+      {
+        "slug": "paint-correction",
+        "name": "Paint Correction",
+        "summary": "Machine polishing that removes swirls, haze and light scratches instead of filling them. Measured, taped and inspected under lights.",
+        "prices_cents": { "coupe-sedan": 65000, "suv": 79500, "truck-van": 92500 },
+        "duration_minutes": { "coupe-sedan": 480, "suv": 570, "truck-van": 660 },
+        "included": [
+          "Paint depth readings on every panel before we polish",
+          "Full wash, iron and clay decontamination",
+          "Trim, badges and edges taped off",
+          "Machine compound and polish, stage by stage",
+          "Inspection under our own LED panel lights between steps",
+          "Panel wipe to show the true finish, with no fillers",
+          "Sealant to protect the corrected paint",
+          "Before and after photos of your car"
+        ]
+      },
+      {
+        "slug": "ceramic-coating",
+        "name": "Ceramic Coating",
+        "summary": "A one-step correction, then a five-year ceramic coating on paint, wheel faces and glass, cured under infrared lamps.",
+        "prices_cents": { "coupe-sedan": 115000, "suv": 135000, "truck-van": 155000 },
+        "duration_minutes": { "coupe-sedan": 720, "suv": 840, "truck-van": 960 },
+        "included": [
+          "Full decontamination wash",
+          "One-step machine polish to refine the paint first",
+          "Panel wipe so the coating bonds to bare clear coat",
+          "Five-year ceramic coating on all painted surfaces",
+          "Wheel faces and calipers coated",
+          "Hydrophobic glass coating on the windshield",
+          "Infrared lamp curing, so it is rain-ready the next morning",
+          "A free check-up wash at three months"
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,216 @@
+---
+/**
+ * Before and after paint correction, one photo over the other with a
+ * dividing line between them.
+ *
+ * - Without anything: the line sits in the middle and both halves show.
+ * - Scroll-driven (CSS, motion.css): the line wipes across as the frame
+ *   passes through the screen, revealing the corrected finish.
+ * - With script (src/scripts/compare.ts): a range slider appears under it,
+ *   and dragging it moves the line by hand, stopping the scroll wipe.
+ *
+ * The "before" is the same photograph with its gloss taken away and a
+ * pattern of swirl marks laid over it: an illustration of what correction
+ * removes, labelled as one. Replace it with a real pair from your own work
+ * (PLAYBOOK.md, "The look").
+ */
+import Photo from './Photo.astro';
+import type { PhotoName } from '../data/photos';
+import { photos } from '../data/photos';
+
+interface Props {
+    photo: PhotoName;
+    id: string;
+    caption: string;
+}
+
+const { photo, id, caption } = Astro.props;
+---
+
+<figure class="compare" data-compare>
+    <div class="frame">
+        <div class="after">
+            <Photo name={photo} sizes="(min-width: 82rem) 82rem, 100vw" />
+        </div>
+        <div class="before" aria-hidden="true">
+            <Photo name={photo} decorative sizes="(min-width: 82rem) 82rem, 100vw" />
+            <span class="swirls"></span>
+            <span class="haze"></span>
+        </div>
+        <span class="divider" aria-hidden="true"><span class="handle"></span></span>
+        <span class="tag tag-before spec" aria-hidden="true">Before</span>
+        <span class="tag tag-after spec" aria-hidden="true">After</span>
+    </div>
+    <div class="control" data-compare-control hidden>
+        <label class="spec" for={id}>Drag to compare</label>
+        <input id={id} type="range" min="0" max="100" value="50" step="1" />
+    </div>
+    <figcaption class="muted">{caption} <span class="visually-hidden">{photos[photo].alt}</span></figcaption>
+</figure>
+
+<script>
+    import { enableCompare } from '../scripts/compare';
+
+    enableCompare(document);
+</script>
+
+<style>
+    @property --pos {
+        syntax: '<percentage>';
+        inherits: true;
+        initial-value: 50%;
+    }
+
+    .compare {
+        --pos: 50%;
+        margin: 0;
+    }
+
+    .frame {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid var(--color-line-strong);
+        border-radius: var(--radius);
+        aspect-ratio: 16 / 9;
+        background: var(--color-panel);
+        isolation: isolate;
+    }
+
+    .after,
+    .before {
+        position: absolute;
+        inset: 0;
+    }
+
+    .frame :global(img) {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    /* The "before": dull, hazy, webbed with swirls. Cut to the left of the line. */
+    .before {
+        clip-path: inset(0 calc(100% - var(--pos)) 0 0);
+    }
+
+    .before :global(img) {
+        filter: saturate(0.55) contrast(0.78) brightness(0.82) blur(0.6px);
+    }
+
+    .swirls {
+        position: absolute;
+        inset: 0;
+        background:
+            repeating-radial-gradient(circle at 30% 30%, transparent 0 5px, rgb(255 255 255 / 0.17) 5px 5.6px, transparent 5.6px 11px),
+            repeating-radial-gradient(circle at 30% 30%, transparent 0 17px, rgb(255 255 255 / 0.1) 17px 17.6px);
+        mask-image: radial-gradient(ellipse 34% 40% at 30% 30%, #000 0%, rgb(0 0 0 / 0.55) 55%, transparent 100%);
+        mix-blend-mode: screen;
+    }
+
+    .haze {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(120deg, rgb(200 210 220 / 0.14), rgb(200 210 220 / 0.04) 60%, rgb(200 210 220 / 0.12));
+    }
+
+    .divider {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: var(--pos);
+        z-index: 2;
+        width: 2px;
+        margin-left: -1px;
+        background: linear-gradient(180deg, transparent, var(--color-cyan) 20%, #ffffff 50%, var(--color-cyan) 80%, transparent);
+        box-shadow: 0 0 18px 2px rgb(46 230 255 / 0.6);
+    }
+
+    .handle {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 2.75rem;
+        height: 2.75rem;
+        border: 1px solid rgb(255 255 255 / 0.7);
+        border-radius: 50%;
+        background: rgb(5 6 7 / 0.6);
+        transform: translate(-50%, -50%);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+    }
+
+    .handle::before,
+    .handle::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        width: 0;
+        height: 0;
+        border: 5px solid transparent;
+        margin-top: -5px;
+    }
+
+    .handle::before {
+        left: 7px;
+        border-right-color: var(--color-cyan);
+    }
+
+    .handle::after {
+        right: 7px;
+        border-left-color: var(--color-cyan);
+    }
+
+    .tag {
+        position: absolute;
+        bottom: var(--space-4);
+        z-index: 3;
+        padding: 0.25rem 0.55rem;
+        border: 1px solid rgb(255 255 255 / 0.35);
+        border-radius: var(--radius-small);
+        background: rgb(5 6 7 / 0.65);
+        color: var(--color-text);
+    }
+
+    .tag-before {
+        left: var(--space-4);
+    }
+
+    .tag-after {
+        right: var(--space-4);
+        border-color: rgb(46 230 255 / 0.6);
+        color: var(--color-cyan);
+    }
+
+    .control {
+        display: flex;
+        align-items: center;
+        gap: var(--space-4);
+        margin-top: var(--space-4);
+    }
+
+    .control[hidden] {
+        display: none;
+    }
+
+    .control label {
+        flex: none;
+        color: var(--color-muted);
+    }
+
+    input[type='range'] {
+        flex: 1;
+        accent-color: var(--color-cyan);
+        cursor: ew-resize;
+    }
+
+    figcaption {
+        margin-top: var(--space-3);
+        font-size: 0.88rem;
+    }
+
+    @media (max-width: 40rem) {
+        .frame {
+            aspect-ratio: 4 / 3;
+        }
+    }
+</style>
