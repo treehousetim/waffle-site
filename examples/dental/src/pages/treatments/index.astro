@@ -1,0 +1,91 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHero from '../../components/PageHero.astro';
+import Section from '../../components/Section.astro';
+import TreatmentGrid from '../../components/TreatmentGrid.astro';
+import BookingBand from '../../components/BookingBand.astro';
+import Icon from '../../components/Icon.astro';
+import { site } from '../../site';
+---
+
+<Base
+    title="Treatments"
+    description="Every treatment at Brightside Family Dental: check-ups and cleanings, children’s dentistry, whitening, clear aligners, implants and emergency care."
+    breadcrumbs={[{ name: 'Treatments', href: '/treatments/' }]}
+>
+    <PageHero
+        eyebrow="Treatments"
+        heading="Everything your family’s teeth need, under one calm roof"
+        smile="calm roof"
+        lead="From a toddler’s first check-up to replacing a tooth, every treatment starts the same way: we explain it, you ask anything you like, and nothing happens until you are ready."
+        primary={{ label: site.cta.label, href: site.cta.href }}
+    />
+
+    <Section>
+        <TreatmentGrid level="h2" />
+    </Section>
+
+    <Section tone="sand" eyebrow="However you are feeling" heading="Three promises, for every treatment">
+        <ul class="promises">
+            <li>
+                <span class="icon"><Icon name="chat" size={28} /></span>
+                <h3>We explain first</h3>
+                <p>What we see, what we suggest, what it costs, and the other options. On a screen, in plain words.</p>
+            </li>
+            <li>
+                <span class="icon"><Icon name="hand" size={28} /></span>
+                <h3>You can stop us</h3>
+                <p>Raise a hand and we stop, every time, no questions. Breaks are always allowed.</p>
+            </li>
+            <li>
+                <span class="icon"><Icon name="clock" size={28} /></span>
+                <h3>Nobody rushes you</h3>
+                <p>Longer appointments are there for anyone who wants one. Decide about treatment at home, not in the chair.</p>
+            </li>
+        </ul>
+    </Section>
+
+    <BookingBand />
+</Base>
+
+<style>
+    .promises {
+        display: grid;
+        gap: var(--space-6);
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .promises li {
+        padding: var(--space-8) var(--space-6);
+        border-radius: 2.5rem;
+        background: var(--color-bg);
+    }
+
+    .icon {
+        display: inline-grid;
+        place-items: center;
+        width: 3.5rem;
+        height: 3.5rem;
+        margin-bottom: var(--space-4);
+        border-radius: var(--blob-a);
+        background: var(--color-mint);
+        color: var(--color-forest);
+    }
+
+    .promises li:nth-child(2) .icon {
+        background: var(--color-coral-soft);
+        color: var(--color-coral-ink);
+    }
+
+    .promises li:nth-child(3) .icon {
+        background: var(--color-butter);
+    }
+
+    .promises p {
+        margin: 0;
+        color: var(--color-muted);
+    }
+</style>

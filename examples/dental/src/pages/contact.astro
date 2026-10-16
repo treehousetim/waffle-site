@@ -1,0 +1,170 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Section from '../components/Section.astro';
+import BookingBand from '../components/BookingBand.astro';
+import Icon from '../components/Icon.astro';
+import { addressLine, clock, dayList, site } from '../site';
+---
+
+<Base
+    title="Find us"
+    description={`Find Brightside Family Dental at ${addressLine}: opening hours, parking, step-free access, phone and email.`}
+    breadcrumbs={[{ name: 'Find us', href: '/contact/' }]}
+>
+    <PageHero
+        eyebrow="Find us"
+        heading="Come and see us on Honeysuckle Lane"
+        smile="Honeysuckle Lane"
+        lead="Beside the library, with free parking behind, a ramp to the front door, and the kettle on."
+        primary={{ label: site.cta.label, href: site.cta.href }}
+        secondary={{ label: `Call ${site.business.phone}`, href: `tel:${site.business.phoneE164}` }}
+    />
+
+    <div class="container cards">
+        <section class="card where">
+            <h2><Icon name="pin" size={26} /> Address</h2>
+            <address>
+                {site.business.name}<br />
+                {site.business.address.street}<br />
+                {site.business.address.city}, {site.business.address.region} {site.business.address.postalCode}
+            </address>
+            <p class="muted">Free parking behind the building, two accessible spaces by the ramp. The 14 bus stops outside the library.</p>
+        </section>
+        <section class="card when">
+            <h2><Icon name="clock" size={26} /> Opening hours</h2>
+            <dl>
+                {
+                    site.business.hours.map((hours) => (
+                        <div>
+                            <dt>{dayList(hours.days)}</dt>
+                            <dd>
+                                {clock(hours.opens)} – {clock(hours.closes)}
+                            </dd>
+                        </div>
+                    ))
+                }
+                <div>
+                    <dt>Sunday</dt>
+                    <dd>Closed</dd>
+                </div>
+            </dl>
+            <p class="muted">{site.business.emergency}</p>
+        </section>
+        <section class="card how">
+            <h2><Icon name="chat" size={26} /> Get in touch</h2>
+            <p><a class="big" href={`tel:${site.business.phoneE164}`}>{site.business.phone}</a></p>
+            <p><a href={`mailto:${site.business.email}`}>{site.business.email}</a></p>
+            <p class="muted">The phone line opens at {clock(site.business.hours[0]?.opens ?? '08:00')} on weekdays. Email for anything that is not urgent; we reply within a working day.</p>
+        </section>
+    </div>
+
+    <Section tone="sand" eyebrow="Where our patients come from" heading="Families from all around Thistlewood">
+        <ul class="areas">
+            {site.areas.map((area) => <li>{area}</li>)}
+        </ul>
+    </Section>
+
+    <BookingBand />
+</Base>
+
+<style>
+    .cards {
+        display: grid;
+        gap: var(--space-5);
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+        padding-bottom: var(--section);
+    }
+
+    .card {
+        padding: var(--space-8);
+        border-radius: 2.5rem;
+        background: var(--color-surface-raised);
+        box-shadow: var(--shadow-soft);
+    }
+
+    .when {
+        background: var(--color-mint-soft);
+        box-shadow: none;
+    }
+
+    .how {
+        background: var(--color-butter-soft);
+        box-shadow: none;
+    }
+
+    h2 {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        font-size: 1.6rem;
+    }
+
+    h2 :global(svg) {
+        color: var(--color-coral-ink);
+    }
+
+    address {
+        margin-bottom: var(--space-4);
+        color: var(--color-forest);
+        font-size: 1.2rem;
+        font-style: normal;
+        font-weight: 600;
+        line-height: 1.6;
+    }
+
+    dl {
+        display: grid;
+        gap: var(--space-2);
+        margin: 0 0 var(--space-4);
+    }
+
+    dl div {
+        display: flex;
+        justify-content: space-between;
+        gap: var(--space-4);
+        padding-bottom: var(--space-2);
+        border-bottom: 1px dashed var(--color-border-strong);
+    }
+
+    dt {
+        color: var(--color-forest);
+        font-weight: 650;
+    }
+
+    dd {
+        margin: 0;
+        white-space: nowrap;
+    }
+
+    .big {
+        font-family: var(--font-display);
+        font-size: 2rem;
+        font-weight: 550;
+        text-decoration: none;
+        color: var(--color-forest);
+    }
+
+    .muted {
+        margin: 0;
+        font-size: 1rem;
+    }
+
+    .areas {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-3);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .areas li {
+        padding: 0.7rem 1.4rem;
+        border-radius: var(--blob-a);
+        background: var(--color-bg);
+        color: var(--color-forest);
+        font-family: var(--font-display);
+        font-size: 1.3rem;
+    }
+</style>

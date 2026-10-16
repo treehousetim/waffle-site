@@ -1,0 +1,194 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Section from '../components/Section.astro';
+import Breathe from '../components/Breathe.astro';
+import Faq from '../components/Faq.astro';
+import BookingBand from '../components/BookingBand.astro';
+import Photo from '../components/Photo.astro';
+import Icon, { type IconName } from '../components/Icon.astro';
+import { site } from '../site';
+import { faqPage } from '@core/lib/jsonld.js';
+
+const comforts: { icon: IconName; title: string; text: string }[] = [
+    { icon: 'hand', title: 'A stop signal that always works', text: 'Raise your hand and we stop, every time, no questions. Agree a second signal for “slow down” if you like.' },
+    { icon: 'clock', title: 'Longer appointments', text: 'Ask for a gentle slot and we book double the time, so nobody is watching the clock, least of all you.' },
+    { icon: 'chat', title: 'Talk first, in a normal chair', text: 'Your first appointment can be only a conversation. No treatment, no x-rays, not even the dental chair, unless you want.' },
+    { icon: 'music', title: 'Your music, our blankets', text: 'Headphones, a weighted blanket, sunglasses for the light, a stress ball: all in every room, all yours to use.' },
+    { icon: 'sun', title: 'Quiet times', text: 'First thing in the morning is calm and you will not have time to worry. Or choose Wednesday evenings, when it is hushed.' },
+    { icon: 'heart', title: 'Bring someone', text: 'A friend, a partner, a parent: they can sit beside you and hold your hand for the whole appointment.' },
+];
+
+const questions = [
+    { question: 'I am embarrassed about the state of my teeth.', answer: 'Please do not be. We see every kind of mouth, every day, and nobody here will judge you or tell you off. Coming in is the hardest part, and you have already thought about doing it.' },
+    { question: 'Can I just come and talk first?', answer: 'Yes. Book a “just talk” appointment: twenty minutes in our consulting room with a dentist, a cup of tea, and no treatment at all. Many nervous patients start this way.' },
+    { question: 'What if I panic in the chair?', answer: 'Raise your hand and we stop. We sit you up, give you a moment, and only carry on if and when you want to. Some people finish another day, and that is perfectly fine.' },
+    { question: 'Do you offer sedation?', answer: 'For some treatments, a dentist may discuss options to help you relax, depending on your health and the treatment. It is a conversation for your consultation; many patients find the slower, gentler approach is enough.' },
+    { question: 'Will the injection hurt?', answer: 'We use numbing gel first and go slowly, which most patients say makes it feel like a small pinch or pressure. Tell us if you feel anything and we will pause.' },
+];
+---
+
+<Base
+    title="Nervous patients"
+    description="Scared of the dentist? At Brightside we go at your pace: longer appointments, a stop signal that always works, talk-first visits and zero judgement."
+    breadcrumbs={[{ name: 'Nervous patients', href: '/nervous-patients/' }]}
+    jsonLd={[faqPage(questions)]}
+>
+    <PageHero
+        eyebrow="Nervous patients"
+        heading="Nervous? You are in exactly the right place"
+        smile="right place"
+        lead="About one in three of our patients tell us they are anxious about the dentist. So we built the whole practice around going slowly, explaining everything, and stopping the moment you ask."
+        photo="headphones"
+        tone="mint"
+        primary={{ label: 'Book a gentle visit', href: site.cta.href }}
+        secondary={{ label: `Talk to us: ${site.business.phone}`, href: `tel:${site.business.phoneE164}` }}
+    />
+
+    <Section eyebrow="How we make it easier" heading="Small things that make a big difference">
+        <ul class="comforts">
+            {
+                comforts.map((comfort) => (
+                    <li>
+                        <span class="icon">
+                            <Icon name={comfort.icon} size={26} />
+                        </span>
+                        <h3>{comfort.title}</h3>
+                        <p>{comfort.text}</p>
+                    </li>
+                ))
+            }
+        </ul>
+    </Section>
+
+    <section class="breathing" aria-labelledby="breathe-heading">
+        <div class="container breathing-inner">
+            <div class="breathing-copy">
+                <p class="eyebrow">Take a moment</p>
+                <h2 id="breathe-heading">Breathe with us</h2>
+                <p class="lead">Slow breathing tells your body it is safe. It is the same rhythm we use in the chair, and it works in the waiting room, the car park, or right now on your sofa.</p>
+            </div>
+            <Breathe />
+        </div>
+    </section>
+
+    <Section tone="sand" eyebrow="From Dr. Whitlock" heading="“I was the kid hiding in the car park”">
+        <div class="letter">
+            <div class="portrait">
+                <Photo name="drWhitlock" sizes="(min-width: 64rem) 22rem, 70vw" />
+            </div>
+            <div class="letter-copy">
+                <p>As a teenager I was so scared of the dentist that I once hid in my mum’s car for the whole appointment. What changed it was a dentist who sat me up, explained every tool, and let me hold the mirror.</p>
+                <p>That is the dentist I try to be. Nothing happens until you understand it and say yes. If you want to stop, you raise a hand and we stop. If today is only a chat, today is only a chat.</p>
+                <p><a href="/team/hannah-whitlock/">More about Dr. Whitlock</a></p>
+            </div>
+        </div>
+    </Section>
+
+    <Section eyebrow="Questions" heading="What nervous patients ask us">
+        <Faq items={questions} />
+    </Section>
+
+    <BookingBand heading="Start with a chat" text="Tick “I feel nervous” when you book and Jo will call you first, just to say hello. No treatment until you are ready." />
+</Base>
+
+<style>
+    .comforts {
+        display: grid;
+        gap: var(--space-5);
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .comforts li {
+        padding: var(--space-8) var(--space-6);
+        border-radius: 2.5rem;
+        background: var(--color-surface-raised);
+        box-shadow: var(--shadow-soft);
+    }
+
+    .comforts li:nth-child(3n + 2) {
+        background: var(--color-mint-soft);
+        box-shadow: none;
+    }
+
+    .comforts li:nth-child(3n) {
+        background: var(--color-butter-soft);
+        box-shadow: none;
+    }
+
+    .icon {
+        display: inline-grid;
+        place-items: center;
+        width: 3.5rem;
+        height: 3.5rem;
+        margin-bottom: var(--space-4);
+        border-radius: var(--blob-b);
+        background: var(--color-coral-soft);
+        color: var(--color-coral-ink);
+    }
+
+    .comforts p {
+        margin: 0;
+        color: var(--color-muted);
+    }
+
+    .breathing {
+        padding: var(--section) 0;
+    }
+
+    .breathing-inner {
+        display: grid;
+        gap: var(--space-12);
+        align-items: center;
+    }
+
+    .breathing-copy .lead {
+        max-width: 32rem;
+    }
+
+    .letter {
+        display: grid;
+        gap: var(--space-10);
+        align-items: center;
+    }
+
+    .portrait {
+        overflow: hidden;
+        width: min(100%, 22rem);
+        aspect-ratio: 4 / 5;
+        border-radius: var(--arch);
+    }
+
+    .portrait :global(img) {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: 50% 30%;
+    }
+
+    .letter-copy {
+        max-width: 38rem;
+        font-size: 1.2rem;
+    }
+
+    .letter-copy p:first-child {
+        color: var(--color-forest);
+        font-family: var(--font-display);
+        font-size: clamp(1.35rem, 1.15rem + 0.8vw, 1.7rem);
+        line-height: 1.45;
+    }
+
+    @media (min-width: 60rem) {
+        .breathing-inner {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .letter {
+            grid-template-columns: 22rem 1fr;
+            gap: var(--space-16);
+        }
+    }
+</style>

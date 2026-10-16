@@ -1,0 +1,66 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Section from '../components/Section.astro';
+import Faq from '../components/Faq.astro';
+import BookingBand from '../components/BookingBand.astro';
+import { faqPage } from '@core/lib/jsonld.js';
+import { addressLine, clock, dayList, site } from '../site';
+
+const hours = site.business.hours.map((h) => `${dayList(h.days)} ${clock(h.opens)} to ${clock(h.closes)}`).join('; ');
+
+const visiting = [
+    { question: 'What are your opening hours?', answer: `${hours}. ${site.business.emergency}` },
+    { question: 'Where are you, and is there parking?', answer: `We are at ${addressLine}. There is free parking behind the building, with two accessible spaces by the ramp to the front door.` },
+    { question: 'Is the practice accessible?', answer: 'Every treatment room is on the ground floor, with step-free access, wide doors and an accessible restroom. Tell us if you need anything else and we will arrange it.' },
+    { question: 'How do I cancel or move an appointment?', answer: 'Call us, or reply to your reminder text. A day’s notice helps us offer the time to someone else.' },
+];
+
+const care = [
+    { question: 'How often should I have a check-up?', answer: 'It depends on your own teeth and gums. Many people come every six months; some every year, some more often. Your dentist will suggest a gap that suits you.' },
+    { question: 'Do you see children?', answer: 'Yes, from their first tooth. Dr. Marchetti sees most of our youngest patients, and every dentist here sees families.' },
+    { question: 'Are x-rays safe?', answer: 'Dental x-rays use a very low dose, and we take them only when they are needed for you, not as a routine every visit. We always tell you why before we take one.' },
+    { question: 'What toothpaste should I use?', answer: 'For most people, an ordinary fluoride toothpaste is the right choice. If your teeth are sensitive, ask us about a sensitive formula. For children, use a smear for under-threes and a pea-sized amount after that.' },
+];
+
+const nerves = [
+    { question: 'I have not been to a dentist for years. Is that a problem?', answer: 'Not at all. Lots of our patients come back after a long gap, and nobody will tell you off. Your first visit is about getting to know your mouth, not judging it.' },
+    { question: 'Can I bring someone with me?', answer: 'Yes. A friend or family member is welcome to sit with you for the whole appointment.' },
+];
+---
+
+<Base
+    title="Questions, answered"
+    description="Answers to what patients ask Brightside Family Dental most: hours, parking, children, x-rays, check-ups, toothpaste, and coming back after years away."
+    breadcrumbs={[{ name: 'FAQ', href: '/faq/' }]}
+    jsonLd={[faqPage([...visiting, ...care, ...nerves])]}
+>
+    <PageHero
+        eyebrow="FAQ"
+        heading="Questions, answered kindly"
+        smile="kindly"
+        lead="Cannot find yours? Ask us on the phone or in the booking form. A real person replies, usually the same day."
+    />
+
+    <Section eyebrow="Visiting" heading="Visiting the practice">
+        <Faq items={visiting} />
+    </Section>
+
+    <Section tone="sand" eyebrow="Your teeth" heading="Looking after your teeth">
+        <Faq items={care} />
+    </Section>
+
+    <Section eyebrow="Feeling nervous" heading="If you are worried">
+        <Faq items={nerves} />
+        <p class="more"><a href="/nervous-patients/">Everything we do for nervous patients</a></p>
+    </Section>
+
+    <BookingBand />
+</Base>
+
+<style>
+    .more {
+        margin: var(--space-8) 0 0;
+        font-weight: 650;
+    }
+</style>

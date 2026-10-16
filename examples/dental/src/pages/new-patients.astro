@@ -1,0 +1,132 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Section from '../components/Section.astro';
+import VisitPath from '../components/VisitPath.astro';
+import Faq from '../components/Faq.astro';
+import BookingBand from '../components/BookingBand.astro';
+import Photo from '../components/Photo.astro';
+import Icon from '../components/Icon.astro';
+import { firstVisit } from '../data/first-visit';
+import { site } from '../site';
+import { faqPage } from '@core/lib/jsonld.js';
+
+const questions = [
+    { question: 'Are you taking new patients?', answer: 'Yes, adults and children. Most new patients are seen within two weeks, and sooner if something hurts.' },
+    { question: 'Can my whole family come at once?', answer: 'Yes. Ask for back-to-back appointments when you book and we will line them up, often with two dentists side by side so you are in and out together.' },
+    { question: 'Do I need my old dental records?', answer: 'They help, but you do not need them. With your permission we can ask your previous dentist for recent x-rays, which can save you having new ones.' },
+    { question: 'What if I need to cancel?', answer: 'Life happens. Please give us a day’s notice if you can, so someone else can have the slot. We never charge for a first missed appointment.' },
+];
+---
+
+<Base
+    title="New patients"
+    description="New to Brightside Family Dental? What happens at your first visit, what to bring, and how we make it easy for adults, children and nervous patients."
+    breadcrumbs={[{ name: 'New patients', href: '/new-patients/' }]}
+    jsonLd={[faqPage(questions)]}
+>
+    <PageHero
+        eyebrow="New patients"
+        heading="Welcome. Come as you are."
+        smile="as you are"
+        lead="Whether it has been six months or sixteen years, you will get the same warm welcome and the same unhurried first visit. Here is exactly what to expect."
+        photo="waitingRoom"
+        tone="butter"
+        primary={{ label: site.cta.label, href: site.cta.href }}
+        secondary={{ label: 'Insurance & payment', href: '/insurance/' }}
+    />
+
+    <Section eyebrow="Step by step" heading="Your first visit" lead="About an hour, start to finish. Nothing is decided in the chair.">
+        <VisitPath steps={firstVisit} />
+    </Section>
+
+    <Section tone="sand" eyebrow="Before you come" heading="What to bring">
+        <div class="bring">
+            <ul class="list">
+                <li><Icon name="card" size={24} /> <span><strong>Your insurance card</strong>, or a photo of the front and back.</span></li>
+                <li><Icon name="leaf" size={24} /> <span><strong>A list of medicines</strong> you take, including vitamins and inhalers.</span></li>
+                <li><Icon name="mail" size={24} /> <span><strong>The health form</strong> we email you, filled in at home if you can.</span></li>
+                <li><Icon name="music" size={24} /> <span><strong>Headphones</strong>, if music helps. We have spares and a blanket, too.</span></li>
+                <li><Icon name="chat" size={24} /> <span><strong>Your questions.</strong> Write them down: it is easy to forget in the moment.</span></li>
+            </ul>
+            <div class="room">
+                <Photo name="coralChair" sizes="(min-width: 64rem) 32rem, 90vw" />
+            </div>
+        </div>
+    </Section>
+
+    <Section eyebrow="Finding us" heading="Easy to get to, easy to park">
+        <div class="find">
+            <p class="lead">We are at {site.business.address.street}, beside the library, with free parking behind the building and a ramp to the front door. The 14 bus stops outside.</p>
+            <p class="actions"><a class="button button-quiet" href="/contact/">Directions and hours <Icon name="arrow" size={18} /></a></p>
+        </div>
+    </Section>
+
+    <Section tone="mint" eyebrow="Questions" heading="New patient questions">
+        <Faq items={questions} />
+    </Section>
+
+    <BookingBand heading="Book your first visit" />
+</Base>
+
+<style>
+    .bring {
+        display: grid;
+        gap: var(--space-10);
+        align-items: center;
+    }
+
+    .list {
+        display: grid;
+        gap: var(--space-3);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .list li {
+        display: flex;
+        align-items: flex-start;
+        gap: var(--space-4);
+        padding: var(--space-4) var(--space-5);
+        border-radius: 1.5rem;
+        background: var(--color-bg);
+    }
+
+    .list :global(svg) {
+        flex: none;
+        margin-top: 0.15rem;
+        color: var(--color-mint-deep);
+    }
+
+    .list strong {
+        color: var(--color-forest);
+    }
+
+    .room {
+        overflow: hidden;
+        aspect-ratio: 4 / 5;
+        border-radius: var(--arch);
+    }
+
+    .room :global(img) {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .find {
+        max-width: 44rem;
+    }
+
+    .find .lead {
+        margin-top: 0;
+    }
+
+    @media (min-width: 64rem) {
+        .bring {
+            grid-template-columns: 1.3fr 1fr;
+            gap: var(--space-16);
+        }
+    }
+</style>

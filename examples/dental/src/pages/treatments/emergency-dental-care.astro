@@ -1,0 +1,38 @@
+---
+import TreatmentPage from '../../layouts/TreatmentPage.astro';
+---
+
+<TreatmentPage
+    slug="emergency-dental-care"
+    title="Emergency dental care"
+    description="Same-day emergency dental care in Thistlewood for toothache, broken or knocked-out teeth and swelling. Call first thing and we will fit you in."
+    heading="Something hurts? Call us first thing"
+    smile="first thing"
+    lead="We keep appointments free every day we are open for people in pain. Call as early as you can, tell us what happened, and we will see you the same day whenever we possibly can."
+    glance={[
+        { label: 'Call', value: 'From 7:30 am on weekdays' },
+        { label: 'Seen', value: 'Same day, when you call by 10 am' },
+        { label: 'New patients', value: 'Welcome too' },
+    ]}
+    preparation="Call us and describe what happened. For a knocked-out adult tooth, hold it by the crown, not the root, rinse it briefly and keep it in milk or inside your cheek, and come straight in. For a broken tooth, keep any pieces. For pain, simple over-the-counter pain relief can help while you wait."
+    howPerformed="We find out what is causing the problem, usually with a quick look and an x-ray, then make you comfortable. Often that means fixing it on the spot; sometimes it means a temporary repair and a second visit to finish properly. We explain before we do anything."
+    followup="We tell you what to expect over the next few days, what to eat, and what would mean calling us again. If the tooth needs more treatment, we explain your options and costs, and you choose later."
+    faq={[
+        { question: 'What counts as a dental emergency?', answer: 'Severe toothache, a broken or knocked-out tooth, a lost filling or crown that hurts, swelling in your gum or face, or bleeding that will not stop. If you are not sure, call and ask: that is what we are here for.' },
+        { question: 'When should I go to a hospital instead?', answer: 'Go to an emergency room or call 911 if you have swelling that affects your breathing, swallowing or your eye, a high fever with facial swelling, or an injury to your jaw or head. Those need hospital care first.' },
+        { question: 'What if it happens when you are closed?', answer: 'Our voicemail out of hours gives advice and the local urgent care number. Call us as soon as we open and we will make room for you.' },
+        { question: 'Do you see people who are not registered with you?', answer: 'Yes. If you are in pain, we will see you whether you are a Brightside patient or not.' },
+    ]}
+>
+    <h2>Knocked-out tooth? Time matters</h2>
+    <p>An adult tooth that has been knocked out has the best chance if it is seen quickly. Pick it up by the white part, not the root. If it is dirty, rinse it briefly in milk or water. Keep it moist, in milk or tucked inside your cheek, and call us on the way.</p>
+    <h2>While you wait</h2>
+    <ul>
+        <li>Rinse gently with warm salty water.</li>
+        <li>Use a cold pack on your cheek for swelling: twenty minutes on, twenty off.</li>
+        <li>Take over-the-counter pain relief as directed on the packet.</li>
+        <li>Avoid very hot, cold or sweet food on that side.</li>
+    </ul>
+    <h2>Never just “wait and see” with swelling</h2>
+    <p>Swelling in your face or gum can mean an infection that needs treating soon. Call us. If it is affecting your breathing or swallowing, go to an emergency room straight away. Our post on <a href="/blog/toothache-what-to-do-tonight/">what to do about toothache tonight</a> has more.</p>
+</TreatmentPage>

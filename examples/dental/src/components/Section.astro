@@ -1,0 +1,83 @@
+---
+/**
+ * A band of a page: an optional heading block (eyebrow, h2, lead) and its
+ * content. Tones alternate the paper; `mint` is a soft rounded panel set
+ * into the page rather than a full-width stripe.
+ */
+interface Props {
+    eyebrow?: string;
+    heading?: string;
+    lead?: string;
+    tone?: 'plain' | 'sand' | 'mint';
+    align?: 'start' | 'center';
+    id?: string;
+    /** Level of the heading; h2 unless the page needs otherwise. */
+    narrow?: boolean;
+}
+
+const { eyebrow, heading, lead, tone = 'plain', align = 'start', id, narrow = false } = Astro.props;
+---
+
+<section class:list={['section', `tone-${tone}`]} id={id}>
+    <div class:list={['container', 'panel', { narrow }]}>
+        {
+            heading && (
+                <header class:list={['head', `align-${align}`]}>
+                    {eyebrow && <p class="eyebrow">{eyebrow}</p>}
+                    <h2>{heading}</h2>
+                    {lead && <p class="lead">{lead}</p>}
+                </header>
+            )
+        }
+        <slot />
+    </div>
+</section>
+
+<style>
+    .section {
+        position: relative;
+        padding: var(--section) 0;
+    }
+
+    .tone-plain + .tone-plain {
+        padding-top: 0;
+    }
+
+    .tone-sand {
+        background: var(--color-surface);
+        border-radius: clamp(2rem, 6vw, 5rem);
+        margin-inline: clamp(0rem, 1vw, 1rem);
+    }
+
+    .tone-mint {
+        padding: calc(var(--section) / 2) 0;
+    }
+
+    .tone-mint .panel {
+        padding: clamp(2.5rem, 1.5rem + 5vw, 6rem) clamp(1.25rem, 0.5rem + 4vw, 5rem);
+        border-radius: clamp(2rem, 5vw, 4.5rem);
+        background: var(--color-mint-soft);
+    }
+
+    .narrow {
+        max-width: 52rem;
+    }
+
+    .head {
+        max-width: 46rem;
+        margin-bottom: clamp(2.5rem, 2rem + 2vw, 4rem);
+    }
+
+    .head h2 {
+        margin-bottom: 0;
+    }
+
+    .head .lead {
+        margin: var(--space-5) 0 0;
+    }
+
+    .align-center {
+        margin-inline: auto;
+        text-align: center;
+    }
+</style>

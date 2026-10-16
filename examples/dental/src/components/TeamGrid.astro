@@ -1,0 +1,119 @@
+---
+/**
+ * The dentists, as tall arched portraits on soft pastel grounds. Each
+ * portrait carries its view-transition name (motion.css), so it grows into
+ * that dentist's page.
+ */
+import Photo from './Photo.astro';
+import { team, dentistUrl, type Dentist } from '../data/team';
+
+interface Props {
+    items?: Dentist[];
+    level?: 'h2' | 'h3';
+}
+
+const { items = team, level = 'h3' } = Astro.props;
+const Heading = level;
+const grounds = ['mint', 'coral', 'butter', 'mint'];
+---
+
+<ul class="team">
+    {
+        items.map((person, index) => (
+            <li class:list={['member', `ground-${grounds[index % grounds.length]}`]}>
+                <a href={dentistUrl(person.slug)}>
+                    <span class="portrait-wrap">
+                        <span class:list={['portrait', `vt-dentist-${person.slug}`, `focus-${person.slug}`]}>
+                            <Photo name={person.photo} sizes="(min-width: 64rem) 18rem, (min-width: 40rem) 40vw, 80vw" />
+                        </span>
+                    </span>
+                    <Heading class="name">{person.name}</Heading>
+                    <span class="role">{person.role}</span>
+                    <span class="summary">{person.summary}</span>
+                </a>
+            </li>
+        ))
+    }
+</ul>
+
+<style>
+    .team {
+        display: grid;
+        gap: clamp(1.5rem, 1rem + 2vw, 2.5rem);
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    a {
+        display: block;
+        color: var(--color-text);
+        text-decoration: none;
+    }
+
+    .portrait-wrap {
+        position: relative;
+        display: block;
+        padding: 1.25rem 1.25rem 0;
+        border-radius: var(--arch);
+        background: var(--ground);
+        transition: border-radius 1s var(--ease-calm);
+    }
+
+    .ground-mint {
+        --ground: var(--color-mint);
+    }
+
+    .ground-coral {
+        --ground: var(--color-coral-soft);
+    }
+
+    .ground-butter {
+        --ground: var(--color-butter);
+    }
+
+    .portrait {
+        display: block;
+        overflow: hidden;
+        aspect-ratio: 4 / 5;
+        border-radius: 999px 999px 0 0;
+        transition: transform 1s var(--ease-calm);
+        transform-origin: 50% 100%;
+    }
+
+    .portrait :global(img) {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    /* This photo is landscape: keep the face in the arch. */
+    .focus-hannah-whitlock :global(img) {
+        object-position: 50% 30%;
+    }
+
+    a:hover .portrait,
+    a:focus-visible .portrait {
+        transform: translateY(-0.5rem) scale(1.02);
+    }
+
+    .name {
+        margin: var(--space-5) 0 0.15rem;
+        font-size: 1.45rem;
+    }
+
+    .role {
+        display: block;
+        color: var(--color-mint-deep);
+        font-weight: 650;
+    }
+
+    .summary {
+        display: block;
+        margin-top: var(--space-2);
+        color: var(--color-muted);
+        font-size: 1rem;
+        line-height: 1.6;
+    }
+</style>

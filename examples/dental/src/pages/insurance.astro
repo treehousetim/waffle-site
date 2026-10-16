@@ -1,0 +1,46 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Section from '../components/Section.astro';
+import InsuranceList from '../components/InsuranceList.astro';
+import Faq from '../components/Faq.astro';
+import BookingBand from '../components/BookingBand.astro';
+import { waffle } from '@core/settings';
+import { faqPage } from '@core/lib/jsonld.js';
+import { parseInsurance } from '../lib/insurance';
+
+const guide = parseInsurance(await waffle.get('/api/site/insurance'));
+
+const questions = [
+    { question: 'Will you check my cover before treatment?', answer: 'Yes, always. Give us your plan details when you book and we check what it is likely to cover before your visit. For bigger treatment we can ask your insurer for an estimate first.' },
+    { question: 'What does “out of network” mean for me?', answer: 'You can still see us. We file the claim for you; your plan may pay a little less than it would in network, and we tell you upfront roughly what you would pay.' },
+    { question: 'My plan is not listed. Can I still come?', answer: 'Very likely. Call Jo or Marcus with your plan details and they will check. Many plans reimburse visits to any dentist.' },
+    { question: 'What if I have no insurance at all?', answer: 'Our Brightside Membership covers routine check-ups, cleanings and x-rays for a yearly fee, with a discount on other treatment. Or pay as you go: we always give you the price first.' },
+];
+---
+
+<Base
+    title="Insurance & payment"
+    description="The dental insurance plans Brightside accepts, what in and out of network means for you, and how to pay: cards, HSA, interest-free plans and membership."
+    breadcrumbs={[{ name: 'Insurance & payment', href: '/insurance/' }]}
+    jsonLd={[faqPage(questions)]}
+>
+    <PageHero
+        eyebrow="Insurance & payment"
+        heading="No surprises on the bill"
+        smile="No surprises"
+        lead={`We are in network with ${guide.plans.filter((plan) => plan.network === 'in-network').length} plans, file every claim for you, and tell you what you will pay before any treatment begins.`}
+        photo="familyCouch"
+        tone="coral"
+    />
+
+    <Section eyebrow="Accepted plans" heading="Insurance we work with">
+        <InsuranceList guide={guide} />
+    </Section>
+
+    <Section tone="mint" eyebrow="Questions" heading="Insurance questions">
+        <Faq items={questions} />
+    </Section>
+
+    <BookingBand heading="Not sure about your cover?" text="Call the front desk with your plan details. Jo and Marcus will check it for you, usually while you are on the phone." />
+</Base>

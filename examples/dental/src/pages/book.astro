@@ -1,0 +1,139 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import AppointmentForm from '../components/AppointmentForm.astro';
+import Icon from '../components/Icon.astro';
+import { clock, dayList, site } from '../site';
+import { waffle } from '@core/settings';
+import { parseInsurance } from '../lib/insurance';
+
+const guide = parseInsurance(await waffle.get('/api/site/insurance'));
+---
+
+<Base
+    title="Book a visit"
+    description="Request an appointment at Brightside Family Dental: new or existing patients, adults and children. Tell us what suits you and we reply within a working day."
+    breadcrumbs={[{ name: 'Book a visit', href: '/book/' }]}
+>
+    <PageHero
+        eyebrow="Book a visit"
+        heading="Let’s find a time that suits you"
+        smile="suits you"
+        lead="Tell us a little about you and when you are free. We reply within one working day to offer a time, and nothing is booked until you say yes."
+    />
+
+    <div class="container layout">
+        <AppointmentForm thanks="/book/thanks/" plans={guide.plans} />
+        <aside class="side" aria-label="Other ways to book">
+            <div class="card urgent">
+                <Icon name="heart" size={28} />
+                <p class="title">In pain right now?</p>
+                <p>Please call instead of using the form. We keep same-day slots for emergencies.</p>
+                <a class="button button-forest" href={`tel:${site.business.phoneE164}`}>Call {site.business.phone}</a>
+            </div>
+            <div class="card">
+                <p class="title">When we are open</p>
+                <dl>
+                    {
+                        site.business.hours.map((hours) => (
+                            <div>
+                                <dt>{dayList(hours.days)}</dt>
+                                <dd>
+                                    {clock(hours.opens)} – {clock(hours.closes)}
+                                </dd>
+                            </div>
+                        ))
+                    }
+                </dl>
+            </div>
+            <div class="card calm">
+                <Icon name="leaf" size={28} />
+                <p class="title">Feeling nervous?</p>
+                <p>Tick the box in the form and we will call first to say hello. <a href="/nervous-patients/">How we help nervous patients</a>.</p>
+            </div>
+        </aside>
+    </div>
+</Base>
+
+<style>
+    .layout {
+        display: grid;
+        gap: var(--space-10);
+        padding-bottom: var(--section);
+    }
+
+    .side {
+        display: grid;
+        gap: var(--space-5);
+        align-content: start;
+    }
+
+    .card {
+        padding: var(--space-6) var(--space-8);
+        border-radius: 2.25rem;
+        background: var(--color-surface);
+    }
+
+    .card > :global(svg) {
+        color: var(--color-coral-ink);
+    }
+
+    .urgent {
+        background: var(--color-coral-soft);
+    }
+
+    .calm {
+        background: var(--color-mint-soft);
+    }
+
+    .calm > :global(svg) {
+        color: var(--color-mint-deep);
+    }
+
+    .title {
+        margin: var(--space-2) 0;
+        color: var(--color-forest);
+        font-family: var(--font-display);
+        font-size: 1.4rem;
+        font-weight: 500;
+    }
+
+    .card p:not(.title) {
+        color: #3d4f48;
+        font-size: 1rem;
+    }
+
+    dl {
+        display: grid;
+        gap: var(--space-2);
+        margin: 0;
+    }
+
+    dl div {
+        display: flex;
+        justify-content: space-between;
+        gap: var(--space-4);
+    }
+
+    dt {
+        color: var(--color-forest);
+        font-weight: 650;
+    }
+
+    dd {
+        margin: 0;
+        white-space: nowrap;
+    }
+
+    @media (min-width: 64rem) {
+        .layout {
+            grid-template-columns: minmax(0, 1fr) 22rem;
+            gap: var(--space-12);
+        }
+
+        .side {
+            position: sticky;
+            top: calc(var(--header-height) + 2rem);
+        }
+    }
+</style>

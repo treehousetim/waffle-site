@@ -1,0 +1,393 @@
+---
+/**
+ * The frame every treatment page shares (src/pages/treatments/<slug>.astro):
+ * the hero with the treatment's photo (grown from its card by a view
+ * transition), three facts at a glance, before / during / after, the page's
+ * own copy beside a booking card and the dentists who do it, its questions,
+ * the other treatments, and the structured data: a MedicalProcedure and an
+ * FAQPage.
+ *
+ * Write the copy in the slot from what patients actually ask, in general
+ * terms: what it is, how it is done, how it feels. No promises of results:
+ * a dentist decides what suits a patient, in person.
+ */
+import { getImage } from 'astro:assets';
+import Base from './Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Section from '../components/Section.astro';
+import Faq, { type FaqItem } from '../components/Faq.astro';
+import TreatmentGrid from '../components/TreatmentGrid.astro';
+import BookingBand from '../components/BookingBand.astro';
+import Photo from '../components/Photo.astro';
+import Icon from '../components/Icon.astro';
+import { treatments } from '../data/treatments';
+import { team, dentistUrl } from '../data/team';
+import { photos } from '../data/photos';
+import { site } from '../site';
+import { settings } from '@core/settings';
+import { faqPage } from '@core/lib/jsonld.js';
+import { absoluteUrl, canonicalUrl } from '@core/lib/seo.js';
+import { medicalProcedure } from '../lib/schema';
+
+interface Props {
+    /** The slug in src/data/treatments.ts. */
+    slug: string;
+    title: string;
+    description: string;
+    heading: string;
+    /** A word of the heading to underline with a smile. */
+    smile?: string;
+    lead: string;
+    /** Three short facts: label and value. */
+    glance: { label: string; value: string }[];
+    /** Before, during, after: shown on the page and in the structured data. */
+    preparation: string;
+    howPerformed: string;
+    followup: string;
+    faq: FaqItem[];
+}
+
+const { slug, title, description, heading, smile, lead, glance, preparation, howPerformed, followup, faq } = Astro.props;
+const entry = treatments.find((item) => item.slug === slug);
+
+if (entry === undefined) {
+    throw new Error(`TreatmentPage: no treatment '${slug}' in src/data/treatments.ts.`);
+}
+
+const url = canonicalUrl(Astro.url.pathname, settings.siteUrl);
+const others = treatments.filter((item) => item.slug !== slug).slice(0, 3);
+const dentists = team.filter((person) => person.treatments.includes(slug));
+const preview = await getImage({ src: photos[entry.photo].src, width: 1200, height: 630, fit: 'cover', format: 'jpg' });
+const image = { src: absoluteUrl(preview.src, settings.siteUrl), alt: photos[entry.photo].alt };
+const stages = [
+    { label: 'Before', icon: 'calendar', text: preparation },
+    { label: 'During', icon: 'hand', text: howPerformed },
+    { label: 'After', icon: 'leaf', text: followup },
+] as const;
+---
+
+<Base
+    title={title}
+    description={description}
+    image={image}
+    breadcrumbs={[
+        { name: 'Treatments', href: '/treatments/' },
+        { name: entry.name, href: Astro.url.pathname },
+    ]}
+    jsonLd={[
+        medicalProcedure({ url, name: entry.name, description, procedureType: entry.procedureType, howPerformed, preparation, followup, image: image.src }),
+        faqPage(faq),
+    ]}
+>
+    <PageHero
+        eyebrow={entry.name}
+        heading={heading}
+        smile={smile}
+        lead={lead}
+        photo={entry.photo}
+        vt={`vt-treatment-${slug}`}
+        tone={entry.tone}
+        primary={{ label: site.cta.label, href: site.cta.href }}
+        secondary={{ label: `Call ${site.business.phone}`, href: `tel:${site.business.phoneE164}` }}
+    />
+
+    <div class="container">
+        <dl class="glance">
+            {
+                glance.map((fact) => (
+                    <div>
+                        <dt>{fact.label}</dt>
+                        <dd>{fact.value}</dd>
+                    </div>
+                ))
+            }
+        </dl>
+    </div>
+
+    <Section eyebrow="How it goes" heading="Before, during and after">
+        <ol class="stages">
+            {
+                stages.map((stage) => (
+                    <li>
+                        <span class="stage-icon">
+                            <Icon name={stage.icon} size={26} />
+                        </span>
+                        <h3>{stage.label}</h3>
+                        <p>{stage.text}</p>
+                    </li>
+                ))
+            }
+        </ol>
+    </Section>
+
+    <div class="container body">
+        <div class="prose-column prose-like">
+            <slot />
+        </div>
+        <aside class="aside" aria-label={`Booking ${entry.name.toLowerCase()}`}>
+            <div class="book-card">
+                <p class="book-title">Thinking about it?</p>
+                <p>Book a visit to talk it through first. Asking questions is free, and nothing is decided in a hurry.</p>
+                <p class="actions">
+                    <a class="button" href={site.cta.href}>{site.cta.label}</a>
+                    <a class="button button-quiet" href={`tel:${site.business.phoneE164}`}>{site.business.phone}</a>
+                </p>
+            </div>
+            {
+                dentists.length > 0 && (
+                    <div class="who">
+                        <p class="who-title">Who you might see</p>
+                        <ul>
+                            {dentists.map((person) => (
+                                <li>
+                                    <a href={dentistUrl(person.slug)}>
+                                        <span class:list={['face', `face-${person.slug}`]}>
+                                            <Photo name={person.photo} sizes="4rem" />
+                                        </span>
+                                        <span>
+                                            <strong>{person.name}</strong>
+                                            <span class="who-role">{person.role}</span>
+                                        </span>
+                                    </a>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )
+            }
+        </aside>
+    </div>
+
+    <Section tone="mint" eyebrow="Questions" heading={`${entry.name}: what people ask`}>
+        <Faq items={faq} />
+    </Section>
+
+    <Section eyebrow="Also at Brightside" heading="Other treatments">
+        <TreatmentGrid items={others} />
+    </Section>
+
+    <BookingBand />
+</Base>
+
+<style>
+    .glance {
+        display: grid;
+        gap: var(--space-4);
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+        margin: calc(-1 * var(--space-8)) 0 0;
+        position: relative;
+    }
+
+    .glance div {
+        padding: var(--space-5) var(--space-6);
+        border-radius: var(--radius-pill);
+        background: var(--color-surface-raised);
+        box-shadow: var(--shadow-soft);
+    }
+
+    .glance div:nth-child(2) {
+        background: var(--color-mint-soft);
+    }
+
+    .glance div:nth-child(3) {
+        background: var(--color-butter-soft);
+    }
+
+    dt {
+        color: var(--color-mint-deep);
+        font-size: 0.9rem;
+        font-weight: 700;
+    }
+
+    dd {
+        margin: 0;
+        color: var(--color-forest);
+        font-family: var(--font-display);
+        font-size: 1.25rem;
+        font-weight: 500;
+        line-height: 1.3;
+    }
+
+    .stages {
+        display: grid;
+        gap: var(--space-5);
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        counter-reset: stage;
+    }
+
+    .stages li {
+        position: relative;
+        padding: var(--space-8) var(--space-6) var(--space-6);
+        border-radius: 2.5rem;
+        background: var(--color-surface);
+    }
+
+    .stages li:nth-child(2) {
+        background: var(--color-mint-soft);
+    }
+
+    .stages li:nth-child(3) {
+        background: var(--color-coral-soft);
+    }
+
+    .stage-icon {
+        display: inline-grid;
+        place-items: center;
+        width: 3.25rem;
+        height: 3.25rem;
+        margin-bottom: var(--space-4);
+        border-radius: var(--blob-b);
+        background: var(--color-bg);
+        color: var(--color-mint-deep);
+    }
+
+    .stages p {
+        margin: 0;
+        color: #34443e;
+    }
+
+    .body {
+        display: grid;
+        gap: var(--space-12);
+        padding-bottom: calc(var(--section) / 2);
+    }
+
+    .prose-column {
+        max-width: var(--width-prose);
+    }
+
+    .prose-like > :global(* + h2) {
+        margin-top: var(--space-12);
+    }
+
+    .prose-like :global(h2) {
+        font-size: clamp(1.6rem, 1.3rem + 1.1vw, 2.1rem);
+    }
+
+    .prose-like :global(p),
+    .prose-like :global(li) {
+        color: #2e3f39;
+    }
+
+    .prose-like :global(ul) {
+        margin: 0 0 var(--space-6);
+        padding-left: 1.35em;
+    }
+
+    .prose-like :global(li + li) {
+        margin-top: var(--space-2);
+    }
+
+    .prose-like :global(li::marker) {
+        color: var(--color-coral);
+    }
+
+    .aside {
+        display: grid;
+        gap: var(--space-5);
+        align-content: start;
+    }
+
+    .book-card {
+        padding: var(--space-8);
+        border-radius: var(--blob-a);
+        border-radius: 2.5rem;
+        background: var(--color-forest);
+        color: var(--color-on-forest-muted);
+    }
+
+    .book-title {
+        margin-bottom: var(--space-3);
+        color: var(--color-on-forest);
+        font-family: var(--font-display);
+        font-size: 1.7rem;
+        font-weight: 500;
+    }
+
+    .book-card .button-quiet {
+        color: var(--color-on-forest);
+        box-shadow: inset 0 0 0 2px rgb(185 207 198 / 0.4);
+    }
+
+    .book-card .button-quiet:hover {
+        background: var(--color-forest-raised);
+    }
+
+    .book-card .actions {
+        margin: var(--space-6) 0 0;
+    }
+
+    .who {
+        padding: var(--space-6);
+        border-radius: 2.5rem;
+        background: var(--color-surface);
+    }
+
+    .who-title {
+        color: var(--color-forest);
+        font-family: var(--font-display);
+        font-size: 1.25rem;
+        font-weight: 500;
+    }
+
+    .who ul {
+        display: grid;
+        gap: var(--space-3);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .who a {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        color: var(--color-text);
+        text-decoration: none;
+        line-height: 1.3;
+    }
+
+    .who a:hover strong {
+        color: var(--color-mint-deep);
+    }
+
+    .face {
+        display: block;
+        flex: none;
+        overflow: hidden;
+        width: 3.5rem;
+        height: 3.5rem;
+        border-radius: var(--blob-a);
+    }
+
+    .face :global(img) {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .who strong {
+        display: block;
+        color: var(--color-forest);
+    }
+
+    .who-role {
+        color: var(--color-muted);
+        font-size: 0.92rem;
+    }
+
+    @media (min-width: 64rem) {
+        .body {
+            grid-template-columns: minmax(0, 1fr) 23rem;
+            gap: var(--space-16);
+        }
+
+        .aside {
+            position: sticky;
+            top: calc(var(--header-height) + 2rem);
+        }
+    }
+</style>

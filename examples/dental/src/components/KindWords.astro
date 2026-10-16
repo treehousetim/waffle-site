@@ -1,0 +1,126 @@
+---
+/**
+ * Patients' kind words, as text in soft speech-bubble shapes. Not marked up
+ * as reviews (src/data/kind-words.ts says why).
+ */
+import { kindWords, type KindWord } from '../data/kind-words';
+
+interface Props {
+    items?: KindWord[];
+}
+
+const { items = kindWords } = Astro.props;
+---
+
+<ul class="words">
+    {
+        items.map((item) => (
+            <li>
+                <figure>
+                    <blockquote>
+                        <p>{item.quote}</p>
+                    </blockquote>
+                    <figcaption>
+                        <span class="avatar" aria-hidden="true">
+                            {item.name.slice(0, 1)}
+                        </span>
+                        <span>
+                            <strong>{item.name}</strong>
+                            <span class="detail">{item.detail}</span>
+                        </span>
+                    </figcaption>
+                </figure>
+            </li>
+        ))
+    }
+</ul>
+
+<style>
+    .words {
+        display: grid;
+        gap: clamp(1.25rem, 1rem + 1.5vw, 2rem);
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    figure {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        margin: 0;
+    }
+
+    blockquote {
+        position: relative;
+        flex: 1;
+        margin: 0 0 var(--space-5);
+        padding: var(--space-8) var(--space-6) var(--space-6);
+        border-radius: 2rem 2rem 2rem 0.5rem;
+        background: var(--color-surface-raised);
+        box-shadow: var(--shadow-soft);
+    }
+
+    blockquote::before {
+        content: '“';
+        position: absolute;
+        top: -1.1rem;
+        left: 1.25rem;
+        color: var(--color-coral);
+        font-family: var(--font-display);
+        font-size: 4.5rem;
+        line-height: 1;
+    }
+
+    li:nth-child(even) blockquote {
+        border-radius: 2rem 2rem 0.5rem 2rem;
+    }
+
+    blockquote p {
+        margin: 0;
+        color: var(--color-forest);
+        font-family: var(--font-display);
+        font-size: 1.2rem;
+        font-weight: 400;
+        line-height: 1.45;
+    }
+
+    figcaption {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        line-height: 1.3;
+    }
+
+    .avatar {
+        display: inline-grid;
+        flex: none;
+        place-items: center;
+        width: 2.75rem;
+        height: 2.75rem;
+        border-radius: var(--blob-b);
+        background: var(--color-mint);
+        color: var(--color-forest);
+        font-family: var(--font-display);
+        font-weight: 600;
+    }
+
+    li:nth-child(2n) .avatar {
+        background: var(--color-butter);
+    }
+
+    li:nth-child(3n) .avatar {
+        background: var(--color-coral-soft);
+    }
+
+    strong {
+        display: block;
+        color: var(--color-forest);
+    }
+
+    .detail {
+        color: var(--color-muted);
+        font-size: 0.92rem;
+    }
+</style>

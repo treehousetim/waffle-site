@@ -1,0 +1,20 @@
+---
+/**
+ * Where the waffle app sends a browser without script after a good
+ * submission. Kept out of search results (src/site.ts, noindex).
+ */
+import Base from '../../layouts/Base.astro';
+import PageHero from '../../components/PageHero.astro';
+import { site } from '../../site';
+---
+
+<Base title="Thanks, we have your request" description="We have your appointment request and will reply within one working day to offer a time. In pain? Please call us instead of waiting.">
+    <PageHero
+        eyebrow="Request received"
+        heading="Thank you. We’ll be in touch soon."
+        smile="soon"
+        lead={`We reply within one working day to offer a time. If something hurts, please call us on ${site.business.phone} instead of waiting.`}
+        primary={{ label: 'Back to the home page', href: '/' }}
+        secondary={{ label: 'What happens at a first visit', href: '/new-patients/' }}
+    />
+</Base>

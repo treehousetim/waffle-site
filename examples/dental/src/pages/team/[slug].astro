@@ -1,0 +1,176 @@
+---
+/** /team/<slug>/ for every dentist in src/data/team.ts. */
+import type { GetStaticPaths } from 'astro';
+import { getImage } from 'astro:assets';
+import Base from '../../layouts/Base.astro';
+import PageHero from '../../components/PageHero.astro';
+import Section from '../../components/Section.astro';
+import TreatmentGrid from '../../components/TreatmentGrid.astro';
+import TeamGrid from '../../components/TeamGrid.astro';
+import BookingBand from '../../components/BookingBand.astro';
+import { team, type Dentist } from '../../data/team';
+import { treatments } from '../../data/treatments';
+import { photos } from '../../data/photos';
+import { site } from '../../site';
+import { settings } from '@core/settings';
+import { absoluteUrl, canonicalUrl } from '@core/lib/seo.js';
+import { dentistPerson } from '../../lib/schema';
+
+export const getStaticPaths = (() => team.map((person) => ({ params: { slug: person.slug }, props: { person } }))) satisfies GetStaticPaths;
+
+interface Props {
+    person: Dentist;
+}
+
+const { person } = Astro.props;
+const url = canonicalUrl(Astro.url.pathname, settings.siteUrl);
+const theirs = person.treatments.map((slug) => treatments.find((item) => item.slug === slug)).filter((item) => item !== undefined);
+const colleagues = team.filter((other) => other.slug !== person.slug);
+const preview = await getImage({ src: photos[person.photo].src, width: 1200, height: 630, fit: 'cover', format: 'jpg' });
+const image = { src: absoluteUrl(preview.src, settings.siteUrl), alt: photos[person.photo].alt };
+const firstName = person.name.replace(/^Dr\.\s+/, '').split(' ')[0] ?? person.name;
+---
+
+<Base
+    title={`${person.name}, dentist`}
+    description={person.description}
+    image={image}
+    breadcrumbs={[
+        { name: 'Our team', href: '/team/' },
+        { name: person.name, href: Astro.url.pathname },
+    ]}
+    jsonLd={[
+        dentistPerson(
+            {
+                url,
+                name: person.name,
+                jobTitle: person.role,
+                description: person.description,
+                image: image.src,
+                languages: person.languages,
+                knowsAbout: theirs.map((item) => item.name),
+            },
+            settings.siteUrl,
+        ),
+    ]}
+>
+    <PageHero
+        eyebrow={`${person.credentials} · ${person.role}`}
+        heading={person.name}
+        lead={person.summary}
+        photo={person.photo}
+        shape="arch"
+        vt={`vt-dentist-${person.slug} focus-${person.slug}`}
+        tone="butter"
+        primary={{ label: `Book with ${firstName}`, href: site.cta.href }}
+    />
+
+    <div class="container about">
+        <div class="bio">
+            {person.bio.map((paragraph) => <p>{paragraph}</p>)}
+        </div>
+        <aside class="card" aria-label={`About ${person.name}`}>
+            <blockquote>
+                <p>“{person.promise}”</p>
+            </blockquote>
+            <dl>
+                {
+                    person.facts.map((fact) => (
+                        <div>
+                            <dt>{fact.label}</dt>
+                            <dd>{fact.value}</dd>
+                        </div>
+                    ))
+                }
+                <div>
+                    <dt>Speaks</dt>
+                    <dd>{person.languages.join(', ')}</dd>
+                </div>
+                <div>
+                    <dt>Sees patients</dt>
+                    <dd>{person.days}</dd>
+                </div>
+            </dl>
+        </aside>
+    </div>
+
+    <Section tone="sand" eyebrow={`What ${firstName} does most`} heading="Treatments">
+        <TreatmentGrid items={theirs} />
+    </Section>
+
+    <Section eyebrow="Colleagues" heading="The rest of the dentists">
+        <TeamGrid items={colleagues} />
+    </Section>
+
+    <BookingBand heading={`Book a visit with ${firstName}`} text={`Mention ${firstName} when you book, online or on the phone. ${firstName} sees patients ${person.days}.`} />
+</Base>
+
+<style>
+    .about {
+        display: grid;
+        gap: var(--space-12);
+        padding: var(--space-8) 0 var(--section);
+    }
+
+    .bio {
+        max-width: var(--width-prose);
+        font-size: 1.2rem;
+    }
+
+    .bio p:first-child {
+        color: var(--color-forest);
+        font-family: var(--font-display);
+        font-size: clamp(1.4rem, 1.2rem + 0.8vw, 1.8rem);
+        font-weight: 400;
+        line-height: 1.45;
+    }
+
+    .card {
+        align-self: start;
+        padding: var(--space-8);
+        border-radius: 2.5rem;
+        background: var(--color-mint-soft);
+    }
+
+    blockquote {
+        margin: 0 0 var(--space-6);
+        color: var(--color-forest);
+        font-family: var(--font-display);
+        font-size: 1.35rem;
+        line-height: 1.45;
+    }
+
+    blockquote p {
+        margin: 0;
+    }
+
+    dl {
+        display: grid;
+        gap: var(--space-3);
+        margin: 0;
+    }
+
+    dl div {
+        padding-top: var(--space-3);
+        border-top: 1px dashed var(--color-border-strong);
+    }
+
+    dt {
+        color: var(--color-mint-deep);
+        font-size: 0.9rem;
+        font-weight: 700;
+    }
+
+    dd {
+        margin: 0;
+        color: var(--color-forest);
+        font-weight: 550;
+    }
+
+    @media (min-width: 64rem) {
+        .about {
+            grid-template-columns: minmax(0, 1fr) 24rem;
+            gap: var(--space-16);
+        }
+    }
+</style>

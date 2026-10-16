@@ -1,0 +1,54 @@
+---
+/** /blog/tags/<tag>/ for every tag in use. */
+import type { GetStaticPaths } from 'astro';
+import { getCollection, type CollectionEntry } from 'astro:content';
+import Base from '../../../layouts/Base.astro';
+import PageHero from '../../../components/PageHero.astro';
+import PostGrid from '../../../components/PostGrid.astro';
+import TopicList from '../../../components/TopicList.astro';
+import { site } from '../../../site';
+import { buildTime, settings } from '@core/settings';
+import { postsTagged, tagIndex, visiblePosts } from '@core/lib/posts.js';
+
+export const getStaticPaths = (async () => {
+    const posts = visiblePosts(await getCollection('blog'), { includeDrafts: !settings.production, now: buildTime });
+    const tags = tagIndex(posts);
+
+    return tags.map((tag) => ({
+        params: { tag: tag.slug },
+        props: { name: tag.tag, slug: tag.slug, posts: postsTagged(posts, tag.slug), tags },
+    }));
+}) satisfies GetStaticPaths;
+
+interface Props {
+    name: string;
+    slug: string;
+    posts: CollectionEntry<'blog'>[];
+    tags: ReturnType<typeof tagIndex>;
+}
+
+const { name, slug, posts, tags } = Astro.props;
+const count = posts.length === 1 ? 'one post' : `${posts.length} posts`;
+---
+
+<Base
+    title={`Advice about ${name.toLowerCase()}`}
+    description={`Every ${site.name} post about ${name.toLowerCase()}: ${count}, newest first. Plain, kind advice from our family dentists.`}
+    breadcrumbs={[
+        { name: site.blog.title, href: '/blog/' },
+        { name, href: Astro.url.pathname },
+    ]}
+>
+    <PageHero eyebrow={`Topic · ${count}`} heading={`Advice about ${name.toLowerCase()}`} primary={{ label: '← All advice', href: '/blog/' }}>
+        <TopicList tags={tags} current={slug} />
+    </PageHero>
+    <div class="container list">
+        <PostGrid posts={posts} />
+    </div>
+</Base>
+
+<style>
+    .list {
+        padding-bottom: var(--space-8);
+    }
+</style>

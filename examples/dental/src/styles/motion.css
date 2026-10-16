@@ -1,0 +1,378 @@
+/*
+ * Motion: slow, soft and reassuring. Everything eases in and settles;
+ * nothing snaps, bounces hard or flashes. All CSS, no library and no script,
+ * so nothing here touches the content security policy, and a page that
+ * never runs any of it still reads perfectly.
+ *
+ *   - Pages change with the browser's own view transitions: a slow
+ *     cross-fade, the header staying put, and a treatment's (or a
+ *     dentist's) photo growing from its card into the page's hero.
+ *   - The logo draws its smile on load; its pebble sways and its sparkle
+ *     twinkles, slowly, forever.
+ *   - Hero blobs and blob-masked photos slowly change shape (border-radius
+ *     keyframes) and drift; chips and sparkles float.
+ *   - Headings' hand-drawn smiles draw themselves in as they appear.
+ *   - Bands, cards and steps rise softly into place as they scroll into
+ *     view; the first-visit path fills as you scroll down it, each step's
+ *     pebble warming as you reach it; the header settles a shadow once the
+ *     page leaves the top; a reading line grows along the top of a post.
+ *   - A ribbon of reassurances drifts sideways, very slowly.
+ *
+ * Everything is inside prefers-reduced-motion: no-preference, and the
+ * scroll-driven parts inside @supports too: where either is missing the
+ * page is simply still, and nothing is hidden. global.css switches all
+ * animation off under reduce.
+ */
+
+@view-transition {
+    navigation: auto;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    ::view-transition-old(root) {
+        animation: 420ms var(--ease-calm) both fade-out;
+    }
+
+    ::view-transition-new(root) {
+        animation: 700ms var(--ease-calm) 80ms both soft-in;
+    }
+
+    ::view-transition-group(*) {
+        animation-duration: 750ms;
+        animation-timing-function: var(--ease-calm);
+    }
+
+    .site-header {
+        view-transition-name: site-header;
+    }
+
+    /* A card's photo becomes the page's hero photo, and back. */
+    .vt-treatment-checkups-and-cleanings { view-transition-name: treatment-checkups-and-cleanings; }
+    .vt-treatment-childrens-dentistry { view-transition-name: treatment-childrens-dentistry; }
+    .vt-treatment-whitening { view-transition-name: treatment-whitening; }
+    .vt-treatment-clear-aligners { view-transition-name: treatment-clear-aligners; }
+    .vt-treatment-implants { view-transition-name: treatment-implants; }
+    .vt-treatment-emergency-dental-care { view-transition-name: treatment-emergency-dental-care; }
+    .vt-dentist-hannah-whitlock { view-transition-name: dentist-hannah-whitlock; }
+    .vt-dentist-sofia-marchetti { view-transition-name: dentist-sofia-marchetti; }
+    .vt-dentist-peter-lindqvist { view-transition-name: dentist-peter-lindqvist; }
+    .vt-dentist-rafael-castellano { view-transition-name: dentist-rafael-castellano; }
+
+    /* The logo: the smile draws itself, the pebble sways, the sparkle twinkles. */
+    .logo .smile {
+        stroke-dasharray: 1;
+        animation: draw 1400ms var(--ease-calm) 300ms both;
+    }
+
+    .logo .pebble,
+    .mascot .pebble {
+        animation: sway 9s var(--ease-float) infinite;
+    }
+
+    .mascot svg {
+        animation: settle-in 1400ms var(--ease-calm) 200ms both, float 8s var(--ease-float) 1.6s infinite;
+    }
+
+    .mascot .grin {
+        stroke-dasharray: 1;
+        animation: draw 1600ms var(--ease-calm) 900ms both;
+    }
+
+    .logo .sparkle {
+        animation: twinkle 6s var(--ease-float) 1.6s infinite;
+    }
+
+    /* Page heroes, on load: copy rises line by line, the photo settles in. */
+    :is(.hero, .page-hero) .copy > *,
+    .post .head-inner > * {
+        animation: soft-in 1100ms var(--ease-calm) both;
+    }
+
+    :is(.hero, .page-hero) .copy > :nth-child(2),
+    .post .head-inner > :nth-child(2) { animation-delay: 120ms; }
+
+    :is(.hero, .page-hero) .copy > :nth-child(3),
+    .post .head-inner > :nth-child(3) { animation-delay: 240ms; }
+
+    :is(.hero, .page-hero) .copy > :nth-child(4),
+    .post .head-inner > :nth-child(4) { animation-delay: 360ms; }
+
+    :is(.hero, .page-hero) .copy > :nth-child(5),
+    .post .head-inner > :nth-child(5) { animation-delay: 480ms; }
+
+    :is(.hero, .page-hero) .media {
+        animation: settle-in 1400ms var(--ease-calm) 200ms both;
+    }
+
+    .post .cover {
+        animation: settle-in 1400ms var(--ease-calm) 300ms both;
+    }
+
+    /* The smile under a hero word draws itself once the heading has risen. */
+    :is(.hero, .page-hero) .smile-line {
+        animation: wipe 1300ms var(--ease-calm) 700ms both;
+    }
+
+    /* Blobs breathe: slowly changing shape and drifting. */
+    .blob-1 {
+        animation: morph 22s ease-in-out infinite, drift 30s var(--ease-float) infinite alternate;
+    }
+
+    .blob-2 {
+        animation: morph 26s ease-in-out -8s infinite, drift 34s var(--ease-float) -6s infinite alternate-reverse;
+    }
+
+    .blob-3 {
+        animation: morph 18s ease-in-out -4s infinite, float 9s var(--ease-float) infinite;
+    }
+
+    /* Blob-masked photos and their halos change shape, very slowly. */
+    :is(.hero, .page-hero) .frame:not(.arch) {
+        animation: morph 20s ease-in-out infinite;
+    }
+
+    :is(.hero, .page-hero) .halo {
+        animation: morph 16s ease-in-out -5s infinite;
+    }
+
+    /* Things that float. */
+    .hero .chip-hand {
+        animation: soft-in 1000ms var(--ease-calm) 900ms both, float 7s var(--ease-float) 1.9s infinite;
+    }
+
+    .hero .chip-tea {
+        animation: soft-in 1000ms var(--ease-calm) 1100ms both, float 8s var(--ease-float) 2.1s infinite reverse;
+    }
+
+    .hero .bubble {
+        animation: settle-in 1200ms var(--ease-calm) 600ms both, float 10s var(--ease-float) 1.8s infinite;
+    }
+
+    .sparkle-float {
+        animation: float 6s var(--ease-float) infinite, twinkle 6s var(--ease-float) infinite;
+    }
+
+    .hero .dot::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        background: var(--color-mint-deep);
+        animation: ripple 3s var(--ease-calm) infinite;
+    }
+
+    /* The ribbon of reassurances. */
+    .marquee .track {
+        animation: ribbon 60s linear infinite;
+    }
+
+    .marquee:hover .track {
+        animation-play-state: paused;
+    }
+
+    /* The faces on the home page smile a little wider when you hover. */
+    .mood-card .mouth {
+        transform-box: fill-box;
+        transform-origin: 50% 50%;
+        transition: transform 0.8s var(--ease-calm);
+    }
+
+    .mood-card a:hover .mouth {
+        transform: scaleX(1.15);
+    }
+
+    /* <details> open softly where height can animate to auto. */
+    .faq details::details-content {
+        block-size: 0;
+        overflow: clip;
+        transition: block-size 700ms var(--ease-calm), content-visibility 700ms allow-discrete;
+    }
+
+    .faq details[open]::details-content {
+        block-size: auto;
+    }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+        /* Bands and cards rise softly into place as they come into view. */
+        .section .head,
+        .booking-band .panel,
+        .breathing-inner > *,
+        .story > *,
+        .letter > *,
+        .bring > *,
+        .about > *,
+        .cover > *,
+        .stats li,
+        .mood-card,
+        :is(.treatments, .team, .words, .posts, .plans, .payments, .comforts, .promises, .beliefs, .stages, .cards) > li,
+        .cards > .card,
+        .faq details {
+            animation: soft-in linear both;
+            animation-timeline: view();
+            animation-range: entry 0% entry 80%;
+        }
+
+        /* Grid items arrive a breath apart, left to right. */
+        :is(.treatments, .team, .words, .posts, .plans, .payments, .comforts, .promises, .beliefs, .stages, .moods, .stats ul) > li:nth-child(3n + 2) {
+            animation-range: entry 8% entry 88%;
+        }
+
+        :is(.treatments, .team, .words, .posts, .plans, .payments, .comforts, .promises, .beliefs, .stages, .moods, .stats ul) > li:nth-child(3n + 3) {
+            animation-range: entry 16% entry 96%;
+        }
+
+        /* Section headings' smiles, and the eyebrow's little smile. */
+        .section .head .eyebrow::before {
+            animation: grow-x linear both;
+            animation-timeline: view();
+            animation-range: entry 20% entry 90%;
+        }
+
+        /* The first-visit path fills as you scroll down it. */
+        .visit-path {
+            view-timeline-name: --visit;
+        }
+
+        .visit-path .track-fill {
+            stroke-dasharray: 1;
+            animation: draw linear both;
+            animation-timeline: --visit;
+            animation-range: entry 40% exit 60%;
+        }
+
+        /* Each step's pebble warms to mint as you reach it. */
+        .visit-path .pebble {
+            animation: pebble-on linear both;
+            animation-timeline: view();
+            animation-range: entry 60% cover 45%;
+        }
+
+        .visit-path .card {
+            animation: soft-in linear both;
+            animation-timeline: view();
+            animation-range: entry 10% entry 90%;
+        }
+
+        /* Hero blobs drift a little slower than the page: depth. */
+        :is(.hero, .page-hero) .blobs {
+            animation: parallax linear both;
+            animation-timeline: scroll(root);
+            animation-range: 0 100vh;
+        }
+
+        /* The header settles a soft shadow once the page leaves the top. */
+        .site-header .bar {
+            animation: lift linear both;
+            animation-timeline: scroll(root);
+            animation-range: 0 10rem;
+        }
+
+        /* Reading progress, on a post: a coral line along the top. */
+        .reading-progress {
+            position: fixed;
+            inset: 0 0 auto;
+            z-index: 60;
+            height: 4px;
+            border-radius: 0 4px 4px 0;
+            background: linear-gradient(90deg, var(--color-mint-deep), var(--color-coral));
+            transform-origin: 0 50%;
+            animation: grow-x linear both;
+            animation-timeline: scroll(root);
+        }
+
+        /* The marquee tilts gently back to level as it scrolls through. */
+        .marquee {
+            animation: level linear both;
+            animation-timeline: view();
+            animation-range: cover 0% cover 100%;
+        }
+    }
+}
+
+@keyframes fade-out {
+    to { opacity: 0; }
+}
+
+@keyframes soft-in {
+    from { opacity: 0; transform: translateY(1.75rem); }
+    to { opacity: 1; transform: none; }
+}
+
+@keyframes settle-in {
+    from { opacity: 0; transform: scale(0.93) translateY(1.25rem); }
+    to { opacity: 1; transform: none; }
+}
+
+@keyframes draw {
+    from { stroke-dashoffset: 1; }
+    to { stroke-dashoffset: 0; }
+}
+
+@keyframes wipe {
+    from { clip-path: inset(-50% 100% -50% -5%); }
+    to { clip-path: inset(-50% -5% -50% -5%); }
+}
+
+@keyframes morph {
+    0%, 100% { border-radius: var(--blob-a); }
+    33% { border-radius: var(--blob-b); }
+    66% { border-radius: var(--blob-c); }
+}
+
+@keyframes drift {
+    from { transform: translate(0, 0) rotate(0deg); }
+    to { transform: translate(-3%, 4%) rotate(12deg); }
+}
+
+@keyframes float {
+    0%, 100% { translate: 0 0; }
+    50% { translate: 0 -0.6rem; }
+}
+
+@keyframes sway {
+    0%, 100% { transform: rotate(-4deg) scale(1); }
+    50% { transform: rotate(5deg) scale(1.03); }
+}
+
+@keyframes twinkle {
+    0%, 70%, 100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    80% { transform: scale(0.6) rotate(45deg); opacity: 0.6; }
+    90% { transform: scale(1.15) rotate(90deg); opacity: 1; }
+}
+
+@keyframes ripple {
+    from { transform: scale(1); opacity: 0.6; }
+    to { transform: scale(3); opacity: 0; }
+}
+
+@keyframes ribbon {
+    to { transform: translateX(-50%); }
+}
+
+@keyframes grow-x {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+}
+
+@keyframes pebble-on {
+    from { background: var(--color-bg); }
+    to { background: var(--color-mint); }
+}
+
+@keyframes parallax {
+    to { transform: translateY(14%); }
+}
+
+@keyframes lift {
+    to {
+        background: rgb(253 248 240 / 0.95);
+        box-shadow: 0 18px 40px -24px rgb(29 59 52 / 0.45);
+    }
+}
+
+@keyframes level {
+    from { rotate: -2.5deg; }
+    to { rotate: 0deg; }
+}

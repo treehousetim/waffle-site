@@ -1,0 +1,576 @@
+---
+import Base from '../layouts/Base.astro';
+import Photo from '../components/Photo.astro';
+import Blobs from '../components/Blobs.astro';
+import Smile from '../components/Smile.astro';
+import Sparkle from '../components/Sparkle.astro';
+import Icon from '../components/Icon.astro';
+import Section from '../components/Section.astro';
+import TreatmentGrid from '../components/TreatmentGrid.astro';
+import TeamGrid from '../components/TeamGrid.astro';
+import VisitPath from '../components/VisitPath.astro';
+import Marquee from '../components/Marquee.astro';
+import KindWords from '../components/KindWords.astro';
+import PostGrid from '../components/PostGrid.astro';
+import BookingBand from '../components/BookingBand.astro';
+import { getCollection } from 'astro:content';
+import { clock, site } from '../site';
+import { firstVisit } from '../data/first-visit';
+import { buildTime, settings, waffle } from '@core/settings';
+import { visiblePosts } from '@core/lib/posts.js';
+import { dollars, parseInsurance } from '../lib/insurance';
+
+const guide = parseInsurance(await waffle.get('/api/site/insurance'));
+const accepted = guide.plans.filter((plan) => plan.network === 'in-network');
+const membership = guide.payments.find((option) => option.id === 'membership');
+const posts = visiblePosts(await getCollection('blog'), { includeDrafts: !settings.production, now: buildTime }).slice(0, 3);
+const years = buildTime.getUTCFullYear() - site.business.founded;
+const earliest = clock(site.business.hours[0]?.opens ?? '08:00');
+
+const moods = [
+    { face: 'happy', label: 'Fine, just due a check-up', text: 'Lovely. Forty-five calm minutes and you are done.', href: '/treatments/checkups-and-cleanings/' },
+    { face: 'unsure', label: 'Honestly, a bit nervous', text: 'You are in good company. Here is how we make it easier.', href: '/nervous-patients/' },
+    { face: 'ouch', label: 'Something hurts right now', text: 'Call us first thing: we keep same-day slots for you.', href: '/treatments/emergency-dental-care/' },
+];
+---
+
+<Base title={`${site.name}: family dentist in ${site.business.address.city}`} description={site.description}>
+    <section class="hero">
+        <Blobs set="hero" />
+        <div class="container hero-inner">
+            <div class="copy">
+                <p class="eyebrow">Family dentist in {site.business.address.city}</p>
+                <h1>
+                    Dentistry that feels like a{' '}
+                    <span class="smiled">deep breath<Smile /></span>
+                </h1>
+                <p class="lead">
+                    Unhurried check-ups for the whole family, explained in plain words, with the chair upright until you are ready. Nervous patients are our
+                    favourite people.
+                </p>
+                <p class="actions">
+                    <a class="button button-large" href={site.cta.href}>
+                        <Icon name="calendar" size={22} />
+                        {site.cta.label}
+                    </a>
+                    <a class="button button-quiet button-large" href="/nervous-patients/">I’m a nervous patient</a>
+                </p>
+                <p class="open-now">
+                    <span class="dot" aria-hidden="true"></span>
+                    Welcoming new patients · Evening clinic on Wednesdays
+                </p>
+            </div>
+            <div class="media">
+                <span class="halo" aria-hidden="true"></span>
+                <div class="frame">
+                    <Photo name="dentistChatting" sizes="(min-width: 64rem) 42vw, 92vw" priority />
+                </div>
+                <div class="bubble">
+                    <Photo name="girlBrushing" sizes="12rem" />
+                </div>
+                <p class="chip chip-hand"><Icon name="hand" size={20} /> Raise a hand, we stop</p>
+                <p class="chip chip-tea"><Icon name="leaf" size={20} /> We run on time</p>
+                <Sparkle class="spark-1" />
+                <Sparkle class="spark-2" />
+            </div>
+        </div>
+    </section>
+
+    <section class="mood" aria-labelledby="mood-heading">
+        <div class="container">
+            <h2 id="mood-heading">How are you feeling about the dentist?</h2>
+            <ul class="moods">
+                {
+                    moods.map((mood) => (
+                        <li class:list={['mood-card', `mood-${mood.face}`]}>
+                            <a href={mood.href}>
+                                <svg class="face" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+                                    <path class="face-shape" d="M32 4c15 0 28 10 28 27S48 60 31 60 4 49 4 32 17 4 32 4Z" />
+                                    <circle class="eye" cx="23" cy="27" r="3" />
+                                    <circle class="eye" cx="41" cy="27" r="3" />
+                                    {mood.face === 'happy' && <path class="mouth" pathLength="1" d="M20 38c3 7 7 10 12 10s9-3 12-10" />}
+                                    {mood.face === 'unsure' && <path class="mouth" pathLength="1" d="M20 42c3-3 6-3 8 0s5 3 8 0 6-3 8 0" />}
+                                    {mood.face === 'ouch' && <path class="mouth" pathLength="1" d="M23 46c2-5 5-7 9-7s7 2 9 7" />}
+                                </svg>
+                                <span class="mood-label">{mood.label}</span>
+                                <span class="mood-text">{mood.text}</span>
+                                <span class="mood-go" aria-hidden="true">
+                                    <Icon name="arrow" size={20} />
+                                </span>
+                            </a>
+                        </li>
+                    ))
+                }
+            </ul>
+        </div>
+    </section>
+
+    <Section eyebrow="Treatments" heading="Gentle care, for every smile in the house" lead="From a toddler’s very first visit to replacing a tooth, every treatment starts with a conversation, never a lecture.">
+        <TreatmentGrid />
+        <p class="more"><a class="button button-quiet" href="/treatments/">All treatments <Icon name="arrow" size={18} /></a></p>
+    </Section>
+
+    <Marquee
+        items={[
+            'We explain before we start',
+            'Raise a hand and we stop',
+            'Longer appointments, just ask',
+            'Headphones and blankets in every room',
+            'No lectures about flossing',
+            'Same-day emergency slots',
+        ]}
+    />
+
+    <Section eyebrow="New here?" heading="Your first visit, step by step" lead="No surprises. This is exactly what happens, from the moment you get in touch.">
+        <VisitPath steps={firstVisit} />
+        <p class="more"><a class="button" href="/new-patients/">More for new patients <Icon name="arrow" size={18} /></a></p>
+    </Section>
+
+    <Section tone="sand" eyebrow="The dentists" heading="Small enough to know your name">
+        <TeamGrid />
+    </Section>
+
+    <Section tone="mint" eyebrow="Insurance & payment" heading="We work with most local plans">
+        <div class="cover">
+            <div>
+                <p class="lead">
+                    We are in network with {accepted.length} plans, file every claim for you, and tell you what you will pay before anything starts.
+                </p>
+                <ul class="plan-cloud" aria-label="In-network plans">
+                    {accepted.map((plan) => <li>{plan.name}</li>)}
+                </ul>
+            </div>
+            <div class="membership">
+                <Icon name="heart" size={30} />
+                <p class="membership-title">No insurance?</p>
+                {
+                    membership && membership.price && (
+                        <p class="membership-price">
+                            <strong>{dollars(membership.price.cents)}</strong> a {membership.price.per}
+                        </p>
+                    )
+                }
+                <p>{membership?.note}</p>
+                <a class="button button-forest" href="/insurance/">Insurance & payment</a>
+            </div>
+        </div>
+    </Section>
+
+    <section class="stats" aria-label="Brightside in numbers">
+        <div class="container">
+            <ul>
+                <li><strong>{years}</strong> years on Honeysuckle Lane</li>
+                <li><strong>4</strong> dentists, 3 gentle hygienists</li>
+                <li><strong>{accepted.length}</strong> insurance plans in network</li>
+                <li><strong>{earliest.replace(/ (am|pm)$/, '')}</strong> {earliest.endsWith('am') ? 'am' : 'pm'}, when the phone line opens</li>
+            </ul>
+        </div>
+    </section>
+
+    <Section eyebrow="Kind words" heading="What patients tell us">
+        <KindWords />
+    </Section>
+
+    <Section tone="sand" eyebrow="Advice" heading="From the blog">
+        <PostGrid posts={posts} level="h3" />
+        <p class="more"><a class="button button-quiet" href="/blog/">All advice <Icon name="arrow" size={18} /></a></p>
+    </Section>
+
+    <BookingBand />
+</Base>
+
+<style>
+    .hero {
+        position: relative;
+        isolation: isolate;
+        overflow: clip;
+        margin-top: calc(-1 * var(--header-height) - 0.75rem);
+        padding: calc(var(--header-height) + clamp(2.5rem, 1.5rem + 4vw, 5.5rem)) 0 clamp(4rem, 2rem + 6vw, 8rem);
+    }
+
+    .hero-inner {
+        display: grid;
+        gap: clamp(3rem, 2rem + 4vw, 5rem);
+        align-items: center;
+    }
+
+    .copy {
+        max-width: 42rem;
+    }
+
+    h1 {
+        font-size: clamp(2.9rem, 1.5rem + 5.4vw, 6.2rem);
+        line-height: 1;
+    }
+
+    .lead {
+        max-width: 34rem;
+        margin-top: var(--space-10);
+    }
+
+    .actions {
+        margin: var(--space-8) 0 var(--space-6);
+    }
+
+    .open-now {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-3);
+        margin: 0;
+        color: var(--color-forest);
+        font-size: 0.98rem;
+        font-weight: 650;
+    }
+
+    .dot {
+        position: relative;
+        width: 0.7rem;
+        height: 0.7rem;
+        border-radius: 50%;
+        background: var(--color-mint-deep);
+    }
+
+    .media {
+        position: relative;
+        width: min(100%, 36rem);
+        justify-self: center;
+        margin: 1rem 0 3rem;
+    }
+
+    .halo {
+        position: absolute;
+        inset: 5% -5% -8% 6%;
+        border-radius: var(--blob-b);
+        background: var(--color-mint);
+    }
+
+    .frame {
+        position: relative;
+        overflow: hidden;
+        aspect-ratio: 1;
+        border-radius: var(--blob-a);
+        box-shadow: var(--shadow-lift);
+    }
+
+    .frame :global(img) {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: 40% 50%;
+    }
+
+    .bubble {
+        position: absolute;
+        left: -6%;
+        bottom: -10%;
+        width: 34%;
+        aspect-ratio: 1;
+        overflow: hidden;
+        border: 6px solid var(--color-bg);
+        border-radius: 50%;
+        box-shadow: var(--shadow-lift);
+    }
+
+    .bubble :global(img) {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .chip {
+        position: absolute;
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        margin: 0;
+        padding: 0.6rem 1.1rem;
+        border-radius: var(--radius-pill);
+        background: var(--color-bg);
+        color: var(--color-forest);
+        font-size: 0.95rem;
+        font-weight: 700;
+        white-space: nowrap;
+        box-shadow: var(--shadow-soft);
+    }
+
+    .chip :global(svg) {
+        color: var(--color-coral-ink);
+    }
+
+    .chip-hand {
+        top: 8%;
+        left: -8%;
+    }
+
+    .chip-tea {
+        right: -4%;
+        bottom: 14%;
+    }
+
+    .media :global(.spark-1) {
+        position: absolute;
+        top: -4%;
+        right: 12%;
+        width: 3rem;
+        color: var(--color-coral);
+    }
+
+    .media :global(.spark-2) {
+        position: absolute;
+        bottom: 30%;
+        left: 30%;
+        width: 1.5rem;
+        color: var(--color-butter);
+        display: none;
+    }
+
+    @media (min-width: 64rem) {
+        .hero-inner {
+            grid-template-columns: 1.1fr 0.9fr;
+        }
+
+        .media {
+            justify-self: end;
+        }
+    }
+
+    @media (max-width: 40rem) {
+        .chip-hand {
+            left: 0;
+            top: -4%;
+        }
+
+        .chip-tea {
+            right: 0;
+        }
+    }
+
+    /* How are you feeling? */
+    .mood {
+        padding: 0 0 var(--space-8);
+    }
+
+    .mood h2 {
+        max-width: 30rem;
+        margin-bottom: var(--space-8);
+        font-size: clamp(1.7rem, 1.3rem + 1.6vw, 2.5rem);
+    }
+
+    .moods {
+        display: grid;
+        gap: var(--space-4);
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .mood-card a {
+        position: relative;
+        display: grid;
+        grid-template-columns: 4rem 1fr;
+        gap: 0.25rem var(--space-4);
+        align-items: center;
+        height: 100%;
+        padding: var(--space-5) var(--space-6) var(--space-5) var(--space-5);
+        border-radius: 2rem;
+        background: var(--color-surface-raised);
+        color: var(--color-text);
+        text-decoration: none;
+        box-shadow: var(--shadow-soft);
+        transition: transform 0.9s var(--ease-calm), box-shadow 0.9s var(--ease-calm), background-color 0.9s var(--ease-calm);
+    }
+
+    .mood-card a:hover,
+    .mood-card a:focus-visible {
+        transform: translateY(-0.4rem) rotate(-0.6deg);
+        box-shadow: var(--shadow-lift);
+    }
+
+    .mood-happy a:hover {
+        background: var(--color-mint-soft);
+    }
+
+    .mood-unsure a:hover {
+        background: var(--color-butter-soft);
+    }
+
+    .mood-ouch a:hover {
+        background: var(--color-coral-soft);
+    }
+
+    .face {
+        grid-row: span 2;
+        width: 4rem;
+        height: 4rem;
+    }
+
+    .face-shape {
+        fill: var(--color-mint);
+    }
+
+    .mood-unsure .face-shape {
+        fill: var(--color-butter);
+    }
+
+    .mood-ouch .face-shape {
+        fill: var(--color-coral-soft);
+    }
+
+    .eye {
+        fill: var(--color-forest);
+    }
+
+    .mouth {
+        fill: none;
+        stroke: var(--color-forest);
+        stroke-width: 3.5;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    .mood-label {
+        color: var(--color-forest);
+        font-family: var(--font-display);
+        font-size: 1.25rem;
+        font-weight: 500;
+        line-height: 1.25;
+        padding-right: 2.5rem;
+    }
+
+    .mood-text {
+        color: var(--color-muted);
+        font-size: 0.98rem;
+        line-height: 1.5;
+    }
+
+    .mood-go {
+        position: absolute;
+        top: var(--space-5);
+        right: var(--space-5);
+        color: var(--color-coral-ink);
+        transition: transform 0.8s var(--ease-calm);
+    }
+
+    .mood-card a:hover .mood-go {
+        transform: translateX(0.3rem);
+    }
+
+    .more {
+        margin: var(--space-12) 0 0;
+    }
+
+    /* Insurance */
+    .cover {
+        display: grid;
+        gap: var(--space-10);
+        align-items: start;
+    }
+
+    .cover .lead {
+        margin-top: 0;
+        color: #3d4f48;
+    }
+
+    .plan-cloud {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+        margin: var(--space-6) 0 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .plan-cloud li {
+        padding: 0.5rem 1.1rem;
+        border-radius: var(--radius-pill);
+        background: var(--color-bg);
+        color: var(--color-forest);
+        font-weight: 650;
+        font-size: 0.98rem;
+    }
+
+    .plan-cloud li:nth-child(3n + 2) {
+        background: var(--color-mint);
+    }
+
+    .plan-cloud li:nth-child(3n) {
+        background: var(--color-butter);
+    }
+
+    .membership {
+        padding: var(--space-8);
+        border-radius: var(--blob-c);
+        border-radius: 2.5rem;
+        background: var(--color-bg);
+        color: var(--color-muted);
+    }
+
+    .membership > :global(svg) {
+        color: var(--color-coral);
+    }
+
+    .membership-title {
+        margin: var(--space-3) 0 var(--space-1);
+        color: var(--color-forest);
+        font-family: var(--font-display);
+        font-size: 1.6rem;
+        font-weight: 500;
+    }
+
+    .membership-price {
+        margin-bottom: var(--space-3);
+        color: var(--color-forest);
+        font-weight: 600;
+    }
+
+    .membership-price strong {
+        font-family: var(--font-display);
+        font-size: 2.4rem;
+        font-weight: 600;
+    }
+
+    @media (min-width: 60rem) {
+        .cover {
+            grid-template-columns: 1.4fr 1fr;
+            gap: var(--space-16);
+        }
+    }
+
+    /* Numbers */
+    .stats {
+        padding: var(--section) 0 0;
+    }
+
+    .stats ul {
+        display: grid;
+        gap: var(--space-6);
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .stats li {
+        color: var(--color-muted);
+        font-weight: 600;
+        line-height: 1.4;
+    }
+
+    .stats strong {
+        display: block;
+        color: var(--color-forest);
+        font-family: var(--font-display);
+        font-size: clamp(3rem, 2rem + 3vw, 4.5rem);
+        font-weight: 500;
+        line-height: 1.05;
+    }
+
+    .stats li:nth-child(2) strong {
+        color: var(--color-mint-deep);
+    }
+
+    .stats li:nth-child(3) strong {
+        color: var(--color-coral-ink);
+    }
+</style>

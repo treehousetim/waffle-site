@@ -1,0 +1,12 @@
+---
+/** A small four-pointed sparkle, decorative, that floats and twinkles (motion.css). */
+interface Props {
+    class?: string;
+}
+
+const { class: className } = Astro.props;
+---
+
+<svg class:list={['sparkle-float', className]} viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+    <path d="M12 1.5c.8 5.4 3.6 8.2 9 9-5.4.8-8.2 3.6-9 9-.8-5.4-3.6-8.2-9-9 5.4-.8 8.2-3.6 9-9Z" fill="currentColor" />
+</svg>

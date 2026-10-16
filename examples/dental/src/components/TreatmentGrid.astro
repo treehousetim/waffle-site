@@ -1,0 +1,187 @@
+---
+/**
+ * The treatments as soft cards in a gently staggered wave: each a pastel
+ * panel with its photo in a pill-shaped mask that relaxes into a blob as the
+ * card lifts under the pointer. Each photo carries its view-transition name
+ * (motion.css), so it grows into the treatment page's hero.
+ */
+import Photo from './Photo.astro';
+import Icon from './Icon.astro';
+import { treatments, treatmentUrl, type Treatment } from '../data/treatments';
+
+interface Props {
+    items?: Treatment[];
+    level?: 'h2' | 'h3';
+}
+
+const { items = treatments, level = 'h3' } = Astro.props;
+const Heading = level;
+---
+
+<ul class="treatments">
+    {
+        items.map((item) => (
+            <li class:list={['card', `tone-${item.tone}`]}>
+                <a href={treatmentUrl(item.slug)}>
+                    <span class:list={['photo', `vt-treatment-${item.slug}`]}>
+                        <Photo name={item.photo} sizes="(min-width: 64rem) 26rem, (min-width: 40rem) 45vw, 90vw" />
+                    </span>
+                    <span class="icon">
+                        <Icon name={item.icon} size={26} />
+                    </span>
+                    <Heading class="title">{item.name}</Heading>
+                    <span class="summary">{item.summary}</span>
+                    <span class="foot">
+                        <span class="time">
+                            <Icon name="clock" size={16} /> {item.time}
+                        </span>
+                        <span class="go" aria-hidden="true">
+                            <Icon name="arrow" size={20} />
+                        </span>
+                    </span>
+                </a>
+            </li>
+        ))
+    }
+</ul>
+
+<style>
+    .treatments {
+        display: grid;
+        gap: clamp(1.25rem, 1rem + 1.5vw, 2.25rem);
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    @media (min-width: 64rem) {
+        .treatments {
+            grid-template-columns: repeat(3, 1fr);
+            padding-bottom: 4rem;
+        }
+
+        /* The middle column sits lower: a gentle wave, not a spreadsheet. */
+        .card:nth-child(3n + 2) {
+            translate: 0 4rem;
+        }
+    }
+
+    .card {
+        --card-bg: var(--color-mint-soft);
+        --card-chip: var(--color-mint);
+    }
+
+    .tone-coral {
+        --card-bg: var(--color-coral-soft);
+        --card-chip: #f9c3b3;
+    }
+
+    .tone-butter {
+        --card-bg: var(--color-butter-soft);
+        --card-chip: var(--color-butter);
+    }
+
+    a {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        padding: 0.75rem 0.75rem var(--space-6);
+        border-radius: 2.5rem;
+        background: var(--card-bg);
+        color: var(--color-text);
+        text-decoration: none;
+        transition: transform 0.9s var(--ease-calm), box-shadow 0.9s var(--ease-calm);
+    }
+
+    a:hover,
+    a:focus-visible {
+        transform: translateY(-0.6rem);
+        box-shadow: var(--shadow-lift);
+    }
+
+    .photo {
+        display: block;
+        overflow: hidden;
+        aspect-ratio: 4 / 3;
+        border-radius: 2rem 2rem 999px 999px / 2rem 2rem 7rem 7rem;
+        transition: border-radius 1.1s var(--ease-calm);
+    }
+
+    a:hover .photo {
+        border-radius: var(--blob-a);
+    }
+
+    .photo :global(img) {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 1.4s var(--ease-calm);
+    }
+
+    a:hover .photo :global(img) {
+        transform: scale(1.05);
+    }
+
+    .icon {
+        display: inline-grid;
+        place-items: center;
+        width: 3.5rem;
+        height: 3.5rem;
+        margin: -1.9rem 0 0 1.25rem;
+        position: relative;
+        border-radius: var(--blob-b);
+        background: var(--card-chip);
+        color: var(--color-forest);
+        box-shadow: 0 0 0 5px var(--card-bg);
+    }
+
+    .title {
+        margin: var(--space-4) var(--space-5) var(--space-2);
+        font-size: 1.55rem;
+    }
+
+    .summary {
+        display: block;
+        margin: 0 var(--space-5) var(--space-5);
+        color: var(--color-muted);
+        font-size: 1.02rem;
+        line-height: 1.6;
+    }
+
+    .foot {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-3);
+        margin: auto var(--space-5) 0;
+    }
+
+    .time {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        color: var(--color-forest);
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    .go {
+        display: inline-grid;
+        flex: none;
+        place-items: center;
+        width: 2.75rem;
+        height: 2.75rem;
+        border-radius: 50%;
+        background: var(--color-bg);
+        color: var(--color-coral-ink);
+        transition: transform 0.8s var(--ease-calm), background-color 0.6s var(--ease-calm);
+    }
+
+    a:hover .go {
+        transform: translateX(0.3rem);
+        background: var(--color-coral);
+        color: var(--color-forest);
+    }
+</style>

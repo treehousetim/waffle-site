@@ -1,0 +1,38 @@
+---
+/** Posts as cards; the first one wide when `feature` is set (the blog's first page). */
+import type { CollectionEntry } from 'astro:content';
+import PostCard from './PostCard.astro';
+
+interface Props {
+    posts: CollectionEntry<'blog'>[];
+    feature?: boolean;
+    level?: 'h2' | 'h3';
+}
+
+const { posts, feature = false, level = 'h2' } = Astro.props;
+---
+
+<ul class="posts">
+    {
+        posts.map((post, index) => (
+            <li class:list={{ wide: feature && index === 0 }}>
+                <PostCard post={post} level={level} large={feature && index === 0} />
+            </li>
+        ))
+    }
+</ul>
+
+<style>
+    .posts {
+        display: grid;
+        gap: clamp(1.25rem, 1rem + 1.5vw, 2.25rem);
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .wide {
+        grid-column: 1 / -1;
+    }
+</style>

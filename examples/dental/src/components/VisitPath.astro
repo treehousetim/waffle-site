@@ -1,0 +1,187 @@
+---
+/**
+ * "Your first visit", as a path: the steps sit along a winding line that
+ * fills in as you scroll down it (motion.css, scroll-driven), each step's
+ * pebble warming from cream to mint as you reach it. Without scroll-driven
+ * animation the line is simply drawn, and every step is there to read.
+ */
+import Icon, { type IconName } from './Icon.astro';
+
+interface Step {
+    title: string;
+    text: string;
+    icon: IconName;
+    /** A small reassurance under the text. */
+    note?: string;
+}
+
+interface Props {
+    steps: Step[];
+}
+
+const { steps } = Astro.props;
+---
+
+<div class="visit-path">
+    <svg class="track" viewBox="0 0 100 1000" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+        <path class="track-base" d="M50 0C86 70 86 130 50 200S14 330 50 400s36 130 0 200-36 130 0 200 36 130 0 200" />
+        <path class="track-fill" pathLength="1" d="M50 0C86 70 86 130 50 200S14 330 50 400s36 130 0 200-36 130 0 200 36 130 0 200" />
+    </svg>
+    <ol>
+        {
+            steps.map((step, index) => (
+                <li class="step">
+                    <span class="pebble" aria-hidden="true">
+                        <span class="number">{index + 1}</span>
+                    </span>
+                    <div class="card">
+                        <span class="icon">
+                            <Icon name={step.icon} size={24} />
+                        </span>
+                        <h3>{step.title}</h3>
+                        <p>{step.text}</p>
+                        {step.note && <p class="note">{step.note}</p>}
+                    </div>
+                </li>
+            ))
+        }
+    </ol>
+</div>
+
+<style>
+    .visit-path {
+        position: relative;
+    }
+
+    .track {
+        position: absolute;
+        top: 1rem;
+        bottom: 1rem;
+        left: 0;
+        width: 3.5rem;
+        height: calc(100% - 2rem);
+        overflow: visible;
+    }
+
+    .track path {
+        fill: none;
+        stroke-linecap: round;
+        vector-effect: non-scaling-stroke;
+    }
+
+    .track-base {
+        stroke: var(--color-border-strong);
+        stroke-width: 3;
+        stroke-dasharray: 2 10;
+    }
+
+    .track-fill {
+        stroke: var(--color-mint-deep);
+        stroke-width: 5;
+    }
+
+    ol {
+        position: relative;
+        display: grid;
+        gap: clamp(1.5rem, 1rem + 3vw, 3.5rem);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .step {
+        position: relative;
+        display: grid;
+        grid-template-columns: 3.5rem 1fr;
+        gap: var(--space-4);
+        align-items: start;
+    }
+
+    .pebble {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        place-items: center;
+        width: 3.5rem;
+        height: 3.5rem;
+        border-radius: var(--blob-a);
+        background: var(--color-bg);
+        box-shadow: inset 0 0 0 3px var(--color-mint-deep);
+        color: var(--color-forest);
+        font-family: var(--font-display);
+        font-size: 1.4rem;
+        font-weight: 600;
+    }
+
+    .card {
+        padding: var(--space-6);
+        border-radius: 2rem;
+        background: var(--color-surface-raised);
+        box-shadow: var(--shadow-soft);
+    }
+
+    .icon {
+        display: inline-grid;
+        place-items: center;
+        width: 2.75rem;
+        height: 2.75rem;
+        margin-bottom: var(--space-3);
+        border-radius: var(--blob-c);
+        background: var(--color-coral-soft);
+        color: var(--color-coral-ink);
+    }
+
+    h3 {
+        margin-bottom: var(--space-2);
+    }
+
+    .card p {
+        margin: 0;
+        color: var(--color-muted);
+    }
+
+    .card .note {
+        display: inline-flex;
+        margin-top: var(--space-4);
+        padding: 0.3rem 0.85rem;
+        border-radius: var(--radius-pill);
+        background: var(--color-mint-soft);
+        color: var(--color-mint-deep);
+        font-size: 0.92rem;
+        font-weight: 650;
+    }
+
+    /* Wide: the path runs down the middle, steps on alternate sides. */
+    @media (min-width: 56rem) {
+        .track {
+            left: calc(50% - 4rem);
+            width: 8rem;
+        }
+
+        .step {
+            grid-template-columns: 1fr 4.5rem 1fr;
+            gap: var(--space-8);
+            align-items: center;
+        }
+
+        .pebble {
+            grid-column: 2;
+            grid-row: 1;
+            width: 4.5rem;
+            height: 4.5rem;
+            font-size: 1.7rem;
+        }
+
+        .card {
+            grid-row: 1;
+            grid-column: 1;
+            max-width: 28rem;
+            justify-self: end;
+        }
+
+        .step:nth-child(even) .card {
+            grid-column: 3;
+            justify-self: start;
+        }
+    }
+</style>
