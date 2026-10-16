@@ -1,0 +1,461 @@
+---
+/**
+ * The appointment request, received by the waffle app (docs/forms.md).
+ *
+ * It posts to /api/site/forms/appointment on this site; Caddy forwards that
+ * to the waffle app with the site key (docs/waffle-api.md). It works without
+ * script: the browser checks the fields, posts the form, and the app answers
+ * with a redirect to `thanks`. With script (src/scripts/forms.ts) it sends
+ * JSON and shows the answer in place, field by field. The day and time
+ * checkboxes arrive as lists (`days`, `times`).
+ *
+ * Fields: patient_type (new | existing), appointment_for (me | child |
+ * family), name, phone, email, reason (a treatment slug, or checkup-only,
+ * not-sure), days (mon..sat), times (early | midday | afternoon | evening),
+ * nervous (yes, when ticked), insurance (a plan id from GET
+ * /api/site/insurance, self-pay or not-sure), message, contact_by
+ * (phone | text | email), and the honeypot.
+ */
+import { HONEYPOT } from '@core/lib/forms.js';
+import { treatments } from '../data/treatments';
+import type { Plan } from '../lib/insurance';
+
+interface Props {
+    /** Where the app sends a browser without script after a good submission. */
+    thanks: string;
+    /** The plans the practice accepts, from the waffle app, for the insurance choice. */
+    plans: Plan[];
+    /** A reason to have chosen already, from the page the visitor came from. */
+    reason?: string;
+}
+
+const { thanks, plans, reason } = Astro.props;
+
+const days = [
+    { value: 'mon', label: 'Mon' },
+    { value: 'tue', label: 'Tue' },
+    { value: 'wed', label: 'Wed' },
+    { value: 'thu', label: 'Thu' },
+    { value: 'fri', label: 'Fri' },
+    { value: 'sat', label: 'Sat' },
+];
+
+const times = [
+    { value: 'early', label: 'Early', hint: 'before 10 am' },
+    { value: 'midday', label: 'Midday', hint: '10 am – 2 pm' },
+    { value: 'afternoon', label: 'Afternoon', hint: 'after 2 pm' },
+    { value: 'evening', label: 'Wednesday evening', hint: 'until 7 pm' },
+];
+---
+
+<form class="form" method="post" action="/api/site/forms/appointment" data-site-form>
+    <input type="hidden" name="redirect" value={thanks} />
+
+    <fieldset class="group">
+        <legend><span class="step">1</span> About you</legend>
+
+        <div class="field">
+            <span class="label" id="patient-type-label">Have you been to Brightside before?</span>
+            <div class="toggles" role="radiogroup" aria-labelledby="patient-type-label">
+                <label class="toggle"><input type="radio" name="patient_type" value="new" checked required /> <span>I’m new here</span></label>
+                <label class="toggle"><input type="radio" name="patient_type" value="existing" /> <span>I’m an existing patient</span></label>
+            </div>
+            <p class="error" data-error-for="patient_type" hidden></p>
+        </div>
+
+        <div class="field">
+            <span class="label" id="for-label">Who is the visit for?</span>
+            <div class="toggles" role="radiogroup" aria-labelledby="for-label">
+                <label class="toggle"><input type="radio" name="appointment_for" value="me" checked /> <span>Me</span></label>
+                <label class="toggle"><input type="radio" name="appointment_for" value="child" /> <span>My child</span></label>
+                <label class="toggle"><input type="radio" name="appointment_for" value="family" /> <span>A few of us</span></label>
+            </div>
+            <p class="error" data-error-for="appointment_for" hidden></p>
+        </div>
+
+        <div class="row">
+            <div class="field">
+                <label for="appt-name">Your name</label>
+                <input id="appt-name" name="name" type="text" autocomplete="name" required maxlength="100" />
+                <p class="error" data-error-for="name" hidden></p>
+            </div>
+            <div class="field">
+                <label for="appt-phone">Phone</label>
+                <input id="appt-phone" name="phone" type="tel" autocomplete="tel" required maxlength="30" />
+                <p class="error" data-error-for="phone" hidden></p>
+            </div>
+        </div>
+
+        <div class="field">
+            <label for="appt-email">Email</label>
+            <input id="appt-email" name="email" type="email" autocomplete="email" required maxlength="254" />
+            <p class="error" data-error-for="email" hidden></p>
+        </div>
+    </fieldset>
+
+    <fieldset class="group">
+        <legend><span class="step">2</span> What you need</legend>
+
+        <div class="field">
+            <label for="appt-reason">Reason for the visit</label>
+            <select id="appt-reason" name="reason" required>
+                <option value="">Choose one</option>
+                {treatments.map((item) => <option value={item.slug} selected={item.slug === reason}>{item.name}</option>)}
+                <option value="not-sure">Not sure, I’d like some advice</option>
+            </select>
+            <p class="hint">Something hurting? Please call us on the day instead: we keep slots free for emergencies.</p>
+            <p class="error" data-error-for="reason" hidden></p>
+        </div>
+
+        <label class="gentle">
+            <input type="checkbox" name="nervous" value="yes" />
+            <span>
+                <strong>I feel nervous about the dentist</strong>
+                <span>We’ll book a longer slot, call you first to say hello, and go at your pace.</span>
+            </span>
+        </label>
+
+        <div class="field">
+            <label for="appt-insurance">Insurance</label>
+            <select id="appt-insurance" name="insurance">
+                <option value="not-sure">Not sure yet</option>
+                <option value="self-pay">No insurance, paying myself</option>
+                {plans.map((plan) => <option value={plan.id}>{plan.name}{plan.network === 'out-of-network' ? ' (out of network)' : ''}</option>)}
+            </select>
+            <p class="error" data-error-for="insurance" hidden></p>
+        </div>
+    </fieldset>
+
+    <fieldset class="group">
+        <legend><span class="step">3</span> When suits you</legend>
+
+        <div class="field">
+            <span class="label" id="days-label">Days that work <span class="optional">(any, if you leave them all)</span></span>
+            <div class="chips" role="group" aria-labelledby="days-label">
+                {
+                    days.map((day) => (
+                        <label class="chip">
+                            <input type="checkbox" name="days" value={day.value} /> <span>{day.label}</span>
+                        </label>
+                    ))
+                }
+            </div>
+            <p class="error" data-error-for="days" hidden></p>
+        </div>
+
+        <div class="field">
+            <span class="label" id="times-label">Times that work</span>
+            <div class="chips times" role="group" aria-labelledby="times-label">
+                {
+                    times.map((time) => (
+                        <label class="chip">
+                            <input type="checkbox" name="times" value={time.value} />
+                            <span>
+                                {time.label} <small>{time.hint}</small>
+                            </span>
+                        </label>
+                    ))
+                }
+            </div>
+            <p class="error" data-error-for="times" hidden></p>
+        </div>
+
+        <div class="field">
+            <label for="appt-message">Anything we should know? <span class="optional">(optional)</span></label>
+            <textarea id="appt-message" name="message" rows="4" maxlength="3000"></textarea>
+            <p class="error" data-error-for="message" hidden></p>
+        </div>
+
+        <div class="field">
+            <span class="label" id="contact-label">How should we confirm?</span>
+            <div class="toggles" role="radiogroup" aria-labelledby="contact-label">
+                <label class="toggle"><input type="radio" name="contact_by" value="phone" checked /> <span>Call me</span></label>
+                <label class="toggle"><input type="radio" name="contact_by" value="text" /> <span>Text me</span></label>
+                <label class="toggle"><input type="radio" name="contact_by" value="email" /> <span>Email me</span></label>
+            </div>
+        </div>
+    </fieldset>
+
+    <div class="trap" aria-hidden="true">
+        <label for="appt-website">Leave this empty</label>
+        <input id="appt-website" name={HONEYPOT} type="text" tabindex="-1" autocomplete="off" />
+    </div>
+
+    <p class="status" role="status" aria-live="polite" data-status></p>
+
+    <div class="send">
+        <button class="button button-large" type="submit">Request my appointment</button>
+        <p class="small">We reply within one working day to offer a time. Nothing is booked until you say yes.</p>
+    </div>
+</form>
+
+<script>
+    import { enhanceForms } from '../scripts/forms';
+
+    enhanceForms(document);
+</script>
+
+<style>
+    .form {
+        display: grid;
+        gap: var(--space-6);
+    }
+
+    .group {
+        display: grid;
+        gap: var(--space-6);
+        margin: 0;
+        padding: clamp(1.25rem, 0.75rem + 2.5vw, 2.5rem);
+        border: 0;
+        border-radius: 2.25rem;
+        background: var(--color-surface-raised);
+        box-shadow: var(--shadow-soft);
+        min-width: 0;
+    }
+
+    legend {
+        float: left;
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        color: var(--color-forest);
+        font-family: var(--font-display);
+        font-size: 1.6rem;
+        font-weight: 550;
+    }
+
+    legend + * {
+        clear: both;
+    }
+
+    .step {
+        display: inline-grid;
+        place-items: center;
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: var(--blob-a);
+        background: var(--color-mint);
+        font-size: 1.15rem;
+    }
+
+    .row {
+        display: grid;
+        gap: var(--space-6);
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+    }
+
+    .field {
+        display: grid;
+        gap: var(--space-2);
+        min-width: 0;
+    }
+
+    label,
+    .label {
+        color: var(--color-forest);
+        font-weight: 650;
+    }
+
+    .optional {
+        color: var(--color-muted);
+        font-weight: 500;
+    }
+
+    input:not([type='radio'], [type='checkbox']),
+    select,
+    textarea {
+        width: 100%;
+        min-height: 3.25rem;
+        padding: 0.8rem 1.1rem;
+        border: 2px solid var(--color-border);
+        border-radius: 1.1rem;
+        background: var(--color-bg);
+        color: var(--color-text);
+        font: inherit;
+        transition: border-color 0.5s var(--ease-calm), box-shadow 0.5s var(--ease-calm), background-color 0.5s var(--ease-calm);
+    }
+
+    input:not([type='radio'], [type='checkbox']):hover,
+    select:hover,
+    textarea:hover {
+        border-color: var(--color-border-strong);
+    }
+
+    input:not([type='radio'], [type='checkbox']):focus,
+    select:focus,
+    textarea:focus {
+        border-color: var(--color-mint-deep);
+        outline: none;
+        background: #ffffff;
+        box-shadow: 0 0 0 5px var(--color-mint-soft);
+    }
+
+    textarea {
+        resize: vertical;
+    }
+
+    .toggles,
+    .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+    }
+
+    .toggle,
+    .chip {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        padding: 0.65rem 1.1rem;
+        border: 2px solid var(--color-border);
+        border-radius: var(--radius-pill);
+        background: var(--color-bg);
+        font-weight: 600;
+        cursor: pointer;
+        transition: border-color 0.5s var(--ease-calm), background-color 0.5s var(--ease-calm), transform 0.5s var(--ease-calm);
+    }
+
+    .toggle:hover,
+    .chip:hover {
+        border-color: var(--color-mint-deep);
+    }
+
+    .toggle:has(input:checked),
+    .chip:has(input:checked) {
+        border-color: var(--color-mint-deep);
+        background: var(--color-mint);
+    }
+
+    .toggle:has(input:focus-visible),
+    .chip:has(input:focus-visible) {
+        outline: 3px solid var(--color-focus);
+        outline-offset: 3px;
+    }
+
+    .toggle input,
+    .chip input {
+        width: 1.1rem;
+        height: 1.1rem;
+        margin: 0;
+        accent-color: var(--color-mint-deep);
+    }
+
+    .chip small {
+        color: var(--color-muted);
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .gentle {
+        display: flex;
+        align-items: flex-start;
+        gap: var(--space-4);
+        padding: var(--space-5);
+        border: 2px dashed var(--color-coral);
+        border-radius: 1.75rem;
+        background: var(--color-coral-soft);
+        cursor: pointer;
+        transition: background-color 0.6s var(--ease-calm), border-color 0.6s var(--ease-calm);
+    }
+
+    .gentle:has(input:checked) {
+        border-style: solid;
+        background: #fbd3c6;
+    }
+
+    .gentle input {
+        flex: none;
+        width: 1.35rem;
+        height: 1.35rem;
+        margin: 0.2rem 0 0;
+        accent-color: var(--color-coral-ink);
+    }
+
+    .gentle span span {
+        display: block;
+        color: #4a3a33;
+        font-weight: 500;
+    }
+
+    .gentle strong {
+        display: block;
+        color: var(--color-forest);
+    }
+
+    .hint {
+        margin: 0;
+        color: var(--color-muted);
+        font-size: 0.95rem;
+    }
+
+    [aria-invalid='true'] {
+        border-color: var(--color-error) !important;
+    }
+
+    .error {
+        margin: 0;
+        color: var(--color-error);
+        font-size: 0.95rem;
+        font-weight: 600;
+    }
+
+    .status:empty {
+        display: none;
+    }
+
+    .status {
+        margin: 0;
+        padding: var(--space-4) var(--space-5);
+        border-radius: 1.5rem;
+        font-weight: 650;
+    }
+
+    .status[data-kind='sent'] {
+        background: var(--color-mint);
+        color: var(--color-forest);
+    }
+
+    .status[data-kind='invalid'],
+    .status[data-kind='failed'] {
+        background: var(--color-coral-soft);
+        color: var(--color-error);
+    }
+
+    /* Off screen rather than display:none, which some bots check for. */
+    .trap {
+        position: absolute;
+        left: -10000px;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+    }
+
+    .send {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-4) var(--space-6);
+    }
+
+    .small {
+        flex: 1 1 16rem;
+        margin: 0;
+        color: var(--color-muted);
+        font-size: 0.95rem;
+    }
+
+    @media (max-width: 40rem) {
+        .send .button {
+            width: 100%;
+        }
+
+        .toggle {
+            flex: 1 1 auto;
+            justify-content: center;
+        }
+    }
+</style>

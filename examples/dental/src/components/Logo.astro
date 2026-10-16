@@ -1,0 +1,108 @@
+---
+/**
+ * The mark and the name. The mark is a soft mint pebble with a smile drawn
+ * across it and a coral sparkle: "bright side". Drawn inline, so motion.css
+ * can draw the smile on load, sway the pebble and twinkle the sparkle; the
+ * same drawing is public/favicon.svg and brand/logo.html (for logo.png).
+ * The mark is decorative, so the name is the link's text.
+ */
+
+interface Props {
+    tone?: 'dark' | 'light';
+    /** The header's logo morphs between pages (motion.css); only one per page may. */
+    header?: boolean;
+}
+
+const { tone = 'dark', header = false } = Astro.props;
+---
+
+<a class:list={['logo', tone, { 'logo-header': header }]} href="/">
+    <svg class="mark" viewBox="0 0 48 48" width="46" height="46" aria-hidden="true" focusable="false">
+        <path class="pebble" d="M24.6 3.2c8.7-.3 16.8 4.6 19.4 12.6 2.7 8.2-.6 17.6-7.8 22.9-7.4 5.5-18.3 6.4-25.4 1.2C3.6 34.7 1.7 25 4.8 17.2 7.6 9.6 15.8 3.5 24.6 3.2Z" />
+        <path class="smile" pathLength="1" d="M13.2 25.4c2.7 6 6.6 9 11 9s8.4-3 11-9" />
+        <path class="sparkle" d="M35.6 7.4c.5 3.3 2.2 5 5.5 5.5-3.3.5-5 2.2-5.5 5.5-.5-3.3-2.2-5-5.5-5.5 3.3-.5 5-2.2 5.5-5.5Z" />
+    </svg>
+    <span class="words">
+        <span class="name">Brightside</span>
+        <span class="kind">family dental</span>
+    </span>
+</a>
+
+<style>
+    .logo {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.7rem;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    .mark {
+        flex: none;
+        width: 2.9rem;
+        height: 2.9rem;
+        overflow: visible;
+    }
+
+    .pebble {
+        fill: var(--color-mint);
+        transform-origin: 50% 50%;
+        transform-box: fill-box;
+    }
+
+    .smile {
+        fill: none;
+        stroke: var(--color-forest);
+        stroke-width: 3.6;
+        stroke-linecap: round;
+        transform-origin: 50% 0%;
+        transform-box: fill-box;
+        transition: transform 0.7s var(--ease-calm);
+    }
+
+    .sparkle {
+        fill: var(--color-coral);
+        transform-origin: 50% 50%;
+        transform-box: fill-box;
+    }
+
+    .words {
+        display: grid;
+        line-height: 1;
+    }
+
+    .name {
+        font-family: var(--font-display);
+        font-size: 1.6rem;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+    }
+
+    .kind {
+        margin-top: 0.2rem;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+    }
+
+    .dark .name {
+        color: var(--color-forest);
+    }
+
+    .dark .kind {
+        color: var(--color-mint-deep);
+    }
+
+    .light .name {
+        color: var(--color-on-forest);
+    }
+
+    .light .kind {
+        color: var(--color-mint);
+    }
+
+    .logo:hover .smile {
+        transform: scaleX(1.12) translateY(1px);
+    }
+</style>

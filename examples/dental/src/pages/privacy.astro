@@ -1,0 +1,41 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import { site } from '../site';
+---
+
+<Base
+    title="Privacy"
+    description="How Brightside Family Dental handles what you send through this website: what we collect, why, who sees it and how long we keep it."
+    breadcrumbs={[{ name: 'Privacy', href: '/privacy/' }]}
+>
+    <PageHero eyebrow="Privacy" heading="Your privacy, in plain words" lead="This website is simple on purpose: no tracking, no adverts, no cookies." />
+
+    <div class="prose page">
+        <h2>What this website collects</h2>
+        <p>Only what you type into the booking form: your name, phone, email, the reason for your visit, when suits you, your insurance plan if you choose it, and anything you add in the message box. We use it to offer you an appointment, and for nothing else.</p>
+        <h2>What it does not collect</h2>
+        <p>This site sets no cookies, runs no analytics or advertising scripts, and loads nothing from other companies: the fonts and photos are served from this site.</p>
+        <h2>Who sees your request</h2>
+        <p>Our front desk team and the dentists. It is stored in our practice system with your patient record if you become a patient, and kept under the same rules as all health records. It is never sold or shared for marketing.</p>
+        <h2>Your health information</h2>
+        <p>Please do not send detailed medical information through the form. We will ask for your health history securely when you come in.</p>
+        <h2>Questions</h2>
+        <p>Ask us at <a href={`mailto:${site.business.email}`}>{site.business.email}</a> or on <a href={`tel:${site.business.phoneE164}`}>{site.business.phone}</a>. You can ask to see, correct or delete what we hold about you at any time.</p>
+        <p class="note">This is an example site for a fictional practice. A real practice should have its privacy notice reviewed for the health-privacy rules that apply to it.</p>
+    </div>
+</Base>
+
+<style>
+    .page {
+        padding-bottom: var(--section);
+    }
+
+    .note {
+        margin-top: var(--space-10);
+        padding: var(--space-5) var(--space-6);
+        border-radius: 1.5rem;
+        background: var(--color-butter-soft);
+        font-size: 1rem;
+    }
+</style>

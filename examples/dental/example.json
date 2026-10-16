@@ -1,0 +1,9 @@
+{
+  "name": "dental",
+  "label": "Family dental clinic",
+  "description": "A friendly, anxiety-aware family dental practice: a page per treatment and per dentist, new and nervous patient guides, accepted insurance from the waffle app, an appointment request form and a blog of oral-health advice.",
+  "kind": "Health",
+  "schemaType": "Dentist",
+  "look": "Airy and reassuring: cream paper, soft mint, warm coral and butter, rounded Fredoka headings, organic blobs and big rounded photo masks, slow calm motion",
+  "waffleEndpoints": ["GET /api/site/insurance", "POST /api/site/forms/appointment"]
+}

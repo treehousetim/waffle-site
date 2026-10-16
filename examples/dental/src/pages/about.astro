@@ -1,0 +1,159 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Section from '../components/Section.astro';
+import TeamGrid from '../components/TeamGrid.astro';
+import KindWords from '../components/KindWords.astro';
+import BookingBand from '../components/BookingBand.astro';
+import Photo from '../components/Photo.astro';
+import { site } from '../site';
+import { buildTime } from '@core/settings';
+
+const years = buildTime.getUTCFullYear() - site.business.founded;
+---
+
+<Base
+    title="About Brightside"
+    description={`How Brightside Family Dental began on Honeysuckle Lane in ${site.business.founded}, what we believe about calm, honest dentistry, and the team behind it.`}
+    breadcrumbs={[{ name: 'About', href: '/about/' }]}
+>
+    <PageHero
+        eyebrow="About us"
+        heading="A dental practice that looks on the bright side"
+        smile="bright side"
+        lead={`For ${years} years we have looked after families in ${site.business.address.city} the way we would want our own looked after: slowly, honestly, and with a lot of laughing.`}
+        photo="treatmentRoom"
+        tone="mint"
+    />
+
+    <Section eyebrow="Our story" heading="It started with a kid hiding in a car park">
+        <div class="story">
+            <div class="prose-ish">
+                <p>Dr. Hannah Whitlock was terrified of the dentist growing up. One gentle, funny dentist changed that, and when she came home to {site.business.address.city} in {site.business.founded}, she opened the kind of practice that dentist would have run.</p>
+                <p>We started in two rooms above the old bakery on Honeysuckle Lane. Now there are five treatment rooms, four dentists and three hygienists, and still the same rule painted on every wall: <strong>raise your hand and we stop</strong>.</p>
+                <p>We are independent and owned by our dentists, not a chain. That means nobody sets us targets for treatments sold, and we can tell you honestly when your teeth are fine.</p>
+            </div>
+            <div class="photos">
+                <span class="p1"><Photo name="waitingRoom" sizes="(min-width: 64rem) 22rem, 45vw" /></span>
+                <span class="p2"><Photo name="bambooBrushes" sizes="(min-width: 64rem) 18rem, 40vw" /></span>
+            </div>
+        </div>
+    </Section>
+
+    <Section tone="sand" eyebrow="What we believe" heading="Four things we will not compromise on">
+        <ol class="beliefs">
+            <li><h3>Explain, then treat</h3><p>You see what we see, on a screen, in plain English, before anything happens.</p></li>
+            <li><h3>Honest advice</h3><p>If you do not need a treatment, we say so, even when you came in asking for it.</p></li>
+            <li><h3>Time to breathe</h3><p>Longer appointments for anyone who asks. We would rather run on time than rush.</p></li>
+            <li><h3>Gentle on the planet</h3><p>Digital x-rays and scans, bamboo toothbrushes, and no single-use plastic bibs.</p></li>
+        </ol>
+    </Section>
+
+    <Section eyebrow="The dentists" heading="Who you will meet">
+        <TeamGrid />
+    </Section>
+
+    <Section tone="mint" eyebrow="Kind words" heading="In our patients’ words">
+        <KindWords />
+    </Section>
+
+    <BookingBand />
+</Base>
+
+<style>
+    .story {
+        display: grid;
+        gap: var(--space-12);
+        align-items: center;
+    }
+
+    .prose-ish {
+        max-width: 40rem;
+        font-size: 1.15rem;
+    }
+
+    .prose-ish p:first-child {
+        color: var(--color-forest);
+        font-family: var(--font-display);
+        font-size: clamp(1.35rem, 1.15rem + 0.8vw, 1.7rem);
+        line-height: 1.45;
+    }
+
+    .photos {
+        position: relative;
+        display: grid;
+        grid-template-columns: 1fr 0.8fr;
+        gap: var(--space-4);
+        align-items: end;
+    }
+
+    .photos span {
+        display: block;
+        overflow: hidden;
+    }
+
+    .p1 {
+        aspect-ratio: 3 / 4;
+        border-radius: var(--arch);
+    }
+
+    .p2 {
+        aspect-ratio: 1;
+        margin-bottom: 3rem;
+        border-radius: var(--blob-a);
+    }
+
+    .photos :global(img) {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .beliefs {
+        display: grid;
+        gap: var(--space-5);
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        counter-reset: belief;
+    }
+
+    .beliefs li {
+        counter-increment: belief;
+        padding: var(--space-8) var(--space-6);
+        border-radius: 2.5rem;
+        background: var(--color-bg);
+    }
+
+    .beliefs li::before {
+        content: counter(belief);
+        display: inline-grid;
+        place-items: center;
+        width: 3rem;
+        height: 3rem;
+        margin-bottom: var(--space-4);
+        border-radius: var(--blob-a);
+        background: var(--color-mint);
+        color: var(--color-forest);
+        font-family: var(--font-display);
+        font-size: 1.4rem;
+        font-weight: 600;
+    }
+
+    .beliefs li:nth-child(even)::before {
+        background: var(--color-coral-soft);
+    }
+
+    .beliefs p {
+        margin: 0;
+        color: var(--color-muted);
+    }
+
+    @media (min-width: 64rem) {
+        .story {
+            grid-template-columns: 1.2fr 1fr;
+            gap: var(--space-16);
+        }
+    }
+</style>

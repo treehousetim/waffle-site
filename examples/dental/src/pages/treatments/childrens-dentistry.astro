@@ -1,0 +1,37 @@
+---
+import TreatmentPage from '../../layouts/TreatmentPage.astro';
+---
+
+<TreatmentPage
+    slug="childrens-dentistry"
+    title="Children’s dentistry"
+    description="Gentle children’s dentistry in Thistlewood: happy first visits, check-ups, sealants and fluoride, from the first tooth to the teenage years."
+    heading="Small teeth, big smiles, no tears"
+    smile="no tears"
+    lead="We go at your child’s pace, explain everything in their language, and let them drive the chair. Most children cannot wait to come back."
+    glance={[
+        { label: 'First visit', value: 'By their first birthday' },
+        { label: 'How long', value: 'About 30 minutes' },
+        { label: 'Bring', value: 'A favourite toy, if they like' },
+    ]}
+    preparation="Talk about the visit in a matter-of-fact way, without words like “hurt” or “brave”. Morning appointments, after breakfast, tend to suit younger children best. A favourite toy is always welcome to have its teeth counted too."
+    howPerformed="For little ones, the check-up often happens on a parent’s lap. We count teeth out loud, look at gums and how teeth are coming through, and may paint on fluoride varnish. Older children may have a gentle clean, and sealants on their back teeth when they are due."
+    followup="We tell you what we saw, show you any spots to brush better, and talk about snacks and drinks in a practical way. Children leave with a sticker and a new toothbrush; parents leave with a date for next time."
+    faq={[
+        { question: 'When should my child first see a dentist?', answer: 'Around the time the first tooth appears, or by their first birthday. Early visits are mostly about getting used to us, and a chance for you to ask questions about teething, brushing and bottles.' },
+        { question: 'What are sealants?', answer: 'A thin protective coating painted into the grooves of the back teeth, where food and plaque like to hide. Putting them on is quick and painless: no drilling and no injections.' },
+        { question: 'My child is terrified. What should I do?', answer: 'Tell us when you book. We will give you a longer slot, start with a ride in the chair and a look at our tools, and stop whenever your child wants. Some children need two or three short visits before a full check-up, and that is fine.' },
+        { question: 'Can I stay with my child?', answer: 'Of course. Most children are happiest with a parent close by, and many little ones have their check-up sitting on a lap.' },
+    ]}
+>
+    <h2>A first visit that is mostly fun</h2>
+    <p>A child’s first visit sets the tone for years. So we keep it short and light: a ride up and down in the chair, a look at the “tooth camera”, a mirror to hold, and a count of teeth out loud. If they want to sit on your lap, they sit on your lap.</p>
+    <h2>As they grow</h2>
+    <ul>
+        <li><strong>Toddlers:</strong> teething, brushing tips that work with a wriggling two-year-old, and fluoride varnish.</li>
+        <li><strong>School age:</strong> check-ups, sealants on the new back teeth, and keeping an eye on how adult teeth are coming in.</li>
+        <li><strong>Teenagers:</strong> mouthguards for sport, wisdom teeth questions, and honest conversations about whitening, aligners and energy drinks.</li>
+    </ul>
+    <h2>Words we never use</h2>
+    <p>You will not hear “needle”, “drill” or “this won’t hurt” in Dr. Marchetti’s room. We use calm, honest words a child can understand, and we never promise something we cannot keep. Read more in our post on <a href="/blog/your-childs-first-dental-visit/">your child’s first dental visit</a>.</p>
+</TreatmentPage>

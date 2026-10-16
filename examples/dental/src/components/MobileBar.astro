@@ -1,0 +1,68 @@
+---
+/**
+ * On phones, a soft pill floating at the bottom of the screen: call, or
+ * book. Wider screens have both in the header.
+ */
+import Icon from './Icon.astro';
+import { site } from '../site';
+---
+
+<div class="mobile-bar">
+    <a class="call" href={`tel:${site.business.phoneE164}`}>
+        <Icon name="phone" size={20} />
+        Call us
+    </a>
+    <a class="book" href={site.cta.href}>
+        <Icon name="calendar" size={20} />
+        {site.cta.label}
+    </a>
+</div>
+
+<style>
+    .mobile-bar {
+        position: fixed;
+        left: 0.75rem;
+        right: 0.75rem;
+        bottom: 0.75rem;
+        z-index: 25;
+        display: grid;
+        grid-template-columns: 1fr 1.4fr;
+        gap: 0.4rem;
+        padding: 0.4rem;
+        border: 1px solid rgb(216 201 174 / 0.6);
+        border-radius: var(--radius-pill);
+        background: rgb(253 248 240 / 0.92);
+        box-shadow: 0 16px 36px -18px rgb(29 59 52 / 0.5);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+    }
+
+    a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.45rem;
+        min-height: 3.25rem;
+        border-radius: var(--radius-pill);
+        font-family: var(--font-display);
+        font-size: 1.1rem;
+        font-weight: 550;
+        text-decoration: none;
+    }
+
+    .call {
+        background: var(--color-mint);
+        color: var(--color-forest);
+    }
+
+    .book {
+        background: var(--color-coral);
+        color: var(--color-forest);
+    }
+
+    @media (min-width: 40.01rem) {
+        .mobile-bar {
+            display: none;
+        }
+    }
+</style>

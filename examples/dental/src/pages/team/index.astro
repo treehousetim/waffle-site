@@ -1,0 +1,30 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHero from '../../components/PageHero.astro';
+import Section from '../../components/Section.astro';
+import TeamGrid from '../../components/TeamGrid.astro';
+import BookingBand from '../../components/BookingBand.astro';
+---
+
+<Base
+    title="Our dentists"
+    description="Meet the four dentists at Brightside Family Dental in Thistlewood: who they are, what they do best, and what they promise every nervous patient."
+    breadcrumbs={[{ name: 'Our team', href: '/team/' }]}
+>
+    <PageHero
+        eyebrow="Our team"
+        heading="The people who will look after your smile"
+        smile="look after"
+        lead="Four dentists, three hygienists, and Jo and Marcus at the front desk. Small enough to know your name, and your children’s, and your dog’s."
+        photo="dentistChatting"
+        tone="coral"
+    />
+
+    <Section heading="Our dentists" lead="Each has their own special interests, and all of them see families for check-ups. Choose whoever you like, and switch whenever you like.">
+        <TeamGrid level="h3" />
+    </Section>
+
+    <Section tone="sand" heading="And the rest of the team" lead="Our hygienists, Ana, Leo and Bea, do most of the cleanings and are the gentlest people in the building. Jo and Marcus answer the phone, sort the insurance, and remember everything." align="start" />
+
+    <BookingBand heading="Come and meet us" text="New patients are always welcome. Tell us who you would like to see, or let us choose the best fit for what you need." />
+</Base>

@@ -1,0 +1,37 @@
+---
+import TreatmentPage from '../../layouts/TreatmentPage.astro';
+---
+
+<TreatmentPage
+    slug="whitening"
+    title="Teeth whitening"
+    description="Professional teeth whitening at Brightside: custom trays for home or a single visit in the chair, always after a check that whitening suits you."
+    heading="A brighter smile, done gently"
+    smile="brighter"
+    lead="Whitening supervised by a dentist, with trays made for your teeth and a gel strength chosen for you. We check first that it suits you, and tell you honestly if it will not."
+    glance={[
+        { label: 'Visits', value: 'Usually two short ones' },
+        { label: 'Options', value: 'Trays at home, or in the chair' },
+        { label: 'First', value: 'A check-up, if you are due' },
+    ]}
+    preparation="Whitening starts with a check that your teeth and gums are healthy, because whitening over decay or sore gums is not kind to anyone. We note your current shade, take a quick 3D scan for your trays, and talk about what is realistic for your teeth."
+    howPerformed="For home whitening you wear thin, comfortable trays with a small amount of gel, usually for an hour or so a day or overnight, for a couple of weeks. In-chair whitening is one longer visit, with your gums protected and the gel applied in rounds."
+    followup="Some people notice temporary sensitivity; a sensitive toothpaste and a short break usually settle it. You keep your trays, so a top-up every so often is simple. Fillings and crowns do not change colour, so we plan around them."
+    faq={[
+        { question: 'Does whitening damage teeth?', answer: 'Whitening done under a dentist’s supervision, at the right strength and for the right time, is considered safe for healthy teeth. The common side effect is temporary sensitivity, which we help you manage.' },
+        { question: 'Will it whiten my fillings or crowns?', answer: 'No. Whitening only changes natural tooth enamel. If you have visible fillings or crowns, we talk about this before you start, so the result looks even.' },
+        { question: 'How white will my teeth get?', answer: 'It varies from person to person and depends on the cause of the staining. We will not promise a shade. We show you your starting shade and talk honestly about what is likely for your teeth.' },
+        { question: 'Is it suitable for everyone?', answer: 'Not always. It is usually not recommended during pregnancy, for children, or where there is untreated decay or gum disease. Your dentist will tell you if it is not right for you.' },
+    ]}
+>
+    <h2>Home or in the chair?</h2>
+    <p>Most of our patients choose home whitening: it is gentler, you control the pace, and you keep the trays for top-ups. In-chair whitening suits people who would rather get it done in one go, before a wedding, say. Either way, a dentist plans it and checks on you.</p>
+    <h2>Why not just buy a kit?</h2>
+    <p>Shop kits use one-size trays that let gel leak onto gums, and they cannot tell whether your discolouration is a stain, a dead tooth or an old filling. A quick check first often saves money and sore gums. Our post on <a href="/blog/is-teeth-whitening-safe/">whether whitening is safe</a> goes into more detail.</p>
+    <h2>Keeping it bright</h2>
+    <ul>
+        <li>Rinse with water after coffee, tea or red wine.</li>
+        <li>Keep up regular cleanings: polishing lifts surface stains.</li>
+        <li>Use your trays for a night or two every few months, if you like.</li>
+    </ul>
+</TreatmentPage>

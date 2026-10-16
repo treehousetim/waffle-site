@@ -1,0 +1,103 @@
+---
+/**
+ * A slow, endless ribbon of small reassurances. The list is drawn twice so
+ * the loop is seamless; the copy is hidden from screen readers. Where motion
+ * is off it is a wrapped list that simply sits there.
+ */
+import Icon from './Icon.astro';
+
+interface Props {
+    items: string[];
+}
+
+const { items } = Astro.props;
+---
+
+<div class="marquee">
+    <div class="track">
+        <ul>
+            {
+                items.map((item) => (
+                    <li>
+                        <Icon name="sparkle" size={20} />
+                        {item}
+                    </li>
+                ))
+            }
+        </ul>
+        <ul class="copy" aria-hidden="true">
+            {
+                items.map((item) => (
+                    <li>
+                        <Icon name="sparkle" size={20} />
+                        {item}
+                    </li>
+                ))
+            }
+        </ul>
+    </div>
+</div>
+
+<style>
+    .marquee {
+        overflow: hidden;
+        padding: var(--space-6) 0;
+        background: var(--color-mint);
+        rotate: -1.5deg;
+        margin: var(--space-8) -1rem;
+    }
+
+    .track {
+        display: flex;
+        width: max-content;
+    }
+
+    ul {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-4) var(--space-10);
+        margin: 0;
+        padding: 0 var(--space-10) 0 var(--space-4);
+        list-style: none;
+    }
+
+    li {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-3);
+        color: var(--color-forest);
+        font-family: var(--font-display);
+        font-size: clamp(1.2rem, 1rem + 0.8vw, 1.6rem);
+        font-weight: 500;
+        white-space: nowrap;
+    }
+
+    li :global(svg) {
+        color: var(--color-coral-ink);
+    }
+
+    /* Without motion: one copy, wrapped, centred. */
+    .copy {
+        display: none;
+    }
+
+    .track {
+        width: auto;
+        justify-content: center;
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+        .track {
+            width: max-content;
+            justify-content: flex-start;
+        }
+
+        ul {
+            flex-wrap: nowrap;
+        }
+
+        .copy {
+            display: flex;
+        }
+    }
+</style>

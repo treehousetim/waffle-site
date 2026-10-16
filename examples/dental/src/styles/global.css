@@ -1,0 +1,426 @@
+/*
+ * Brightside's design system: tokens, type, layout helpers, shapes and
+ * buttons. Components carry their own scoped <style>; this file is what they
+ * share.
+ *
+ * The look: airy and reassuring. Warm cream paper, soft mint and coral, a
+ * little butter yellow; rounded Fredoka headings over open Figtree text;
+ * organic blob shapes and big rounded photo masks; lots of room to breathe.
+ * Calm, never clinical: no hospital blue, no pure white, no hard corners.
+ */
+
+:root {
+    /* Paper. */
+    --color-bg: #fdf8f0;
+    --color-surface: #f6eddf;
+    --color-surface-raised: #fffdf8;
+    --color-border: #eadfcb;
+    --color-border-strong: #d8c9ae;
+
+    /* Ink. */
+    --color-text: #22332e;
+    --color-muted: #5b6b65;
+    --color-forest: #1d3b34;
+    --color-forest-raised: #24473f;
+    --color-on-forest: #fdf8f0;
+    --color-on-forest-muted: #b9cfc6;
+
+    /* Mint: the calm. Links, focus, the first-visit path. */
+    --color-mint: #bfe6d4;
+    --color-mint-soft: #dff3e9;
+    --color-mint-deep: #2a6b59;
+
+    /* Coral: the warmth. The one action colour (Book a visit), the smile. */
+    --color-coral: #f3876c;
+    --color-coral-hover: #f59a82;
+    --color-coral-soft: #fde3d9;
+    --color-coral-ink: #a8432b;
+
+    /* Butter: the sunshine, used for children and highlights. */
+    --color-butter: #ffe7a8;
+    --color-butter-soft: #fff4d6;
+
+    --color-focus: #2a6b59;
+    --color-error: #a8321f;
+    --color-success: #2a6b59;
+
+    --radius-small: 0.75rem;
+    --radius: 1.25rem;
+    --radius-large: 2.25rem;
+    --radius-pill: 999px;
+
+    /* Organic shapes: a photo or a panel that is not quite round. */
+    --blob-a: 58% 42% 52% 48% / 46% 56% 44% 54%;
+    --blob-b: 44% 56% 38% 62% / 58% 42% 58% 42%;
+    --blob-c: 62% 38% 56% 44% / 40% 60% 40% 60%;
+    --arch: 999px 999px var(--radius-large) var(--radius-large);
+
+    --shadow-soft: 0 1px 2px rgb(29 59 52 / 0.04), 0 10px 30px -14px rgb(29 59 52 / 0.18);
+    --shadow-lift: 0 2px 4px rgb(29 59 52 / 0.04), 0 28px 50px -22px rgb(29 59 52 / 0.32);
+
+    /* Slow, reassuring easing: everything settles, nothing snaps. */
+    --ease-calm: cubic-bezier(0.33, 1, 0.68, 1);
+    --ease-float: cubic-bezier(0.45, 0, 0.55, 1);
+
+    --space-1: 0.25rem;
+    --space-2: 0.5rem;
+    --space-3: 0.75rem;
+    --space-4: 1rem;
+    --space-5: 1.25rem;
+    --space-6: 1.5rem;
+    --space-8: 2rem;
+    --space-10: 2.5rem;
+    --space-12: 3rem;
+    --space-16: 4rem;
+    --space-20: 5rem;
+    --space-24: 6rem;
+
+    /* Breathing room between bands: very generous on wide screens. */
+    --section: clamp(4.5rem, 2.5rem + 8vw, 9rem);
+
+    --width-content: 78rem;
+    --width-prose: 42rem;
+    --gutter: clamp(1rem, 0.25rem + 3.5vw, 2.5rem);
+
+    --header-height: 5rem;
+
+    color-scheme: light;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    scroll-padding-top: calc(var(--header-height) + 1.5rem);
+    interpolate-size: allow-keywords;
+}
+
+body {
+    margin: 0;
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    font-size: 1.125rem;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: clip;
+}
+
+img,
+svg {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
+/* Type: round, friendly headings with plenty of air; calm body text. */
+
+h1,
+h2,
+h3,
+h4 {
+    margin: 0 0 var(--space-4);
+    color: var(--color-forest);
+    font-family: var(--font-display);
+    font-weight: 550;
+    line-height: 1.08;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+}
+
+h1 {
+    font-size: clamp(2.6rem, 1.5rem + 4.6vw, 5.4rem);
+    font-weight: 560;
+    line-height: 1.02;
+}
+
+h2 {
+    font-size: clamp(2rem, 1.3rem + 2.6vw, 3.4rem);
+}
+
+h3 {
+    font-size: clamp(1.3rem, 1.15rem + 0.5vw, 1.55rem);
+    font-weight: 560;
+    line-height: 1.2;
+}
+
+p {
+    margin: 0 0 var(--space-4);
+    text-wrap: pretty;
+}
+
+a {
+    color: var(--color-mint-deep);
+    text-decoration-thickness: 2px;
+    text-decoration-color: var(--color-mint);
+    text-underline-offset: 0.22em;
+    transition: color 0.4s var(--ease-calm), text-decoration-color 0.4s var(--ease-calm);
+}
+
+a:hover {
+    color: var(--color-forest);
+    text-decoration-color: var(--color-coral);
+}
+
+strong {
+    font-weight: 650;
+}
+
+:focus-visible {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 4px;
+    border-radius: var(--radius-small);
+}
+
+::selection {
+    background: var(--color-coral-soft);
+    color: var(--color-forest);
+}
+
+/* Layout. */
+
+.container {
+    width: min(100% - 2 * var(--gutter), var(--width-content));
+    margin-inline: auto;
+}
+
+.prose {
+    width: min(100% - 2 * var(--gutter), var(--width-prose));
+    margin-inline: auto;
+}
+
+.prose > * + h2 {
+    margin-top: var(--space-12);
+}
+
+.prose h2 {
+    font-size: clamp(1.6rem, 1.3rem + 1.1vw, 2.1rem);
+}
+
+.prose h3 {
+    margin-top: var(--space-8);
+}
+
+.prose p,
+.prose li {
+    color: #2e3f39;
+}
+
+.prose ul,
+.prose ol {
+    margin: 0 0 var(--space-6);
+    padding-left: 1.35em;
+}
+
+.prose li + li {
+    margin-top: var(--space-2);
+}
+
+.prose li::marker {
+    color: var(--color-coral);
+}
+
+.prose ol li::marker {
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--color-mint-deep);
+}
+
+.prose blockquote {
+    position: relative;
+    margin: var(--space-10) 0;
+    padding: var(--space-8) var(--space-8) var(--space-8) var(--space-10);
+    border-radius: var(--blob-a);
+    background: var(--color-mint-soft);
+    color: var(--color-forest);
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    line-height: 1.45;
+}
+
+.prose blockquote p:last-child {
+    margin-bottom: 0;
+}
+
+.prose a {
+    font-weight: 600;
+}
+
+.prose strong {
+    color: var(--color-forest);
+}
+
+.eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin: 0 0 var(--space-5);
+    color: var(--color-mint-deep);
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    font-weight: 500;
+}
+
+.eyebrow::before {
+    content: '';
+    width: 1.6rem;
+    height: 0.6rem;
+    border: 3px solid var(--color-coral);
+    border-top: 0;
+    border-radius: 0 0 999px 999px;
+}
+
+.lead {
+    color: var(--color-muted);
+    font-size: clamp(1.15rem, 1.05rem + 0.45vw, 1.4rem);
+    line-height: 1.6;
+}
+
+.muted {
+    color: var(--color-muted);
+}
+
+/* A word in a heading that wears a hand-drawn smile underneath. */
+.smiled {
+    position: relative;
+    display: inline-block;
+    white-space: nowrap;
+}
+
+.smiled svg {
+    position: absolute;
+    left: -2%;
+    bottom: -0.32em;
+    width: 104%;
+    height: 0.45em;
+    overflow: visible;
+    color: var(--color-coral);
+}
+
+/* Buttons are links or buttons with a class, never a div. */
+
+.button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    min-height: 3.25rem;
+    padding: 0.85rem 1.7rem;
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: var(--color-coral);
+    color: var(--color-forest);
+    font: inherit;
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    font-weight: 550;
+    line-height: 1.2;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    box-shadow: 0 12px 24px -14px rgb(168 67 43 / 0.7);
+    transition: background-color 0.5s var(--ease-calm), transform 0.6s var(--ease-calm), box-shadow 0.6s var(--ease-calm);
+}
+
+.button:hover {
+    background: var(--color-coral-hover);
+    color: var(--color-forest);
+    transform: translateY(-3px);
+    box-shadow: 0 18px 30px -14px rgb(168 67 43 / 0.75);
+}
+
+.button-quiet {
+    background: transparent;
+    color: var(--color-forest);
+    box-shadow: inset 0 0 0 2px var(--color-border-strong);
+}
+
+.button-quiet:hover {
+    background: var(--color-mint-soft);
+    box-shadow: inset 0 0 0 2px var(--color-mint-deep);
+}
+
+.button-forest {
+    background: var(--color-forest);
+    color: var(--color-on-forest);
+    box-shadow: 0 12px 24px -14px rgb(29 59 52 / 0.8);
+}
+
+.button-forest:hover {
+    background: var(--color-forest-raised);
+    color: var(--color-on-forest);
+}
+
+.button-cream {
+    background: var(--color-bg);
+    color: var(--color-forest);
+    box-shadow: none;
+}
+
+.button-cream:hover {
+    background: #ffffff;
+    color: var(--color-forest);
+}
+
+.button-large {
+    min-height: 3.75rem;
+    padding: 1rem 2.1rem;
+    font-size: 1.2rem;
+}
+
+.button[disabled] {
+    opacity: 0.6;
+    cursor: progress;
+    transform: none;
+}
+
+.button svg {
+    flex: none;
+}
+
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+/* For screen readers only. */
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+}
+
+@media (max-width: 40rem) {
+    .actions > .button {
+        flex: 1 1 100%;
+    }
+
+    /* Room for the floating call / book bar (MobileBar.astro). */
+    body {
+        padding-bottom: 5.5rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        transition: none !important;
+        animation: none !important;
+        scroll-behavior: auto !important;
+    }
+}

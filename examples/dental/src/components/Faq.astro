@@ -1,0 +1,120 @@
+---
+/**
+ * Questions and answers as <details>, readable without script; they open
+ * softly where the browser can animate to height: auto (motion.css). Pass
+ * the same items to faqPage() in the page's jsonLd so search engines can
+ * read them too.
+ */
+export interface FaqItem {
+    question: string;
+    answer: string;
+}
+
+interface Props {
+    items: FaqItem[];
+}
+
+const { items } = Astro.props;
+---
+
+<div class="faq">
+    {
+        items.map((item) => (
+            <details>
+                <summary>
+                    <span>{item.question}</span>
+                    <span class="marker" aria-hidden="true" />
+                </summary>
+                <div class="answer">
+                    <p>{item.answer}</p>
+                </div>
+            </details>
+        ))
+    }
+</div>
+
+<style>
+    .faq {
+        display: grid;
+        gap: var(--space-3);
+        max-width: 50rem;
+    }
+
+    details {
+        border-radius: var(--radius-large);
+        background: var(--color-surface-raised);
+        box-shadow: inset 0 0 0 1px var(--color-border);
+        transition: background-color 0.6s var(--ease-calm), box-shadow 0.6s var(--ease-calm);
+    }
+
+    details[open] {
+        background: var(--color-mint-soft);
+        box-shadow: inset 0 0 0 1px transparent;
+    }
+
+    summary {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-4);
+        padding: var(--space-5) var(--space-6);
+        color: var(--color-forest);
+        font-family: var(--font-display);
+        font-size: 1.2rem;
+        font-weight: 500;
+        line-height: 1.35;
+        list-style: none;
+        cursor: pointer;
+    }
+
+    summary::-webkit-details-marker {
+        display: none;
+    }
+
+    summary:focus-visible {
+        border-radius: var(--radius-large);
+    }
+
+    .marker {
+        position: relative;
+        flex: none;
+        width: 2.25rem;
+        height: 2.25rem;
+        border-radius: var(--blob-a);
+        background: var(--color-coral-soft);
+        transition: transform 0.7s var(--ease-calm), background-color 0.6s var(--ease-calm);
+    }
+
+    .marker::before,
+    .marker::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0.85rem;
+        height: 2.5px;
+        margin: -1.25px 0 0 -0.425rem;
+        border-radius: 2px;
+        background: var(--color-coral-ink);
+        transition: transform 0.6s var(--ease-calm);
+    }
+
+    .marker::after {
+        transform: rotate(90deg);
+    }
+
+    details[open] .marker {
+        background: var(--color-mint);
+        transform: rotate(180deg);
+    }
+
+    details[open] .marker::after {
+        transform: rotate(0deg);
+    }
+
+    .answer p {
+        margin: 0;
+        padding: 0 var(--space-6) var(--space-6);
+        color: #2e3f39;
+    }
+</style>

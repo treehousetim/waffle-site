@@ -1,0 +1,24 @@
+{
+  "success": true,
+  "data": {
+    "updated": "2026-10-01",
+    "plans": [
+      { "id": "evergreen-mutual-ppo", "name": "Evergreen Mutual Dental PPO", "type": "PPO", "network": "in-network", "note": "Check-ups and cleanings are usually covered in full. We file every claim for you." },
+      { "id": "harborline-premier", "name": "Harborline Benefits Premier", "type": "PPO", "network": "in-network", "note": "Includes children’s sealants. Aligner cover depends on your employer’s plan, so we check first." },
+      { "id": "cobalt-dental-choice", "name": "Cobalt Health Dental Choice", "type": "PPO", "network": "in-network", "note": "We can ask Cobalt for a pre-treatment estimate before any crown or implant." },
+      { "id": "summit-workplace", "name": "Summit Workplace Dental", "type": "PPO", "network": "in-network", "note": "Common with Thistlewood school district and county staff." },
+      { "id": "bluefern-hmo", "name": "Bluefern Dental HMO", "type": "HMO", "network": "in-network", "note": "Choose Brightside as your assigned office with Bluefern before your first visit." },
+      { "id": "oregon-kids-dental", "name": "State children’s dental program", "type": "Public", "network": "in-network", "note": "For children and teenagers under 19. Check-ups, cleanings, sealants and fillings at no cost to you." },
+      { "id": "keystone-indemnity", "name": "Keystone Indemnity Dental", "type": "Indemnity", "network": "out-of-network", "note": "We file the claim and tell you upfront what Keystone usually pays and what you would." },
+      { "id": "meridian-union-ppo", "name": "Meridian Union Dental PPO", "type": "PPO", "network": "out-of-network", "note": "Most members are reimbursed for check-ups. We send a detailed receipt the same day." },
+      { "id": "northstar-senior", "name": "Northstar Senior Smiles", "type": "Medicare Advantage", "network": "out-of-network", "note": "Covers preventive visits for many members. Call us and we will check yours." }
+    ],
+    "payments": [
+      { "id": "cards", "name": "Cards and contactless", "note": "Debit, credit and phone payments, at the end of each visit." },
+      { "id": "hsa-fsa", "name": "HSA and FSA cards", "note": "Use your health savings or flexible spending card like any other card." },
+      { "id": "monthly-plan", "name": "Interest-free monthly plan", "note": "For treatment over $600: spread it over up to 12 months, with no interest and no credit check.", "from_cents": 5000, "per": "month" },
+      { "id": "membership", "name": "Brightside Membership", "note": "For patients without insurance: two check-ups, two cleanings and routine x-rays a year, and 15% off other treatment.", "from_cents": 32900, "per": "year" },
+      { "id": "child-membership", "name": "Brightside Membership for children", "note": "The same, for under-16s, with sealants included.", "from_cents": 19900, "per": "year" }
+    ]
+  }
+}

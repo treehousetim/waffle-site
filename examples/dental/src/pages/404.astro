@@ -1,0 +1,25 @@
+---
+/**
+ * Served by Caddy, with status 404, for any path that is not in the build
+ * (docker/caddy/Caddyfile). Kept out of search results (src/site.ts).
+ */
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Section from '../components/Section.astro';
+import TreatmentGrid from '../components/TreatmentGrid.astro';
+import { treatments } from '../data/treatments';
+---
+
+<Base title="Page not found" description="That page is not here. It may have moved, or the link may have a typo. Try our treatments, new patient information or the advice blog instead.">
+    <PageHero
+        eyebrow="404"
+        heading="Oops, that page has gone missing"
+        smile="gone missing"
+        lead="Like a lost baby tooth. It may have moved, or the link may have a typo in it. These might be what you were after."
+        primary={{ label: 'Go to the home page', href: '/' }}
+        secondary={{ label: 'Book a visit', href: '/book/' }}
+    />
+    <Section heading="Our treatments">
+        <TreatmentGrid items={treatments.slice(0, 3)} />
+    </Section>
+</Base>

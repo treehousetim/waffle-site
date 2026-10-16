@@ -1,0 +1,192 @@
+---
+/**
+ * A breathing guide: a soft pebble that slowly swells for four seconds and
+ * settles for four, with "breathe in" and "and out" taking turns. The same
+ * rhythm our dentists use in the chair. Where motion is off it is a still
+ * pebble with the instruction written out.
+ */
+---
+
+<figure class="breathe">
+    <div class="stage" aria-hidden="true">
+        <span class="ring ring-1"></span>
+        <span class="ring ring-2"></span>
+        <span class="pebble">
+            <span class="word in">Breathe in</span>
+            <span class="word out">and out</span>
+        </span>
+    </div>
+    <figcaption>
+        <strong>Try it now.</strong> In through your nose while the circle grows, out through your mouth while it settles. Four seconds each
+        way, three or four times.
+    </figcaption>
+</figure>
+
+<style>
+    .breathe {
+        display: grid;
+        justify-items: center;
+        gap: var(--space-8);
+        margin: 0;
+        text-align: center;
+    }
+
+    .stage {
+        position: relative;
+        display: grid;
+        place-items: center;
+        width: min(80vw, 22rem);
+        aspect-ratio: 1;
+    }
+
+    .ring,
+    .pebble {
+        grid-area: 1 / 1;
+        border-radius: var(--blob-a);
+    }
+
+    .ring {
+        width: 100%;
+        height: 100%;
+    }
+
+    .ring-1 {
+        background: var(--color-mint-soft);
+    }
+
+    .ring-2 {
+        width: 82%;
+        height: 82%;
+        background: var(--color-mint);
+        opacity: 0.6;
+        border-radius: var(--blob-b);
+    }
+
+    .pebble {
+        display: grid;
+        place-items: center;
+        width: 62%;
+        height: 62%;
+        background: var(--color-mint-deep);
+        color: var(--color-on-forest);
+        box-shadow: 0 30px 60px -30px rgb(29 59 52 / 0.6);
+    }
+
+    .word {
+        grid-area: 1 / 1;
+        font-family: var(--font-display);
+        font-size: clamp(1.3rem, 1rem + 1.2vw, 1.8rem);
+        font-weight: 500;
+    }
+
+    /* Still: say both. */
+    .word.out {
+        display: none;
+    }
+
+    figcaption {
+        max-width: 30rem;
+        color: var(--color-muted);
+    }
+
+    figcaption strong {
+        color: var(--color-forest);
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+        .word.out {
+            display: block;
+        }
+
+        .pebble {
+            animation: breathe 8s var(--ease-float) infinite;
+        }
+
+        .ring-1 {
+            animation: breathe-ring 8s var(--ease-float) infinite;
+        }
+
+        .ring-2 {
+            animation: breathe-ring 8s var(--ease-float) 0.25s infinite, morph 16s ease-in-out infinite;
+        }
+
+        .word.in {
+            animation: word-in 8s ease-in-out infinite;
+        }
+
+        .word.out {
+            animation: word-out 8s ease-in-out infinite;
+        }
+    }
+
+    @keyframes breathe {
+        0%,
+        100% {
+            transform: scale(0.82);
+        }
+
+        50% {
+            transform: scale(1.12);
+        }
+    }
+
+    @keyframes breathe-ring {
+        0%,
+        100% {
+            transform: scale(0.86);
+            opacity: 0.55;
+        }
+
+        50% {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    @keyframes morph {
+        0%,
+        100% {
+            border-radius: var(--blob-a);
+        }
+
+        33% {
+            border-radius: var(--blob-b);
+        }
+
+        66% {
+            border-radius: var(--blob-c);
+        }
+    }
+
+    @keyframes word-in {
+        0%,
+        42% {
+            opacity: 1;
+        }
+
+        50%,
+        92% {
+            opacity: 0;
+        }
+
+        100% {
+            opacity: 1;
+        }
+    }
+
+    @keyframes word-out {
+        0%,
+        42% {
+            opacity: 0;
+        }
+
+        50%,
+        92% {
+            opacity: 1;
+        }
+
+        100% {
+            opacity: 0;
+        }
+    }
+</style>

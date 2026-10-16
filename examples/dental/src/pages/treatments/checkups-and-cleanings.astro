@@ -1,0 +1,39 @@
+---
+import TreatmentPage from '../../layouts/TreatmentPage.astro';
+---
+
+<TreatmentPage
+    slug="checkups-and-cleanings"
+    title="Check-ups and cleanings"
+    description="Unhurried dental check-ups and gentle cleanings in Thistlewood: we look, explain what we see in plain English, and never lecture."
+    heading="A check-up that feels like a catch-up"
+    smile="catch-up"
+    lead="Forty-five minutes, a gentle clean and an honest chat about your teeth and gums. Most people leave surprised by how calm it was."
+    glance={[
+        { label: 'How long', value: 'About 45 minutes' },
+        { label: 'How often', value: 'Usually every 6 to 12 months' },
+        { label: 'Good for', value: 'Everyone, from age one' },
+    ]}
+    preparation="Brush as usual and bring a list of any medicines you take. If you are new, we send a short health form to fill in at home, so you are not juggling a clipboard in the waiting room."
+    howPerformed="The dentist looks at each tooth, your gums, tongue and the soft tissue of your mouth, and takes x-rays only when they are due. The hygienist then removes hardened plaque with small hand tools or a gentle ultrasonic scaler, and polishes."
+    followup="We show you what we found, on a screen, in plain English, and agree a date for next time. If anything needs treating we explain the choices and costs, and you decide later, not in the chair."
+    faq={[
+        { question: 'Do I really need a check-up if nothing hurts?', answer: 'Most problems in teeth and gums do not hurt until they are well along. A regular look lets a dentist spot small changes early, when the fix is usually smaller too. How often you come is decided with you, based on your own mouth.' },
+        { question: 'Will the cleaning hurt?', answer: 'Most people feel scraping and some pressure, not pain. If your gums are tender, tell us: we can go more slowly, use numbing gel, or split the clean over two shorter visits.' },
+        { question: 'How often do I need x-rays?', answer: 'Not every visit. We take them when they are due for you, which depends on your age and history, and always tell you why before we take one.' },
+        { question: 'It has been years since I last went. Will you tell me off?', answer: 'Never. Lots of our patients come back after a long gap. We are glad you are here, and the first visit is about getting to know your mouth, not judging it.' },
+    ]}
+>
+    <h2>What we look at</h2>
+    <p>A check-up is more than counting teeth. Your dentist looks for early signs of decay, wear from grinding, gum inflammation, and changes in the soft tissue of your mouth and tongue. We also ask how things feel: sensitivity, a sore jaw in the morning, a filling that catches your floss.</p>
+    <ul>
+        <li>Each tooth, and any fillings, crowns or bridges you already have</li>
+        <li>Your gums, measured gently in a few places to see how healthy they are</li>
+        <li>Your bite, your jaw joints and any signs of clenching or grinding</li>
+        <li>The inside of your cheeks, your tongue and the roof of your mouth</li>
+    </ul>
+    <h2>Cleaning, gently</h2>
+    <p>Even very good brushers build up some tartar, the hardened plaque a toothbrush cannot shift. Our hygienists remove it with fine hand tools and, where it suits you, a quiet ultrasonic scaler that uses vibration and water. Then a polish, and some tips tailored to your mouth, not a generic flossing lecture.</p>
+    <h2>Raise a hand, any time</h2>
+    <p>Every room at Brightside has the same rule painted on the wall: raise your hand and we stop. Ask questions as we go, ask for a break, ask for the radio to be turned up. If you are anxious, see our page for <a href="/nervous-patients/">nervous patients</a>.</p>
+</TreatmentPage>

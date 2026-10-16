@@ -1,0 +1,110 @@
+---
+/**
+ * Soft blobs behind a hero or a band: decorative shapes that slowly change
+ * shape and drift (motion.css), and simply sit still where motion is off.
+ * The parent needs position: relative and overflow: clip.
+ */
+interface Props {
+    /** Which arrangement. */
+    set?: 'hero' | 'band' | 'corner';
+}
+
+const { set = 'hero' } = Astro.props;
+---
+
+<div class:list={['blobs', set]} aria-hidden="true">
+    <span class="blob blob-1"></span>
+    <span class="blob blob-2"></span>
+    <span class="blob blob-3"></span>
+</div>
+
+<style>
+    .blobs {
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+    }
+
+    .blob {
+        position: absolute;
+        display: block;
+        border-radius: var(--blob-a);
+        opacity: 0.9;
+    }
+
+    .hero .blob-1 {
+        top: -8rem;
+        right: -10rem;
+        width: clamp(22rem, 45vw, 46rem);
+        aspect-ratio: 1;
+        background: var(--color-mint-soft);
+    }
+
+    .hero .blob-2 {
+        bottom: -6rem;
+        left: -8rem;
+        width: clamp(14rem, 26vw, 26rem);
+        aspect-ratio: 1.1;
+        background: var(--color-coral-soft);
+        border-radius: var(--blob-b);
+    }
+
+    .hero .blob-3 {
+        top: 18%;
+        left: 42%;
+        width: clamp(4rem, 7vw, 7rem);
+        aspect-ratio: 1;
+        background: var(--color-butter);
+        border-radius: var(--blob-c);
+        opacity: 0.7;
+    }
+
+    .band .blob-1 {
+        top: -4rem;
+        left: -6rem;
+        width: clamp(16rem, 30vw, 30rem);
+        aspect-ratio: 1;
+        background: rgb(255 255 255 / 0.35);
+    }
+
+    .band .blob-2 {
+        right: -5rem;
+        bottom: -7rem;
+        width: clamp(18rem, 34vw, 34rem);
+        aspect-ratio: 1.2;
+        background: rgb(255 255 255 / 0.25);
+        border-radius: var(--blob-b);
+    }
+
+    .band .blob-3 {
+        top: 12%;
+        right: 22%;
+        width: 4.5rem;
+        aspect-ratio: 1;
+        background: var(--color-butter);
+        border-radius: var(--blob-c);
+        opacity: 0.8;
+    }
+
+    .corner .blob-1 {
+        top: -6rem;
+        right: -8rem;
+        width: clamp(16rem, 32vw, 30rem);
+        aspect-ratio: 1;
+        background: var(--color-mint-soft);
+    }
+
+    .corner .blob-2 {
+        bottom: 10%;
+        left: -9rem;
+        width: clamp(10rem, 18vw, 18rem);
+        aspect-ratio: 1;
+        background: var(--color-butter-soft);
+        border-radius: var(--blob-b);
+    }
+
+    .corner .blob-3 {
+        display: none;
+    }
+</style>

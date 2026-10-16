@@ -1,0 +1,46 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @font-face { font-family: Fredoka; src: url('../src/assets/fonts/fredoka-latin-wght.woff2') format('woff2'); font-weight: 300 700; }
+  @font-face { font-family: Figtree; src: url('../src/assets/fonts/figtree-latin-wght.woff2') format('woff2'); font-weight: 300 900; }
+  html, body { margin: 0; width: 1200px; height: 630px; overflow: hidden; }
+  body { position: relative; background: #fdf8f0; font-family: Figtree, sans-serif; color: #1d3b34; }
+  .blob { position: absolute; border-radius: 58% 42% 52% 48% / 46% 56% 44% 54%; }
+  .b1 { width: 760px; height: 760px; right: -220px; top: -180px; background: #dff3e9; }
+  .b2 { width: 360px; height: 330px; left: -120px; bottom: -150px; background: #fde3d9; border-radius: 44% 56% 38% 62% / 58% 42% 58% 42%; }
+  .b3 { width: 70px; height: 70px; left: 600px; top: 70px; background: #ffe7a8; border-radius: 62% 38% 56% 44% / 40% 60% 40% 60%; }
+  .photo { position: absolute; right: 70px; top: 85px; width: 440px; height: 440px; border-radius: 58% 42% 52% 48% / 46% 56% 44% 54%; overflow: hidden; box-shadow: 0 30px 60px -30px rgba(29,59,52,.45); }
+  .halo { position: absolute; right: 40px; top: 115px; width: 460px; height: 450px; background: #bfe6d4; border-radius: 44% 56% 38% 62% / 58% 42% 58% 42%; }
+  .photo img { width: 100%; height: 100%; object-fit: cover; object-position: 40% 50%; }
+  .copy { position: absolute; left: 80px; top: 80px; width: 560px; }
+  .brand { display: flex; align-items: center; gap: 16px; }
+  .brand svg { width: 78px; height: 78px; }
+  .name { font: 600 46px/1 Fredoka, sans-serif; }
+  .kind { font: 800 15px/1 Figtree, sans-serif; letter-spacing: .22em; text-transform: uppercase; color: #2a6b59; margin-top: 6px; }
+  h1 { margin: 64px 0 0; font: 550 70px/1.02 Fredoka, sans-serif; letter-spacing: -0.01em; }
+  .smiled { position: relative; white-space: nowrap; }
+  .smiled svg { position: absolute; left: -2%; bottom: -20px; width: 104%; height: 30px; overflow: visible; }
+  p { margin: 34px 0 0; font-size: 26px; line-height: 1.45; color: #4d5e58; }
+  .pill { display: inline-block; margin-top: 30px; padding: 14px 26px; border-radius: 999px; background: #f3876c; font: 550 24px/1 Fredoka, sans-serif; }
+</style>
+</head>
+<body>
+  <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
+  <div class="halo"></div>
+  <div class="photo"><img src="../src/assets/photos/dentist-chatting-with-patient.jpg" alt=""></div>
+  <div class="copy">
+    <div class="brand">
+      <svg viewBox="0 0 48 48">
+        <path fill="#bfe6d4" d="M24.6 3.2c8.7-.3 16.8 4.6 19.4 12.6 2.7 8.2-.6 17.6-7.8 22.9-7.4 5.5-18.3 6.4-25.4 1.2C3.6 34.7 1.7 25 4.8 17.2 7.6 9.6 15.8 3.5 24.6 3.2Z"/>
+        <path fill="none" stroke="#1d3b34" stroke-width="3.6" stroke-linecap="round" d="M13.2 25.4c2.7 6 6.6 9 11 9s8.4-3 11-9"/>
+        <path fill="#f3876c" d="M35.6 7.4c.5 3.3 2.2 5 5.5 5.5-3.3.5-5 2.2-5.5 5.5-.5-3.3-2.2-5-5.5-5.5 3.3-.5 5-2.2 5.5-5.5Z"/>
+      </svg>
+      <div><div class="name">Brightside</div><div class="kind">family dental</div></div>
+    </div>
+    <h1>Dentistry that feels like a <span class="smiled">deep breath<svg viewBox="0 0 100 20" preserveAspectRatio="none"><path d="M3 5c14 9 30 13 47 13s33-4 47-13" fill="none" stroke="#f3876c" stroke-width="6" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg></span></h1>
+    <p>Gentle family dentistry in Thistlewood.</p>
+  </div>
+</body>
+</html>

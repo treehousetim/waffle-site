@@ -1,0 +1,245 @@
+---
+/**
+ * The header: a soft, rounded bar that floats a little below the top of the
+ * window and stays there as you scroll, carrying the logo, the navigation,
+ * the phone number and the one action (Book a visit).
+ *
+ * Two navigations, one shown at a time: a plain one on wide screens, and on
+ * phones a <details> menu that opens without any script (the content
+ * security policy allows no inline handlers, and a menu should not depend on
+ * JavaScript anyway). A browser hides a closed <details>'s contents whatever
+ * the CSS says, so the wide-screen navigation cannot live inside it.
+ */
+import Logo from './Logo.astro';
+import Icon from './Icon.astro';
+import { site } from '../site';
+
+const current = Astro.url.pathname;
+const isCurrent = (href: string) => current === href || (href !== '/' && current.startsWith(href));
+---
+
+<header class="site-header">
+    <div class="bar">
+        <Logo header />
+
+        <nav class="nav-wide" aria-label="Main">
+            <ul>
+                {
+                    site.nav.map((link) => (
+                        <li>
+                            <a href={link.href} aria-current={isCurrent(link.href) ? 'page' : undefined}>
+                                {link.label}
+                            </a>
+                        </li>
+                    ))
+                }
+            </ul>
+        </nav>
+
+        <div class="contact-wide">
+            <a class="phone" href={`tel:${site.business.phoneE164}`}>
+                <Icon name="phone" size={18} />
+                {site.business.phone}
+            </a>
+            <a class="button" href={site.cta.href}>{site.cta.label}</a>
+        </div>
+
+        <details class="menu">
+            <summary>
+                <span class="visually-hidden">Menu</span>
+                <span class="open-icon"><Icon name="menu" size={26} /></span>
+                <span class="close-icon"><Icon name="close" size={26} /></span>
+            </summary>
+            <nav class="nav-narrow" aria-label="Main, on small screens">
+                <ul>
+                    {
+                        site.nav.map((link) => (
+                            <li>
+                                <a href={link.href} aria-current={isCurrent(link.href) ? 'page' : undefined}>
+                                    {link.label}
+                                    <Icon name="arrow" size={20} />
+                                </a>
+                            </li>
+                        ))
+                    }
+                    <li>
+                        <a href="/contact/">Find us <Icon name="arrow" size={20} /></a>
+                    </li>
+                </ul>
+                <div class="actions">
+                    <a class="button" href={site.cta.href}>{site.cta.label}</a>
+                    <a class="button button-quiet" href={`tel:${site.business.phoneE164}`}>Call {site.business.phone}</a>
+                </div>
+            </nav>
+        </details>
+    </div>
+</header>
+
+<style>
+    .site-header {
+        position: sticky;
+        top: 0.75rem;
+        z-index: 20;
+        width: min(100% - 2 * var(--gutter) + 1rem, calc(var(--width-content) + 2rem));
+        margin: 0.75rem auto 0;
+    }
+
+    .bar {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-4);
+        min-height: var(--header-height);
+        padding: 0.6rem 0.6rem 0.6rem 1.25rem;
+        border: 1px solid rgb(216 201 174 / 0.55);
+        border-radius: var(--radius-pill);
+        background: rgb(253 248 240 / 0.86);
+        box-shadow: 0 10px 30px -22px rgb(29 59 52 / 0.35);
+        backdrop-filter: saturate(1.4) blur(16px);
+        -webkit-backdrop-filter: saturate(1.4) blur(16px);
+    }
+
+    ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .nav-wide,
+    .contact-wide {
+        display: none;
+    }
+
+    .nav-wide ul {
+        display: flex;
+        gap: 0.15rem;
+    }
+
+    .nav-wide a {
+        position: relative;
+        display: block;
+        padding: 0.5rem 0.85rem;
+        border-radius: var(--radius-pill);
+        color: var(--color-text);
+        font-size: 1rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: background-color 0.5s var(--ease-calm), color 0.5s var(--ease-calm);
+    }
+
+    .nav-wide a:hover {
+        background: var(--color-mint-soft);
+        color: var(--color-forest);
+    }
+
+    .nav-wide a[aria-current='page'] {
+        background: var(--color-mint);
+        color: var(--color-forest);
+    }
+
+    .contact-wide {
+        align-items: center;
+        gap: var(--space-4);
+    }
+
+    .phone {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        color: var(--color-forest);
+        font-weight: 700;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    .phone :global(svg) {
+        color: var(--color-coral-ink);
+    }
+
+    .contact-wide .button {
+        min-height: 3.25rem;
+    }
+
+    summary {
+        display: inline-grid;
+        place-items: center;
+        width: 3.25rem;
+        height: 3.25rem;
+        border-radius: 50%;
+        background: var(--color-mint);
+        color: var(--color-forest);
+        list-style: none;
+        cursor: pointer;
+    }
+
+    summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .close-icon,
+    .menu[open] .open-icon {
+        display: none;
+    }
+
+    .menu[open] .close-icon {
+        display: inline-flex;
+    }
+
+    .nav-narrow {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: calc(100% + 0.5rem);
+        padding: var(--space-4) var(--space-6) var(--space-6);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-large);
+        background: var(--color-bg);
+        box-shadow: var(--shadow-lift);
+    }
+
+    .nav-narrow ul {
+        margin-bottom: var(--space-6);
+    }
+
+    .nav-narrow li + li {
+        border-top: 1px dashed var(--color-border-strong);
+    }
+
+    .nav-narrow li a {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.85rem 0;
+        color: var(--color-forest);
+        font-family: var(--font-display);
+        font-size: 1.3rem;
+        font-weight: 500;
+        text-decoration: none;
+    }
+
+    .nav-narrow li a :global(svg) {
+        color: var(--color-coral);
+    }
+
+    .nav-narrow li a[aria-current='page'] {
+        color: var(--color-mint-deep);
+    }
+
+    @media (min-width: 72rem) {
+        .nav-wide,
+        .contact-wide {
+            display: flex;
+        }
+
+        .menu {
+            display: none;
+        }
+    }
+
+    @media (min-width: 72rem) and (max-width: 82rem) {
+        .phone {
+            display: none;
+        }
+    }
+</style>

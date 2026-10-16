@@ -1,0 +1,67 @@
+---
+/**
+ * Soft, round line icons, decorative only (aria-hidden): the text next to an
+ * icon always says what it means. Each is an SVG file in src/icons/,
+ * imported as an Astro SVG component; add one by adding its file and a line
+ * below.
+ */
+import Tooth from '../icons/tooth.svg';
+import Balloon from '../icons/balloon.svg';
+import Sparkle from '../icons/sparkle.svg';
+import Aligner from '../icons/aligner.svg';
+import Implant from '../icons/implant.svg';
+import Heart from '../icons/heart.svg';
+import Phone from '../icons/phone.svg';
+import Clock from '../icons/clock.svg';
+import Pin from '../icons/pin.svg';
+import Mail from '../icons/mail.svg';
+import Menu from '../icons/menu.svg';
+import Close from '../icons/close.svg';
+import Arrow from '../icons/arrow.svg';
+import Check from '../icons/check.svg';
+import Calendar from '../icons/calendar.svg';
+import Leaf from '../icons/leaf.svg';
+import Hand from '../icons/hand.svg';
+import Chat from '../icons/chat.svg';
+import Shield from '../icons/shield.svg';
+import Card from '../icons/card.svg';
+import Music from '../icons/music.svg';
+import Sun from '../icons/sun.svg';
+
+const icons = {
+    tooth: Tooth,
+    balloon: Balloon,
+    sparkle: Sparkle,
+    aligner: Aligner,
+    implant: Implant,
+    heart: Heart,
+    phone: Phone,
+    clock: Clock,
+    pin: Pin,
+    mail: Mail,
+    menu: Menu,
+    close: Close,
+    arrow: Arrow,
+    check: Check,
+    calendar: Calendar,
+    leaf: Leaf,
+    hand: Hand,
+    chat: Chat,
+    shield: Shield,
+    card: Card,
+    music: Music,
+    sun: Sun,
+} as const;
+
+export type IconName = keyof typeof icons;
+
+interface Props {
+    name: IconName;
+    size?: number;
+}
+
+const { name, size = 24 } = Astro.props;
+const Svg = icons[name];
+---
+
+<Svg width={size} height={size} aria-hidden="true" focusable="false" />
