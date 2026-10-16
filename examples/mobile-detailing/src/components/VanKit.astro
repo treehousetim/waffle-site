@@ -1,0 +1,131 @@
+---
+/**
+ * What the van carries, as a spec sheet: each item with its number in mono,
+ * beside a photograph of the van. The reason a mobile detailer can do a
+ * workshop's job at your curb.
+ */
+import Icon from './Icon.astro';
+import Photo from './Photo.astro';
+import { kit } from '../data/van';
+import type { PhotoName } from '../data/photos';
+
+interface Props {
+    photo?: PhotoName;
+    /** The small label on the photo. */
+    caption?: string;
+}
+
+const { photo = 'whiteVanNight', caption = 'Unit 02 · Port Alder' } = Astro.props;
+---
+
+<div class="van">
+    <figure class="media parallax">
+        <Photo name={photo} sizes="(min-width: 64rem) 45vw, 100vw" />
+        <figcaption class="spec">{caption}</figcaption>
+    </figure>
+    <ul class="kit">
+        {
+            kit.map((item) => (
+                <li>
+                    <span class="icon"><Icon name={item.icon} size={20} /></span>
+                    <div>
+                        <p class="name">
+                            {item.name} <span class="spec">{item.spec}</span>
+                        </p>
+                        <p class="text">{item.text}</p>
+                    </div>
+                </li>
+            ))
+        }
+    </ul>
+</div>
+
+<style>
+    .van {
+        display: grid;
+        gap: var(--space-10);
+        align-items: center;
+    }
+
+    @media (min-width: 64rem) {
+        .van {
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            gap: var(--space-16);
+        }
+    }
+
+    .media {
+        position: relative;
+        margin: 0;
+        overflow: hidden;
+        border-radius: var(--radius);
+        clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--cut) * 2), calc(100% - var(--cut) * 2) 100%, 0 100%);
+    }
+
+    .media :global(img) {
+        width: 100%;
+        aspect-ratio: 5 / 4;
+        object-fit: cover;
+    }
+
+    figcaption {
+        position: absolute;
+        top: var(--space-4);
+        left: var(--space-4);
+        padding: 0.25rem 0.55rem;
+        border: 1px solid rgb(255 255 255 / 0.3);
+        border-radius: var(--radius-small);
+        background: rgb(5 6 7 / 0.6);
+        color: var(--color-text);
+    }
+
+    .kit {
+        display: grid;
+        gap: 0;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        border-top: 1px solid var(--color-line);
+    }
+
+    .kit li {
+        display: grid;
+        grid-template-columns: 2.75rem 1fr;
+        gap: var(--space-4);
+        padding: var(--space-5) 0;
+        border-bottom: 1px solid var(--color-line);
+    }
+
+    .icon {
+        display: inline-grid;
+        place-items: center;
+        width: 2.75rem;
+        height: 2.75rem;
+        border: 1px solid rgb(46 230 255 / 0.35);
+        border-radius: 50%;
+        color: var(--color-cyan);
+        background: radial-gradient(circle at 30% 30%, rgb(46 230 255 / 0.2), transparent 70%);
+    }
+
+    .name {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: var(--space-2) var(--space-4);
+        margin: 0 0 var(--space-1);
+        font-weight: 800;
+        font-stretch: 112%;
+    }
+
+    .name .spec {
+        color: var(--color-cyan);
+    }
+
+    .text {
+        margin: 0;
+        color: var(--color-muted);
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+</style>

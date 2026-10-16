@@ -1,0 +1,149 @@
+---
+/**
+ * One post in a list. Two shapes: a `row` (the journal's index and tag
+ * pages: picture left, words right, like a contents page) and a `tile` (the
+ * home page and "keep reading": picture on top). Its picture is the post's
+ * cover, or its topic's photo (src/data/photos.ts), so every post has one.
+ */
+import type { CollectionEntry } from 'astro:content';
+import FormattedDate from './FormattedDate.astro';
+import Photo from './Photo.astro';
+import { defaultPostPhoto, topicPhotos } from '../data/photos';
+import { readingMinutes, tagSlug } from '@core/lib/posts.js';
+
+interface Props {
+    post: CollectionEntry<'blog'>;
+    /** h2 on a page of posts; h3 inside a band that has its own h2. */
+    level?: 'h2' | 'h3';
+    shape?: 'row' | 'tile';
+    number?: number;
+}
+
+const { post, level = 'h2', shape = 'row', number } = Astro.props;
+const Heading = level;
+const firstTag = post.data.tags[0];
+const topicPhoto = (firstTag !== undefined ? topicPhotos[tagSlug(firstTag)] : undefined) ?? defaultPostPhoto;
+const sizes = shape === 'row' ? '(min-width: 48rem) 22rem, 100vw' : '(min-width: 64rem) 30vw, (min-width: 40rem) 50vw, 100vw';
+---
+
+<article class:list={['post', shape]}>
+    <div class="picture">
+        {
+            post.data.cover && post.data.coverAlt ? (
+                <Photo src={post.data.cover} alt="" sizes={sizes} />
+            ) : (
+                <Photo name={topicPhoto} decorative sizes={sizes} />
+            )
+        }
+    </div>
+    <div class="words">
+        <p class="meta spec">
+            {number !== undefined && <span class="num">{String(number).padStart(2, '0')}</span>}
+            {firstTag && <span class="tag">{firstTag}</span>}
+            {post.data.draft && <span class="draft">Draft</span>}
+            <span><FormattedDate date={post.data.pubDate} /> · {readingMinutes(post.body ?? '')} min</span>
+        </p>
+        <Heading class="title"><a href={`/blog/${post.id}/`}>{post.data.title}</a></Heading>
+        <p class="description">{post.data.description}</p>
+        <span class="arrow-link read" aria-hidden="true">Read</span>
+    </div>
+</article>
+
+<style>
+    .post {
+        position: relative;
+        display: grid;
+        gap: var(--space-5);
+    }
+
+    .picture {
+        overflow: hidden;
+        border-radius: var(--radius);
+        background: var(--color-panel);
+        clip-path: polygon(0 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% 100%, 0 100%);
+    }
+
+    .picture :global(img) {
+        width: 100%;
+        height: 100%;
+        aspect-ratio: 3 / 2;
+        object-fit: cover;
+        filter: saturate(0.85);
+        transition: transform 0.8s var(--ease-out), filter 0.4s ease;
+    }
+
+    .post:hover .picture :global(img) {
+        transform: scale(1.05);
+        filter: saturate(1.05);
+    }
+
+    .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2) var(--space-4);
+        margin-bottom: var(--space-3);
+        color: var(--color-subtle);
+        font-size: 0.7rem;
+    }
+
+    .num,
+    .tag {
+        color: var(--color-cyan);
+    }
+
+    .draft {
+        color: var(--color-error);
+    }
+
+    .title {
+        margin-bottom: var(--space-3);
+        font-size: clamp(1.15rem, 1rem + 0.6vw, 1.45rem);
+        font-stretch: 112%;
+        line-height: 1.15;
+        text-transform: none;
+    }
+
+    .title a {
+        color: var(--color-text);
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+
+    .title a::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+    }
+
+    .post:hover .title a {
+        color: var(--color-cyan);
+    }
+
+    .description {
+        margin-bottom: var(--space-4);
+        color: var(--color-muted);
+        font-size: 0.95rem;
+        line-height: 1.55;
+    }
+
+    .read {
+        font-size: 0.7rem;
+    }
+
+    .row {
+        padding: var(--space-8) 0;
+        border-bottom: 1px solid var(--color-line);
+    }
+
+    @media (min-width: 48rem) {
+        .row {
+            grid-template-columns: 20rem minmax(0, 1fr);
+            gap: var(--space-10);
+            align-items: center;
+        }
+
+        .row .title {
+            font-size: clamp(1.4rem, 1.1rem + 0.9vw, 1.9rem);
+        }
+    }
+</style>

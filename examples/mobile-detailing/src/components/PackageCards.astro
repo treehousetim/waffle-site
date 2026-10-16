@@ -1,0 +1,406 @@
+---
+/**
+ * The packages as tall cards, with a vehicle-size switch above them: pick
+ * coupe, SUV or truck and every card shows that size's price and time.
+ *
+ * The switch is radio buttons and CSS (:has), no script: in a browser
+ * without :has every card simply lists all three sizes. The sizes come from
+ * the waffle app, so the CSS works by position (first, second, third size),
+ * not by name. Cards tilt toward the pointer and a glint crosses them on
+ * hover (src/scripts/tilt.ts adds the pointer-following part).
+ */
+import Photo from './Photo.astro';
+import type { CatalogPackage } from '../lib/catalog';
+import type { VehicleSize } from '../lib/packages';
+import { formatDuration, formatPrice } from '../lib/packages';
+
+interface Props {
+    packages: CatalogPackage[];
+    sizes: VehicleSize[];
+    /** h3 inside a band that has its own h2; h2 on a page of packages. */
+    level?: 'h2' | 'h3';
+    /** Name each card's photo for the view transition into its page. */
+    transitions?: boolean;
+    /** A distinct name for the radio group when there are two on a page. */
+    group?: string;
+}
+
+const { packages, sizes, level = 'h3', transitions = false, group = 'size-view' } = Astro.props;
+const Heading = level;
+---
+
+<div class="pricing">
+    <fieldset class="size-switch">
+        <legend class="spec">Prices for</legend>
+        <div class="options">
+            {
+                sizes.map((size, index) => (
+                    <label class="option">
+                        <input type="radio" name={group} value={size.id} checked={index === 0} />
+                        <span>{size.label}</span>
+                    </label>
+                ))
+            }
+        </div>
+    </fieldset>
+
+    <ul class="cards">
+        {
+            packages.map((item, index) => (
+                <li>
+                    <article class="card" data-tilt>
+                        <div class:list={['photo', transitions && `vt-${item.slug}`]}>
+                            <Photo name={item.copy.photo} decorative sizes="(min-width: 72rem) 20vw, (min-width: 40rem) 45vw, 80vw" />
+                            <span class="number spec" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
+                        </div>
+                        <div class="body">
+                            <p class="kicker spec">{item.copy.kicker.replace(/^\d+ \/ /, '')}</p>
+                            <Heading class="name">
+                                <a href={item.url}>{item.name}</a>
+                            </Heading>
+                            <p class="summary">{item.summary}</p>
+                            <dl class="prices">
+                                {sizes.map((size) => (
+                                    <div class="price">
+                                        <dt class="spec">{size.label}</dt>
+                                        <dd>
+                                            <strong>{formatPrice(item.pricesCents[size.id] ?? 0)}</strong>
+                                            <span class="spec">{formatDuration(item.durationMinutes[size.id] ?? 0)}</span>
+                                        </dd>
+                                    </div>
+                                ))}
+                            </dl>
+                            <span class="arrow-link more" aria-hidden="true">What’s included</span>
+                        </div>
+                        <span class="glint" aria-hidden="true"></span>
+                    </article>
+                </li>
+            ))
+        }
+    </ul>
+</div>
+
+<script>
+    import { enableTilt } from '../scripts/tilt';
+
+    enableTilt(document);
+</script>
+
+<style>
+    .size-switch {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-3) var(--space-5);
+        margin: 0 0 var(--space-8);
+        padding: 0;
+        border: 0;
+    }
+
+    legend {
+        float: left;
+        margin-right: var(--space-2);
+        padding: 0;
+        color: var(--color-muted);
+    }
+
+    .options {
+        display: inline-flex;
+        flex-wrap: wrap;
+        gap: 2px;
+        padding: 3px;
+        border: 1px solid var(--color-line-strong);
+        border-radius: var(--radius);
+        background: var(--color-raised);
+    }
+
+    .option {
+        position: relative;
+        cursor: pointer;
+    }
+
+    .option input {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+    .option span {
+        display: block;
+        padding: 0.55rem 1rem;
+        border-radius: var(--radius-small);
+        color: var(--color-muted);
+        font-size: 0.72rem;
+        font-weight: 750;
+        font-stretch: 125%;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        transition: background-color 0.25s ease, color 0.25s ease;
+    }
+
+    .option input:checked + span {
+        background: var(--color-cyan);
+        color: var(--color-on-cyan);
+    }
+
+    .option input:focus-visible + span {
+        outline: 2px solid var(--color-cyan);
+        outline-offset: 2px;
+    }
+
+    .option:hover input:not(:checked) + span {
+        color: var(--color-text);
+    }
+
+    @media (max-width: 40rem) {
+        .size-switch,
+        .options {
+            width: 100%;
+        }
+
+        .options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+            grid-auto-flow: column;
+        }
+
+        .option span {
+            display: grid;
+            place-items: center;
+            height: 100%;
+            padding: 0.55rem 0.4rem;
+            font-size: 0.64rem;
+            text-align: center;
+        }
+    }
+
+    .cards {
+        display: grid;
+        gap: var(--space-4);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    /* Phones: a row to swipe through, each card snapping into place. */
+    @media (max-width: 47.99rem) {
+        .cards {
+            grid-auto-flow: column;
+            grid-auto-columns: min(80%, 20rem);
+            margin-inline: calc(-1 * var(--gutter));
+            padding: var(--space-2) var(--gutter) var(--space-6);
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            scroll-padding-inline: var(--gutter);
+            scrollbar-width: thin;
+        }
+
+        .cards > li {
+            scroll-snap-align: start;
+        }
+    }
+
+    @media (min-width: 48rem) {
+        .cards {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @media (min-width: 72rem) {
+        .cards {
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+        }
+    }
+
+    .card {
+        --rx: 0deg;
+        --ry: 0deg;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        overflow: hidden;
+        border: 1px solid var(--color-line);
+        border-radius: var(--radius);
+        background: linear-gradient(180deg, var(--color-panel), var(--color-raised));
+        transform: perspective(900px) rotateX(var(--rx)) rotateY(var(--ry));
+        transition: transform 0.5s var(--ease-out), border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .card:hover,
+    .card:focus-within {
+        border-color: rgb(46 230 255 / 0.45);
+        box-shadow: var(--glow);
+    }
+
+    .photo {
+        position: relative;
+        overflow: hidden;
+        aspect-ratio: 4 / 5;
+        background: var(--color-panel-strong);
+    }
+
+    .photo :global(img) {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        filter: saturate(0.85) contrast(1.05);
+        transition: transform 0.8s var(--ease-out), filter 0.4s ease;
+    }
+
+    .photo::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(180deg, transparent 50%, var(--color-panel));
+    }
+
+    .card:hover .photo :global(img) {
+        transform: scale(1.06);
+        filter: saturate(1.05) contrast(1.1);
+    }
+
+    .number {
+        position: absolute;
+        top: var(--space-3);
+        left: var(--space-3);
+        z-index: 1;
+        padding: 0.2rem 0.45rem;
+        border: 1px solid rgb(255 255 255 / 0.3);
+        border-radius: var(--radius-small);
+        background: rgb(5 6 7 / 0.55);
+        color: var(--color-text);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+    }
+
+    .body {
+        position: relative;
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        margin-top: -2.5rem;
+        padding: 0 var(--space-5) var(--space-5);
+    }
+
+    .kicker {
+        margin-bottom: var(--space-2);
+        color: var(--color-cyan);
+    }
+
+    .name {
+        margin-bottom: var(--space-3);
+        font-size: 1.1rem;
+        line-height: 1.1;
+        text-transform: uppercase;
+    }
+
+    .name a {
+        color: var(--color-text);
+        text-decoration: none;
+    }
+
+    /* The whole card is the link. */
+    .name a::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+    }
+
+    .card:has(.name a:focus-visible) {
+        outline: 2px solid var(--color-cyan);
+        outline-offset: 3px;
+    }
+
+    .name a:focus-visible {
+        outline: none;
+    }
+
+    .summary {
+        margin-bottom: var(--space-5);
+        color: var(--color-muted);
+        font-size: 0.9rem;
+        line-height: 1.5;
+    }
+
+    .prices {
+        display: grid;
+        gap: var(--space-1);
+        margin: auto 0 var(--space-4);
+        padding-top: var(--space-4);
+        border-top: 1px solid var(--color-line);
+    }
+
+    .price {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: var(--space-2);
+    }
+
+    .price dt {
+        color: var(--color-subtle);
+        font-size: 0.68rem;
+    }
+
+    .price dd {
+        display: flex;
+        align-items: baseline;
+        gap: var(--space-2);
+        margin: 0;
+    }
+
+    .price strong {
+        font-size: 1rem;
+        font-weight: 800;
+        font-stretch: 125%;
+    }
+
+    .price dd .spec {
+        color: var(--color-muted);
+        font-size: 0.68rem;
+    }
+
+    /* With :has, only the chosen size shows, large. */
+    @supports selector(:has(*)) {
+        .price {
+            display: none;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .price dt {
+            font-size: 0.7rem;
+        }
+
+        .price strong {
+            font-size: 1.9rem;
+            line-height: 1.1;
+        }
+
+        .pricing:has(.option:nth-child(1) input:checked) .price:nth-child(1),
+        .pricing:has(.option:nth-child(2) input:checked) .price:nth-child(2),
+        .pricing:has(.option:nth-child(3) input:checked) .price:nth-child(3),
+        .pricing:has(.option:nth-child(4) input:checked) .price:nth-child(4),
+        .pricing:has(.option:nth-child(5) input:checked) .price:nth-child(5),
+        .pricing:has(.option:nth-child(6) input:checked) .price:nth-child(6) {
+            display: flex;
+        }
+    }
+
+    .more {
+        font-size: 0.7rem;
+    }
+
+    /* A band of light that crosses the card on hover (motion.css). */
+    .glint {
+        position: absolute;
+        inset: -20% -60%;
+        z-index: 1;
+        background: linear-gradient(105deg, transparent 42%, rgb(255 255 255 / 0.13) 48%, rgb(143 243 255 / 0.18) 50%, transparent 58%);
+        transform: translateX(-70%);
+        pointer-events: none;
+    }
+</style>

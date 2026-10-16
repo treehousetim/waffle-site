@@ -1,0 +1,132 @@
+---
+/**
+ * Questions and answers as <details>, readable without script; they open
+ * smoothly where the browser can animate to an automatic height
+ * (interpolate-size, motion.css). Pass the same items to faqPage() in the
+ * page's jsonLd so search engines can read them too.
+ */
+export interface FaqItem {
+    question: string;
+    answer: string;
+}
+
+interface Props {
+    items: FaqItem[];
+}
+
+const { items } = Astro.props;
+---
+
+<div class="faq">
+    {
+        items.map((item, index) => (
+            <details>
+                <summary>
+                    <span class="spec num" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
+                    <span class="question">{item.question}</span>
+                    <span class="marker" aria-hidden="true" />
+                </summary>
+                <div class="answer">
+                    <p>{item.answer}</p>
+                </div>
+            </details>
+        ))
+    }
+</div>
+
+<style>
+    .faq {
+        border-top: 1px solid var(--color-line);
+    }
+
+    details {
+        border-bottom: 1px solid var(--color-line);
+    }
+
+    summary {
+        display: grid;
+        grid-template-columns: 2.5rem 1fr auto;
+        align-items: center;
+        gap: var(--space-4);
+        padding: var(--space-5) var(--space-1);
+        list-style: none;
+        cursor: pointer;
+        transition: color 0.2s ease;
+    }
+
+    summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .num {
+        color: var(--color-subtle);
+    }
+
+    .question {
+        font-size: 1.05rem;
+        font-weight: 650;
+        line-height: 1.35;
+    }
+
+    summary:hover .question,
+    details[open] .question {
+        color: var(--color-cyan);
+    }
+
+    .marker {
+        position: relative;
+        width: 1.75rem;
+        height: 1.75rem;
+        border: 1px solid var(--color-line-strong);
+        border-radius: 50%;
+    }
+
+    .marker::before,
+    .marker::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0.7rem;
+        height: 1px;
+        margin: 0 0 0 -0.35rem;
+        background: var(--color-text);
+        transition: transform 0.3s var(--ease-out);
+    }
+
+    .marker::after {
+        transform: rotate(90deg);
+    }
+
+    details[open] .marker {
+        border-color: var(--color-cyan);
+    }
+
+    details[open] .marker::after {
+        transform: rotate(0deg);
+    }
+
+    .answer {
+        padding: 0 var(--space-1) var(--space-6) calc(2.5rem + var(--space-4));
+    }
+
+    .answer p {
+        max-width: 44rem;
+        margin: 0;
+        color: var(--color-muted);
+    }
+
+    @media (max-width: 40rem) {
+        summary {
+            grid-template-columns: 1fr auto;
+        }
+
+        .num {
+            display: none;
+        }
+
+        .answer {
+            padding-left: var(--space-1);
+        }
+    }
+</style>

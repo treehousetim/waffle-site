@@ -1,0 +1,52 @@
+---
+/**
+ * Water beads: a dozen small glassy spheres that drift slowly upward behind
+ * a band, catching a highlight on their top-left like beads on a coated
+ * panel. Pure decoration (aria-hidden), positioned by :nth-child in CSS,
+ * moving only where motion is welcome (motion.css, .bead).
+ */
+const count = 14;
+---
+
+<div class="beads" aria-hidden="true">
+    {Array.from({ length: count }, () => <span class="bead" />)}
+</div>
+
+<style>
+    .beads {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        pointer-events: none;
+    }
+
+    .bead {
+        --size: 14px;
+        position: absolute;
+        bottom: -10%;
+        left: 50%;
+        width: var(--size);
+        height: var(--size);
+        border-radius: 50%;
+        background:
+            radial-gradient(circle at 32% 28%, rgb(255 255 255 / 0.95) 0 12%, rgb(255 255 255 / 0) 28%),
+            radial-gradient(circle at 60% 70%, rgb(46 230 255 / 0.28), rgb(46 230 255 / 0) 65%),
+            radial-gradient(circle, rgb(255 255 255 / 0.02) 55%, rgb(214 228 240 / 0.35) 72%, rgb(255 255 255 / 0) 76%);
+        opacity: 0.55;
+    }
+
+    .bead:nth-child(1) { left: 4%; bottom: 12%; --size: 18px; }
+    .bead:nth-child(2) { left: 11%; bottom: 58%; --size: 9px; }
+    .bead:nth-child(3) { left: 19%; bottom: 30%; --size: 26px; }
+    .bead:nth-child(4) { left: 27%; bottom: 76%; --size: 12px; }
+    .bead:nth-child(5) { left: 36%; bottom: 8%; --size: 15px; }
+    .bead:nth-child(6) { left: 45%; bottom: 46%; --size: 8px; }
+    .bead:nth-child(7) { left: 54%; bottom: 20%; --size: 22px; }
+    .bead:nth-child(8) { left: 62%; bottom: 66%; --size: 10px; }
+    .bead:nth-child(9) { left: 70%; bottom: 36%; --size: 30px; }
+    .bead:nth-child(10) { left: 78%; bottom: 84%; --size: 13px; }
+    .bead:nth-child(11) { left: 85%; bottom: 14%; --size: 17px; }
+    .bead:nth-child(12) { left: 91%; bottom: 52%; --size: 11px; }
+    .bead:nth-child(13) { left: 96%; bottom: 28%; --size: 20px; }
+    .bead:nth-child(14) { left: 50%; bottom: 90%; --size: 7px; }
+</style>

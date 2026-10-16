@@ -1,0 +1,151 @@
+---
+/**
+ * Book a detail: the booking request form (POST /api/site/forms/booking,
+ * src/components/BookingForm.astro), with the packages and sizes from the
+ * waffle app, and what happens after sending it.
+ */
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import BookingForm from '../components/BookingForm.astro';
+import Icon from '../components/Icon.astro';
+import { loadCatalog } from '../lib/catalog';
+import { site } from '../site';
+
+const catalog = await loadCatalog();
+
+const next = [
+    { title: 'We check the route', text: 'Which van is in your zone on the days you gave, and how long your car needs.' },
+    { title: 'We text you a time', text: 'Within one working day, usually the same afternoon. Reply to confirm.' },
+    { title: 'We arrive', text: 'The evening before, a reminder with the crew’s names. On the day, a text when we pull up.' },
+];
+---
+
+<Base
+    title="Book a mobile detail"
+    description="Request a mobile car detail in Port Alder: choose the package and vehicle size, tell us where the car will be and the days that suit. We confirm a time."
+    breadcrumbs={[{ name: 'Book', href: '/book/' }]}
+>
+    <PageHero
+        eyebrow="Book"
+        heading="Book a detail"
+        lead="Tell us about the car, where it will be and a few days that suit. Nothing is charged now: we reply within one working day with a time."
+    />
+
+    <div class="container layout">
+        <BookingForm catalog={catalog} thanks="/book/thanks/" />
+
+        <aside class="side">
+            <div class="panel">
+                <h2 class="spec">After you send it</h2>
+                <ol class="next">
+                    {
+                        next.map((step, index) => (
+                            <li>
+                                <span class="spec num">{String(index + 1).padStart(2, '0')}</span>
+                                <strong>{step.title}</strong>
+                                <span class="text">{step.text}</span>
+                            </li>
+                        ))
+                    }
+                </ol>
+            </div>
+            <div class="panel">
+                <h2 class="spec">Rather talk?</h2>
+                <p class="line"><Icon name="phone" size={16} /> <a href={`tel:${site.business.phoneE164}`}>{site.business.phone}</a></p>
+                <p class="line"><Icon name="mail" size={16} /> <a href={`mailto:${site.business.email}`}>{site.business.email}</a></p>
+                <p class="muted small">{site.business.hoursNote}</p>
+            </div>
+            <div class="panel">
+                <h2 class="spec">Not sure which package?</h2>
+                <p class="muted small">Choose “Not sure yet” and tell us what bothers you about the car. We will suggest one, and say why.</p>
+                <a class="arrow-link" href="/packages/">Compare packages</a>
+            </div>
+        </aside>
+    </div>
+</Base>
+
+<style>
+    .layout {
+        display: grid;
+        gap: var(--space-8);
+        padding-bottom: var(--section);
+    }
+
+    @media (min-width: 64rem) {
+        .layout {
+            grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr);
+            align-items: start;
+        }
+
+        .side {
+            position: sticky;
+            top: calc(var(--header-height) + var(--space-6));
+        }
+    }
+
+    .side {
+        display: grid;
+        gap: var(--space-4);
+    }
+
+    .panel {
+        padding: var(--space-6);
+        border: 1px solid var(--color-line);
+        border-radius: var(--radius);
+        background: var(--color-raised);
+    }
+
+    .panel h2 {
+        margin-bottom: var(--space-4);
+        color: var(--color-cyan);
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-stretch: normal;
+    }
+
+    .next {
+        display: grid;
+        gap: var(--space-4);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .next li {
+        display: grid;
+        grid-template-columns: 2rem 1fr;
+        column-gap: var(--space-3);
+        line-height: 1.4;
+    }
+
+    .num {
+        grid-row: span 2;
+        color: var(--color-cyan);
+    }
+
+    .text {
+        color: var(--color-muted);
+        font-size: 0.92rem;
+    }
+
+    .line {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        margin-bottom: var(--space-2);
+    }
+
+    .line :global(svg) {
+        color: var(--color-cyan);
+    }
+
+    .line a {
+        color: var(--color-text);
+        font-weight: 650;
+        text-decoration: none;
+    }
+
+    .small {
+        font-size: 0.9rem;
+    }
+</style>

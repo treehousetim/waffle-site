@@ -1,0 +1,61 @@
+---
+/**
+ * The questions people ask before booking, in three groups, all of them in
+ * FAQPage structured data. Package-specific questions live on each
+ * package's own page.
+ */
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Band from '../components/Band.astro';
+import Faq from '../components/Faq.astro';
+import Closing from '../components/Closing.astro';
+import { faqPage } from '@core/lib/jsonld.js';
+
+const visit = [
+    { question: 'Do you really need nothing from my house?', answer: 'Nothing. Each van carries 120 gallons of deionised water, its own quiet generator, hose and power reels, lights and a reclaim mat. We need a parking space near the car and room to walk around it.' },
+    { question: 'Can you work in an apartment or office parking garage?', answer: 'Often, yes, with the building’s permission. The van needs about 7 feet of clearance; for lower garages we park outside and run our reels in if it is close enough, or do an interior-only visit.' },
+    { question: 'Do I need to be there?', answer: 'Only if you want to be. We text when we arrive and when we finish, and the walkaround can be done by photos if you are at work.' },
+    { question: 'How long does a visit take?', answer: 'From 45 minutes for an Express Wash on a small car to two days for a ceramic coating on a truck. Every package page lists the time for each vehicle size.' },
+];
+
+const booking = [
+    { question: 'How far ahead should I book?', answer: 'About a week for most zones and days. Fenwick Park Saturdays fill two weeks ahead. Paint correction and coatings are usually booked two to three weeks out.' },
+    { question: 'What if I need to cancel?', answer: 'Move or cancel for free up to 24 hours before. Inside 24 hours we ask a $30 fee for washes and interiors, because the van has already been routed to you. Deposits for correction and coatings move with the booking.' },
+    { question: 'Do you work in the rain?', answer: 'Washes and interiors carry on in light rain under our canopy. Heavy rain moves the visit, at no charge; we text you the evening before if the forecast looks bad.' },
+    { question: 'Are you insured?', answer: 'Yes: general liability, and garage keepers cover for the vehicles in our care. We send certificates to building managers on request.' },
+];
+
+const care = [
+    { question: 'How often should a car be detailed?', answer: 'A full detail twice a year and a proper wash every two to four weeks keeps most cars in excellent shape. Salt-air zones like Old Harbor benefit from more frequent protection.' },
+    { question: 'Is a ceramic coating worth it?', answer: 'If you keep cars for several years and want washing to be quick, yes. If you change cars every year or two, a sealant every few months gives most of the look for far less.' },
+    { question: 'Can I use automatic car washes between your visits?', answer: 'Touchless ones are kinder than brushes, but their strong chemicals wear down sealants and coatings. A gentle hand wash, ours or yours, is best.' },
+];
+---
+
+<Base
+    title="Mobile detailing questions, answered"
+    description="Answers to what people ask before booking a mobile detail in Port Alder: water and power, garages, timings, cancellations, weather, insurance and care."
+    breadcrumbs={[{ name: 'FAQ', href: '/faq/' }]}
+    jsonLd={[faqPage([...visit, ...booking, ...care])]}
+>
+    <PageHero
+        eyebrow="FAQ"
+        heading="Questions, answered"
+        lead="Can’t find yours here or on a package page? Send it with a booking request, or call, and a person on the crew will answer."
+        photo="microfiberDarkHood"
+    />
+
+    <Band index="01" eyebrow="The visit" heading="Coming to you" split>
+        <Faq items={visit} />
+    </Band>
+
+    <Band index="02" eyebrow="Booking" heading="Days, changes, weather" tone="raised" split>
+        <Faq items={booking} />
+    </Band>
+
+    <Band index="03" eyebrow="Car care" heading="Between visits" split>
+        <Faq items={care} />
+    </Band>
+
+    <Closing heading="Still wondering?" text="Ask us anything in the notes of a booking request. Nothing is booked until we confirm a time with you." />
+</Base>

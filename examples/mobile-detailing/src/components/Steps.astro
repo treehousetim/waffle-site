@@ -1,0 +1,96 @@
+---
+/**
+ * The visit in four steps, joined by a line of light: big outlined chrome
+ * numerals, a title, a sentence. Across on wide screens, down on phones.
+ */
+import { visitSteps } from '../data/van';
+
+interface Props {
+    steps?: { title: string; text: string }[];
+}
+
+const { steps = visitSteps } = Astro.props;
+---
+
+<ol class="steps">
+    {
+        steps.map((step, index) => (
+            <li>
+                <span class="numeral" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
+                <h3>{step.title}</h3>
+                <p>{step.text}</p>
+            </li>
+        ))
+    }
+</ol>
+
+<style>
+    .steps {
+        position: relative;
+        display: grid;
+        gap: var(--space-10) var(--space-8);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        counter-reset: step;
+    }
+
+    @media (min-width: 56rem) {
+        .steps {
+            grid-template-columns: repeat(var(--count, 4), minmax(0, 1fr));
+        }
+
+        .steps::before {
+            content: '';
+            position: absolute;
+            top: 5.15rem;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, var(--color-cyan), rgb(46 230 255 / 0.15) 80%, transparent);
+        }
+    }
+
+    li {
+        position: relative;
+    }
+
+    @media (min-width: 26rem) and (max-width: 55.99rem) {
+        .steps {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: var(--space-10) var(--space-5);
+        }
+
+        .numeral {
+            font-size: 3.25rem;
+        }
+    }
+
+    .numeral {
+        position: relative;
+        display: inline-block;
+        margin-bottom: var(--space-6);
+        color: transparent;
+        font-size: 4.5rem;
+        font-weight: 900;
+        font-stretch: 125%;
+        line-height: 1;
+        -webkit-text-stroke: 1px rgb(214 228 240 / 0.6);
+    }
+
+    li:first-child .numeral {
+        -webkit-text-stroke-color: var(--color-cyan);
+    }
+
+    h3 {
+        margin-bottom: var(--space-2);
+        text-transform: uppercase;
+    }
+
+    p {
+        margin: 0;
+        color: var(--color-muted);
+        font-size: 0.95rem;
+        line-height: 1.55;
+    }
+</style>

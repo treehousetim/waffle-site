@@ -1,0 +1,119 @@
+---
+/**
+ * Every package at every vehicle size: price and time, as a real table, so
+ * it reads properly to screen readers and search engines alike. Data from
+ * the waffle app (src/lib/packages.ts); the date says how fresh it is.
+ */
+import type { Catalog } from '../lib/catalog';
+import { formatDuration, formatPrice, formatUpdated } from '../lib/packages';
+
+interface Props {
+    catalog: Catalog;
+    /** Just one package's row, on its own page. */
+    only?: string;
+    caption?: string;
+}
+
+const { catalog, only, caption } = Astro.props;
+const rows = only === undefined ? catalog.packages : catalog.packages.filter((item) => item.slug === only);
+---
+
+<div class="table-wrap">
+    <table class="price-table">
+        <caption class="spec">{caption ?? 'Prices and times by vehicle size'} · updated {formatUpdated(catalog.updated)}</caption>
+        <thead>
+            <tr>
+                <th scope="col">Package</th>
+                {catalog.sizes.map((size) => <th scope="col">{size.label}</th>)}
+            </tr>
+        </thead>
+        <tbody>
+            {
+                rows.map((item) => (
+                    <tr>
+                        <th scope="row">
+                            <a href={item.url}>{item.name}</a>
+                        </th>
+                        {catalog.sizes.map((size) => (
+                            <td>
+                                <strong>{formatPrice(item.pricesCents[size.id] ?? 0)}</strong>
+                                <span class="spec">{formatDuration(item.durationMinutes[size.id] ?? 0)}</span>
+                            </td>
+                        ))}
+                    </tr>
+                ))
+            }
+        </tbody>
+    </table>
+</div>
+
+<style>
+    .table-wrap {
+        overflow-x: auto;
+        border: 1px solid var(--color-line);
+        border-radius: var(--radius);
+        background: var(--color-raised);
+    }
+
+    table {
+        width: 100%;
+        min-width: 34rem;
+        border-collapse: collapse;
+    }
+
+    caption {
+        padding: var(--space-4) var(--space-5);
+        color: var(--color-muted);
+        text-align: left;
+        border-bottom: 1px solid var(--color-line);
+    }
+
+    th,
+    td {
+        padding: var(--space-4) var(--space-5);
+        text-align: left;
+        vertical-align: baseline;
+    }
+
+    thead th {
+        color: var(--color-muted);
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 500;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    tbody tr {
+        border-top: 1px solid var(--color-line);
+        transition: background-color 0.2s ease;
+    }
+
+    tbody tr:hover {
+        background: linear-gradient(90deg, var(--color-cyan-soft), transparent 70%);
+    }
+
+    tbody th a {
+        color: var(--color-text);
+        font-weight: 800;
+        font-stretch: 125%;
+        text-decoration: none;
+        text-transform: uppercase;
+    }
+
+    tbody th a:hover {
+        color: var(--color-cyan);
+    }
+
+    td strong {
+        display: block;
+        font-size: 1.15rem;
+        font-weight: 800;
+        font-stretch: 125%;
+    }
+
+    td .spec {
+        color: var(--color-muted);
+        font-size: 0.7rem;
+    }
+</style>

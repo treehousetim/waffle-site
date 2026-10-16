@@ -1,0 +1,56 @@
+---
+/**
+ * Every package, with prices and times by vehicle size from the waffle app
+ * (GET /api/site/packages, read once per build), a comparison table, and the
+ * questions people ask before booking.
+ */
+import Base from '../../layouts/Base.astro';
+import PageHero from '../../components/PageHero.astro';
+import Band from '../../components/Band.astro';
+import PackageCards from '../../components/PackageCards.astro';
+import PriceTable from '../../components/PriceTable.astro';
+import Faq from '../../components/Faq.astro';
+import Closing from '../../components/Closing.astro';
+import { loadCatalog } from '../../lib/catalog';
+import { formatUpdated } from '../../lib/packages';
+import { faqPage } from '@core/lib/jsonld.js';
+
+const catalog = await loadCatalog();
+
+const questions = [
+    { question: 'Which size is my car?', answer: 'Coupes, hatchbacks, sedans and wagons are the first size. Crossovers and SUVs with two rows are the second. Pickups, minivans, three-row SUVs and vans are the third. If you are between two, pick the smaller and we will tell you if it is wrong before we start.' },
+    { question: 'Are these the prices I pay?', answer: 'Yes, for a car in normal condition. Heavy pet hair, mold, tar or paint overspray can add time, and we will always tell you and agree a price before doing anything extra.' },
+    { question: 'Is there a travel charge?', answer: 'Not inside our five zones. Outside them, within ten miles of the yard, we add a flat $25.' },
+    { question: 'How do I pay?', answer: 'By card or phone on the spot when the job is done. Paint correction and ceramic coatings take a 20% deposit when you book, because they take the van for a day or more.' },
+    { question: 'What if it rains?', answer: 'Washes and interiors carry on under light rain; we have pop-up canopies. In heavy rain we will text you to move the visit, with no fee. Correction and coatings need cover regardless.' },
+];
+---
+
+<Base
+    title="Detailing packages and prices"
+    description="Mobile detailing prices in Port Alder by vehicle size: express wash, full detail, interior deep clean, paint correction and ceramic coating."
+    breadcrumbs={[{ name: 'Packages', href: '/packages/' }]}
+    jsonLd={[faqPage(questions)]}
+>
+    <PageHero
+        eyebrow={`Price list · updated ${formatUpdated(catalog.updated)}`}
+        heading="Packages and prices"
+        lead="Five packages, three vehicle sizes, one rule: the price you see is the price you pay for a car in normal condition. Everything is done at your curb with our own water and power."
+        photo="headlightDark"
+        primary={{ label: 'Book a detail', href: '/book/' }}
+    />
+
+    <Band>
+        <PackageCards packages={catalog.packages} sizes={catalog.sizes} level="h2" transitions />
+    </Band>
+
+    <Band index="02" eyebrow="Side by side" heading="Every size, every package" tone="raised">
+        <PriceTable catalog={catalog} />
+    </Band>
+
+    <Band index="03" eyebrow="Before you book" heading="Price questions" split>
+        <Faq items={questions} />
+    </Band>
+
+    <Closing />
+</Base>

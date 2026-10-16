@@ -1,0 +1,146 @@
+---
+/**
+ * How a visit works, start to finish: booking, the arrival, the work, the
+ * walkaround; what to do before we come; what the van carries; the water;
+ * the weather.
+ */
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Band from '../components/Band.astro';
+import Steps from '../components/Steps.astro';
+import VanKit from '../components/VanKit.astro';
+import Faq from '../components/Faq.astro';
+import Icon from '../components/Icon.astro';
+import Closing from '../components/Closing.astro';
+import { faqPage } from '@core/lib/jsonld.js';
+
+const before = [
+    'Take personal things out of the cabin, especially for an interior: we would rather not move your belongings.',
+    'Leave about three feet clear all the way round the car.',
+    'Tell us how to get the key to us, or leave the car unlocked for an exterior-only visit.',
+    'For paint correction and coatings, clear a space in the garage or carport.',
+    'Let us know about gate codes, parking permits or a dog in the yard.',
+];
+
+const water = [
+    { title: 'Deionised, not tap', text: 'Our rinse water is filtered through resin until it holds no minerals at all. It dries without spots, so we never have to rub the paint to dry it fast.' },
+    { title: 'About 15 gallons a wash', text: 'Foam and a two-bucket wash use a fraction of what a hose does. A full day of six cars uses less water than one garden sprinkler for an hour.' },
+    { title: 'Nothing down the drain', text: 'Where drains run to the bay or the lake, we wash on a bermed mat and pump the runoff back into the van, then dispose of it properly at the yard.' },
+];
+
+const questions = [
+    { question: 'Do I need to be home?', answer: 'Only if you want to be. Many customers leave a key in a lockbox or with reception and carry on with their day. We text when we arrive and when we are done.' },
+    { question: 'What happens if it rains?', answer: 'Light rain is fine for washes and interiors under our canopy. In heavy rain we text you to move the visit, with no fee. Correction and coatings always need cover.' },
+    { question: 'How do I pay?', answer: 'Card or phone payment at the walkaround, when you have seen the finish. Correction and coatings take a 20% deposit when booked.' },
+];
+---
+
+<Base
+    title="How mobile detailing works"
+    description="What happens when Gloss Theory comes to you: booking, arrival, the work with our own water and power, the walkaround, and what to do before we come."
+    breadcrumbs={[{ name: 'How it works', href: '/how-it-works/' }]}
+    jsonLd={[faqPage(questions)]}
+>
+    <PageHero
+        eyebrow="How it works"
+        heading="You stay put. So does the car."
+        lead="A Gloss Theory visit is designed so you do nothing but say where the car will be. We bring the water, the power, the lights and the people."
+        photo="garageBlackCoupe"
+        primary={{ label: 'Book a detail', href: '/book/' }}
+    />
+
+    <Band index="01" eyebrow="The visit" heading="Four steps">
+        <Steps />
+    </Band>
+
+    <Band index="02" eyebrow="Before we come" heading="Five small things" tone="raised" split>
+        <ol class="before">
+            {
+                before.map((line, index) => (
+                    <li>
+                        <span class="spec">{String(index + 1).padStart(2, '0')}</span>
+                        <p>{line}</p>
+                    </li>
+                ))
+            }
+        </ol>
+    </Band>
+
+    <Band index="03" eyebrow="The rig" heading="What every van carries" lead="Two vans, identical inside, so whichever arrives can do whatever you booked.">
+        <VanKit photo="rinseSprayMono" caption="Deionised rinse · no spots" />
+    </Band>
+
+    <Band index="04" eyebrow="Water" heading="Less water, none of it wasted" tone="raised">
+        <ul class="water">
+            {
+                water.map((item) => (
+                    <li>
+                        <Icon name="drop" size={22} />
+                        <h3>{item.title}</h3>
+                        <p>{item.text}</p>
+                    </li>
+                ))
+            }
+        </ul>
+    </Band>
+
+    <Band index="05" eyebrow="Questions" heading="On the day" split>
+        <Faq items={questions} />
+    </Band>
+
+    <Closing />
+</Base>
+
+<style>
+    .before {
+        display: grid;
+        gap: 0;
+        max-width: 52rem;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        counter-reset: none;
+        border-top: 1px solid var(--color-line);
+    }
+
+    .before li {
+        display: grid;
+        grid-template-columns: 3rem 1fr;
+        gap: var(--space-4);
+        padding: var(--space-5) 0;
+        border-bottom: 1px solid var(--color-line);
+    }
+
+    .before .spec {
+        padding-top: 0.25rem;
+        color: var(--color-cyan);
+    }
+
+    .before p {
+        margin: 0;
+        font-size: 1.1rem;
+    }
+
+    .water {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+        gap: var(--space-10);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .water :global(svg) {
+        margin-bottom: var(--space-5);
+        color: var(--color-cyan);
+    }
+
+    .water h3 {
+        text-transform: uppercase;
+    }
+
+    .water p {
+        margin: 0;
+        color: var(--color-muted);
+    }
+</style>

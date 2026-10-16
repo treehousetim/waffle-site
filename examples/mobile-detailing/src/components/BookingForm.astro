@@ -1,0 +1,378 @@
+---
+/**
+ * The booking request, received by the waffle app (docs/forms.md).
+ *
+ * It posts to /api/site/forms/booking on this site; Caddy forwards that to
+ * the waffle app with the site key (docs/waffle-api.md). It works without
+ * script: the browser checks the fields, posts the form, and the app answers
+ * with a redirect to `thanks`. With script (src/scripts/forms.ts) it sends
+ * JSON and shows the answer in place, field by field; and a link such as
+ * /book/?package=paint-correction chooses that package already.
+ *
+ * Fields, and what the app should check for each:
+ *   name, phone, email          who to reply to
+ *   vehicle                     year, make and model, free text
+ *   size                        one of the waffle app's size ids
+ *   package                     one of the app's package slugs, or "not-sure"
+ *   address, zone               where the car will be; a zone slug or "other"
+ *   date_from, date_to          the window that suits, YYYY-MM-DD; date_to optional
+ *   time_of_day                 morning, afternoon or either
+ *   covered                     yes or no: a garage or covered space for the day
+ *   notes                       optional
+ *   contact_by                  phone, text or email
+ */
+import { HONEYPOT } from '@core/lib/forms.js';
+import type { Catalog } from '../lib/catalog';
+import { zones } from '../data/zones';
+
+interface Props {
+    catalog: Catalog;
+    /** Where the app sends a browser without script after a good submission. */
+    thanks: string;
+}
+
+const { catalog, thanks } = Astro.props;
+---
+
+<form class="form" method="post" action="/api/site/forms/booking" data-site-form data-booking-form>
+    <input type="hidden" name="redirect" value={thanks} />
+
+    <fieldset class="group">
+        <legend><span class="spec step">01</span> The car</legend>
+
+        <div class="field">
+            <label for="book-vehicle">Year, make and model</label>
+            <input id="book-vehicle" name="vehicle" type="text" required maxlength="120" placeholder="2021 hatchback, dark grey" />
+            <p class="error" data-error-for="vehicle" hidden></p>
+        </div>
+
+        <fieldset class="field">
+            <legend class="label">Size</legend>
+            <div class="choices">
+                {
+                    catalog.sizes.map((size, index) => (
+                        <label class="choice">
+                            <input type="radio" name="size" value={size.id} required checked={index === 0} />
+                            <span>{size.label}</span>
+                        </label>
+                    ))
+                }
+            </div>
+            <p class="error" data-error-for="size" hidden></p>
+        </fieldset>
+
+        <div class="field">
+            <label for="book-package">Package</label>
+            <select id="book-package" name="package" required>
+                {catalog.packages.map((item) => <option value={item.slug}>{item.name}</option>)}
+                <option value="not-sure">Not sure yet: advise me</option>
+            </select>
+            <p class="error" data-error-for="package" hidden></p>
+        </div>
+    </fieldset>
+
+    <fieldset class="group">
+        <legend><span class="spec step">02</span> Where and when</legend>
+
+        <div class="row">
+            <div class="field">
+                <label for="book-address">Street address</label>
+                <input id="book-address" name="address" type="text" autocomplete="street-address" required maxlength="200" />
+                <p class="error" data-error-for="address" hidden></p>
+            </div>
+            <div class="field">
+                <label for="book-zone">Zone</label>
+                <select id="book-zone" name="zone" required>
+                    <option value="">Choose a zone</option>
+                    {zones.map((zone) => <option value={zone.slug}>{zone.name}</option>)}
+                    <option value="other">Somewhere else, or not sure</option>
+                </select>
+                <p class="error" data-error-for="zone" hidden></p>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="field">
+                <label for="book-from">Earliest date</label>
+                <input id="book-from" name="date_from" type="date" required />
+                <p class="error" data-error-for="date_from" hidden></p>
+            </div>
+            <div class="field">
+                <label for="book-to">Latest date <span class="optional">optional</span></label>
+                <input id="book-to" name="date_to" type="date" />
+                <p class="error" data-error-for="date_to" hidden></p>
+            </div>
+        </div>
+
+        <fieldset class="field">
+            <legend class="label">Time of day</legend>
+            <div class="choices">
+                <label class="choice"><input type="radio" name="time_of_day" value="morning" /> <span>Morning</span></label>
+                <label class="choice"><input type="radio" name="time_of_day" value="afternoon" /> <span>Afternoon</span></label>
+                <label class="choice"><input type="radio" name="time_of_day" value="either" checked /> <span>Either</span></label>
+            </div>
+        </fieldset>
+
+        <fieldset class="field">
+            <legend class="label">Is there a garage or covered space we can use?</legend>
+            <div class="choices">
+                <label class="choice"><input type="radio" name="covered" value="yes" /> <span>Yes</span></label>
+                <label class="choice"><input type="radio" name="covered" value="no" checked /> <span>No, it’s outside</span></label>
+            </div>
+            <p class="hint">Needed for paint correction and ceramic coating; not for washes and interiors.</p>
+        </fieldset>
+    </fieldset>
+
+    <fieldset class="group">
+        <legend><span class="spec step">03</span> You</legend>
+
+        <div class="row">
+            <div class="field">
+                <label for="book-name">Your name</label>
+                <input id="book-name" name="name" type="text" autocomplete="name" required maxlength="100" />
+                <p class="error" data-error-for="name" hidden></p>
+            </div>
+            <div class="field">
+                <label for="book-phone">Phone</label>
+                <input id="book-phone" name="phone" type="tel" autocomplete="tel" required maxlength="30" />
+                <p class="error" data-error-for="phone" hidden></p>
+            </div>
+        </div>
+
+        <div class="field">
+            <label for="book-email">Email</label>
+            <input id="book-email" name="email" type="email" autocomplete="email" required maxlength="254" />
+            <p class="error" data-error-for="email" hidden></p>
+        </div>
+
+        <div class="field">
+            <label for="book-notes">Anything we should know? <span class="optional">optional</span></label>
+            <textarea id="book-notes" name="notes" rows="4" maxlength="3000" placeholder="Pet hair, a stain on the back seat, gate code, where to find the key..."></textarea>
+            <p class="error" data-error-for="notes" hidden></p>
+        </div>
+
+        <fieldset class="field">
+            <legend class="label">Best way to confirm</legend>
+            <div class="choices">
+                <label class="choice"><input type="radio" name="contact_by" value="text" checked /> <span>Text</span></label>
+                <label class="choice"><input type="radio" name="contact_by" value="phone" /> <span>Call</span></label>
+                <label class="choice"><input type="radio" name="contact_by" value="email" /> <span>Email</span></label>
+            </div>
+        </fieldset>
+    </fieldset>
+
+    <div class="trap" aria-hidden="true">
+        <label for="book-website">Leave this empty</label>
+        <input id="book-website" name={HONEYPOT} type="text" tabindex="-1" autocomplete="off" />
+    </div>
+
+    <p class="status" role="status" aria-live="polite" data-status></p>
+
+    <div class="submit">
+        <button class="button button-large" type="submit">Request my booking</button>
+        <p class="small muted">Nothing is charged now. We confirm a time, then you pay on the day.</p>
+    </div>
+</form>
+
+<script>
+    import { enhanceForms } from '../scripts/forms';
+    import { choosePackage } from '../scripts/booking';
+
+    enhanceForms(document);
+    choosePackage(document, window.location.search);
+</script>
+
+<style>
+    .form {
+        display: grid;
+        gap: var(--space-8);
+    }
+
+    .group {
+        display: grid;
+        gap: var(--space-6);
+        margin: 0;
+        padding: clamp(1.25rem, 0.75rem + 2vw, 2.25rem);
+        border: 1px solid var(--color-line);
+        border-radius: var(--radius);
+        background: linear-gradient(180deg, var(--color-panel), var(--color-raised));
+    }
+
+    .group > legend {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        padding: 0 var(--space-2);
+        font-size: 0.95rem;
+        font-weight: 800;
+        font-stretch: 125%;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
+
+    .step {
+        color: var(--color-cyan);
+    }
+
+    .row {
+        display: grid;
+        gap: var(--space-6);
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+    }
+
+    .field {
+        display: grid;
+        gap: var(--space-2);
+        min-width: 0;
+        margin: 0;
+        padding: 0;
+        border: 0;
+    }
+
+    label,
+    .label {
+        color: var(--color-text);
+        font-size: 0.92rem;
+        font-weight: 600;
+    }
+
+    .label {
+        margin-bottom: var(--space-2);
+        padding: 0;
+    }
+
+    .optional {
+        margin-left: var(--space-2);
+        color: var(--color-subtle);
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 400;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .hint {
+        margin: var(--space-1) 0 0;
+        color: var(--color-subtle);
+        font-size: 0.85rem;
+    }
+
+    .choices {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+    }
+
+    .choice {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        min-height: 2.75rem;
+        padding: var(--space-2) var(--space-4);
+        border: 1px solid var(--color-line-strong);
+        border-radius: var(--radius-small);
+        font-weight: 550;
+        cursor: pointer;
+        transition: border-color 0.2s ease, background-color 0.2s ease;
+    }
+
+    .choice:hover {
+        border-color: rgb(46 230 255 / 0.5);
+    }
+
+    .choice:has(input:checked) {
+        border-color: var(--color-cyan);
+        background: var(--color-cyan-soft);
+        color: var(--color-text);
+    }
+
+    .choice input {
+        accent-color: var(--color-cyan);
+    }
+
+    input:not([type='radio']),
+    select,
+    textarea {
+        width: 100%;
+        min-height: 3rem;
+        padding: 0.75rem 0.9rem;
+        border: 1px solid var(--color-line-strong);
+        border-radius: var(--radius-small);
+        background: var(--color-bg);
+        color: var(--color-text);
+        font: inherit;
+        font-size: 1rem;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+        color: var(--color-subtle);
+    }
+
+    input[type='date'] {
+        color-scheme: dark;
+    }
+
+    input:not([type='radio']):focus,
+    select:focus,
+    textarea:focus {
+        border-color: var(--color-cyan);
+        outline: none;
+        box-shadow: 0 0 0 3px rgb(46 230 255 / 0.25);
+    }
+
+    [aria-invalid='true'] {
+        border-color: var(--color-error);
+    }
+
+    .error {
+        margin: 0;
+        color: var(--color-error);
+        font-size: 0.9rem;
+    }
+
+    .status:empty {
+        display: none;
+    }
+
+    .status {
+        margin: 0;
+        padding: var(--space-4) var(--space-5);
+        border: 1px solid var(--color-line-strong);
+        border-radius: var(--radius-small);
+    }
+
+    .status[data-kind='sent'] {
+        border-color: var(--color-success);
+        color: var(--color-success);
+        font-weight: 650;
+    }
+
+    .status[data-kind='invalid'],
+    .status[data-kind='failed'] {
+        border-color: var(--color-error);
+        color: var(--color-error);
+    }
+
+    /* Off screen rather than display:none, which some bots check for. */
+    .trap {
+        position: absolute;
+        left: -10000px;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+    }
+
+    .submit {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-4) var(--space-6);
+    }
+
+    .small {
+        margin: 0;
+        font-size: 0.9rem;
+    }
+</style>

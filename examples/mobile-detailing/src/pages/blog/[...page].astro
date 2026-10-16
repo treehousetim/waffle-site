@@ -1,0 +1,116 @@
+---
+/** /blog/, then /blog/2/ and on: every post the build shows, newest first. */
+import type { GetStaticPaths, Page } from 'astro';
+import { getCollection, type CollectionEntry } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import PageHero from '../../components/PageHero.astro';
+import PostGrid from '../../components/PostGrid.astro';
+import { site } from '../../site';
+import { buildTime, settings } from '@core/settings';
+import { tagIndex, visiblePosts } from '@core/lib/posts.js';
+
+export const getStaticPaths = (async ({ paginate }) => {
+    const posts = visiblePosts(await getCollection('blog'), { includeDrafts: !settings.production, now: buildTime });
+
+    return paginate(posts, { pageSize: 6, props: { tags: tagIndex(posts) } });
+}) satisfies GetStaticPaths;
+
+interface Props {
+    page: Page<CollectionEntry<'blog'>>;
+    tags: ReturnType<typeof tagIndex>;
+}
+
+const { page, tags } = Astro.props;
+const first = page.currentPage === 1;
+// Page 2 and on need their own title and description (docs/seo.md, 12).
+const title = first ? site.blog.title : `${site.blog.title}, page ${page.currentPage}`;
+const description = first ? site.blog.description : `${site.blog.description} Page ${page.currentPage} of ${page.lastPage}.`;
+---
+
+<Base title={title} description={description} breadcrumbs={[{ name: site.blog.title, href: '/blog/' }]}>
+    <PageHero eyebrow={first ? 'Car-care advice from the crew' : `Page ${page.currentPage} of ${page.lastPage}`} heading={first ? site.blog.title : title} lead={site.blog.description}>
+        {
+            tags.length > 0 && (
+                <ul class="topics" aria-label="Topics">
+                    {tags.map((tag) => (
+                        <li>
+                            <a href={`/blog/tags/${tag.slug}/`}>
+                                {tag.tag} <span>{tag.count}</span>
+                            </a>
+                        </li>
+                    ))}
+                </ul>
+            )
+        }
+    </PageHero>
+
+    <div class="container list">
+        {page.data.length === 0 && <p>No posts yet.</p>}
+        <PostGrid posts={page.data} start={page.start + 1} />
+
+        {
+            page.lastPage > 1 && (
+                <nav class="pager" aria-label="More posts">
+                    {page.url.prev ? <a class="button button-ghost" href={page.url.prev}>← Newer</a> : <span />}
+                    <span class="count spec">Page {page.currentPage} of {page.lastPage}</span>
+                    {page.url.next ? <a class="button button-ghost" href={page.url.next}>Older →</a> : <span />}
+                </nav>
+            )
+        }
+    </div>
+</Base>
+
+<style>
+    .topics {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+        margin: var(--space-6) 0 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .topics a {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        padding: 0.4rem 0.5rem 0.4rem 0.8rem;
+        border: 1px solid var(--color-line-strong);
+        border-radius: var(--radius-small);
+        color: var(--color-text);
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        letter-spacing: 0.06em;
+        text-decoration: none;
+        text-transform: uppercase;
+        transition: border-color 0.2s ease, color 0.2s ease;
+    }
+
+    .topics a:hover {
+        border-color: var(--color-cyan);
+        color: var(--color-cyan);
+    }
+
+    .topics span {
+        padding: 0 0.4rem;
+        border-radius: 2px;
+        background: var(--color-panel-strong);
+        color: var(--color-muted);
+    }
+
+    .list {
+        padding: var(--space-8) 0 var(--section);
+    }
+
+    .pager {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-4);
+        margin-top: var(--space-12);
+    }
+
+    .count {
+        color: var(--color-muted);
+    }
+</style>

@@ -1,0 +1,380 @@
+/*
+ * Motion: light moving over a glossy surface. What moves, and when:
+ *
+ *   - Page changes: the browser's own view transitions (@view-transition).
+ *     The new page is wiped on left to right like a squeegee across glass;
+ *     the header stays put; a package's or zone's photo morphs from its card
+ *     into the next page's hero (the vt-* names below).
+ *   - Light sweeps: a band of light glides across chrome headings as they
+ *     arrive, across the logo every few seconds, and across buttons and
+ *     package cards on hover.
+ *   - Water beads drift up behind the closing band and the home hero.
+ *   - Scroll-driven: the header tightens and darkens as the page leaves the
+ *     top; band headings rise and glint into view; the van route draws
+ *     itself across the zone map; the before/after frame wipes from swirled
+ *     to corrected; the gallery's film strip runs sideways; a progress bar
+ *     tracks reading on articles.
+ *   - Ambient: the package marquee slides, the map's stops pulse, the home
+ *     hero's strip lights breathe.
+ *
+ * Every rule is inside prefers-reduced-motion: no-preference, and the
+ * scroll-driven ones inside @supports as well: where either is missing the
+ * page is simply still, with nothing hidden. global.css switches every
+ * animation and transition off under reduce.
+ */
+
+@view-transition {
+    navigation: auto;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    ::view-transition-old(root) {
+        animation: 260ms ease-in both vt-dim;
+    }
+
+    ::view-transition-new(root) {
+        animation: 560ms var(--ease-out) both vt-squeegee;
+    }
+
+    ::view-transition-group(*) {
+        animation-duration: 520ms;
+        animation-timing-function: var(--ease-out);
+    }
+
+    .site-header {
+        view-transition-name: site-header;
+    }
+
+    /* A package card's photo becomes its page's hero photo, and back. */
+    .vt-express-wash { view-transition-name: pkg-express-wash; }
+    .vt-full-detail { view-transition-name: pkg-full-detail; }
+    .vt-interior-deep-clean { view-transition-name: pkg-interior-deep-clean; }
+    .vt-paint-correction { view-transition-name: pkg-paint-correction; }
+    .vt-ceramic-coating { view-transition-name: pkg-ceramic-coating; }
+
+    /* The same for the zones. */
+    .vt-zone-old-harbor { view-transition-name: zone-old-harbor; }
+    .vt-zone-cinder-hill { view-transition-name: zone-cinder-hill; }
+    .vt-zone-brightwater { view-transition-name: zone-brightwater; }
+    .vt-zone-fenwick-park { view-transition-name: zone-fenwick-park; }
+    .vt-zone-northgate { view-transition-name: zone-northgate; }
+
+    /* The logo's light sweep, every few seconds. */
+    .logo-sweep {
+        animation: logo-sweep 6.5s cubic-bezier(0.5, 0, 0.3, 1) 1.2s infinite;
+    }
+
+    /* Page heroes: copy rises in line by line; the heading's light sweeps once. */
+    .page-hero .copy > * {
+        animation: rise-in 800ms var(--ease-out) both;
+    }
+
+    .page-hero .copy > :nth-child(2) { animation-delay: 70ms; }
+    .page-hero .copy > :nth-child(3) { animation-delay: 140ms; }
+    .page-hero .copy > :nth-child(4) { animation-delay: 210ms; }
+    .page-hero .copy > :nth-child(5) { animation-delay: 280ms; }
+
+    .page-hero .copy > h1,
+    .home-hero .copy > h1 {
+        animation:
+            rise-in 800ms var(--ease-out) 70ms both,
+            sheen 2.4s cubic-bezier(0.45, 0, 0.2, 1) 500ms both;
+    }
+
+    .page-hero .media {
+        animation: unveil 1100ms var(--ease-out) 120ms both;
+    }
+
+    .page-hero .strip {
+        animation: strip-on 1.4s steps(1) both, breathe 5s ease-in-out 1.6s infinite;
+    }
+
+    /* The home hero. */
+    .home-hero .stage img {
+        animation: headlights 2.4s var(--ease-out) both;
+    }
+
+    .home-hero .copy > * {
+        animation: rise-in 900ms var(--ease-out) both;
+    }
+
+    .home-hero .copy > :nth-child(2) { animation-delay: 120ms; }
+    .home-hero .copy > :nth-child(3) { animation-delay: 240ms; }
+    .home-hero .copy > :nth-child(4) { animation-delay: 360ms; }
+
+    .home-hero .specs > li {
+        animation: rise-in 700ms var(--ease-out) both;
+    }
+
+    .home-hero .specs > li:nth-child(1) { animation-delay: 600ms; }
+    .home-hero .specs > li:nth-child(2) { animation-delay: 680ms; }
+    .home-hero .specs > li:nth-child(3) { animation-delay: 760ms; }
+    .home-hero .specs > li:nth-child(4) { animation-delay: 840ms; }
+
+    .home-hero .lights span {
+        animation: strip-on 1.8s steps(1) both, breathe 6s ease-in-out 2s infinite;
+    }
+
+    .home-hero .lights span:nth-child(2) { animation-delay: 180ms, 2.4s; }
+    .home-hero .lights span:nth-child(3) { animation-delay: 360ms, 2.8s; }
+
+    /* The closing band's heading and the footer's name glint now and then. */
+    .closing h2 {
+        animation: sheen-pause 8s cubic-bezier(0.45, 0, 0.2, 1) 1s infinite;
+    }
+
+    .site-footer .giant {
+        animation: sheen-pause 11s cubic-bezier(0.45, 0, 0.2, 1) 2s infinite;
+    }
+
+    /* Hover glints: a band of light crosses a button or a card. */
+    .button:hover::after {
+        transform: translateX(120%);
+        transition: transform 0.75s var(--ease-out);
+    }
+
+    [data-tilt]:hover .glint {
+        transform: translateX(70%);
+        transition: transform 1s var(--ease-out);
+    }
+
+    /* Water beads drift upward, each at its own pace. */
+    .bead {
+        animation: drift 14s ease-in-out infinite;
+    }
+
+    .bead:nth-child(3n) { animation-duration: 18s; animation-delay: -4s; }
+    .bead:nth-child(3n + 1) { animation-duration: 11s; animation-delay: -7s; }
+    .bead:nth-child(4n) { animation-delay: -10s; }
+    .bead:nth-child(5n) { animation-duration: 22s; }
+
+    /* The package marquee. */
+    .marquee-track {
+        animation: marquee 48s linear infinite;
+    }
+
+    .marquee:hover .marquee-track {
+        animation-play-state: paused;
+    }
+
+    /* The zone map's stops pulse like a live dispatch screen. */
+    .stop .ring {
+        animation: ping 2.6s ease-out infinite;
+    }
+
+    .stop:nth-of-type(2) .ring { animation-delay: 0.5s; }
+    .stop:nth-of-type(3) .ring { animation-delay: 1s; }
+    .stop:nth-of-type(4) .ring { animation-delay: 1.5s; }
+    .stop:nth-of-type(5) .ring { animation-delay: 2s; }
+
+    /* FAQs open to their height instead of jumping. */
+    :root {
+        interpolate-size: allow-keywords;
+    }
+
+    .faq details::details-content {
+        height: 0;
+        overflow: clip;
+        transition: height 0.4s var(--ease-out), content-visibility 0.4s allow-discrete;
+    }
+
+    .faq details[open]::details-content {
+        height: auto;
+    }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+        /* The header tightens as the page leaves the top. */
+        .site-header {
+            animation: header-smoke linear both;
+            animation-timeline: scroll(root);
+            animation-range: 0 14rem;
+        }
+
+        .site-header .bar {
+            animation: header-tighten linear both;
+            animation-timeline: scroll(root);
+            animation-range: 0 14rem;
+        }
+
+        .site-header .hairline {
+            animation: hairline-on linear both;
+            animation-timeline: scroll(root);
+            animation-range: 0 14rem;
+        }
+
+        /* Band headings rise into view, and their light glides across. */
+        .band-head {
+            animation: rise-in linear both;
+            animation-timeline: view();
+            animation-range: entry 0% entry 60%;
+        }
+
+        .band-head h2 {
+            animation: sheen linear both;
+            animation-timeline: view();
+            animation-range: entry 20% cover 45%;
+        }
+
+        .reveal,
+        .posts > li,
+        .steps > li,
+        .facts > li,
+        .quotes > li,
+        .kit > li {
+            animation: rise-in linear both;
+            animation-timeline: view();
+            animation-range: entry 0% entry 55%;
+        }
+
+        :is(.posts, .steps, .facts, .quotes, .kit) > li:nth-child(even) {
+            animation-range: entry 8% entry 63%;
+        }
+
+        .photo-rise {
+            animation: unveil linear both;
+            animation-timeline: view();
+            animation-range: entry 0% cover 40%;
+        }
+
+        /* Photos drift a little slower than the page: depth. */
+        .parallax :is(img) {
+            animation: parallax linear both;
+            animation-timeline: view();
+            animation-range: cover 0% cover 100%;
+        }
+
+        /* The van's route draws itself across the zone map. */
+        .zone-map {
+            view-timeline-name: --zone-map;
+        }
+
+        .zone-map .route {
+            animation: draw-route linear both;
+            animation-timeline: --zone-map;
+            animation-range: entry 30% cover 60%;
+        }
+
+        /* Before/after: the line wipes from swirled to corrected as it scrolls by. */
+        .compare:not(.is-manual) {
+            animation: wipe linear both;
+            animation-timeline: view();
+            animation-range: cover 20% cover 70%;
+        }
+
+        /* Reading progress on an article. */
+        .reading-progress {
+            position: fixed;
+            inset: 0 0 auto;
+            z-index: 60;
+            height: 2px;
+            background: linear-gradient(90deg, var(--color-cyan-deep), var(--color-cyan), #ffffff);
+            box-shadow: 0 0 12px rgb(46 230 255 / 0.8);
+            transform-origin: 0 50%;
+            animation: grow linear both;
+            animation-timeline: scroll(root);
+        }
+    }
+}
+
+@keyframes vt-dim {
+    to { opacity: 0; filter: brightness(0.6); }
+}
+
+@keyframes vt-squeegee {
+    from { clip-path: inset(0 100% 0 0); }
+    to { clip-path: inset(0 0 0 0); }
+}
+
+@keyframes rise-in {
+    from { opacity: 0; transform: translateY(1.75rem); }
+    to { opacity: 1; transform: none; }
+}
+
+@keyframes unveil {
+    from { opacity: 0; transform: scale(1.04) translateY(1rem); filter: brightness(0.35); }
+    to { opacity: 1; transform: none; filter: none; }
+}
+
+/* The band of light in .chrome lettering, from off the right to off the left. */
+@keyframes sheen {
+    from { background-position: 130% 0, 0 0; }
+    to { background-position: -30% 0, 0 0; }
+}
+
+/* The same, quickly, then a long pause before the next. */
+@keyframes sheen-pause {
+    0% { background-position: 130% 0, 0 0; }
+    28%, 100% { background-position: -30% 0, 0 0; }
+}
+
+@keyframes logo-sweep {
+    0% { transform: translateX(0) skewX(-18deg); }
+    22%, 100% { transform: translateX(62px) skewX(-18deg); }
+}
+
+@keyframes strip-on {
+    0% { opacity: 0.1; }
+    12% { opacity: 1; }
+    18% { opacity: 0.25; }
+    26%, 100% { opacity: 1; }
+}
+
+@keyframes breathe {
+    50% { opacity: 0.7; }
+}
+
+@keyframes headlights {
+    from { opacity: 0; filter: brightness(0.3); transform: scale(1.06); }
+    to { opacity: 1; filter: none; transform: none; }
+}
+
+@keyframes drift {
+    0% { transform: translate(0, 0); opacity: 0; }
+    15% { opacity: 0.6; }
+    50% { transform: translate(12px, -60px); }
+    85% { opacity: 0.5; }
+    100% { transform: translate(-6px, -140px); opacity: 0; }
+}
+
+@keyframes marquee {
+    to { transform: translateX(-50%); }
+}
+
+@keyframes ping {
+    0% { transform: scale(0.6); opacity: 0.9; }
+    100% { transform: scale(2.4); opacity: 0; }
+}
+
+@keyframes header-smoke {
+    to { background-color: rgb(5 6 7 / 0.92); }
+}
+
+@keyframes header-tighten {
+    to { min-height: 3.6rem; }
+}
+
+@keyframes hairline-on {
+    to { opacity: 1; }
+}
+
+@keyframes parallax {
+    from { transform: translateY(-6%) scale(1.12); }
+    to { transform: translateY(6%) scale(1.12); }
+}
+
+@keyframes draw-route {
+    from { stroke-dashoffset: 1; }
+    to { stroke-dashoffset: 0; }
+}
+
+@keyframes wipe {
+    from { --pos: 94%; }
+    to { --pos: 6%; }
+}
+
+@keyframes grow {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+}
