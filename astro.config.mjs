@@ -110,6 +110,10 @@ export default defineConfig({
     // Links are fetched ahead when a visitor hovers or taps them.
     prefetch: { prefetchAll: true, defaultStrategy: 'hover' },
 
+    // Shiki colours code with style attributes, which the content security
+    // policy blocks. A marketing blog shows little code; a plain <pre> it is.
+    markdown: { syntaxHighlight: false },
+
     // The end-to-end test builds into its own directory, so it never
     // overwrites the dist/ you are looking at.
     outDir: process.env.SITE_OUT_DIR ?? './dist',
