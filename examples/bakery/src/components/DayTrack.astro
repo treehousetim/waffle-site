@@ -1,0 +1,220 @@
+---
+/**
+ * "A day at the bakery": the hours from the first mix to the night feed,
+ * as a row of cards. On wide screens that can run scroll-driven animation,
+ * the row slides sideways while the page scrolls down (the band holds
+ * still, sticky, while it does). Everywhere else it is a row you can swipe
+ * or scroll, snapping card by card. Nothing is hidden either way.
+ */
+import Doodle from './Doodle.astro';
+
+interface Props {
+    heading: string;
+    intro: string;
+}
+
+const { heading, intro } = Astro.props;
+
+const hours = [
+    { time: '4:00', part: 'am', title: 'First mix', text: 'Hattie mixes the day’s brioche and porridge dough; yesterday’s country loaves come out of the cooler.', doodle: 'whisk' },
+    { time: '6:30', part: 'am', title: 'First bake', text: 'Country loaves, rye and tins go into the deck oven, and come out dark, crackling and singing.', doodle: 'boule' },
+    { time: '6:45', part: 'am', title: 'Croissants', text: 'Teo’s first trays out. The building smells like butter for the next three hours.', doodle: 'croissant' },
+    { time: '7:00', part: 'am', title: 'Doors open', text: 'Sam unlocks, the kettle’s on for chai, and the regulars are already on the bench outside.', doodle: 'cup' },
+    { time: '10:00', part: 'am', title: 'Second bake', text: 'Fougasse, the specials and a second round of country loaves for the late risers.', doodle: 'loaf' },
+    { time: '1:00', part: 'pm', title: 'Supper baguettes', text: 'A fresh bake of baguettes, so the ones you take home for dinner are still crackling.', doodle: 'wheat' },
+    { time: '3:00', part: 'pm', title: 'Doors close', text: 'Whatever is left goes to the food shelf on Mill Street. Tomorrow’s dough is mixed and shaped.', doodle: 'rolling-pin' },
+    { time: '9:00', part: 'pm', title: 'Feed the starter', text: 'Flour and water for the levain, every night since 2012. It has never missed a meal.', doodle: 'sparkle' },
+] as const;
+---
+
+<section class="day" aria-labelledby="day-heading">
+    <div class="sticky">
+        <div class="container head">
+            <p class="eyebrow">From four in the morning</p>
+            <h2 id="day-heading">{heading}</h2>
+            <p class="intro">{intro}</p>
+        </div>
+        <div class="viewport">
+            <ol class="track">
+                {
+                    hours.map((hour, index) => (
+                        <li class:list={['hour', { night: index === hours.length - 1, early: index === 0 }]}>
+                            <p class="time">
+                                {hour.time}
+                                <span>{hour.part}</span>
+                            </p>
+                            <Doodle name={hour.doodle} class="hour-doodle" />
+                            <h3>{hour.title}</h3>
+                            <p class="text">{hour.text}</p>
+                        </li>
+                    ))
+                }
+            </ol>
+        </div>
+    </div>
+</section>
+
+<style>
+    .day {
+        position: relative;
+        padding: var(--section) 0;
+        background: var(--cocoa);
+        color: var(--cream);
+    }
+
+    .day::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: calc(100% - 3px);
+        height: 21px;
+        background: var(--cocoa);
+        mask: var(--wave) repeat-x top / 96px 18px, linear-gradient(black, black) no-repeat bottom / 100% 4px;
+        -webkit-mask: var(--wave) repeat-x top / 96px 18px, linear-gradient(black, black) no-repeat bottom / 100% 4px;
+    }
+
+    .head {
+        max-width: var(--width-content);
+        margin-bottom: var(--space-10);
+    }
+
+    .head h2 {
+        color: var(--cream);
+    }
+
+    .head .eyebrow {
+        color: var(--butter);
+    }
+
+    .intro {
+        max-width: 38rem;
+        color: var(--color-on-dark-muted);
+        font-size: 1.2rem;
+    }
+
+    .viewport {
+        overflow-x: auto;
+        overscroll-behavior-x: contain;
+        scroll-snap-type: x mandatory;
+        scroll-padding-inline: var(--gutter);
+        padding-bottom: var(--space-4);
+        scrollbar-color: var(--butter) transparent;
+    }
+
+    .track {
+        display: flex;
+        gap: var(--space-6);
+        width: max-content;
+        margin: 0;
+        padding: var(--space-4) var(--gutter);
+        list-style: none;
+    }
+
+    .hour {
+        position: relative;
+        display: grid;
+        align-content: start;
+        width: min(78vw, 19rem);
+        padding: var(--space-6);
+        border: 2px solid var(--cream);
+        border-radius: var(--radius-large) var(--radius-large) var(--radius) var(--radius);
+        background: var(--cocoa-raised);
+        scroll-snap-align: start;
+    }
+
+    .hour:nth-child(odd) {
+        rotate: -1deg;
+    }
+
+    .hour:nth-child(even) {
+        rotate: 1deg;
+        translate: 0 1.25rem;
+    }
+
+    .early,
+    .night {
+        background: #2a1810;
+    }
+
+    .time {
+        margin: 0 0 var(--space-3);
+        color: var(--butter);
+        font-family: var(--font-display);
+        font-size: 3.4rem;
+        line-height: 0.9;
+        font-variant-numeric: lining-nums;
+    }
+
+    .time span {
+        margin-left: 0.15em;
+        font-family: var(--font-hand);
+        font-size: 1.6rem;
+    }
+
+    .hour :global(.hour-doodle) {
+        position: absolute;
+        top: 1.25rem;
+        right: 1.25rem;
+        width: 3.4rem;
+        color: var(--cream);
+    }
+
+    .hour :global(.doodle-rolling-pin) {
+        width: 5.5rem;
+        top: 2rem;
+    }
+
+    .hour h3 {
+        margin: var(--space-2) 0 var(--space-2);
+        color: var(--cream);
+    }
+
+    .text {
+        margin: 0;
+        color: var(--color-on-dark-muted);
+        font-size: 1.05rem;
+        line-height: 1.5;
+    }
+
+    /*
+     * Wide screens with scroll-driven animation: the band is tall, its
+     * contents stick, and the track slides left as the page scrolls on.
+     */
+    @media (min-width: 60rem) and (prefers-reduced-motion: no-preference) {
+        @supports (animation-timeline: view()) {
+            .day {
+                height: 300vh;
+                padding: 0;
+                view-timeline-name: --day;
+            }
+
+            .sticky {
+                position: sticky;
+                top: var(--header-height);
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                height: calc(100vh - var(--header-height));
+                overflow: hidden;
+            }
+
+            .viewport {
+                overflow: visible;
+            }
+
+            .track {
+                padding-inline: max(var(--gutter), (100vw - var(--width-content)) / 2);
+                animation: day-slide linear both;
+                animation-timeline: --day;
+                animation-range: contain 5% contain 95%;
+            }
+        }
+    }
+
+    @keyframes day-slide {
+        to {
+            transform: translateX(calc(-100% + 100vw));
+        }
+    }
+</style>

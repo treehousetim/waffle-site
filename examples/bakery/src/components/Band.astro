@@ -1,0 +1,135 @@
+---
+/**
+ * A band of the page: a tone, an optional heading block (handwritten
+ * eyebrow, chunky heading, an intro), the content, and a wavy top edge that
+ * makes it look poured over the band above, like icing. The heading block
+ * and the content rise in as they scroll into view (styles/motion.css).
+ */
+interface Props {
+    tone?: 'cream' | 'flour' | 'kraft' | 'butter' | 'terracotta' | 'cocoa';
+    eyebrow?: string;
+    heading?: string;
+    intro?: string;
+    /** Wavy top edge (default), a paper-bag zigzag, or a straight one. */
+    edge?: 'wave' | 'zigzag' | 'none';
+    align?: 'start' | 'center';
+    id?: string;
+    class?: string;
+}
+
+const { tone = 'cream', eyebrow, heading, intro, edge = 'wave', align = 'start', id, class: className } = Astro.props;
+---
+
+<section class:list={['band', tone, `edge-${edge}`, className]} id={id}>
+    <div class="container">
+        {
+            (heading || eyebrow) && (
+                <header class:list={['band-head', align]}>
+                    {eyebrow && <p class="eyebrow">{eyebrow}</p>}
+                    {heading && <h2>{heading}</h2>}
+                    {intro && <p class="intro">{intro}</p>}
+                    <slot name="head" />
+                </header>
+            )
+        }
+        <slot />
+    </div>
+</section>
+
+<style>
+    .band {
+        position: relative;
+        padding: var(--section) 0;
+        background: var(--band-bg, transparent);
+        color: var(--band-text, var(--cocoa));
+    }
+
+    .cream {
+        --band-bg: transparent;
+    }
+
+    .flour {
+        --band-bg: var(--cream-deep);
+    }
+
+    .kraft {
+        --band-bg: var(--kraft);
+
+        background-image: var(--fibres);
+    }
+
+    .butter {
+        --band-bg: var(--butter);
+    }
+
+    .terracotta {
+        --band-bg: var(--terracotta);
+        --band-text: var(--cream);
+    }
+
+    .cocoa {
+        --band-bg: var(--cocoa);
+        --band-text: var(--cream);
+    }
+
+    /*
+     * The edge overlaps the band by a few pixels, so the anti-aliased last
+     * row of the mask never shows a hairline. A cream band draws its edge in
+     * cream: it only shows when it follows a band of another colour.
+     */
+    .edge-wave::before,
+    .edge-zigzag::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: calc(100% - 3px);
+        height: 21px;
+        background: var(--band-edge, var(--band-bg));
+        mask: var(--wave) repeat-x top / 96px 18px, linear-gradient(black, black) no-repeat bottom / 100% 4px;
+        -webkit-mask: var(--wave) repeat-x top / 96px 18px, linear-gradient(black, black) no-repeat bottom / 100% 4px;
+    }
+
+    .edge-zigzag::before {
+        height: 17px;
+        mask: var(--zigzag) repeat-x top / 28px 14px, linear-gradient(black, black) no-repeat bottom / 100% 4px;
+        -webkit-mask: var(--zigzag) repeat-x top / 28px 14px, linear-gradient(black, black) no-repeat bottom / 100% 4px;
+    }
+
+    .cream {
+        --band-edge: var(--cream);
+    }
+
+    .band-head {
+        max-width: 46rem;
+        margin-bottom: clamp(2rem, 1.5rem + 2vw, 3.5rem);
+    }
+
+    .band-head.center {
+        margin-inline: auto;
+        text-align: center;
+    }
+
+    .band-head :global(h2) {
+        color: inherit;
+    }
+
+    .intro {
+        font-size: clamp(1.15rem, 1.08rem + 0.3vw, 1.3rem);
+    }
+
+    .terracotta :global(.eyebrow),
+    .cocoa :global(.eyebrow) {
+        color: var(--butter);
+    }
+
+    .terracotta :global(a:not(.button)),
+    .cocoa :global(a:not(.button)) {
+        color: var(--cream);
+        text-decoration-color: rgb(251 243 228 / 0.45);
+    }
+
+    .butter :global(.eyebrow) {
+        color: var(--terracotta-deep);
+    }
+</style>

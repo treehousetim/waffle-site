@@ -1,0 +1,210 @@
+---
+/**
+ * A hand-drawn map of the streets around the bakery: not to scale, and not
+ * a real place (the town is invented). Drawn in SVG, so no map service, no
+ * third-party script, nothing the content security policy would block.
+ * Replace it with a drawing of the real streets, or a static map image the
+ * business is licensed to use.
+ */
+interface Props {
+    class?: string;
+}
+
+const { class: className } = Astro.props;
+---
+
+<figure class:list={['town-map', className]}>
+    <p class="visually-hidden" id="map-desc">
+        A hand-drawn sketch, not to scale. The bakery is on Cooper’s Row, beside the old market cross, where Cooper’s Row meets Mill
+        Street. Free weekday parking is behind St. Brigid’s church, up Church Lane; the Saturday market lot is across Mill Street; the
+        River Wend runs along the south edge of town.
+    </p>
+    <!-- No <title> in here: the audit counts every <title> on the page. -->
+    <svg viewBox="0 0 420 340" role="img" aria-label="Map of the streets around Crumb & Kettle" aria-describedby="map-desc">
+        <rect class="paper" x="4" y="4" width="412" height="332" rx="18" />
+        <path class="river" d="M-10 300 C60 270 110 320 190 292 S320 260 430 290" />
+        <g class="streets">
+            <path d="M20 170 C120 160 260 176 400 166" />
+            <path d="M212 20 C206 110 220 220 210 320" />
+            <path class="lane" d="M20 62 C80 56 150 66 210 60" />
+            <path class="lane" d="M300 40 C296 90 304 130 300 170" />
+        </g>
+        <g class="labels">
+            <text x="34" y="154">Cooper’s Row</text>
+            <text x="224" y="72" transform="rotate(88 224 72)">Mill Street</text>
+            <text x="30" y="46">Church Lane</text>
+            <text x="320" y="315">River Wend</text>
+        </g>
+        <g class="block church">
+            <rect x="110" y="80" width="62" height="40" rx="6" />
+            <path d="M141 87 V113 M132 96 H150" />
+            <text x="141" y="136">St. Brigid’s</text>
+        </g>
+        <g class="parking">
+            <rect x="44" y="80" width="44" height="36" rx="8" />
+            <text class="p" x="66" y="106">P</text>
+            <text class="under" x="66" y="132">free weekdays</text>
+        </g>
+        <g class="parking">
+            <rect x="248" y="196" width="44" height="36" rx="8" />
+            <text class="p" x="270" y="222">P</text>
+            <text x="300" y="214">Saturday</text>
+            <text x="300" y="232">market lot</text>
+        </g>
+        <g class="cross">
+            <circle cx="232" cy="186" r="7" />
+            <text x="244" y="182">market cross</text>
+        </g>
+        <g class="here">
+            <circle class="ring" cx="182" cy="190" r="24" />
+            <path class="star" d="M182 172 C184 184 188 188 200 190 C188 192 184 196 182 208 C180 196 176 192 164 190 C176 188 180 184 182 172Z" />
+            <text class="name" x="182" y="236">Crumb &amp; Kettle</text>
+            <text class="addr" x="182" y="254">14 Cooper’s Row</text>
+        </g>
+        <g class="compass">
+            <path d="M378 30 L386 54 L378 48 L370 54Z" />
+            <text x="378" y="24">N</text>
+        </g>
+    </svg>
+    <figcaption class="hand">Not to scale. Look for the striped awning.</figcaption>
+</figure>
+
+<style>
+    .town-map {
+        margin: 0;
+        rotate: -1.5deg;
+    }
+
+    svg {
+        width: 100%;
+        height: auto;
+        overflow: visible;
+        filter: drop-shadow(6px 6px 0 var(--cocoa));
+    }
+
+    .paper {
+        fill: #fffaf0;
+        stroke: var(--cocoa);
+        stroke-width: 3;
+    }
+
+    .river {
+        fill: none;
+        stroke: #9fb7c4;
+        stroke-width: 18;
+        stroke-linecap: round;
+        opacity: 0.8;
+    }
+
+    .streets path {
+        fill: none;
+        stroke: var(--kraft);
+        stroke-width: 16;
+        stroke-linecap: round;
+    }
+
+    .streets .lane {
+        stroke-width: 9;
+    }
+
+    text {
+        fill: var(--cocoa);
+        font-family: var(--font-serif);
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .labels text {
+        fill: var(--crust);
+        font-style: italic;
+    }
+
+    .block rect {
+        fill: var(--cream-deep);
+        stroke: var(--cocoa);
+        stroke-width: 2.5;
+    }
+
+    .block path {
+        fill: none;
+        stroke: var(--cocoa);
+        stroke-width: 2.5;
+        stroke-linecap: round;
+    }
+
+    .block text,
+    .here text {
+        text-anchor: middle;
+    }
+
+    .parking rect {
+        fill: #dfe6f0;
+        stroke: #3b5f86;
+        stroke-width: 2.5;
+    }
+
+    .parking .under {
+        font-size: 11px;
+        text-anchor: middle;
+    }
+
+    .parking .p {
+        fill: #2e4f73;
+        font-family: var(--font-display);
+        font-size: 20px;
+        text-anchor: middle;
+    }
+
+    .cross circle {
+        fill: var(--cocoa);
+    }
+
+    .ring {
+        fill: var(--terracotta);
+        stroke: var(--cocoa);
+        stroke-width: 3;
+    }
+
+    .star {
+        fill: var(--butter);
+    }
+
+    .here .name {
+        font-family: var(--font-display);
+        font-size: 17px;
+    }
+
+    .here .addr {
+        fill: var(--crust);
+    }
+
+    .compass path {
+        fill: var(--terracotta);
+    }
+
+    .compass text {
+        font-family: var(--font-display);
+        text-anchor: middle;
+    }
+
+    figcaption {
+        margin-top: var(--space-4);
+        color: var(--terracotta);
+        font-size: 1.4rem;
+        text-align: center;
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+        .ring {
+            transform-box: fill-box;
+            transform-origin: center;
+            animation: pulse 2.4s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            50% {
+                transform: scale(1.12);
+            }
+        }
+    }
+</style>

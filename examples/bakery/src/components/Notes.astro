@@ -1,0 +1,93 @@
+---
+/**
+ * What neighbours say, as handwritten notes pinned to the board by the
+ * door. Shown as text only: no review markup (AGENTS.md §4).
+ */
+import type { Note } from '../data/notes';
+
+interface Props {
+    items: Note[];
+}
+
+const { items } = Astro.props;
+---
+
+<ul class="notes">
+    {
+        items.map((note) => (
+            <li class="pinned">
+                <figure>
+                    <span class="pin" aria-hidden="true" />
+                    <blockquote>
+                        <p>“{note.text}”</p>
+                    </blockquote>
+                    <figcaption>{note.who}</figcaption>
+                </figure>
+            </li>
+        ))
+    }
+</ul>
+
+<style>
+    .notes {
+        display: grid;
+        gap: var(--space-8);
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    li:nth-child(4n + 1) { rotate: -2.5deg; }
+    li:nth-child(4n + 2) { rotate: 1.8deg; }
+    li:nth-child(4n + 3) { rotate: -1deg; }
+    li:nth-child(4n + 4) { rotate: 2.6deg; }
+
+    figure {
+        position: relative;
+        height: 100%;
+        margin: 0;
+        padding: var(--space-8) var(--space-6) var(--space-6);
+        background: #fffaf0;
+        box-shadow: 0 1px 0 rgb(58 35 24 / 0.08), var(--shadow-soft);
+    }
+
+    li:nth-child(even) figure {
+        background: var(--butter-soft);
+    }
+
+    .pin {
+        position: absolute;
+        top: 0.6rem;
+        left: 50%;
+        width: 1rem;
+        height: 1rem;
+        translate: -50% 0;
+        border-radius: 50%;
+        background: radial-gradient(circle at 35% 35%, #e58b62, var(--terracotta-deep));
+        box-shadow: 1px 2px 2px rgb(58 35 24 / 0.35);
+    }
+
+    blockquote {
+        margin: 0;
+    }
+
+    blockquote p {
+        margin: 0 0 var(--space-4);
+        color: var(--cocoa);
+        font-family: var(--font-hand);
+        font-size: 1.65rem;
+        font-weight: 600;
+        line-height: 1.15;
+    }
+
+    figcaption {
+        color: var(--crust);
+        font-size: 1rem;
+        font-weight: 700;
+    }
+
+    figcaption::before {
+        content: '— ';
+    }
+</style>

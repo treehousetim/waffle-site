@@ -1,0 +1,21 @@
+---
+/** /journal/<slug>/ for every post the build shows (@core/lib/posts.js decides which). */
+import type { GetStaticPaths } from 'astro';
+import { getCollection, render } from 'astro:content';
+import BlogPost from '../../layouts/BlogPost.astro';
+import { buildTime, settings } from '@core/settings';
+import { relatedPosts, visiblePosts } from '@core/lib/posts.js';
+
+export const getStaticPaths = (async () => {
+    const posts = visiblePosts(await getCollection('blog'), { includeDrafts: !settings.production, now: buildTime });
+
+    return posts.map((post) => ({ params: { slug: post.id }, props: { post, related: relatedPosts(post, posts, 3) } }));
+}) satisfies GetStaticPaths;
+
+const { post, related } = Astro.props;
+const { Content } = await render(post);
+---
+
+<BlogPost post={post} related={related}>
+    <Content />
+</BlogPost>

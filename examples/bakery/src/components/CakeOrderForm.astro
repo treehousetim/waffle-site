@@ -1,0 +1,397 @@
+---
+/**
+ * The celebration cake order, received by the waffle app (docs/forms.md).
+ *
+ * It posts to /api/site/forms/cake-order on this site; Caddy forwards that
+ * to the waffle app with the site key (docs/waffle-api.md). It works without
+ * script: the browser checks the fields, posts the form, and the app answers
+ * with a redirect to `thanks`. With script (src/scripts/forms.ts) it sends
+ * JSON and shows the answer in place, field by field.
+ *
+ * The fields, as the app receives them: occasion, servings, flavour,
+ * date_needed (YYYY-MM-DD), pickup, message (the words piped on the cake),
+ * notes, and the contact: name, email, phone. Plus redirect and the
+ * honeypot. The choices are the ones in src/data/cakes.ts.
+ */
+import { HONEYPOT } from '@core/lib/forms.js';
+import { flavours, occasions, pickups, sizes } from '../data/cakes';
+
+interface Props {
+    /** Where the app sends a browser without script after a good submission. */
+    thanks: string;
+}
+
+// No `min` on the date: it would change with every day's build. The app
+// checks the lead time for the size chosen and says so under the field.
+const { thanks } = Astro.props;
+---
+
+<form class="order" method="post" action="/api/site/forms/cake-order" data-site-form>
+    <input type="hidden" name="redirect" value={thanks} />
+
+    <fieldset class="step">
+        <legend><span class="num">1</span> The cake</legend>
+
+        <div class="row">
+            <div class="field">
+                <label for="cake-occasion">What’s the occasion?</label>
+                <select id="cake-occasion" name="occasion" required>
+                    <option value="">Choose one</option>
+                    {occasions.map((item) => <option value={item.value}>{item.label}</option>)}
+                </select>
+                <p class="error" data-error-for="occasion" hidden></p>
+            </div>
+
+            <div class="field">
+                <label for="cake-servings">How many people?</label>
+                <select id="cake-servings" name="servings" required>
+                    <option value="">Choose a size</option>
+                    {sizes.map((size) => <option value={size.value}>{size.label} (serves {size.serves})</option>)}
+                </select>
+                <p class="error" data-error-for="servings" hidden></p>
+            </div>
+        </div>
+
+        <fieldset class="field">
+            <legend class="label">Flavor</legend>
+            <div class="flavours">
+                {
+                    flavours.map((flavour, index) => (
+                        <label class="flavour">
+                            <input type="radio" name="flavour" value={flavour.value} required={index === 0} />
+                            <span class="flavour-name">{flavour.name}</span>
+                            {flavour.season && <span class="season">Best {flavour.season}</span>}
+                        </label>
+                    ))
+                }
+            </div>
+            <p class="error" data-error-for="flavour" hidden></p>
+        </fieldset>
+
+        <div class="field">
+            <label for="cake-message">Words on the cake <span class="optional">(optional, up to 40 letters)</span></label>
+            <input id="cake-message" name="message" type="text" maxlength="40" placeholder="Happy birthday, Nell!" />
+            <p class="error" data-error-for="message" hidden></p>
+        </div>
+    </fieldset>
+
+    <fieldset class="step">
+        <legend><span class="num">2</span> When and how</legend>
+
+        <div class="row">
+            <div class="field">
+                <label for="cake-date">Date needed</label>
+                <input id="cake-date" name="date_needed" type="date" required />
+                <p class="hint">At least five days ahead; three weeks for tiered cakes.</p>
+                <p class="error" data-error-for="date_needed" hidden></p>
+            </div>
+
+            <fieldset class="field">
+                <legend class="label">Pickup or delivery</legend>
+                <div class="choices">
+                    {
+                        pickups.map((pickup, index) => (
+                            <label class="choice">
+                                <input type="radio" name="pickup" value={pickup.value} checked={index === 0} />
+                                <span>{pickup.label}</span>
+                            </label>
+                        ))
+                    }
+                </div>
+                <p class="error" data-error-for="pickup" hidden></p>
+            </fieldset>
+        </div>
+    </fieldset>
+
+    <fieldset class="step">
+        <legend><span class="num">3</span> You</legend>
+
+        <div class="row">
+            <div class="field">
+                <label for="cake-name">Your name</label>
+                <input id="cake-name" name="name" type="text" autocomplete="name" required maxlength="100" />
+                <p class="error" data-error-for="name" hidden></p>
+            </div>
+
+            <div class="field">
+                <label for="cake-email">Email</label>
+                <input id="cake-email" name="email" type="email" autocomplete="email" required maxlength="254" />
+                <p class="error" data-error-for="email" hidden></p>
+            </div>
+
+            <div class="field">
+                <label for="cake-phone">Phone</label>
+                <input id="cake-phone" name="phone" type="tel" autocomplete="tel" required maxlength="30" />
+                <p class="error" data-error-for="phone" hidden></p>
+            </div>
+        </div>
+
+        <div class="field">
+            <label for="cake-notes">Anything else? <span class="optional">(allergies, colors, a photo you love)</span></label>
+            <textarea id="cake-notes" name="notes" rows="4" maxlength="3000"></textarea>
+            <p class="error" data-error-for="notes" hidden></p>
+        </div>
+    </fieldset>
+
+    <div class="trap" aria-hidden="true">
+        <label for="cake-website">Leave this empty</label>
+        <input id="cake-website" name={HONEYPOT} type="text" tabindex="-1" autocomplete="off" />
+    </div>
+
+    <p class="status" role="status" aria-live="polite" data-status></p>
+
+    <div class="send">
+        <button class="button button-large" type="submit">Send my cake order</button>
+        <p class="hand small">Priya replies within a day to confirm, and to talk deposits.</p>
+    </div>
+</form>
+
+<script>
+    import { enhanceForms } from '../scripts/forms';
+
+    enhanceForms(document);
+</script>
+
+<style>
+    .order {
+        display: grid;
+        gap: var(--space-8);
+        padding: clamp(1.25rem, 0.75rem + 2.5vw, 3rem);
+        border: 2px solid var(--cocoa);
+        border-radius: var(--radius-large);
+        background: #fffaf0 var(--grain);
+        box-shadow: 8px 8px 0 var(--terracotta);
+    }
+
+    fieldset {
+        min-width: 0;
+        margin: 0;
+        padding: 0;
+        border: 0;
+    }
+
+    .step {
+        display: grid;
+        gap: var(--space-6);
+    }
+
+    .step + .step {
+        padding-top: var(--space-8);
+        border-top: 2px dashed var(--color-line-strong);
+    }
+
+    /* Floated, so the legend sits under the dashed rule instead of on it. */
+    .step > legend {
+        float: left;
+        width: 100%;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        margin-bottom: var(--space-6);
+        font-family: var(--font-display);
+        font-size: 1.7rem;
+        line-height: 1;
+    }
+
+    .num {
+        display: inline-grid;
+        place-items: center;
+        width: 2.4rem;
+        height: 2.4rem;
+        border: 2px solid var(--cocoa);
+        border-radius: 50%;
+        background: var(--butter);
+        font-size: 1.2rem;
+    }
+
+    .row {
+        display: grid;
+        gap: var(--space-6);
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+    }
+
+    .field {
+        display: grid;
+        align-content: start;
+        gap: var(--space-2);
+    }
+
+    label,
+    .label {
+        font-weight: 800;
+    }
+
+    legend.label {
+        margin-bottom: var(--space-2);
+    }
+
+    .optional {
+        color: var(--crust);
+        font-weight: 500;
+        font-style: italic;
+    }
+
+    .flavours {
+        display: grid;
+        gap: var(--space-3);
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 14rem), 1fr));
+    }
+
+    .flavour {
+        position: relative;
+        display: grid;
+        gap: 0.1rem;
+        padding: var(--space-3) var(--space-4) var(--space-3) 2.75rem;
+        border: 2px solid var(--color-line-strong);
+        border-radius: var(--radius);
+        background: var(--cream);
+        font-weight: 700;
+        line-height: 1.3;
+        cursor: pointer;
+        transition: border-color 0.15s ease, background-color 0.15s ease, rotate 0.2s ease;
+    }
+
+    .flavour input {
+        position: absolute;
+        top: 0.95rem;
+        left: 0.95rem;
+        width: 1.1rem;
+        height: 1.1rem;
+        margin: 0;
+        accent-color: var(--terracotta);
+    }
+
+    .flavour:hover {
+        border-color: var(--cocoa);
+    }
+
+    .flavour:has(input:checked) {
+        border-color: var(--cocoa);
+        background: var(--butter-soft);
+        rotate: -1deg;
+        box-shadow: var(--shadow-print-small);
+    }
+
+    .flavour:has(input:focus-visible) {
+        outline: 3px solid var(--color-focus);
+        outline-offset: 2px;
+    }
+
+    .season {
+        color: var(--crust);
+        font-size: 0.9rem;
+        font-weight: 500;
+        font-style: italic;
+    }
+
+    .choices {
+        display: grid;
+        gap: var(--space-2);
+    }
+
+    .choice {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .choice input {
+        width: 1.1rem;
+        height: 1.1rem;
+        margin: 0;
+        accent-color: var(--terracotta);
+    }
+
+    input:not([type='radio']),
+    select,
+    textarea {
+        width: 100%;
+        min-height: 3.1rem;
+        padding: 0.7rem 0.9rem;
+        border: 2px solid var(--cocoa);
+        border-radius: var(--radius-small);
+        background: var(--cream);
+        color: var(--cocoa);
+        font: inherit;
+        font-size: 1.05rem;
+        transition: box-shadow 0.15s ease, background-color 0.15s ease;
+    }
+
+    input::placeholder {
+        color: #9a7a66;
+        font-style: italic;
+    }
+
+    input:not([type='radio']):focus,
+    select:focus,
+    textarea:focus {
+        outline: none;
+        background: #fffdf8;
+        box-shadow: 4px 4px 0 var(--butter), 0 0 0 3px var(--color-focus);
+    }
+
+    [aria-invalid='true'] {
+        border-color: var(--color-error);
+    }
+
+    .hint {
+        margin: 0;
+        color: var(--crust);
+        font-size: 0.95rem;
+    }
+
+    .error {
+        margin: 0;
+        color: var(--color-error);
+        font-size: 0.95rem;
+        font-weight: 700;
+    }
+
+    .status:empty {
+        display: none;
+    }
+
+    .status {
+        margin: 0;
+        padding: var(--space-4) var(--space-5);
+        border-radius: var(--radius);
+        font-weight: 800;
+    }
+
+    .status[data-kind='sent'] {
+        background: #e6efd9;
+        color: var(--color-success);
+    }
+
+    .status[data-kind='invalid'],
+    .status[data-kind='failed'] {
+        background: #f8e1d8;
+        color: var(--color-error);
+    }
+
+    /* Off screen rather than display:none, which some bots check for. */
+    .trap {
+        position: absolute;
+        left: -10000px;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+    }
+
+    .send {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-4) var(--space-6);
+    }
+
+    .small {
+        margin: 0;
+        color: var(--terracotta);
+        font-size: 1.35rem;
+        line-height: 1.15;
+    }
+</style>

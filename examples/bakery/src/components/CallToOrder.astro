@@ -1,0 +1,102 @@
+---
+/**
+ * The end of most pages: a terracotta band with a scalloped edge, the
+ * rotating stamp, and the way to order a cake or come and visit.
+ */
+import StampBadge from './StampBadge.astro';
+import Doodle from './Doodle.astro';
+
+interface Props {
+    heading?: string;
+    text?: string;
+    primary?: { label: string; href: string };
+    secondary?: { label: string; href: string };
+}
+
+const {
+    heading = 'Got something to celebrate?',
+    text = 'Birthday, wedding, a Tuesday that needs it: tell us the date and the number of people, and Priya will bake it to order.',
+    primary = { label: 'Order a cake', href: '/cakes/order/' },
+    secondary = { label: 'Plan your visit', href: '/visit/' },
+} = Astro.props;
+---
+
+<section class="call">
+    <div class="container inner">
+        <StampBadge text="BAKED TO ORDER · FIVE DAYS’ NOTICE · " center={{ word: 'Made by hand' }} tone="butter" class="call-stamp" />
+        <div class="copy reveal">
+            <h2>{heading}</h2>
+            <p>{text}</p>
+            <p class="actions">
+                <a class="button button-butter button-large" href={primary.href}>{primary.label}</a>
+                <a class="button button-plain button-large" href={secondary.href}>{secondary.label}</a>
+            </p>
+        </div>
+        <Doodle name="whisk" class="call-whisk" float />
+    </div>
+</section>
+
+<style>
+    .call {
+        position: relative;
+        margin-top: 20px;
+        padding: clamp(4rem, 3rem + 4vw, 6.5rem) 0 clamp(5rem, 4rem + 4vw, 7.5rem);
+        background: var(--terracotta);
+        color: var(--cream);
+    }
+
+    /* A scalloped top, like a cake's piped border. */
+    .call::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: calc(100% - 1px);
+        height: 20px;
+        background: radial-gradient(circle at 20px 20px, var(--terracotta) 19.5px, transparent 20px) repeat-x 0 0 / 40px 40px;
+    }
+
+    .inner {
+        position: relative;
+        display: grid;
+        gap: var(--space-10);
+        align-items: center;
+    }
+
+    .copy {
+        max-width: 40rem;
+    }
+
+    h2 {
+        color: var(--cream);
+    }
+
+    p {
+        font-size: 1.25rem;
+    }
+
+    .actions {
+        margin: var(--space-8) 0 0;
+    }
+
+    .inner :global(.call-stamp) {
+        --stamp-size: clamp(8.5rem, 7rem + 5vw, 12rem);
+    }
+
+    .inner :global(.call-whisk) {
+        display: none;
+        color: var(--cream);
+    }
+
+    @media (min-width: 56rem) {
+        .inner {
+            grid-template-columns: auto 1fr auto;
+            gap: var(--space-16);
+        }
+
+        .inner :global(.call-whisk) {
+            display: block;
+            width: 6rem;
+        }
+    }
+</style>

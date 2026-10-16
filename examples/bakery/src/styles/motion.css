@@ -1,0 +1,345 @@
+/*
+ * Motion: what moves, and when. All CSS: nothing here touches the content
+ * security policy, and a page that never loads this file still reads
+ * perfectly.
+ *
+ *   - Pages change with the browser's own view transitions: the old page
+ *     sinks, the new one rises like dough; the header stays put; a menu
+ *     section's photo grows from its card into the section's page.
+ *   - On load the hero's words drop in and settle with a little squash, the
+ *     arch photo proofs up behind them, the stamp thumps down.
+ *   - Always going, gently: the stamp's rim turns, steam rises off cups and
+ *     the logo's kettle, doodles bob, today's bakes crawl across the ticker.
+ *   - On scroll: bands rise in, menu items bounce in one after another, the
+ *     rolling pin rolls out a sheet of dough, "a day at the bakery" slides
+ *     sideways while the page scrolls down, the header's kettle shrinks, and
+ *     a wavy line tracks reading progress on journal posts.
+ *   - On hover: wiggly underlines draw themselves, cards tilt like paper
+ *     pinned to a board, the logo's kettle rocks.
+ *
+ * Every rule that moves anything is inside prefers-reduced-motion:
+ * no-preference, and the scroll-driven ones inside @supports as well: where
+ * either is missing the page is simply still, with nothing hidden.
+ */
+
+@view-transition {
+    navigation: auto;
+}
+
+/* States that are not motion: they hold whether or not anything animates. */
+a:hover .squiggle,
+a:focus-visible .squiggle,
+a[aria-current='page'] .squiggle {
+    clip-path: inset(-50% -5% -50% -5%);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    /* Page to page. */
+    ::view-transition-old(root) {
+        animation: 200ms ease-in both sink-out;
+    }
+
+    ::view-transition-new(root) {
+        animation: 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both rise-in;
+    }
+
+    ::view-transition-group(*) {
+        animation-duration: 520ms;
+        animation-timing-function: cubic-bezier(0.3, 0.8, 0.2, 1);
+    }
+
+    .site-header {
+        view-transition-name: site-header;
+    }
+
+    .site-footer {
+        view-transition-name: site-footer;
+    }
+
+    .morph-breads { view-transition-name: section-breads; }
+    .morph-pastries { view-transition-name: section-pastries; }
+    .morph-cakes { view-transition-name: section-cakes; }
+    .morph-coffee { view-transition-name: section-coffee; }
+
+    /* The hero, on load: words drop in, the photo proofs, the stamp lands. */
+    .page-hero .copy > *,
+    .home-hero .copy > :not(h1) {
+        animation: 700ms cubic-bezier(0.2, 0.8, 0.2, 1) both rise-in;
+    }
+
+    .page-hero .copy > :nth-child(2) { animation-delay: 90ms; }
+    .page-hero .copy > :nth-child(3) { animation-delay: 180ms; }
+    .page-hero .copy > :nth-child(4) { animation-delay: 270ms; }
+    .page-hero .copy > :nth-child(5) { animation-delay: 360ms; }
+
+    .home-hero h1 .w {
+        display: inline-block;
+        animation: 760ms cubic-bezier(0.3, 1.5, 0.5, 1) both dough-drop;
+    }
+
+    .home-hero h1 .w:nth-child(2) { animation-delay: 70ms; }
+    .home-hero h1 .w:nth-child(3) { animation-delay: 140ms; }
+    .home-hero h1 .w:nth-child(4) { animation-delay: 210ms; }
+    .home-hero h1 .w:nth-child(5) { animation-delay: 280ms; }
+    .home-hero h1 .w:nth-child(6) { animation-delay: 350ms; }
+    .home-hero h1 .w:nth-child(7) { animation-delay: 420ms; }
+
+    .home-hero .copy > :nth-child(3) { animation-delay: 420ms; }
+    .home-hero .copy > :nth-child(4) { animation-delay: 520ms; }
+    .home-hero .copy > :nth-child(5) { animation-delay: 620ms; }
+
+    .page-hero .arch,
+    .home-hero .arch {
+        animation: 1000ms cubic-bezier(0.25, 1.25, 0.4, 1) 120ms both proof;
+    }
+
+    .page-hero .hero-stamp,
+    .home-hero .hero-stamp {
+        animation: 600ms cubic-bezier(0.3, 1.6, 0.5, 1) 700ms both stamp-down;
+    }
+
+    .home-hero .underline {
+        animation: 900ms cubic-bezier(0.5, 0, 0.3, 1) 650ms both draw;
+    }
+
+    /* Always going, gently. */
+    .stamp-badge .rim {
+        animation: spin 28s linear infinite;
+    }
+
+    .wisp,
+    .logo .steam {
+        transform-box: fill-box;
+        transform-origin: 50% 100%;
+        animation: steam 3.2s ease-in-out infinite;
+    }
+
+    .wisp-2,
+    .logo .steam-2 {
+        animation-delay: -1.1s;
+    }
+
+    .wisp-3 {
+        animation-delay: -2.2s;
+    }
+
+    .doodle.float {
+        animation: bob 5.5s ease-in-out infinite alternate;
+    }
+
+    .ticker .track {
+        animation: crawl 70s linear infinite;
+    }
+
+    .ticker:hover .track {
+        animation-play-state: paused;
+    }
+
+    /* On hover. */
+    .squiggle {
+        transition: clip-path 450ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .logo .kettle {
+        transform-box: fill-box;
+        transform-origin: 50% 100%;
+    }
+
+    .logo:hover .kettle,
+    .logo:focus-visible .kettle {
+        animation: rock 700ms ease-in-out;
+    }
+
+    .pinned {
+        transition: rotate 0.3s cubic-bezier(0.3, 1.5, 0.5, 1), translate 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .pinned:hover,
+    .pinned:focus-within {
+        rotate: 0deg;
+        translate: 0 -4px;
+    }
+
+    /* FAQ answers open smoothly. */
+    :root {
+        interpolate-size: allow-keywords;
+    }
+
+    details::details-content {
+        overflow: clip;
+        block-size: 0;
+        transition: block-size 350ms ease, content-visibility 350ms allow-discrete;
+    }
+
+    details[open]::details-content {
+        block-size: auto;
+    }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+        /* Bands and cards rise in as they arrive. */
+        .band-head,
+        .reveal,
+        :is(.cards, .posts, .notes, .people, .steps, .facts) > li {
+            animation: rise-in linear both;
+            animation-timeline: view();
+            animation-range: entry 0% entry 75%;
+        }
+
+        :is(.cards, .posts, .notes, .people, .steps, .facts) > li:nth-child(3n + 2) {
+            animation-range: entry 8% entry 83%;
+        }
+
+        :is(.cards, .posts, .notes, .people, .steps, .facts) > li:nth-child(3n + 3) {
+            animation-range: entry 16% entry 91%;
+        }
+
+        /* Menu items bounce in, one after another as the list scrolls up. */
+        .board .item {
+            animation: bounce-in linear both;
+            animation-timeline: view();
+            animation-range: entry 0% entry 100%;
+        }
+
+        .board .item:nth-child(even) {
+            animation-range: entry 10% entry 110%;
+        }
+
+        /* The rolling pin rolls across and leaves a sheet of dough. */
+        .rolling {
+            view-timeline-name: --rolling;
+        }
+
+        .rolling .pin {
+            animation: roll linear both;
+            animation-timeline: --rolling;
+            animation-range: cover 10% cover 75%;
+        }
+
+        .rolling .sheet {
+            animation: roll-out linear both;
+            animation-timeline: --rolling;
+            animation-range: cover 10% cover 75%;
+        }
+
+        /* Parallax: photos inside a frame drift slower than the page. */
+        .drift :is(img) {
+            animation: drift linear both;
+            animation-timeline: view();
+            animation-range: cover;
+        }
+
+        /* The header's kettle settles as the page leaves the top. */
+        .site-header .mark {
+            animation: shrink linear both;
+            animation-timeline: scroll(root);
+            animation-range: 0 10rem;
+        }
+
+        /* Reading progress on a journal post: a wavy line along the top. */
+        .reading-progress {
+            position: fixed;
+            inset: 0 0 auto;
+            z-index: 60;
+            height: 8px;
+            background: var(--terracotta);
+            mask: var(--wave) repeat-x center / 32px 8px;
+            -webkit-mask: var(--wave) repeat-x center / 32px 8px;
+            transform-origin: 0 50%;
+            animation: grow linear both;
+            animation-timeline: scroll(root);
+        }
+    }
+}
+
+@keyframes sink-out {
+    to { opacity: 0; transform: translateY(0.75rem) scale(0.99); }
+}
+
+@keyframes rise-in {
+    from { opacity: 0; transform: translateY(1.75rem); }
+    to { opacity: 1; transform: none; }
+}
+
+@keyframes dough-drop {
+    0% { opacity: 0; transform: translateY(-0.6em) scale(1, 1); }
+    55% { opacity: 1; transform: translateY(0.04em) scale(1.08, 0.88); }
+    80% { transform: translateY(-0.02em) scale(0.97, 1.04); }
+    100% { opacity: 1; transform: none; }
+}
+
+@keyframes proof {
+    from { opacity: 0; transform: scale(0.86) translateY(1.5rem); }
+    to { opacity: 1; transform: none; }
+}
+
+@keyframes stamp-down {
+    0% { opacity: 0; transform: scale(1.6) rotate(-25deg); }
+    70% { opacity: 1; transform: scale(0.94) rotate(4deg); }
+    100% { opacity: 1; transform: none; }
+}
+
+@keyframes draw {
+    from { clip-path: inset(-50% 100% -50% 0); }
+    to { clip-path: inset(-50% -5% -50% -5%); }
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes steam {
+    0% { opacity: 0; transform: translateY(4px) scaleX(1); }
+    30% { opacity: 1; }
+    60% { transform: translateY(-3px) scaleX(-1); }
+    100% { opacity: 0; transform: translateY(-9px) scaleX(1); }
+}
+
+@keyframes bob {
+    from { transform: translateY(0) rotate(-3deg); }
+    to { transform: translateY(-10px) rotate(4deg); }
+}
+
+@keyframes crawl {
+    to { transform: translateX(-50%); }
+}
+
+@keyframes rock {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-9deg); }
+    60% { transform: rotate(6deg); }
+    80% { transform: rotate(-2deg); }
+}
+
+@keyframes bounce-in {
+    0% { opacity: 0; transform: translateY(2.2rem) scale(0.96); }
+    55% { opacity: 1; transform: translateY(-0.4rem) scale(1.01); }
+    75% { transform: translateY(0.15rem); }
+    100% { opacity: 1; transform: none; }
+}
+
+/* From the left end of its lane (100cqw: the lane is a size container) to where it rests, at the right. */
+@keyframes roll {
+    from { transform: translateX(calc(100% - 100cqw)) rotate(-3deg); }
+    to { transform: none; }
+}
+
+@keyframes roll-out {
+    from { transform: scaleX(0.04); }
+    to { transform: scaleX(1); }
+}
+
+@keyframes drift {
+    from { transform: translateY(-6%) scale(1.12); }
+    to { transform: translateY(6%) scale(1.12); }
+}
+
+@keyframes shrink {
+    to { transform: scale(0.84); }
+}
+
+@keyframes grow {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+}

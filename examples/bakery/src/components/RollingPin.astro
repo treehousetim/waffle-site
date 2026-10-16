@@ -1,0 +1,68 @@
+---
+/**
+ * A divider between bands: as it scrolls through, a rolling pin rolls
+ * across and leaves a sheet of dough behind it (styles/motion.css). Still,
+ * it is a rolling pin resting at the end of a rolled-out sheet. Decorative.
+ */
+import Doodle from './Doodle.astro';
+
+interface Props {
+    note?: string;
+}
+
+const { note } = Astro.props;
+---
+
+<div class="rolling" aria-hidden="true">
+    <div class="container lane">
+        <div class="sheet"></div>
+        <div class="pin"><Doodle name="rolling-pin" /></div>
+        {note && <p class="note hand">{note}</p>}
+    </div>
+</div>
+
+<style>
+    .rolling {
+        padding: var(--space-8) 0;
+        overflow: hidden;
+    }
+
+    .lane {
+        position: relative;
+        height: 5.5rem;
+        container-type: inline-size;
+    }
+
+    .sheet {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 2.3rem;
+        height: 2rem;
+        border: 2px solid var(--cocoa);
+        border-radius: 1rem 2.5rem 1.5rem 3rem / 1.2rem 1rem 1.4rem 1rem;
+        background: var(--kraft) var(--grain);
+        transform-origin: 0 50%;
+    }
+
+    .pin {
+        position: absolute;
+        top: 0.9rem;
+        right: 0;
+        width: clamp(10rem, 8rem + 8vw, 15rem);
+    }
+
+    .pin :global(svg) {
+        width: 100%;
+    }
+
+    .note {
+        position: absolute;
+        left: 0;
+        top: -0.4rem;
+        margin: 0;
+        color: var(--terracotta);
+        font-size: 1.5rem;
+        rotate: -3deg;
+    }
+</style>

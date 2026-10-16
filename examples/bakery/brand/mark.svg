@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80">
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path class="steam steam-1" d="M64 22 C60 17 68 13 64 7" stroke="#c9a26b" stroke-width="3.2"/>
+    <path class="steam steam-2" d="M71 25 C68 21 74 17 71 12" stroke="#c9a26b" stroke-width="3.2"/>
+    <path d="M22 30 C22 12 50 12 50 30" stroke="#3a2318" stroke-width="5"/>
+    <path d="M55 52 C60 47 61 40 64 34 L67 29 C69 27 71 28 70 31 L67 39 C65 46 62 53 58 58 Z" fill="#3a2318" stroke="#3a2318" stroke-width="2"/>
+    <path d="M11 58 C11 38 22 25 36 25 C50 25 61 38 61 58 C61 62 59 64 55 64 H17 C13 64 11 62 11 58 Z" fill="#b34a24" stroke="#3a2318" stroke-width="3.5"/>
+    <path d="M20 54 C25 42 36 35 49 36" stroke="#fbf3e4" stroke-width="4.2"/>
+    <path d="M23 49 C27 43 33 40 39 39" stroke="#f4c95d" stroke-width="2"/>
+    <circle cx="44" cy="47" r="1.6" fill="#fbf3e4"/>
+    <circle cx="50" cy="52" r="1.3" fill="#fbf3e4"/>
+    <circle cx="31" cy="57" r="1.3" fill="#fbf3e4"/>
+    <circle cx="36" cy="22" r="3.6" fill="#f4c95d" stroke="#3a2318" stroke-width="3"/>
+  </g>
+</svg>

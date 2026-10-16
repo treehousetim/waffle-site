@@ -1,0 +1,681 @@
+---
+/**
+ * The home page: the bakery in one scroll. The hero, today's bakes from the
+ * waffle app (a ticker and the counter slip), the four sections of the
+ * counter, a day at the bakery, celebration cakes, wholesale, the people,
+ * the neighbours' notes, the journal, and how to find us.
+ */
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import Photo from '../components/Photo.astro';
+import Doodle from '../components/Doodle.astro';
+import StampBadge from '../components/StampBadge.astro';
+import Ticker from '../components/Ticker.astro';
+import Band from '../components/Band.astro';
+import MenuBoard from '../components/MenuBoard.astro';
+import SectionCards from '../components/SectionCards.astro';
+import RollingPin from '../components/RollingPin.astro';
+import DayTrack from '../components/DayTrack.astro';
+import Notes from '../components/Notes.astro';
+import PostGrid from '../components/PostGrid.astro';
+import CallToOrder from '../components/CallToOrder.astro';
+import TownMap from '../components/TownMap.astro';
+import { menuDay, parseMenu, formatPrice } from '../lib/menu';
+import { sections } from '../data/menu';
+import { flavours } from '../data/cakes';
+import { notes } from '../data/notes';
+import { bakers } from '../data/bakers';
+import { addressLine, clock, dayRange, site } from '../site';
+import { waffle, buildTime, settings } from '@core/settings';
+import { visiblePosts } from '@core/lib/posts.js';
+
+const menu = parseMenu(await waffle.get('/api/site/menu'));
+const today = Object.fromEntries(sections.map((section) => [section.slug, menu.items.filter((item) => item.category === section.slug).length]));
+// The slip shows what is still on the counter first.
+const slip = [...menu.items.filter((item) => !item.soldOut).slice(0, 6), ...menu.items.filter((item) => item.soldOut).slice(0, 1)];
+const cheapest = Math.min(...menu.items.filter((item) => item.category === 'breads').map((item) => item.priceCents));
+const posts = visiblePosts(await getCollection('blog'), { includeDrafts: !settings.production, now: buildTime }).slice(0, 3);
+const headline = ['Bread', 'worth', 'getting', 'up', 'for.'];
+---
+
+<Base title="Sourdough bakery and café in Larkhaven" description={site.description} page="home">
+    <section class="home-hero">
+        <div class="container inner">
+            <div class="copy">
+                <p class="eyebrow">Cooper’s Row, Larkhaven · since {site.business.founded}</p>
+                <h1>
+                    {headline.map((word, index) => (
+                        <>
+                            <span class:list={['w', { mark: index === 2 }]}>
+                                {word}
+                                {index === 2 && (
+                                    <svg class="underline" viewBox="0 0 100 12" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+                                        <path d="M2 8 C18 2 30 11 48 6 S80 2 98 7" pathLength="130" />
+                                    </svg>
+                                )}
+                            </span>{' '}
+                        </>
+                    ))}
+                </h1>
+                <p class="lead">
+                    A neighborhood sourdough bakery and café. Loaves fermented for thirty hours, croissants laminated over three days,
+                    cake by the slice, and a kettle of chai that never goes cold.
+                </p>
+                <p class="actions">
+                    <a class="button button-large" href="/menu/">See today’s bakes</a>
+                    <a class="button button-plain button-large" href={site.cta.href}>{site.cta.label}</a>
+                </p>
+                <p class="open">
+                    <span class="dot" aria-hidden="true"></span>
+                    {site.business.hours.map((hours, index) => (
+                        <span>
+                            {index > 0 && ' · '}
+                            {dayRange(hours.days)} {clock(hours.opens)}–{clock(hours.closes)}
+                        </span>
+                    ))}
+                    <span> · Closed Mondays</span>
+                </p>
+            </div>
+
+            <div class="media">
+                <svg class="blob" viewBox="0 0 200 200" aria-hidden="true" focusable="false">
+                    <path d="M44 22 C78 -4 150 4 176 42 C202 80 196 140 160 172 C124 204 58 200 26 162 C-6 124 10 48 44 22Z" />
+                </svg>
+                <div class="arch">
+                    <Photo name="sourdoughLoaves" sizes="(min-width: 64rem) 32rem, 88vw" priority />
+                </div>
+                <div class="porthole">
+                    <Photo name="croissants" sizes="12rem" decorative />
+                </div>
+                <StampBadge text="BAKED FRESH DAILY · SINCE 2014 · LARKHAVEN · " class="hero-stamp" />
+                <Doodle name="croissant" class="d-croissant" float />
+                <Doodle name="sparkle" class="d-sparkle" float />
+                <p class="scribble hand" aria-hidden="true">still warm!</p>
+                <Doodle name="arrow" class="d-arrow" />
+            </div>
+        </div>
+    </section>
+
+    <Ticker menu={menu} />
+
+    <Band tone="cocoa" edge="none" class="today">
+        <div class="today-grid">
+            <div class="today-copy reveal">
+                <p class="eyebrow">Out of the oven this morning</p>
+                <h2>On the counter for {menuDay(menu.date, { weekday: 'long' })}</h2>
+                <p>
+                    The board changes every day, with the seasons and with whatever the farm stands have. Loaves from {formatPrice(cheapest, 'USD')};
+                    things sell out, and when they do we stamp them.
+                </p>
+                <p class="actions">
+                    <a class="button button-butter button-large" href="/menu/">The whole board</a>
+                </p>
+                <Doodle name="cup" class="today-cup" />
+            </div>
+            <div class="slip reveal">
+                <span class="tape" aria-hidden="true"></span>
+                <p class="slip-date">{menuDay(menu.date)}</p>
+                <MenuBoard items={slip} compact level="h3" />
+                <p class="slip-more"><a href="/menu/">+ {menu.items.length - slip.length} more on the board</a></p>
+            </div>
+        </div>
+    </Band>
+
+    <Band eyebrow="Four corners of the counter" heading="What we bake" intro="Bread first, always. Then pastry, cake and something hot to go with it.">
+        <SectionCards today={today} />
+    </Band>
+
+    <RollingPin note="Rolled out every morning" />
+
+    <DayTrack heading="A day at the bakery" intro="Most of the work happens before you are awake. Scroll through a Friday on Cooper’s Row." />
+
+    <Band tone="flour" edge="wave" class="cakes">
+        <div class="cakes-grid">
+            <div class="stack" aria-hidden="true">
+                <div class="polaroid p1"><Photo name="weddingCake" sizes="(min-width: 64rem) 20rem, 60vw" decorative /></div>
+                <div class="polaroid p2"><Photo name="layerCake" sizes="(min-width: 64rem) 20rem, 60vw" decorative /></div>
+                <div class="polaroid p3"><Photo name="cakeSlice" sizes="(min-width: 64rem) 20rem, 60vw" decorative /></div>
+            </div>
+            <div class="cakes-copy reveal">
+                <p class="eyebrow">Celebration cakes</p>
+                <h2>Birthdays, weddings, Tuesdays</h2>
+                <p>
+                    Layer cakes baked to order, from a 6-inch for a small birthday to three tiers for a wedding. Seasonal fruit, real butter,
+                    no fondant unless you insist. Five days’ notice; three weeks for tiers.
+                </p>
+                <ul class="flavours" aria-label="Flavors">
+                    {flavours.slice(0, 6).map((flavour) => <li>{flavour.name}</li>)}
+                </ul>
+                <p class="actions">
+                    <a class="button button-large" href="/cakes/">Cakes and prices</a>
+                    <a class="button button-plain button-large" href="/cakes/order/">Order a cake</a>
+                </p>
+            </div>
+        </div>
+    </Band>
+
+    <Band tone="kraft" edge="zigzag" class="wholesale">
+        <div class="wholesale-grid">
+            <div class="reveal">
+                <p class="eyebrow">Wholesale</p>
+                <h2>Our bread, on your café’s doorstep by six</h2>
+                <p>
+                    {`June’s van leaves at half past five, Tuesday to Saturday, for cafés, restaurants and shops in ${site.deliveryTowns.slice(0, -1).join(', ')} and ${site.deliveryTowns.at(-1)}. Order by 2pm for the next morning.`}
+                </p>
+                <p class="actions"><a class="button button-large" href="/wholesale/">Wholesale for cafés</a></p>
+            </div>
+            <div class="bag drift reveal">
+                <Photo name="paperBagBread" sizes="(min-width: 64rem) 26rem, 90vw" />
+            </div>
+        </div>
+    </Band>
+
+    <Band eyebrow="The people" heading="Five bakers and a kettle" intro="Everything on the counter was made by one of these five, mostly before sunrise.">
+        <ul class="people">
+            {
+                bakers.map((baker) => (
+                    <li>
+                        <span class="person-badge"><Doodle name={baker.doodle} /></span>
+                        <h3>{baker.name}</h3>
+                        <p class="role">{baker.role}</p>
+                        <p class="makes hand">{baker.makes}</p>
+                    </li>
+                ))
+            }
+        </ul>
+        <p class="people-more"><a href="/bakers/">Meet the bakers →</a></p>
+    </Band>
+
+    <Band tone="butter" eyebrow="Pinned by the door" heading="What the neighbors say">
+        <Notes items={notes} />
+    </Band>
+
+    <Band eyebrow="From the journal" heading="Recipes and baking notes" intro="How we do it, so you can do it at home: starters, laminating, cakes and the chai.">
+        <PostGrid posts={posts} level="h3" />
+        <p class="people-more"><a href="/journal/">Read the journal →</a></p>
+    </Band>
+
+    <Band tone="flour" class="visit">
+        <div class="visit-grid">
+            <div class="reveal">
+                <p class="eyebrow">Come and see us</p>
+                <h2>On Cooper’s Row, by the old market cross</h2>
+                <p class="address">{addressLine}</p>
+                <p>Free parking behind the church on weekdays; the market lot on Saturdays. Bike rack out front, step-free door, high chairs inside.</p>
+                <p class="actions">
+                    <a class="button button-large" href="/visit/">Hours, parking, directions</a>
+                    <a class="button button-plain button-large" href={`tel:${site.business.phoneE164}`}>Call {site.business.phone}</a>
+                </p>
+            </div>
+            <TownMap />
+        </div>
+    </Band>
+
+    <CallToOrder />
+</Base>
+
+<style>
+    /* The hero. */
+    .home-hero {
+        position: relative;
+        padding: clamp(2rem, 1rem + 4vw, 4.5rem) 0 clamp(3.5rem, 2rem + 5vw, 6rem);
+        overflow: hidden;
+    }
+
+    .inner {
+        display: grid;
+        gap: clamp(3rem, 2rem + 4vw, 4rem);
+        align-items: center;
+    }
+
+    .copy {
+        position: relative;
+        z-index: 1;
+    }
+
+    h1 {
+        margin-bottom: var(--space-6);
+        font-size: clamp(3.4rem, 1.6rem + 7.4vw, 8.2rem);
+        line-height: 0.92;
+    }
+
+    h1 .w {
+        position: relative;
+        display: inline-block;
+    }
+
+    h1 .mark {
+        color: var(--terracotta);
+    }
+
+    .underline {
+        position: absolute;
+        left: -2%;
+        right: -2%;
+        bottom: -0.12em;
+        width: 104%;
+        height: 0.22em;
+        overflow: visible;
+    }
+
+    .underline path {
+        fill: none;
+        stroke: var(--butter);
+        stroke-width: 9;
+        stroke-linecap: round;
+        vector-effect: non-scaling-stroke;
+    }
+
+    .lead {
+        max-width: 34rem;
+    }
+
+    .actions {
+        margin: var(--space-8) 0 0;
+    }
+
+    .open {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0 0.3rem;
+        margin: var(--space-6) 0 0;
+        color: var(--crust);
+        font-size: 1rem;
+        font-weight: 700;
+    }
+
+    .dot {
+        width: 0.65rem;
+        height: 0.65rem;
+        margin-right: 0.3rem;
+        border-radius: 50%;
+        background: var(--sage);
+        box-shadow: 0 0 0 4px rgb(111 125 79 / 0.2);
+    }
+
+    .media {
+        position: relative;
+        width: min(100% - 2.5rem, 32rem);
+        justify-self: center;
+    }
+
+    .blob {
+        position: absolute;
+        inset: -9% -14% -6% -12%;
+        width: 126%;
+        height: 115%;
+        max-width: none;
+    }
+
+    .blob path {
+        fill: var(--butter);
+    }
+
+    .arch {
+        position: relative;
+        overflow: hidden;
+        border: 3px solid var(--cocoa);
+        border-radius: var(--radius-arch);
+        box-shadow: 12px 12px 0 var(--terracotta);
+    }
+
+    .arch :global(img) {
+        width: 100%;
+        aspect-ratio: 4 / 5;
+        object-fit: cover;
+    }
+
+    .porthole {
+        position: absolute;
+        right: -1.75rem;
+        bottom: -1.75rem;
+        width: clamp(7rem, 5rem + 6vw, 11rem);
+        overflow: hidden;
+        border: 3px solid var(--cocoa);
+        border-radius: 50%;
+        box-shadow: var(--shadow-print);
+    }
+
+    .porthole :global(img) {
+        aspect-ratio: 1;
+        object-fit: cover;
+    }
+
+    .media :global(.hero-stamp) {
+        --stamp-size: clamp(7.5rem, 6rem + 4vw, 10.5rem);
+
+        position: absolute;
+        top: -2rem;
+        left: -2.5rem;
+    }
+
+    .media :global(.d-croissant) {
+        position: absolute;
+        top: 38%;
+        right: -3.25rem;
+        width: clamp(4.5rem, 3rem + 4vw, 6.5rem);
+    }
+
+    .media :global(.d-sparkle) {
+        position: absolute;
+        bottom: 18%;
+        left: -2.25rem;
+        width: 2.75rem;
+    }
+
+    .scribble {
+        position: absolute;
+        bottom: -3.25rem;
+        left: 8%;
+        margin: 0;
+        color: var(--terracotta);
+        font-size: 1.9rem;
+        rotate: -6deg;
+    }
+
+    .media :global(.d-arrow) {
+        position: absolute;
+        bottom: -2.8rem;
+        left: 34%;
+        width: 4.5rem;
+        color: var(--terracotta);
+        rotate: -12deg;
+    }
+
+    @media (min-width: 60rem) {
+        .inner {
+            grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+        }
+    }
+
+    @media (max-width: 40rem) {
+        .media :global(.hero-stamp) {
+            left: -1rem;
+            top: -2.5rem;
+        }
+
+        .media :global(.d-croissant) {
+            right: -1.75rem;
+        }
+
+        .media :global(.d-arrow) {
+            left: 55%;
+        }
+    }
+
+    /* Today's slip, on cocoa. */
+    .today-grid {
+        display: grid;
+        gap: var(--space-12);
+        align-items: center;
+    }
+
+    .today-copy {
+        position: relative;
+    }
+
+    .today-copy h2 {
+        color: var(--cream);
+    }
+
+    .today-copy p {
+        max-width: 32rem;
+        color: var(--color-on-dark-muted);
+        font-size: 1.2rem;
+    }
+
+    .today-copy :global(.today-cup) {
+        width: 6rem;
+        margin-top: var(--space-10);
+        color: var(--cream);
+    }
+
+    .today-copy :global(.today-cup .wisp) {
+        stroke: var(--kraft);
+    }
+
+    .slip {
+        position: relative;
+        padding: var(--space-10) clamp(1.25rem, 1rem + 2vw, 2.5rem) var(--space-8);
+        background: #fffaf0 var(--grain);
+        color: var(--cocoa);
+        rotate: 1.2deg;
+        box-shadow: 0 30px 50px -25px rgb(0 0 0 / 0.6);
+    }
+
+    .slip::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 100%;
+        height: 12px;
+        background: #fffaf0;
+        mask: var(--zigzag) repeat-x top / 20px 12px;
+        -webkit-mask: var(--zigzag) repeat-x top / 20px 12px;
+        transform: scaleY(-1);
+    }
+
+    .tape {
+        position: absolute;
+        top: -0.9rem;
+        left: 50%;
+        width: 7rem;
+        height: 1.8rem;
+        translate: -50% 0;
+        rotate: -3deg;
+        background: rgb(244 201 93 / 0.85);
+    }
+
+    .slip-date {
+        margin: 0 0 var(--space-5);
+        color: var(--terracotta);
+        font-family: var(--font-hand);
+        font-size: 1.7rem;
+        font-weight: 700;
+        line-height: 1;
+        text-align: center;
+    }
+
+    .slip-more {
+        margin: var(--space-6) 0 0;
+        text-align: center;
+        font-weight: 800;
+    }
+
+    .slip .slip-more a {
+        color: var(--terracotta);
+        text-decoration-color: rgb(179 74 36 / 0.4);
+    }
+
+    @media (min-width: 60rem) {
+        .today-grid {
+            grid-template-columns: 1fr 1.05fr;
+            gap: var(--space-16);
+        }
+    }
+
+    /* Celebration cakes: a stack of photos. */
+    .cakes-grid,
+    .wholesale-grid,
+    .visit-grid {
+        display: grid;
+        gap: clamp(3rem, 2rem + 4vw, 5rem);
+        align-items: center;
+    }
+
+    .stack {
+        position: relative;
+        width: min(100% - 2.5rem, 26rem);
+        height: clamp(22rem, 16rem + 20vw, 30rem);
+        justify-self: center;
+    }
+
+    .polaroid {
+        position: absolute;
+        width: 64%;
+        padding: 0.6rem 0.6rem 2.2rem;
+        background: #fffaf0;
+        box-shadow: var(--shadow-soft), 0 0 0 1px rgb(58 35 24 / 0.08);
+        transition: rotate 0.4s cubic-bezier(0.3, 1.5, 0.5, 1), translate 0.4s ease;
+    }
+
+    .polaroid :global(img) {
+        width: 100%;
+        aspect-ratio: 4 / 5;
+        object-fit: cover;
+    }
+
+    .p1 {
+        top: 0;
+        left: 0;
+        rotate: -8deg;
+    }
+
+    .p2 {
+        top: 8%;
+        right: 0;
+        rotate: 6deg;
+    }
+
+    .p3 {
+        bottom: 0;
+        left: 18%;
+        rotate: -2deg;
+    }
+
+    .stack:hover .p1 {
+        rotate: -12deg;
+        translate: -0.75rem 0;
+    }
+
+    .stack:hover .p2 {
+        rotate: 10deg;
+        translate: 0.75rem 0;
+    }
+
+    .flavours {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+        margin: var(--space-6) 0 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .flavours li {
+        padding: 0.3rem 0.8rem;
+        border: 2px solid var(--cocoa);
+        border-radius: 999px;
+        background: var(--cream);
+        font-size: 1rem;
+        font-weight: 700;
+    }
+
+    .flavours li:nth-child(3n + 1) {
+        background: var(--butter-soft);
+    }
+
+    .bag {
+        overflow: hidden;
+        border: 3px solid var(--cocoa);
+        border-radius: var(--radius-large);
+        box-shadow: var(--shadow-print);
+        rotate: 1.5deg;
+    }
+
+    .bag :global(img) {
+        width: 100%;
+        aspect-ratio: 5 / 4;
+        object-fit: cover;
+    }
+
+    @media (min-width: 60rem) {
+        .cakes-grid {
+            grid-template-columns: 0.9fr 1.1fr;
+        }
+
+        .wholesale-grid,
+        .visit-grid {
+            grid-template-columns: 1.1fr 0.9fr;
+        }
+    }
+
+    /* The people. */
+    .people {
+        display: grid;
+        gap: 4.5rem var(--space-6);
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .people li {
+        padding: var(--space-6) var(--space-2);
+        border-top: 3px solid var(--cocoa);
+    }
+
+    .person-badge {
+        display: grid;
+        place-items: center;
+        width: 5.5rem;
+        height: 5.5rem;
+        margin: calc(-1 * var(--space-6) - 2.75rem) 0 var(--space-4);
+        border: 3px solid var(--cocoa);
+        border-radius: 50%;
+        background: var(--butter);
+        box-shadow: var(--shadow-print-small);
+        transition: rotate 0.3s cubic-bezier(0.3, 1.5, 0.5, 1);
+    }
+
+    .people li:nth-child(3n + 2) .person-badge {
+        background: var(--terracotta-bright);
+    }
+
+    .people li:nth-child(3n) .person-badge {
+        background: var(--kraft);
+    }
+
+    .people li:hover .person-badge {
+        rotate: -12deg;
+    }
+
+    .person-badge :global(svg) {
+        width: 60%;
+    }
+
+    .people {
+        padding-top: 2.75rem;
+    }
+
+    .people h3 {
+        margin-bottom: var(--space-1);
+    }
+
+    .role {
+        margin: 0 0 var(--space-2);
+        color: var(--crust);
+        font-size: 1rem;
+        font-weight: 700;
+    }
+
+    .makes {
+        margin: 0;
+        color: var(--terracotta);
+        font-size: 1.35rem;
+        line-height: 1.1;
+    }
+
+    .people-more {
+        margin: var(--space-10) 0 0;
+        font-size: 1.15rem;
+        font-weight: 800;
+    }
+
+    .address {
+        font-size: 1.3rem;
+        font-weight: 800;
+    }
+</style>

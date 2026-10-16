@@ -1,0 +1,120 @@
+---
+/**
+ * The round rubber stamp: words around the rim (which turns slowly,
+ * styles/motion.css), something in the middle. Inked unevenly with the
+ * --stamp-mask texture. The words are repeated as plain text for screen
+ * readers; the drawing is hidden from them.
+ */
+import Doodle from './Doodle.astro';
+
+interface Props {
+    /** Around the rim; keep it to 30-40 characters with the separators. */
+    text: string;
+    /** In the middle: a doodle, or a word or two. */
+    center?: { doodle: 'loaf' | 'boule' | 'croissant' | 'cup' | 'wheat' | 'whisk' } | { word: string };
+    tone?: 'terracotta' | 'butter' | 'cocoa';
+    class?: string;
+}
+
+const { text, center = { doodle: 'boule' }, tone = 'terracotta', class: className } = Astro.props;
+// Named from its words, so the same build always writes the same page.
+const id = `rim-${[...text].reduce((hash, char) => (hash * 31 + char.charCodeAt(0)) >>> 0, 7).toString(36)}`;
+---
+
+<div class:list={['stamp-badge', tone, className]}>
+    <span class="visually-hidden">{text}</span>
+    <svg viewBox="0 0 200 200" aria-hidden="true" focusable="false">
+        <defs>
+            <path id={id} d="M100 100 m-74 0 a74 74 0 1 1 148 0 a74 74 0 1 1 -148 0" />
+        </defs>
+        <circle class="ring" cx="100" cy="100" r="96" />
+        <circle class="ring thin" cx="100" cy="100" r="54" />
+        <g class="rim">
+            <text><textPath href={`#${id}`} textLength="462" lengthAdjust="spacing">{text}</textPath></text>
+        </g>
+    </svg>
+    <div class="center" aria-hidden="true">
+        {'doodle' in center ? <Doodle name={center.doodle} /> : <span class="word">{center.word}</span>}
+    </div>
+</div>
+
+<style>
+    .stamp-badge {
+        position: relative;
+        display: grid;
+        place-items: center;
+        width: var(--stamp-size, 9.5rem);
+        aspect-ratio: 1;
+        border-radius: 50%;
+        color: var(--terracotta);
+        background: var(--cream);
+        mask: var(--stamp-mask);
+        -webkit-mask: var(--stamp-mask);
+    }
+
+    .butter {
+        background: var(--butter);
+        color: var(--cocoa);
+    }
+
+    .cocoa {
+        background: var(--cocoa);
+        color: var(--butter);
+    }
+
+    svg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        overflow: visible;
+    }
+
+    .ring {
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 4;
+    }
+
+    .thin {
+        stroke-width: 2.5;
+        stroke-dasharray: 2 6;
+        stroke-linecap: round;
+    }
+
+    .rim {
+        transform-origin: 100px 100px;
+    }
+
+    text {
+        fill: currentColor;
+        font-family: var(--font-display);
+        font-size: 21px;
+        letter-spacing: 1px;
+    }
+
+    .center {
+        display: grid;
+        place-items: center;
+        width: 46%;
+        color: var(--cocoa);
+    }
+
+    .cocoa .center {
+        color: var(--cream);
+    }
+
+    .center :global(svg) {
+        position: static;
+        width: 100%;
+        height: auto;
+    }
+
+    .word {
+        font-family: var(--font-display);
+        font-size: 1.15rem;
+        line-height: 0.95;
+        text-align: center;
+        rotate: -8deg;
+    }
+</style>

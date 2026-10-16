@@ -1,0 +1,162 @@
+---
+/**
+ * Contact: who to reach for what. Cake orders go through the waffle app's
+ * cake order form (/cakes/order/); everything else by phone or email. The
+ * details are src/site.ts's, written once.
+ */
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Band from '../components/Band.astro';
+import Doodle from '../components/Doodle.astro';
+import TownMap from '../components/TownMap.astro';
+import { addressLine, site } from '../site';
+
+const routes = [
+    { who: 'Cake orders', person: 'Priya', how: 'The cake order form is quickest, and Priya replies within a working day.', action: { label: 'Order a cake', href: '/cakes/order/' }, doodle: 'whisk' },
+    { who: 'Reserving bread', person: 'Sam, at the counter', how: 'Call the day before, or before 9am on the day.', action: { label: `Call ${site.business.phone}`, href: `tel:${site.business.phoneE164}` }, doodle: 'boule' },
+    { who: 'Wholesale', person: 'June', how: 'Tell her what you serve and how many covers; she will bring a tasting box.', action: { label: 'Email about wholesale', href: `mailto:${site.business.email}?subject=Wholesale` }, doodle: 'loaf' },
+    { who: 'Everything else', person: 'Hattie', how: 'Jobs, the press, the starter, a lost scarf. We answer every email.', action: { label: `Email ${site.business.email}`, href: `mailto:${site.business.email}` }, doodle: 'cup' },
+] as const;
+---
+
+<Base
+    title="Contact the bakery"
+    description="Call, email or visit Crumb & Kettle on Cooper’s Row, Larkhaven: cake orders, reserving bread, wholesale enquiries and everything else, and who answers what."
+    breadcrumbs={[{ name: 'Contact', href: '/contact/' }]}
+>
+    <PageHero
+        eyebrow="Say hello"
+        heading="Get in touch"
+        lead={`${addressLine}. ${site.business.phone}. ${site.business.email}. Or just come in: the kettle is on from 7.`}
+        doodle="cup"
+    />
+
+    <Band tone="flour" edge="wave">
+        <ul class="routes">
+            {
+                routes.map((route) => (
+                    <li class="pinned">
+                        <Doodle name={route.doodle} class="route-doodle" />
+                        <h2>{route.who}</h2>
+                        <p class="person hand">Ask {route.person}</p>
+                        <p>{route.how}</p>
+                        <a class="button" href={route.action.href}>{route.action.label}</a>
+                    </li>
+                ))
+            }
+        </ul>
+    </Band>
+
+    <Band heading="Find us">
+        <div class="find">
+        <dl class="details reveal">
+            <div><dt>Address</dt><dd>{addressLine}</dd></div>
+            <div><dt>Phone</dt><dd><a href={`tel:${site.business.phoneE164}`}>{site.business.phone}</a></dd></div>
+            <div><dt>Email</dt><dd><a href={`mailto:${site.business.email}`}>{site.business.email}</a></dd></div>
+            <div><dt>Hours</dt><dd>Tuesday to Sunday from 7am (8am Sundays). <a href="/visit/">Full hours and parking</a>.</dd></div>
+        </dl>
+        <TownMap />
+        </div>
+    </Band>
+</Base>
+
+<style>
+    .routes {
+        display: grid;
+        gap: var(--space-8);
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .routes li {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        padding: var(--space-8) var(--space-6) var(--space-6);
+        border: 2px solid var(--cocoa);
+        border-radius: var(--radius-large) var(--radius-large) var(--radius) var(--radius);
+        background: #fffaf0;
+        box-shadow: var(--shadow-print);
+    }
+
+    .routes li:nth-child(odd) {
+        rotate: -0.8deg;
+    }
+
+    .routes li:nth-child(even) {
+        rotate: 0.9deg;
+    }
+
+    .routes :global(.route-doodle) {
+        width: 3.5rem;
+        margin-bottom: var(--space-4);
+    }
+
+    .routes h2 {
+        margin-bottom: var(--space-1);
+        font-size: 1.9rem;
+    }
+
+    .person {
+        margin-bottom: var(--space-3);
+        color: var(--terracotta);
+        font-size: 1.45rem;
+        line-height: 1.1;
+    }
+
+    .routes p:not(.person) {
+        flex: 1;
+        font-size: 1.05rem;
+    }
+
+    .routes .button {
+        max-width: 100%;
+        white-space: normal;
+        text-align: center;
+    }
+
+    .find {
+        display: grid;
+        gap: var(--space-12);
+        align-items: start;
+    }
+
+    @media (min-width: 60rem) {
+        .find {
+            grid-template-columns: 1.1fr 0.9fr;
+        }
+    }
+
+    .details {
+        display: grid;
+        max-width: 46rem;
+        margin: 0;
+        border-top: 3px solid var(--cocoa);
+    }
+
+    .details div {
+        display: grid;
+        gap: var(--space-1) var(--space-6);
+        padding: var(--space-4) 0;
+        border-bottom: 2px dashed var(--color-line-strong);
+    }
+
+    dt {
+        font-family: var(--font-display);
+        font-size: 1.3rem;
+    }
+
+    dd {
+        margin: 0;
+        font-size: 1.15rem;
+    }
+
+    @media (min-width: 40rem) {
+        .details div {
+            grid-template-columns: 9rem 1fr;
+        }
+    }
+</style>

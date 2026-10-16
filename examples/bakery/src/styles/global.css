@@ -1,0 +1,462 @@
+/*
+ * Crumb & Kettle's design system: tokens, type, textures, layout helpers and
+ * buttons. Components carry their own scoped <style>; this file is what they
+ * share. The look: a paper bag on a floured bench. Cream paper, terracotta
+ * ink, cocoa for type, butter yellow for the stamp; a chunky display face,
+ * a warm serif to read, handwriting in the margins.
+ *
+ * Typefaces come from Astro's Fonts API (src/fonts.ts), which sets
+ * --font-display, --font-serif and --font-hand.
+ */
+
+:root {
+    /* Paper and flour. */
+    --cream: #fbf3e4;
+    --cream-deep: #f3e3c7;
+    --kraft: #e2c597;
+    --kraft-deep: #c9a26b;
+
+    /* Ink. */
+    --cocoa: #3a2318;
+    --cocoa-raised: #4b2f21;
+    --crust: #7a5340;
+    --terracotta: #b34a24;
+    --terracotta-deep: #8f3518;
+    --terracotta-bright: #d97a4f;
+    --butter: #f4c95d;
+    --butter-soft: #f9e3a3;
+    --sage: #6f7d4f;
+
+    --color-bg: var(--cream);
+    --color-text: var(--cocoa);
+    --color-muted: var(--crust);
+    --color-brand: var(--terracotta);
+    --color-on-dark: var(--cream);
+    --color-on-dark-muted: #d8bfa2;
+    --color-line: rgb(58 35 24 / 0.16);
+    --color-line-strong: rgb(58 35 24 / 0.32);
+    --color-focus: #1f5fbf;
+    --color-error: #a3201b;
+    --color-success: #3f6b2a;
+
+    --radius-small: 0.4rem;
+    --radius: 0.9rem;
+    --radius-large: 1.75rem;
+    --radius-arch: 999px 999px 1rem 1rem;
+
+    /* Hard, inky shadows: printed, not glowing. */
+    --shadow-print: 4px 4px 0 var(--cocoa);
+    --shadow-print-small: 3px 3px 0 var(--cocoa);
+    --shadow-soft: 0 18px 40px -22px rgb(58 35 24 / 0.45);
+
+    --space-1: 0.25rem;
+    --space-2: 0.5rem;
+    --space-3: 0.75rem;
+    --space-4: 1rem;
+    --space-5: 1.25rem;
+    --space-6: 1.5rem;
+    --space-8: 2rem;
+    --space-10: 2.5rem;
+    --space-12: 3rem;
+    --space-16: 4rem;
+    --space-20: 5rem;
+
+    --section: clamp(4rem, 2.5rem + 6vw, 8rem);
+    --width-content: 78rem;
+    --width-prose: 42rem;
+    --gutter: clamp(1rem, 0.25rem + 3.2vw, 2.5rem);
+    --header-height: 4.75rem;
+
+    /*
+     * Textures, drawn not photographed: paper grain (fractal noise, very
+     * faint) and the speckle of flour on a bench. data: images are allowed
+     * by the content security policy (img-src 'self' data:).
+     */
+    --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.23 0 0 0 0 0.14 0 0 0 0 0.09 0 0 0 0.09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    --fibres: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.012 0.4' numOctaves='2' seed='4'/%3E%3CfeColorMatrix values='0 0 0 0 0.45 0 0 0 0 0.28 0 0 0 0 0.12 0 0 0 0.22 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E");
+    /* A rubber stamp's uneven ink: a mask with holes in it. */
+    --stamp-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='s'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' seed='7'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='discrete' tableValues='1 1 1 1 1 0.2 1 1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23s)'/%3E%3C/svg%3E");
+    /* A wave, for the edges of bands. */
+    --wave: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='16' viewBox='0 0 120 16' preserveAspectRatio='none'%3E%3Cpath d='M0 8 C20 0 40 0 60 8 S100 16 120 8 V16 H0Z' fill='black'/%3E%3C/svg%3E");
+    /* The serrated top of a paper bag, or a ticket. */
+    --zigzag: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='10' viewBox='0 0 20 10' preserveAspectRatio='none'%3E%3Cpath d='M0 10 L10 0 L20 10Z' fill='black'/%3E%3C/svg%3E");
+
+    color-scheme: light;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    scroll-padding-top: calc(var(--header-height) + 1rem);
+    background: var(--cream);
+}
+
+body {
+    margin: 0;
+    background-color: var(--cream);
+    background-image: var(--grain);
+    color: var(--color-text);
+    font-family: var(--font-serif);
+    font-size: 1.1875rem;
+    line-height: 1.6;
+    font-variant-numeric: oldstyle-nums proportional-nums;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: clip;
+}
+
+img,
+svg {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
+/* Type: chunky and friendly on top, calm and bookish underneath. */
+
+h1,
+h2,
+h3,
+.display {
+    margin: 0 0 var(--space-4);
+    color: var(--cocoa);
+    font-family: var(--font-display);
+    font-weight: 400;
+    line-height: 0.98;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+}
+
+h1 {
+    font-size: clamp(2.9rem, 1.6rem + 5.6vw, 6.5rem);
+}
+
+h2 {
+    font-size: clamp(2.1rem, 1.4rem + 2.9vw, 3.9rem);
+}
+
+h3 {
+    font-size: clamp(1.35rem, 1.2rem + 0.6vw, 1.7rem);
+    line-height: 1.1;
+}
+
+h4 {
+    margin: 0 0 var(--space-2);
+    font-size: 1.1rem;
+    font-weight: 800;
+}
+
+p {
+    margin: 0 0 var(--space-4);
+    text-wrap: pretty;
+}
+
+a {
+    color: var(--terracotta);
+    text-decoration-thickness: 2px;
+    text-decoration-color: rgb(179 74 36 / 0.35);
+    text-underline-offset: 0.2em;
+    transition: color 0.15s ease, text-decoration-color 0.15s ease;
+}
+
+a:hover {
+    color: var(--terracotta-deep);
+    text-decoration-color: currentColor;
+}
+
+strong {
+    font-weight: 750;
+}
+
+:focus-visible {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 3px;
+    border-radius: var(--radius-small);
+}
+
+::selection {
+    background: var(--butter);
+    color: var(--cocoa);
+}
+
+/* Layout helpers. */
+
+.container {
+    width: min(100% - 2 * var(--gutter), var(--width-content));
+    margin-inline: auto;
+}
+
+.prose {
+    width: min(100% - 2 * var(--gutter), var(--width-prose));
+    margin-inline: auto;
+}
+
+.prose > * + h2 {
+    margin-top: var(--space-12);
+}
+
+.prose h2 {
+    font-size: clamp(1.7rem, 1.35rem + 1.4vw, 2.4rem);
+}
+
+.prose h3 {
+    margin-top: var(--space-8);
+    font-size: 1.45rem;
+}
+
+.prose ul,
+.prose ol {
+    margin: 0 0 var(--space-6);
+    padding-left: 1.4em;
+}
+
+.prose li + li {
+    margin-top: var(--space-2);
+}
+
+.prose li::marker {
+    color: var(--terracotta);
+    font-weight: 800;
+}
+
+.prose ol li::marker {
+    font-family: var(--font-display);
+}
+
+.prose blockquote {
+    position: relative;
+    margin: var(--space-10) 0;
+    padding: var(--space-6) var(--space-8);
+    border-radius: var(--radius);
+    background: var(--butter-soft);
+    color: var(--cocoa);
+    font-size: 1.3rem;
+    font-style: italic;
+    rotate: -0.6deg;
+}
+
+.prose blockquote p:last-child {
+    margin-bottom: 0;
+}
+
+.prose code {
+    padding: 0.1em 0.35em;
+    border-radius: var(--radius-small);
+    background: var(--cream-deep);
+    font-size: 0.88em;
+}
+
+.prose table {
+    width: 100%;
+    margin: 0 0 var(--space-8);
+    border-collapse: collapse;
+    font-size: 1.05rem;
+}
+
+.prose th,
+.prose td {
+    padding: var(--space-2) var(--space-3);
+    border-bottom: 1px dashed var(--color-line-strong);
+    text-align: left;
+}
+
+.prose th {
+    font-weight: 800;
+}
+
+.prose hr {
+    height: 14px;
+    margin: var(--space-12) 0;
+    border: 0;
+    background: var(--terracotta);
+    mask: var(--wave) repeat-x center / 60px 8px;
+    -webkit-mask: var(--wave) repeat-x center / 60px 8px;
+    opacity: 0.6;
+}
+
+/* Small pieces of the voice. */
+
+.eyebrow {
+    display: inline-block;
+    margin: 0 0 var(--space-4);
+    color: var(--terracotta);
+    font-family: var(--font-hand);
+    font-size: clamp(1.45rem, 1.3rem + 0.5vw, 1.8rem);
+    font-weight: 700;
+    line-height: 1.1;
+    rotate: -2deg;
+}
+
+.lead {
+    color: var(--cocoa);
+    font-size: clamp(1.25rem, 1.12rem + 0.5vw, 1.5rem);
+    line-height: 1.5;
+}
+
+.muted {
+    color: var(--color-muted);
+}
+
+.hand {
+    font-family: var(--font-hand);
+    font-weight: 700;
+}
+
+/* Buttons are links or buttons with a class, never a div. Printed, pressable. */
+
+.button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    min-height: 3.1rem;
+    padding: 0.7rem 1.5rem;
+    border: 2px solid var(--cocoa);
+    border-radius: 999px;
+    background: var(--terracotta);
+    color: var(--cream);
+    box-shadow: var(--shadow-print-small);
+    font: inherit;
+    font-size: 1.05rem;
+    font-weight: 800;
+    line-height: 1.15;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.button:hover {
+    background: var(--terracotta-deep);
+    color: var(--cream);
+    transform: translate(-1px, -2px);
+    box-shadow: 5px 6px 0 var(--cocoa);
+}
+
+.button:active {
+    transform: translate(3px, 3px);
+    box-shadow: 0 0 0 var(--cocoa);
+}
+
+.button-plain {
+    background: var(--cream);
+    color: var(--cocoa);
+}
+
+.button-plain:hover {
+    background: var(--butter);
+    color: var(--cocoa);
+}
+
+.button-butter {
+    background: var(--butter);
+    color: var(--cocoa);
+}
+
+.button-butter:hover {
+    background: var(--butter-soft);
+    color: var(--cocoa);
+}
+
+.button-large {
+    min-height: 3.6rem;
+    padding: 0.9rem 1.9rem;
+    font-size: 1.15rem;
+}
+
+.button[disabled] {
+    opacity: 0.6;
+    cursor: progress;
+    transform: none;
+}
+
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+}
+
+/* Little ink stamps: dietary marks, "sold out", dates. */
+
+.stamp {
+    display: inline-grid;
+    place-items: center;
+    min-width: 1.9em;
+    height: 1.9em;
+    padding: 0 0.35em;
+    border: 2px solid currentColor;
+    border-radius: 0.45em;
+    color: var(--sage);
+    font-family: var(--font-display);
+    font-size: 0.78rem;
+    line-height: 1;
+    letter-spacing: 0.02em;
+    mask: var(--stamp-mask);
+    -webkit-mask: var(--stamp-mask);
+}
+
+.stamp-nuts {
+    color: var(--terracotta);
+}
+
+/* The wiggly underline that draws itself on hover (components/Squiggle.astro). */
+
+.squiggle {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -0.35em;
+    width: 100%;
+    height: 0.45em;
+    overflow: visible;
+    color: var(--terracotta);
+    pointer-events: none;
+    /* Undrawn: clipped away to the left; drawn, it is uncovered left to right. */
+    clip-path: inset(-50% 100% -50% 0);
+}
+
+.squiggle path {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 3;
+    stroke-linecap: round;
+}
+
+/* For screen readers only. */
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+}
+
+@media (max-width: 40rem) {
+    body {
+        font-size: 1.125rem;
+    }
+
+    .actions > .button {
+        flex: 1 1 100%;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        transition: none !important;
+        animation: none !important;
+        scroll-behavior: auto !important;
+    }
+}

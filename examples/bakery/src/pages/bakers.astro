@@ -1,0 +1,191 @@
+---
+/** The bakers: the five people behind the counter (src/data/bakers.ts). */
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Band from '../components/Band.astro';
+import Doodle from '../components/Doodle.astro';
+import Photo from '../components/Photo.astro';
+import CallToOrder from '../components/CallToOrder.astro';
+import { bakers } from '../data/bakers';
+---
+
+<Base
+    title="The bakers"
+    description="Meet the five people who make everything at Crumb & Kettle, from the 4am sourdough mix and the three-day croissants to the cakes, the chai and the early van."
+    breadcrumbs={[{ name: 'The bakers', href: '/bakers/' }]}
+>
+    <PageHero
+        eyebrow="Up before you, every day"
+        heading="Five bakers and a kettle"
+        lead="Everything on the counter is made here, by one of these five, mostly before the sun is up."
+        photo="bakerPortrait"
+        doodle="whisk"
+    />
+
+    <Band tone="flour" edge="wave">
+        <ul class="people">
+            {
+                bakers.map((baker, index) => (
+                    <li class:list={['person', 'reveal', { flip: index % 2 === 1 }]}>
+                        <div class="badge">
+                            <Doodle name={baker.doodle} />
+                            <span class="since">since {baker.since}</span>
+                        </div>
+                        <div class="words">
+                            <h2>{baker.name}</h2>
+                            <p class="role">{baker.role} · <span class="hand">{baker.makes}</span></p>
+                            <p>{baker.bio}</p>
+                            <p class="favourite"><strong>If they had to choose one bake:</strong> {baker.favourite}.</p>
+                        </div>
+                    </li>
+                ))
+            }
+        </ul>
+    </Band>
+
+    <Band eyebrow="Working here" heading="Fancy an early start?">
+        <div class="jobs">
+            <div class="jobs-photo drift reveal">
+                <Photo name="breadOven" sizes="(min-width: 64rem) 30rem, 90vw" />
+            </div>
+            <div class="reveal">
+                <p>
+                    We take on one apprentice baker a year, usually in September, and we train from scratch: you need to be curious, careful and
+                    happy at four in the morning, not experienced. Front-of-house shifts come up every spring for the summer.
+                </p>
+                <p>Write to us with a little about yourself and what you like to bake. Nothing fancier than that.</p>
+                <p class="actions"><a class="button" href="/contact/">Get in touch</a></p>
+            </div>
+        </div>
+    </Band>
+
+    <CallToOrder />
+</Base>
+
+<style>
+    .people {
+        display: grid;
+        gap: clamp(2.5rem, 2rem + 3vw, 4.5rem);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .person {
+        display: grid;
+        gap: var(--space-6);
+        align-items: start;
+    }
+
+    .badge {
+        position: relative;
+        display: grid;
+        place-items: center;
+        width: clamp(8rem, 6rem + 6vw, 11rem);
+        aspect-ratio: 1;
+        border: 3px solid var(--cocoa);
+        border-radius: 50%;
+        background: var(--butter);
+        box-shadow: var(--shadow-print);
+    }
+
+    .person:nth-child(3n + 2) .badge {
+        background: var(--terracotta-bright);
+    }
+
+    .person:nth-child(3n) .badge {
+        background: var(--kraft);
+    }
+
+    .badge :global(svg) {
+        width: 58%;
+    }
+
+    .since {
+        position: absolute;
+        bottom: -0.9rem;
+        padding: 0.15rem 0.7rem;
+        border: 2px solid var(--cocoa);
+        border-radius: 999px;
+        background: var(--cream);
+        font-size: 0.95rem;
+        font-weight: 800;
+        white-space: nowrap;
+        word-spacing: 0.15em;
+        rotate: -4deg;
+    }
+
+    .words {
+        max-width: 44rem;
+    }
+
+    .words h2 {
+        margin-bottom: var(--space-2);
+        font-size: clamp(2rem, 1.6rem + 1.6vw, 3rem);
+    }
+
+    .role {
+        font-weight: 800;
+    }
+
+    .role .hand {
+        color: var(--terracotta);
+        font-size: 1.4rem;
+        font-weight: 700;
+    }
+
+    .favourite {
+        padding: var(--space-3) var(--space-4);
+        border-left: 4px solid var(--terracotta);
+        background: rgb(255 250 240 / 0.7);
+        font-size: 1.05rem;
+    }
+
+    @media (min-width: 48rem) {
+        .person {
+            grid-template-columns: auto 1fr;
+            gap: var(--space-10);
+        }
+
+        .flip {
+            grid-template-columns: 1fr auto;
+        }
+
+        .flip .badge {
+            order: 2;
+        }
+
+        .flip .words {
+            justify-self: end;
+        }
+    }
+
+    .jobs {
+        display: grid;
+        gap: var(--space-12);
+        align-items: center;
+    }
+
+    .jobs-photo {
+        overflow: hidden;
+        border: 3px solid var(--cocoa);
+        border-radius: var(--radius-large);
+        box-shadow: 10px 10px 0 var(--butter);
+    }
+
+    .jobs-photo :global(img) {
+        width: 100%;
+        aspect-ratio: 3 / 2;
+        object-fit: cover;
+    }
+
+    .jobs p {
+        font-size: 1.15rem;
+    }
+
+    @media (min-width: 60rem) {
+        .jobs {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+</style>

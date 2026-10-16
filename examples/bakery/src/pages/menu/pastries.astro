@@ -1,0 +1,56 @@
+---
+import CategoryPage from '../../layouts/CategoryPage.astro';
+---
+
+<CategoryPage
+    slug="pastries"
+    title="Croissants and pastries"
+    description="Butter croissants, pain au chocolat, cardamom knots and seasonal danishes, laminated by hand over three days with cultured butter in Larkhaven."
+    eyebrow="Laminated by hand"
+    heading="Three days, twenty-seven layers"
+    lead="Croissants are a slow job done quickly at the end. Teo starts Wednesday’s batch on Monday."
+    stamp="CULTURED BUTTER · THREE-DAY DOUGH · "
+    faq={[
+        {
+            question: 'What time are the croissants ready?',
+            answer: 'The first tray is out at 6:45am and on the counter when the doors open at 7. We bake in rounds until about 10, so there are usually warm ones mid-morning, but by noon on a weekend the plain croissants are often gone.',
+        },
+        {
+            question: 'Can I order pastries for a meeting or a party?',
+            answer: 'Yes, with 48 hours’ notice for twelve or more of any one pastry. Use the cake order form and choose “Something else”, or call us. Larger trays for events are on the wholesale price list.',
+        },
+        {
+            question: 'Do you make anything vegan in the pastry case?',
+            answer: 'Not laminated pastry: butter is the whole point of it. The fougasse, most of our breads and the chocolate olive oil cake are vegan, and the daily board marks them.',
+        },
+        {
+            question: 'Why are the almond croissants made from yesterday’s croissants?',
+            answer: 'That is how almond croissants are meant to be made. A day-old croissant soaks up the syrup and frangipane and crisps again in the oven; a fresh one would go soggy. It also means nothing we bake is wasted.',
+        },
+    ]}
+>
+    <h2>How a croissant is made here</h2>
+    <p>
+        Day one, the dough: flour, milk, a little sugar, our levain and a pinch of yeast, mixed and rested cold overnight. Day two, the butter:
+        a slab of cultured butter folded into the dough and rolled, folded and chilled three times, which makes twenty-seven layers of butter
+        between twenty-eight of dough. Day three, the shape: rolled thin, cut into long triangles, rolled up by hand, proofed until they
+        wobble, egg-washed and baked.
+    </p>
+    <p>
+        It sounds fussy because it is. The reward is a croissant that shatters when you bite it, with a honeycomb inside, and that tastes of
+        butter rather than of sugar.
+    </p>
+
+    <h2>The seasonal danish</h2>
+    <p>
+        The danish changes with what the farm stands on Route 9 have: rhubarb and custard in May, apricot in July, plum in September, roast
+        squash and sage now. It is the one pastry on the counter we cannot promise will be the same next week.
+    </p>
+
+    <h2>A note on nuts</h2>
+    <p>
+        Almonds, pistachios and walnuts are all used in our kitchen, on the same benches as everything else. Anything that contains nuts is
+        stamped on the board, but we cannot promise anything from our kitchen is free of traces. Ask us before you buy if you have an allergy.
+    </p>
+    <p>Want to try laminating at home? Start with our <a href="/journal/laminated-dough-at-home/">notes on laminated dough</a>.</p>
+</CategoryPage>

@@ -1,0 +1,182 @@
+---
+/**
+ * The top of every inner page, and its one <h1>. The words on the left in
+ * the big chunky face, a handwritten note above them; on the right a photo
+ * cut into a bakery-window arch, a doodle and, when given, the rotating
+ * stamp. Without a photo the words take the width and a doodle sits beside
+ * them. Everything rises in on load (styles/motion.css).
+ */
+import Photo from './Photo.astro';
+import Doodle from './Doodle.astro';
+import StampBadge from './StampBadge.astro';
+import type { ComponentProps } from 'astro/types';
+import type { PhotoName } from '../data/photos';
+
+interface Props {
+    eyebrow?: string;
+    heading: string;
+    lead?: string;
+    photo?: PhotoName;
+    /** Names the photo for a view transition, so a card's photo grows into it. */
+    morph?: string;
+    doodle?: ComponentProps<typeof Doodle>['name'];
+    stamp?: string;
+    primary?: { label: string; href: string };
+    secondary?: { label: string; href: string };
+    tone?: 'cream' | 'kraft';
+}
+
+const { eyebrow, heading, lead, photo, morph, doodle = 'wheat', stamp, primary, secondary, tone = 'cream' } = Astro.props;
+---
+
+<section class:list={['page-hero', tone, { 'has-photo': photo !== undefined }]}>
+    <div class="container inner">
+        <div class="copy">
+            {eyebrow && <p class="eyebrow">{eyebrow}</p>}
+            <h1>{heading}</h1>
+            {lead && <p class="lead">{lead}</p>}
+            {
+                (primary || secondary) && (
+                    <p class="actions">
+                        {primary && <a class="button button-large" href={primary.href}>{primary.label}</a>}
+                        {secondary && <a class="button button-plain button-large" href={secondary.href}>{secondary.label}</a>}
+                    </p>
+                )
+            }
+            <slot />
+        </div>
+        {
+            photo ? (
+                <div class="media">
+                    <div class:list={['arch', morph && `morph-${morph}`]}>
+                        <Photo name={photo} sizes="(min-width: 64rem) 34rem, 92vw" priority />
+                    </div>
+                    <Doodle name={doodle} class="hero-doodle" float />
+                    {stamp && <StampBadge text={stamp} class="hero-stamp" />}
+                </div>
+            ) : (
+                <div class="side" aria-hidden="true">
+                    <Doodle name={doodle} class="side-doodle" float />
+                </div>
+            )
+        }
+    </div>
+</section>
+
+<style>
+    .page-hero {
+        position: relative;
+        padding: clamp(2.5rem, 1.5rem + 4vw, 5rem) 0 clamp(3rem, 2rem + 4vw, 5.5rem);
+    }
+
+    .kraft {
+        margin-bottom: 18px;
+        background: var(--kraft) var(--fibres);
+    }
+
+    /* A kraft hero ends in a wave, like the folded top of a paper bag. */
+    .kraft::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: calc(100% - 3px);
+        height: 21px;
+        background: var(--kraft);
+        /* A band's top edge (styles: components/Band.astro), turned upside down. */
+        mask: var(--wave) repeat-x top / 96px 18px, linear-gradient(black, black) no-repeat bottom / 100% 4px;
+        -webkit-mask: var(--wave) repeat-x top / 96px 18px, linear-gradient(black, black) no-repeat bottom / 100% 4px;
+        transform: scaleY(-1);
+    }
+
+    .inner {
+        display: grid;
+        gap: var(--space-10);
+        align-items: center;
+    }
+
+    .copy {
+        max-width: 44rem;
+    }
+
+    .copy :global(h1) {
+        margin-bottom: var(--space-6);
+    }
+
+    .lead {
+        max-width: 36rem;
+    }
+
+    .actions {
+        margin: var(--space-8) 0 0;
+    }
+
+    .media {
+        position: relative;
+        width: min(100%, 32rem);
+        justify-self: center;
+    }
+
+    .arch {
+        overflow: hidden;
+        border: 3px solid var(--cocoa);
+        border-radius: var(--radius-arch);
+        background: var(--kraft);
+        box-shadow: 10px 10px 0 var(--terracotta);
+    }
+
+    .arch :global(img) {
+        width: 100%;
+        aspect-ratio: 4 / 4.6;
+        object-fit: cover;
+    }
+
+    .media :global(.hero-doodle) {
+        position: absolute;
+        left: -2.25rem;
+        bottom: 2rem;
+        width: clamp(4.5rem, 3rem + 4vw, 7rem);
+    }
+
+    .media :global(.hero-stamp) {
+        --stamp-size: clamp(7.5rem, 6rem + 4vw, 10rem);
+
+        position: absolute;
+        top: -1.5rem;
+        right: -1.5rem;
+    }
+
+    .side {
+        display: none;
+    }
+
+    .side :global(.side-doodle) {
+        width: 100%;
+        max-width: 14rem;
+    }
+
+    @media (min-width: 60rem) {
+        .inner {
+            grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+        }
+
+        .side {
+            display: grid;
+            place-items: center;
+        }
+    }
+
+    @media (max-width: 40rem) {
+        .media {
+            width: calc(100% - 2rem);
+        }
+
+        .media :global(.hero-doodle) {
+            left: -1.25rem;
+        }
+
+        .media :global(.hero-stamp) {
+            right: -1rem;
+        }
+    }
+</style>

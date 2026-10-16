@@ -1,0 +1,342 @@
+---
+/**
+ * Celebration cakes: what can be ordered, the sizes and servings, the
+ * flavours by season, the lead times and how ordering works, then the way
+ * to the order form (/cakes/order/). The choices are src/data/cakes.ts, the
+ * same list the form offers.
+ */
+import Base from '../../layouts/Base.astro';
+import PageHero from '../../components/PageHero.astro';
+import Band from '../../components/Band.astro';
+import Photo from '../../components/Photo.astro';
+import Doodle from '../../components/Doodle.astro';
+import Faq from '../../components/Faq.astro';
+import Notes from '../../components/Notes.astro';
+import CallToOrder from '../../components/CallToOrder.astro';
+import { flavours, leadTimes, sizes } from '../../data/cakes';
+import { notes } from '../../data/notes';
+import { faqPage } from '@core/lib/jsonld.js';
+
+const faq = [
+    {
+        question: 'How far ahead do I need to order a cake?',
+        answer: 'Five days for a single-tier cake up to 10 inches, three weeks for two tiers and six weeks for three tiers or a wedding. In summer, Saturdays book up well ahead, so write as early as you can. If you need a cake sooner, call us: sometimes there is room.',
+    },
+    {
+        question: 'Do you make fondant cakes or copy cakes from photos?',
+        answer: 'No fondant: we finish cakes in buttercream, smooth, textured or semi-naked, with fresh fruit and flowers. Send us a photo you love for the mood and colors, and we will make our own version of it.',
+    },
+    {
+        question: 'Can you make a cake without nuts, gluten, dairy or eggs?',
+        answer: 'We can make cakes without nuts, dairy or eggs, and the chocolate olive oil cake is vegan. Our kitchen uses wheat, nuts, dairy and eggs on shared benches, so we cannot promise any cake is free of traces. For a severe allergy, we will talk it through before taking the order.',
+    },
+    {
+        question: 'Is there a deposit?',
+        answer: 'Yes. When we confirm your order by email we ask for a deposit to hold the date: a quarter of the price for single cakes, half for tiered cakes. The rest is paid on pickup or delivery. Deposits are refunded in full if you cancel more than two weeks ahead.',
+    },
+    {
+        question: 'Do you deliver?',
+        answer: 'For weddings and events within 15 miles of Larkhaven we deliver and set up, for a fee that depends on the distance. Everything else is collected from the counter, in the morning or around lunchtime.',
+    },
+];
+---
+
+<Base
+    title="Celebration cakes to order"
+    description="Birthday, wedding and celebration cakes baked to order in Larkhaven: seven seasonal flavors, 6-inch to three tiers, buttercream and fresh fruit, no fondant."
+    breadcrumbs={[{ name: 'Celebration cakes', href: '/cakes/' }]}
+    jsonLd={[faqPage(faq)]}
+>
+    <PageHero
+        eyebrow="Baked to order, by Priya"
+        heading="Cakes for the days that matter"
+        lead="Layer cakes for birthdays, weddings and everything in between. Real butter, seasonal fruit, fresh flowers, your words piped on top."
+        photo="layerCake"
+        doodle="whisk"
+        stamp="NO FONDANT · REAL BUTTER · "
+        primary={{ label: 'Order a cake', href: '/cakes/order/' }}
+        secondary={{ label: 'Sizes and prices', href: '#sizes' }}
+    />
+
+    <Band tone="kraft" edge="zigzag" eyebrow="Seven flavors" heading="Pick a flavor" intro="All year round, unless the season is marked. One flavor per tier for tiered cakes.">
+        <ul class="flavours">
+            {
+                flavours.map((flavour, index) => (
+                    <li class="pinned">
+                        <span class="num" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
+                        <h3>{flavour.name}</h3>
+                        <p>{flavour.description}</p>
+                        {flavour.season ? <p class="season hand">Best {flavour.season}</p> : <p class="season hand">All year</p>}
+                    </li>
+                ))
+            }
+        </ul>
+    </Band>
+
+    <Band id="sizes" eyebrow="Sizes and servings" heading="How big a cake?" intro="Party slices, about an inch wide. Prices are a starting point for a buttercream-finished cake in one flavor, with fruit, flowers and lettering included.">
+        <div class="sizes-grid">
+            <div class="table-wrap reveal">
+                <table class="sizes">
+                    <thead>
+                        <tr>
+                            <th scope="col">Size</th>
+                            <th scope="col">Serves</th>
+                            <th scope="col">From</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {
+                            sizes.map((size) => (
+                                <tr>
+                                    <th scope="row">
+                                        {size.label}
+                                        <span class="note">{size.note}</span>
+                                    </th>
+                                    <td>{size.serves}</td>
+                                    <td class="price">{size.priceFrom}</td>
+                                </tr>
+                            ))
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <div class="photo-tall drift reveal">
+                <Photo name="weddingCake" sizes="(min-width: 64rem) 26rem, 90vw" />
+            </div>
+        </div>
+    </Band>
+
+    <Band tone="cocoa" eyebrow="How far ahead" heading="Give us a little notice">
+        <ul class="steps leads">
+            {
+                leadTimes.map((lead) => (
+                    <li>
+                        <p class="notice">{lead.notice}</p>
+                        <p>{lead.what}</p>
+                    </li>
+                ))
+            }
+        </ul>
+    </Band>
+
+    <Band eyebrow="How ordering works" heading="From a message to a cake box">
+        <ol class="steps how">
+            <li>
+                <Doodle name="arrow" class="step-doodle" />
+                <h3>Tell us about it</h3>
+                <p>The date, how many people, a flavor, and the words on top. The <a href="/cakes/order/">order form</a> takes two minutes.</p>
+            </li>
+            <li>
+                <Doodle name="whisk" class="step-doodle" />
+                <h3>Priya replies</h3>
+                <p>Within a working day, by email, to confirm the details and the price, and to ask for the deposit that holds your date.</p>
+            </li>
+            <li>
+                <Doodle name="slice" class="step-doodle" />
+                <h3>A tasting, for tiers</h3>
+                <p>For wedding and tiered cakes, come in for a tasting of three flavors, with coffee, on a weekday afternoon.</p>
+            </li>
+            <li>
+                <Doodle name="boule" class="step-doodle" />
+                <h3>Pick it up</h3>
+                <p>Boxed and ready at the counter in the morning or at lunchtime. Weddings within 15 miles, we deliver and set up.</p>
+            </li>
+        </ol>
+    </Band>
+
+    <Band tone="butter" eyebrow="Pinned by the door" heading="Cakes we have made">
+        <Notes items={notes.slice(1, 2).concat(notes.slice(0, 1))} />
+    </Band>
+
+    <Band tone="flour" eyebrow="Questions" heading="Before you order">
+        <Faq items={faq} />
+    </Band>
+
+    <CallToOrder heading="Ready when you are" text="Tell us the date, the number of people and the flavor. Priya will reply within a working day to confirm." />
+</Base>
+
+<style>
+    .flavours {
+        display: grid;
+        gap: var(--space-6);
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .flavours li {
+        position: relative;
+        padding: var(--space-6);
+        border: 2px solid var(--cocoa);
+        border-radius: var(--radius);
+        background: #fffaf0;
+        box-shadow: var(--shadow-print);
+    }
+
+    .flavours li:nth-child(odd) {
+        rotate: -0.8deg;
+    }
+
+    .flavours li:nth-child(even) {
+        rotate: 0.7deg;
+    }
+
+    .num {
+        display: block;
+        margin-bottom: var(--space-2);
+        color: var(--terracotta);
+        font-family: var(--font-display);
+        font-size: 2.2rem;
+        line-height: 1;
+    }
+
+    .flavours h3 {
+        margin-bottom: var(--space-2);
+    }
+
+    .flavours p {
+        margin-bottom: var(--space-2);
+        font-size: 1.05rem;
+        line-height: 1.5;
+    }
+
+    .season {
+        margin: 0;
+        color: var(--terracotta);
+        font-size: 1.35rem;
+    }
+
+    .sizes-grid {
+        display: grid;
+        gap: var(--space-12);
+        align-items: start;
+    }
+
+    .table-wrap {
+        overflow-x: auto;
+    }
+
+    .sizes {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 1.1rem;
+    }
+
+    .sizes th,
+    .sizes td {
+        padding: var(--space-4) var(--space-3);
+        border-bottom: 2px dashed var(--color-line-strong);
+        text-align: left;
+        vertical-align: top;
+    }
+
+    .sizes thead th {
+        border-bottom: 3px solid var(--cocoa);
+        font-family: var(--font-display);
+        font-size: 1.15rem;
+        font-weight: 400;
+    }
+
+    .sizes tbody th {
+        font-weight: 800;
+    }
+
+    .note {
+        display: block;
+        color: var(--crust);
+        font-size: 0.98rem;
+        font-weight: 500;
+        font-style: italic;
+    }
+
+    .price {
+        color: var(--terracotta);
+        font-family: var(--font-display);
+        font-size: 1.4rem;
+        white-space: nowrap;
+    }
+
+    .photo-tall {
+        overflow: hidden;
+        border: 3px solid var(--cocoa);
+        border-radius: var(--radius-arch);
+        box-shadow: 10px 10px 0 var(--butter);
+    }
+
+    .photo-tall :global(img) {
+        width: 100%;
+        aspect-ratio: 4 / 5;
+        object-fit: cover;
+    }
+
+    @media (min-width: 60rem) {
+        .sizes-grid {
+            grid-template-columns: 1.4fr 0.8fr;
+        }
+    }
+
+    .steps {
+        display: grid;
+        gap: var(--space-6);
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .leads li {
+        padding: var(--space-6);
+        border: 2px solid var(--cream);
+        border-radius: var(--radius);
+    }
+
+    .notice {
+        margin-bottom: var(--space-2);
+        color: var(--butter);
+        font-family: var(--font-display);
+        font-size: 1.9rem;
+        line-height: 1;
+    }
+
+    .leads p:last-child {
+        margin: 0;
+        color: var(--color-on-dark-muted);
+    }
+
+    .how {
+        counter-reset: step;
+    }
+
+    .how li {
+        position: relative;
+        padding: var(--space-6) 0 0;
+        border-top: 3px solid var(--cocoa);
+        counter-increment: step;
+    }
+
+    .how li::before {
+        content: counter(step);
+        display: inline-grid;
+        place-items: center;
+        width: 2.6rem;
+        height: 2.6rem;
+        margin-bottom: var(--space-4);
+        border: 2px solid var(--cocoa);
+        border-radius: 50%;
+        background: var(--butter);
+        font-family: var(--font-display);
+        font-size: 1.3rem;
+    }
+
+    .how :global(.step-doodle) {
+        position: absolute;
+        top: 1.25rem;
+        right: 0;
+        width: 3.25rem;
+    }
+
+    .how p {
+        font-size: 1.08rem;
+    }
+</style>

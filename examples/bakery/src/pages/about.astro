@@ -1,0 +1,186 @@
+---
+/** Our story: how the bakery started, what it believes, and where its flour comes from. */
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Band from '../components/Band.astro';
+import Photo from '../components/Photo.astro';
+import StampBadge from '../components/StampBadge.astro';
+import RollingPin from '../components/RollingPin.astro';
+import CallToOrder from '../components/CallToOrder.astro';
+import { site } from '../site';
+
+const years = [
+    { year: '2012', text: 'Hattie starts a sourdough starter in her apartment kitchen on Mill Street. It is still alive.' },
+    { year: '2014', text: 'Crumb & Kettle opens on Cooper’s Row with one deck oven, a borrowed mixer and four kinds of bread.' },
+    { year: '2016', text: 'June buys the van, and the first three cafés start serving our bread.' },
+    { year: '2017', text: 'Teo comes for one summer to laminate croissants, and stays.' },
+    { year: '2019', text: 'Priya takes over cakes. The lemon drizzle arrives and never leaves.' },
+    { year: '2023', text: 'The bakehouse doubles into the old cobbler’s shop next door. Eleven tables, a long bench.' },
+];
+---
+
+<Base
+    title="Our story"
+    description="How a sourdough starter in an apartment kitchen became Crumb & Kettle, Larkhaven’s neighborhood bakery and café on Cooper’s Row, since 2014."
+    breadcrumbs={[{ name: 'Our story', href: '/about/' }]}
+>
+    <PageHero
+        eyebrow={`On Cooper’s Row since ${site.business.founded}`}
+        heading="It started with a jar"
+        lead="A jar of flour and water on a windowsill in 2012, fed every night at nine. Two years later, it had a bakery."
+        photo="bakerShaping"
+        doodle="boule"
+        stamp="FED EVERY NIGHT SINCE 2012 · "
+    />
+
+    <div class="prose story">
+        <h2>The short version</h2>
+        <p>
+            Hattie Marsh baked bread in her apartment for six years before she baked it for anyone else. She gave the loaves to neighbors,
+            then sold them from a folding table at the Saturday market, then ran out every Saturday by nine. In 2014 she signed the lease on an
+            empty shop on Cooper’s Row that had been a cobbler’s, a florist’s and, for one year nobody talks about, a novelty sock shop.
+        </p>
+        <p>
+            She bought one deck oven, borrowed a mixer from a bakery that was closing two towns over, and opened with four kinds of bread
+            and a kettle. People came for the bread and stayed because of the kettle. The café grew up around them.
+        </p>
+        <blockquote>
+            <p>We are a bakery first. The café is just what happened when people wanted somewhere to eat the croissant while it was still warm.</p>
+        </blockquote>
+
+        <h2>What we believe, more or less</h2>
+        <ul>
+            <li><strong>Time is an ingredient.</strong> Our bread ferments for thirty hours and our croissants take three days. We do not know how to make them faster without making them worse.</li>
+            <li><strong>Bake it dark.</strong> The flavor is in the crust.</li>
+            <li><strong>Buy close.</strong> Flour from a mill in the state, butter from a dairy an hour away, fruit from the farm stands on Route 9. When they change, the counter changes.</li>
+            <li><strong>Waste nothing.</strong> Yesterday’s croissants become almond croissants; what is left at three goes to the food shelf on Mill Street.</li>
+            <li><strong>Close on Mondays.</strong> <a href="/journal/why-we-close-on-mondays/">For reasons.</a></li>
+        </ul>
+    </div>
+
+    <RollingPin note="Ten years of mornings" />
+
+    <Band tone="kraft" edge="zigzag" eyebrow="Ten years, give or take" heading="How we got here">
+        <ol class="years">
+            {
+                years.map((entry) => (
+                    <li class="pinned">
+                        <span class="year">{entry.year}</span>
+                        <p>{entry.text}</p>
+                    </li>
+                ))
+            }
+        </ol>
+    </Band>
+
+    <Band eyebrow="Where it comes from" heading="Flour, butter, fruit, people">
+        <div class="sources">
+            <div class="sources-photo drift reveal">
+                <Photo name="flourHands" sizes="(min-width: 64rem) 32rem, 90vw" />
+                <StampBadge text="STONE-GROUND · IN-STATE · WHOLE GRAIN · " center={{ doodle: 'wheat' }} tone="butter" class="sources-stamp" />
+            </div>
+            <div class="prose-like reveal">
+                <p>
+                    About a third of our flour is stone-ground whole grain, milled in the state from wheat, rye and spelt grown within a hundred
+                    miles. We visit the mill twice a year; the miller tells us what the harvest was like, and we change the water in the dough to
+                    match. More on that in <a href="/journal/baking-with-whole-grain-flour/">baking with whole grain flour</a>.
+                </p>
+                <p>
+                    The butter for our pastry is cultured, from a dairy an hour north. The eggs come from a farm in Ashcombe; the honey from the
+                    hives above Millrace. The coffee is roasted two valleys over.
+                </p>
+                <p>And the people are from here, mostly. <a href="/bakers/">Meet the bakers</a>.</p>
+            </div>
+        </div>
+    </Band>
+
+    <CallToOrder />
+</Base>
+
+<style>
+    .story {
+        padding: var(--section) 0 var(--space-8);
+    }
+
+    .years {
+        display: grid;
+        gap: var(--space-6);
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .years li {
+        padding: var(--space-6);
+        border: 2px solid var(--cocoa);
+        border-radius: var(--radius);
+        background: #fffaf0;
+        box-shadow: var(--shadow-print);
+    }
+
+    .years li:nth-child(odd) {
+        rotate: -1deg;
+    }
+
+    .years li:nth-child(even) {
+        rotate: 0.8deg;
+    }
+
+    .year {
+        display: block;
+        margin-bottom: var(--space-2);
+        color: var(--terracotta);
+        font-family: var(--font-display);
+        font-size: 2.6rem;
+        line-height: 1;
+    }
+
+    .years p {
+        margin: 0;
+        font-size: 1.08rem;
+    }
+
+    .sources {
+        display: grid;
+        gap: var(--space-12);
+        align-items: center;
+    }
+
+    .sources-photo {
+        position: relative;
+        border: 3px solid var(--cocoa);
+        border-radius: var(--radius-large);
+        box-shadow: 10px 10px 0 var(--terracotta);
+    }
+
+    .sources-photo :global(picture) {
+        display: block;
+        overflow: hidden;
+        border-radius: calc(var(--radius-large) - 3px);
+    }
+
+    .sources-photo :global(img) {
+        width: 100%;
+        aspect-ratio: 4 / 3;
+        object-fit: cover;
+    }
+
+    .sources-photo :global(.sources-stamp) {
+        --stamp-size: 8.5rem;
+
+        position: absolute;
+        right: -1.5rem;
+        bottom: -2rem;
+    }
+
+    .prose-like p {
+        font-size: 1.15rem;
+    }
+
+    @media (min-width: 60rem) {
+        .sources {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+</style>

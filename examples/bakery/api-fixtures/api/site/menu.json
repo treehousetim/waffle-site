@@ -1,0 +1,29 @@
+{
+  "success": true,
+  "data": {
+    "date": "2026-10-16",
+    "items": [
+      { "id": "country-sourdough", "name": "Country sourdough", "category": "breads", "description": "Our everyday loaf: 30-hour ferment, a little whole wheat and rye, a blistered crust.", "price_cents": 900, "currency": "USD", "dietary": ["vegan"], "sold_out": false },
+      { "id": "seeded-rye", "name": "Seeded rye", "category": "breads", "description": "Dense, dark and sliceable thin; sunflower, flax and caraway.", "price_cents": 1000, "currency": "USD", "dietary": ["vegan"], "sold_out": false },
+      { "id": "fougasse", "name": "Olive & rosemary fougasse", "category": "breads", "description": "A leaf-shaped tear-and-share loaf, Castelvetrano olives and our own rosemary.", "price_cents": 750, "currency": "USD", "dietary": ["vegan"], "sold_out": false },
+      { "id": "spelt-honey", "name": "Spelt & honey tin", "category": "breads", "description": "Soft, sweet-edged sandwich bread with local wildflower honey.", "price_cents": 900, "currency": "USD", "dietary": ["vegetarian"], "sold_out": false },
+      { "id": "baguette", "name": "Baguette", "category": "breads", "description": "Long-fermented, baked twice a day so there is one for supper.", "price_cents": 400, "currency": "USD", "dietary": ["vegan"], "sold_out": false },
+      { "id": "walnut-levain", "name": "Walnut & raisin levain", "category": "breads", "description": "Fridays only: toasted walnuts and rum-soaked raisins.", "price_cents": 1100, "currency": "USD", "dietary": ["vegan", "contains-nuts"], "sold_out": true },
+      { "id": "croissant", "name": "Butter croissant", "category": "pastries", "description": "Three days in the making, cultured butter, 27 layers.", "price_cents": 425, "currency": "USD", "dietary": ["vegetarian"], "sold_out": false },
+      { "id": "pain-au-chocolat", "name": "Pain au chocolat", "category": "pastries", "description": "Two batons of 70% dark chocolate in croissant dough.", "price_cents": 475, "currency": "USD", "dietary": ["vegetarian"], "sold_out": false },
+      { "id": "cardamom-knot", "name": "Cardamom knot", "category": "pastries", "description": "Swedish-style, twisted by hand, pearl sugar on top.", "price_cents": 450, "currency": "USD", "dietary": ["vegetarian"], "sold_out": true },
+      { "id": "almond-croissant", "name": "Almond croissant", "category": "pastries", "description": "Yesterday’s croissant, twice-baked with frangipane and flaked almonds.", "price_cents": 525, "currency": "USD", "dietary": ["vegetarian", "contains-nuts"], "sold_out": false },
+      { "id": "pumpkin-danish", "name": "Pumpkin & sage danish", "category": "pastries", "description": "October’s danish: roast squash, brown butter, crispy sage.", "price_cents": 500, "currency": "USD", "dietary": ["vegetarian"], "sold_out": false },
+      { "id": "morning-bun", "name": "Ham & cheddar morning bun", "category": "pastries", "description": "Laminated bun, smoked ham, aged cheddar and a swipe of mustard.", "price_cents": 600, "currency": "USD", "dietary": [], "sold_out": false },
+      { "id": "banana-loaf", "name": "Brown butter banana loaf", "category": "cakes", "description": "By the slice, with toasted pecans on top.", "price_cents": 450, "currency": "USD", "dietary": ["vegetarian", "contains-nuts"], "sold_out": false },
+      { "id": "lemon-drizzle", "name": "Lemon drizzle", "category": "cakes", "description": "Sharp, sticky, sugar-crusted; by the slice.", "price_cents": 400, "currency": "USD", "dietary": ["vegetarian"], "sold_out": false },
+      { "id": "olive-oil-chocolate", "name": "Chocolate olive oil cake", "category": "cakes", "description": "Rich, damp and dairy-free, with a cocoa glaze.", "price_cents": 500, "currency": "USD", "dietary": ["vegan"], "sold_out": false },
+      { "id": "apple-cider", "name": "Apple & cider cake", "category": "cakes", "description": "Orchard apples and a cider caramel; ask for it warm.", "price_cents": 475, "currency": "USD", "dietary": ["vegetarian", "gluten-free"], "sold_out": false },
+      { "id": "flat-white", "name": "Flat white", "category": "coffee", "description": "Double ristretto, steamed whole milk; oat at no extra charge.", "price_cents": 425, "currency": "USD", "dietary": ["vegetarian"], "sold_out": false },
+      { "id": "filter", "name": "Filter of the week", "category": "coffee", "description": "This week: a washed Ethiopian, all peach and black tea.", "price_cents": 350, "currency": "USD", "dietary": ["vegan"], "sold_out": false },
+      { "id": "cardamom-latte", "name": "Cardamom latte", "category": "coffee", "description": "Our own cardamom syrup, not too sweet.", "price_cents": 500, "currency": "USD", "dietary": ["vegetarian"], "sold_out": false },
+      { "id": "chai", "name": "Kettle chai", "category": "coffee", "description": "Simmered on the stove from whole spices every morning.", "price_cents": 450, "currency": "USD", "dietary": ["vegetarian"], "sold_out": false },
+      { "id": "hot-chocolate", "name": "Hot chocolate", "category": "coffee", "description": "Shaved dark chocolate and milk, nothing from a packet.", "price_cents": 400, "currency": "USD", "dietary": ["vegetarian"], "sold_out": false }
+    ]
+  }
+}
