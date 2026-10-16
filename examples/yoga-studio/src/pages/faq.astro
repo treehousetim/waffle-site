@@ -1,0 +1,91 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import Faq from '../components/Faq.astro';
+import Closing from '../components/Closing.astro';
+import { faqPage } from '@core/lib/jsonld.js';
+
+const groups = [
+    {
+        heading: 'Starting out',
+        aside: 'starting',
+        items: [
+            { question: 'I have never done yoga. Where do I start?', answer: 'Beginners, or restorative if you would rather start lying down. The intro offer gives you three weeks of every class for $40, so you can try both.' },
+            { question: 'Am I too old, stiff or unfit?', answer: 'No. Our students range from nineteen to eighty-six, and the stiffest people in the room are often the ones who get the most from it.' },
+            { question: 'Do I need to book?', answer: 'Booking by phone keeps you a place, which helps on Friday evenings and weekends. Otherwise, come along: we keep a few mats for drop-ins.' },
+            { question: 'How early should I arrive?', answer: 'Ten minutes early for your first class, so the teacher can say hello. Doors open twenty minutes before every class.' },
+        ],
+    },
+    {
+        heading: 'In the room',
+        aside: 'room',
+        items: [
+            { question: 'Is the studio heated?', answer: 'Kept comfortably warm, never hot. Bring a layer for the slower classes, when you will cool down while you are still.' },
+            { question: 'What if I arrive late?', answer: 'Up to ten minutes late, come in quietly. After that the door is closed, so as not to disturb the start of class. Sorry!' },
+            { question: 'Is there somewhere to change and leave things?', answer: 'Yes: a changing room, a shower, cubbies for bags and phones, and hooks for coats. There are no lockers; please leave valuables at home.' },
+            { question: 'Is the building accessible?', answer: 'There is level access from the lane, an accessible toilet, and chairs for anyone who would rather practise seated. Tell us what you need and we will make it work.' },
+        ],
+    },
+    {
+        heading: 'Passes and policies',
+        aside: 'policies',
+        items: [
+            { question: 'How do I cancel a booking?', answer: 'Call or tell the desk at least four hours before. That way the place goes to the next person on the waitlist.' },
+            { question: 'What happens when a class is full?', answer: 'Ask to go on the waitlist. Places often open up on the day, and we call in order.' },
+            { question: 'Can I bring a friend?', answer: 'Yes. Their first visit can be on the intro offer, and annual members can bring a friend free once a month.' },
+            { question: 'Do you offer private sessions?', answer: 'Yes, with any of our teachers, at the studio or online. Ask at the desk for times and prices.' },
+        ],
+    },
+];
+
+const all = groups.flatMap((group) => group.items);
+---
+
+<Base
+    title="Questions, answered"
+    description="Answers to the questions new students ask Still Water Yoga most: starting out, what to bring, booking, late arrivals, accessibility, passes and policies."
+    breadcrumbs={[{ name: 'FAQ', href: '/faq/' }]}
+    jsonLd={[faqPage(all)]}
+>
+    <PageHead
+        label="Questions"
+        heading="Everything you *wanted to ask*"
+        lead="And a few things you did not know you wanted to. If your question is not here, call the desk; a person will answer."
+    />
+
+    {
+        groups.map((group) => (
+            <section class="group" aria-labelledby={`faq-${group.aside}`}>
+                <div class="wide group-inner">
+                    <h2 id={`faq-${group.aside}`} class="reveal">{group.heading}</h2>
+                    <Faq items={group.items} />
+                </div>
+            </section>
+        ))
+    }
+
+    <Closing heading="Still wondering? *Come and see.*" text="The best answer to most questions is one class. Three weeks of them cost $40." />
+</Base>
+
+<style>
+    .group {
+        padding-bottom: var(--space-20);
+    }
+
+    .group-inner {
+        display: grid;
+        gap: var(--space-8);
+    }
+
+    .group h2 {
+        font-size: clamp(2rem, 1.6rem + 1.5vw, 3rem);
+        font-style: italic;
+    }
+
+    @media (min-width: 64rem) {
+        .group-inner {
+            grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.4fr);
+            gap: var(--space-16);
+        }
+    }
+</style>

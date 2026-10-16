@@ -1,0 +1,155 @@
+---
+/**
+ * Journal entries, as a list you read rather than a grid you scan: a
+ * pebble of a photo, the topic and date, the title set in the serif, and a
+ * line about it. Each entry's picture is its cover, or its topic's photo
+ * (src/data/photos.ts), so every one has one.
+ */
+import type { CollectionEntry } from 'astro:content';
+import FormattedDate from './FormattedDate.astro';
+import Photo from './Photo.astro';
+import { defaultPostPhoto, topicPhotos } from '../data/photos';
+import { readingMinutes, tagSlug } from '@core/lib/posts.js';
+
+interface Props {
+    posts: CollectionEntry<'blog'>[];
+    /** h2 on a page of posts; h3 inside a section that has its own h2. */
+    level?: 'h2' | 'h3';
+}
+
+const { posts, level = 'h2' } = Astro.props;
+const Heading = level;
+const photoFor = (post: CollectionEntry<'blog'>) => {
+    const firstTag = post.data.tags[0];
+
+    return (firstTag !== undefined ? topicPhotos[tagSlug(firstTag)] : undefined) ?? defaultPostPhoto;
+};
+---
+
+<ul class="posts reveal-list">
+    {
+        posts.map((post) => (
+            <li class="post">
+                <div class="pebble">
+                    {post.data.cover && post.data.coverAlt ? (
+                        <Photo src={post.data.cover} alt="" sizes="(min-width: 52rem) 14rem, 8rem" />
+                    ) : (
+                        <Photo name={photoFor(post)} sizes="(min-width: 52rem) 14rem, 8rem" decorative />
+                    )}
+                </div>
+                <div class="body">
+                    <p class="meta">
+                        {post.data.tags[0] && <span class="tag">{post.data.tags[0]}</span>}
+                        {post.data.draft && <span class="draft">Draft</span>}
+                        <span>
+                            <FormattedDate date={post.data.pubDate} /> · {readingMinutes(post.body ?? '')} min read
+                        </span>
+                    </p>
+                    <Heading class="title">
+                        <a href={`/blog/${post.id}/`}>{post.data.title}</a>
+                    </Heading>
+                    <p class="description">{post.data.description}</p>
+                </div>
+            </li>
+        ))
+    }
+</ul>
+
+<style>
+    .posts {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .post {
+        position: relative;
+        display: grid;
+        grid-template-columns: 5.5rem minmax(0, 1fr);
+        gap: var(--space-5);
+        align-items: start;
+        padding: var(--space-8) 0;
+        border-top: 1px solid var(--color-line);
+    }
+
+    .pebble {
+        overflow: hidden;
+        aspect-ratio: 1;
+        border-radius: var(--radius-pebble);
+        background: var(--color-sand-deep);
+    }
+
+    .post:nth-child(even) .pebble {
+        border-radius: 54% 46% 52% 48% / 45% 55% 45% 55%;
+    }
+
+    .pebble :global(img) {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 1.4s var(--ease-settle);
+    }
+
+    .post:hover .pebble :global(img) {
+        transform: scale(1.08);
+    }
+
+    .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-1) var(--space-4);
+        margin: 0 0 var(--space-2);
+        color: var(--color-muted);
+        font-size: 0.82rem;
+    }
+
+    .tag,
+    .draft {
+        color: var(--color-sage-deep);
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+    }
+
+    .draft {
+        color: var(--color-clay-ink);
+    }
+
+    .title {
+        margin: 0 0 var(--space-2);
+        font-size: clamp(1.55rem, 1.3rem + 1vw, 2.35rem);
+        font-weight: 400;
+        line-height: 1.12;
+    }
+
+    .title a {
+        color: var(--color-ink);
+        text-decoration: none;
+        transition: color 0.8s var(--ease-settle);
+    }
+
+    .title a::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+    }
+
+    .post:hover .title a {
+        color: var(--color-clay-ink);
+    }
+
+    .description {
+        max-width: 40rem;
+        margin: 0;
+        color: var(--color-muted);
+    }
+
+    @media (min-width: 52rem) {
+        .post {
+            grid-template-columns: 11rem minmax(0, 1fr);
+            gap: var(--space-12);
+            align-items: center;
+            padding: var(--space-10) 0;
+        }
+    }
+</style>

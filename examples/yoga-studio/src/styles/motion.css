@@ -1,0 +1,232 @@
+/*
+ * Motion: everything slow and soft, nothing bouncy. All CSS, no script, so
+ * nothing here touches the content security policy, and a page that never
+ * loads this file still reads perfectly.
+ *
+ *   - Page changes are a long, quiet cross-fade with the browser's own view
+ *     transitions; the header stays put, and a class or teacher's photo
+ *     glides from its card into the page it opens.
+ *   - On load, headings surface line by line, slowly, like something rising
+ *     through water.
+ *   - Ripples spread from behind headings as their sections arrive; bands
+ *     and items surface into place; the schedule's days slide in one after
+ *     another; photographs drift a little slower than the page.
+ *   - The tide (Base.astro) rises as a page is scrolled: a long page ends a
+ *     shade deeper than it began, like an exhale. The header gains its
+ *     ground as the page leaves the top. A thread on the left of an article
+ *     fills as you read.
+ *   - The breathing circle (BreathingCircle.astro) and the logo's ripples
+ *     keep their own keyframes beside them.
+ *
+ * Every rule is inside prefers-reduced-motion: no-preference, and the
+ * scroll-driven ones inside @supports as well: where either is missing the
+ * page is simply still, with nothing hidden.
+ */
+
+@view-transition {
+    navigation: auto;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    ::view-transition-group(*) {
+        animation-duration: 900ms;
+        animation-timing-function: var(--ease-settle);
+    }
+
+    ::view-transition-old(root) {
+        animation: 600ms var(--ease-settle) both fade-out;
+    }
+
+    ::view-transition-new(root) {
+        animation: 1100ms var(--ease-settle) 120ms both surface;
+    }
+
+    .site-header {
+        view-transition-name: site-header;
+    }
+
+    /* A class or teacher's photo, from its card or row into its own page. */
+    .vt-class-vinyasa { view-transition-name: class-vinyasa; }
+    .vt-class-yin { view-transition-name: class-yin; }
+    .vt-class-restorative { view-transition-name: class-restorative; }
+    .vt-class-prenatal { view-transition-name: class-prenatal; }
+    .vt-class-beginners { view-transition-name: class-beginners; }
+    .vt-teacher-maya-lindqvist { view-transition-name: teacher-maya-lindqvist; }
+    .vt-teacher-tomas-reyes { view-transition-name: teacher-tomas-reyes; }
+    .vt-teacher-iris-okonkwo { view-transition-name: teacher-iris-okonkwo; }
+    .vt-teacher-hana-mori { view-transition-name: teacher-hana-mori; }
+    .vt-teacher-nell-ashby { view-transition-name: teacher-nell-ashby; }
+
+    /* On load: the page's heading and its company surface, slowly, in turn. */
+    .page-head .copy > *,
+    .home-hero .copy > * {
+        animation: 1400ms var(--ease-settle) both surface;
+    }
+
+    .page-head .copy > :nth-child(2),
+    .home-hero .copy > :nth-child(2) { animation-delay: 180ms; }
+
+    .page-head .copy > :nth-child(3),
+    .home-hero .copy > :nth-child(3) { animation-delay: 360ms; }
+
+    .page-head .copy > :nth-child(4),
+    .home-hero .copy > :nth-child(4) { animation-delay: 540ms; }
+
+    .page-head .copy > :nth-child(5),
+    .home-hero .copy > :nth-child(5) { animation-delay: 720ms; }
+
+    .page-head .media,
+    .home-hero .breath {
+        animation: 2200ms var(--ease-settle) 200ms both bloom;
+    }
+
+    /* The page head's rings widen once, as the page arrives. */
+    .page-head .head-ripple span {
+        animation: 3200ms var(--ease-settle) both ring-open;
+    }
+
+    .page-head .head-ripple span:nth-child(2) { animation-delay: 250ms; }
+    .page-head .head-ripple span:nth-child(3) { animation-delay: 500ms; }
+    .page-head .head-ripple span:nth-child(4) { animation-delay: 750ms; }
+    .page-head .head-ripple span:nth-child(5) { animation-delay: 1000ms; }
+
+    /* Photographs in pebbles drift, very slowly, all the time. */
+    .drift {
+        animation: drift 26s var(--ease-breath) infinite alternate;
+    }
+
+    /* Details open slowly to their full height. */
+    :root {
+        interpolate-size: allow-keywords;
+    }
+
+    details::details-content {
+        height: 0;
+        overflow: clip;
+        transition: height 0.8s var(--ease-settle), content-visibility 0.8s allow-discrete;
+    }
+
+    details[open]::details-content {
+        height: auto;
+    }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+        /* Bands and their items surface as they come into view. */
+        .reveal,
+        .reveal-list > li {
+            animation: surface linear both;
+            animation-timeline: view();
+            animation-range: entry 0% entry 80%;
+        }
+
+        .reveal-list > li:nth-child(3n + 2) {
+            animation-range: entry 10% entry 90%;
+        }
+
+        .reveal-list > li:nth-child(3n + 3) {
+            animation-range: entry 20% entry 100%;
+        }
+
+        /* Ripples spread from behind a section as it arrives. */
+        .ripple.spread span {
+            animation: ring-open linear both;
+            animation-timeline: view();
+            animation-range: entry 0% cover 45%;
+        }
+
+        .ripple.spread span:nth-child(2) { animation-range: entry 8% cover 50%; }
+        .ripple.spread span:nth-child(3) { animation-range: entry 16% cover 55%; }
+        .ripple.spread span:nth-child(4) { animation-range: entry 24% cover 60%; }
+        .ripple.spread span:nth-child(5) { animation-range: entry 32% cover 65%; }
+
+        /* The schedule's days slide in from the left, one after another. */
+        .day {
+            animation: slide-in linear both;
+            animation-timeline: view();
+            animation-range: entry 0% entry 60%;
+        }
+
+        /* Photographs drift slower than the page around them. */
+        .parallax {
+            animation: parallax linear both;
+            animation-timeline: view();
+            animation-range: cover 0% cover 100%;
+        }
+
+        /* The tide rises as the page goes on: the long exhale. */
+        .tide {
+            animation: tide linear both;
+            animation-timeline: scroll(root);
+        }
+
+        /* The header gains a ground and a hairline once the page moves. */
+        .site-header {
+            animation: settle-header linear both;
+            animation-timeline: scroll(root);
+            animation-range: 0 10rem;
+        }
+
+        /* An article's thread fills as it is read. */
+        .reading-thread {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 25;
+            width: 2px;
+            background: var(--color-clay);
+            transform-origin: 50% 0;
+            animation: fill-thread linear both;
+            animation-timeline: scroll(root);
+        }
+    }
+}
+
+@keyframes fade-out {
+    to { opacity: 0; }
+}
+
+@keyframes surface {
+    from { opacity: 0; transform: translateY(1.25rem); filter: blur(4px); }
+    to { opacity: 1; transform: none; filter: none; }
+}
+
+@keyframes bloom {
+    from { opacity: 0; transform: scale(0.94); }
+    to { opacity: 1; transform: none; }
+}
+
+@keyframes ring-open {
+    from { opacity: 0; transform: scale(0.4); }
+}
+
+@keyframes slide-in {
+    from { opacity: 0; transform: translateX(-3rem); }
+    to { opacity: 1; transform: none; }
+}
+
+@keyframes drift {
+    from { transform: scale(1.06) translate(-1%, 0.5%); }
+    to { transform: scale(1.1) translate(1%, -1%); }
+}
+
+@keyframes parallax {
+    from { transform: translateY(-6%) scale(1.12); }
+    to { transform: translateY(6%) scale(1.12); }
+}
+
+@keyframes tide {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes settle-header {
+    to { box-shadow: 0 1px 0 var(--color-line); background-color: rgb(243 238 229 / 0.98); }
+}
+
+@keyframes fill-thread {
+    from { transform: scaleY(0); }
+    to { transform: scaleY(1); }
+}

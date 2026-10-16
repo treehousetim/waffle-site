@@ -1,0 +1,174 @@
+---
+/**
+ * One class on the schedule: when, what, who, for whom, and how many
+ * places are left. The time is a real <time>; the style and teacher link
+ * to their pages. `hide` leaves out what the page is already about (the
+ * style on a class page, the teacher on a teacher page).
+ */
+import { classBySlug, classUrl } from '../data/classes';
+import { teacherBySlug, teacherUrl } from '../data/teachers';
+import { LEVELS, clock, dayName, endTime, spacesLabel, type ScheduledClass } from '../lib/schedule';
+
+interface Props {
+    item: ScheduledClass;
+    hide?: 'style' | 'teacher';
+    /** Say the day too (lists that are not grouped by day). */
+    withDay?: boolean;
+}
+
+const { item, hide, withDay = false } = Astro.props;
+const style = classBySlug(item.style);
+const teacher = teacherBySlug(item.teacher);
+const full = item.spacesLeft === 0;
+const few = !full && item.spacesLeft <= 3;
+---
+
+<li class="slot" data-style={item.style}>
+    <p class="when">
+        {withDay && <span class="day">{dayName(item.day)}</span>}
+        <time datetime={item.start}>{clock(item.start)}</time>
+        <span class="length">{item.duration} min · until {clock(endTime(item.start, item.duration))}</span>
+    </p>
+    <p class="what">
+        {hide !== 'style' && <a class="style" href={classUrl(style.slug)}><span class="dot" aria-hidden="true"></span>{style.name}</a>}
+        {hide !== 'teacher' && <a class="teacher" href={teacherUrl(teacher.slug)}>{hide === 'style' ? teacher.name : `with ${teacher.name}`}</a>}
+        {hide === 'teacher' && <span class="teacher muted">{LEVELS[item.level]}</span>}
+    </p>
+    {hide !== 'teacher' && <p class="level">{LEVELS[item.level]}</p>}
+    <p class:list={['spaces', { full, few }]}>{spacesLabel(item.spacesLeft)}</p>
+</li>
+
+<style>
+    .slot {
+        display: grid;
+        gap: var(--space-1) var(--space-6);
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: baseline;
+        padding: var(--space-5) 0;
+        border-top: 1px solid var(--color-line);
+        transition: background-color 0.8s var(--ease-settle);
+    }
+
+    .slot p {
+        margin: 0;
+    }
+
+    .when {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 0 var(--space-3);
+        grid-column: 1 / -1;
+    }
+
+    .day {
+        font-weight: 700;
+    }
+
+    time {
+        font-family: var(--font-serif);
+        font-size: 1.6rem;
+        font-weight: 450;
+        line-height: 1.2;
+    }
+
+    .length {
+        color: var(--color-muted);
+        font-size: 0.85rem;
+    }
+
+    .what {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 0 var(--space-3);
+    }
+
+    .style {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        color: var(--color-ink);
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+    .dot {
+        flex: none;
+        width: 0.65rem;
+        height: 0.65rem;
+        border-radius: 50%;
+        background: var(--style-color);
+        transition: transform 0.8s var(--ease-settle);
+    }
+
+    .style:hover .dot {
+        transform: scale(1.5);
+    }
+
+    .teacher {
+        color: var(--color-muted);
+        font-size: 0.95rem;
+    }
+
+    a.teacher {
+        text-decoration-color: transparent;
+    }
+
+    a.teacher:hover {
+        color: var(--color-clay-ink);
+        text-decoration-color: currentColor;
+    }
+
+    .level {
+        color: var(--color-muted);
+        font-size: 0.85rem;
+    }
+
+    .spaces {
+        grid-column: 2;
+        grid-row: 2 / span 2;
+        align-self: center;
+        justify-self: end;
+        padding: 0.2rem 0.75rem;
+        border: 1px solid var(--color-line);
+        border-radius: 999px;
+        color: var(--color-muted);
+        font-size: 0.8rem;
+        font-weight: 650;
+        white-space: nowrap;
+    }
+
+    .few {
+        border-color: var(--color-clay);
+        color: var(--color-clay-ink);
+    }
+
+    .full {
+        border-color: transparent;
+        background: var(--color-sand-deep);
+        color: var(--color-ink);
+    }
+
+    @media (min-width: 52rem) {
+        .slot {
+            grid-template-columns: 11rem minmax(0, 1fr) 9rem 11rem;
+            align-items: center;
+        }
+
+        .when {
+            display: grid;
+            gap: 0;
+            grid-column: 1;
+        }
+
+        .spaces {
+            grid-column: 4;
+            grid-row: 1;
+        }
+
+        .level {
+            grid-column: 3;
+        }
+    }
+</style>

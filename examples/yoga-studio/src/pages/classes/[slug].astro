@@ -1,0 +1,494 @@
+---
+/**
+ * One page per class style, from src/data/classes.ts: what it is, how an
+ * hour of it goes, who it suits, this week's classes from the waffle app's
+ * schedule, who teaches it, and its questions (with FAQPage markup).
+ */
+import type { GetStaticPaths } from 'astro';
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import Slot from '../../components/Slot.astro';
+import Faq from '../../components/Faq.astro';
+import Photo from '../../components/Photo.astro';
+import Ripple from '../../components/Ripple.astro';
+import Closing from '../../components/Closing.astro';
+import { classes, classUrl, type ClassStyle } from '../../data/classes';
+import { teachers, teacherUrl } from '../../data/teachers';
+import { loadSchedule } from '../../data/schedule';
+import { areasServed, site } from '../../site';
+import { settings } from '@core/settings';
+import { faqPage, service } from '@core/lib/jsonld.js';
+import { canonicalUrl } from '@core/lib/seo.js';
+
+export const getStaticPaths = (() => classes.map((item) => ({ params: { slug: item.slug }, props: { item } }))) satisfies GetStaticPaths;
+
+interface Props {
+    item: ClassStyle;
+}
+
+const { item } = Astro.props;
+const schedule = await loadSchedule();
+const slots = schedule.classes.filter((slot) => slot.style === item.slug);
+const teaching = teachers.filter((teacher) => schedule.classes.some((slot) => slot.style === item.slug && slot.teacher === teacher.slug));
+const others = classes.filter((other) => other.slug !== item.slug);
+const url = canonicalUrl(classUrl(item.slug), settings.siteUrl);
+---
+
+<Base
+    title={item.title}
+    description={item.description}
+    breadcrumbs={[
+        { name: 'Classes', href: '/classes/' },
+        { name: item.name, href: classUrl(item.slug) },
+    ]}
+    jsonLd={[
+        service({ url, name: `${item.name} yoga classes`, description: item.description, areas: areasServed }, settings.siteUrl),
+        faqPage(item.faqs),
+    ]}
+>
+    <PageHead
+        label={`Class style · ${item.paceLabel}`}
+        heading={`${item.name} *yoga*`}
+        lead={item.lead}
+        photo={item.photo}
+        transition={`vt-class-${item.slug}`}
+        primary={{ label: site.cta.label, href: site.cta.href }}
+        secondary={{ label: `${item.name} this week`, href: '#this-week' }}
+    />
+
+    <section class="about band">
+        <div class="wide about-inner">
+            <p class="pull reveal" data-style={item.slug}>
+                <span class="dots" aria-hidden="true">{[1, 2, 3].map((step) => <span class:list={{ on: step <= item.pace }} />)}</span>
+                {item.line}.
+            </p>
+            <div class="about-text reveal">
+                {item.about.map((paragraph) => <p>{paragraph}</p>)}
+            </div>
+        </div>
+    </section>
+
+    <section class="arc band" aria-labelledby="arc-heading">
+        <Ripple class="spread arc-ripple" rings={4} />
+        <div class="wide">
+            <h2 id="arc-heading" class="reveal">An hour, <em>from the door</em></h2>
+            <ol class="arc-steps reveal-list">
+                {
+                    item.arc.map((step) => (
+                        <li>
+                            <span class="ring" aria-hidden="true" />
+                            <h3>{step.label}</h3>
+                            <p>{step.text}</p>
+                        </li>
+                    ))
+                }
+            </ol>
+        </div>
+    </section>
+
+    <section class="fit band">
+        <div class="wide fit-inner">
+            <div class="reveal">
+                <h2>Good for</h2>
+                <ul class="good">
+                    {item.goodFor.map((line) => <li>{line}</li>)}
+                </ul>
+            </div>
+            <div class="bring reveal">
+                <h2>Bring</h2>
+                <p>{item.bring}</p>
+                <p class="muted">New to the studio? Arrive ten minutes early and tell the teacher anything they should know.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="week band" id="this-week" aria-labelledby="week-heading">
+        <div class="wide week-inner">
+            <header class="reveal">
+                <p class="label">This week</p>
+                <h2 id="week-heading">{item.name}, <em>{slots.length === 1 ? 'once' : `${slots.length} times`}</em></h2>
+                <p class="muted">Spaces as of the last update from the front desk. Book a place by phone on {site.business.phone}, or just come: we keep a few mats for drop-ins.</p>
+                <a class="arrow-link" href="/schedule/">The whole week</a>
+            </header>
+            <ul class="slots reveal">
+                {slots.map((slot) => <Slot item={slot} hide="style" withDay />)}
+            </ul>
+        </div>
+    </section>
+
+    {
+        teaching.length > 0 && (
+            <section class="who band" aria-labelledby="who-heading">
+                <div class="wide">
+                    <h2 id="who-heading" class="reveal">Taught by</h2>
+                    <ul class="who-list reveal-list">
+                        {teaching.map((teacher) => (
+                            <li>
+                                <div class:list={['who-photo', `vt-teacher-${teacher.slug}`]}>
+                                    <Photo name={teacher.photo} sizes="7rem" decorative />
+                                </div>
+                                <div>
+                                    <h3>
+                                        <a href={teacherUrl(teacher.slug)}>{teacher.name}</a>
+                                    </h3>
+                                    <p class="muted">“{teacher.quote}”</p>
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            </section>
+        )
+    }
+
+    <section class="questions band" aria-labelledby="faq-heading">
+        <div class="wide questions-inner">
+            <h2 id="faq-heading" class="reveal">Questions about <em>{item.name.toLowerCase()}</em></h2>
+            <Faq items={item.faqs} />
+        </div>
+    </section>
+
+    <nav class="others" aria-label="Other class styles">
+        <div class="wide">
+            <p class="label">Other ways in</p>
+            <ul>
+                {
+                    others.map((other) => (
+                        <li data-style={other.slug}>
+                            <a href={classUrl(other.slug)}>
+                                <span class="dot" aria-hidden="true" />
+                                {other.name}
+                            </a>
+                        </li>
+                    ))
+                }
+            </ul>
+        </div>
+    </nav>
+
+    <Closing />
+</Base>
+
+<style>
+    .about {
+        padding-top: var(--space-16);
+    }
+
+    .about-inner {
+        display: grid;
+        gap: var(--space-12);
+    }
+
+    .pull {
+        display: grid;
+        align-content: start;
+        gap: var(--space-6);
+        margin: 0;
+        font-family: var(--font-serif);
+        font-size: clamp(2rem, 1.4rem + 2.4vw, 3.4rem);
+        font-style: italic;
+        font-weight: 300;
+        line-height: 1.12;
+    }
+
+    .dots {
+        display: inline-flex;
+        gap: 0.4rem;
+    }
+
+    .dots span {
+        width: 0.8rem;
+        height: 0.8rem;
+        border: 1px solid var(--style-color);
+        border-radius: 50%;
+    }
+
+    .dots .on {
+        background: var(--style-color);
+    }
+
+    .about-text {
+        max-width: 38rem;
+        font-size: 1.1rem;
+    }
+
+    @media (min-width: 64rem) {
+        .about-inner {
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            gap: var(--space-24);
+        }
+
+        .pull {
+            position: sticky;
+            top: calc(var(--header-height) + var(--space-12));
+        }
+    }
+
+    /* The arc of a class: four rings joined by a thread. */
+    .arc {
+        position: relative;
+        overflow: hidden;
+        background: var(--color-paper);
+    }
+
+    .arc :global(.arc-ripple) {
+        top: -16rem;
+        right: -14rem;
+        width: 34rem;
+    }
+
+    .arc h2 {
+        margin-bottom: var(--space-16);
+    }
+
+    .arc-steps {
+        position: relative;
+        display: grid;
+        gap: var(--space-10);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .arc-steps li {
+        position: relative;
+        padding-left: 4rem;
+    }
+
+    .arc-steps li::before {
+        content: '';
+        position: absolute;
+        top: 2.6rem;
+        bottom: calc(-1 * var(--space-10));
+        left: 1.15rem;
+        width: 1px;
+        background: var(--color-line);
+    }
+
+    .arc-steps li:last-child::before {
+        display: none;
+    }
+
+    .ring {
+        position: absolute;
+        top: 0.1rem;
+        left: 0;
+        width: 2.3rem;
+        height: 2.3rem;
+        border: 1px solid var(--color-clay);
+        border-radius: 50%;
+    }
+
+    .ring::after {
+        content: '';
+        position: absolute;
+        inset: 0.65rem;
+        border-radius: 50%;
+        background: var(--color-clay);
+    }
+
+    .arc-steps h3 {
+        margin-bottom: var(--space-2);
+        font-style: italic;
+    }
+
+    .arc-steps p {
+        max-width: 22rem;
+        margin: 0;
+        color: var(--color-muted);
+    }
+
+    @media (min-width: 60rem) {
+        .arc-steps {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: var(--space-8);
+        }
+
+        .arc-steps li {
+            padding: 4rem 0 0;
+        }
+
+        .arc-steps li::before {
+            top: 1.15rem;
+            bottom: auto;
+            left: 2.8rem;
+            right: calc(-1 * var(--space-8));
+            width: auto;
+            height: 1px;
+        }
+
+    }
+
+    .fit-inner {
+        display: grid;
+        gap: var(--space-16);
+    }
+
+    .fit h2 {
+        font-size: clamp(2rem, 1.6rem + 1.5vw, 3rem);
+    }
+
+    .good {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .good li {
+        padding: var(--space-4) 0;
+        border-top: 1px solid var(--color-line);
+        font-size: 1.1rem;
+    }
+
+    .bring p:first-of-type {
+        font-family: var(--font-serif);
+        font-size: 1.6rem;
+        line-height: 1.35;
+    }
+
+    @media (min-width: 64rem) {
+        .fit-inner {
+            grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+            gap: var(--space-24);
+        }
+
+        .bring {
+            padding-top: var(--space-24);
+        }
+    }
+
+    .week {
+        background: var(--color-sage-mist);
+    }
+
+    .week-inner {
+        display: grid;
+        gap: var(--space-10);
+    }
+
+    .slots {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    @media (min-width: 64rem) {
+        .week-inner {
+            grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.6fr);
+            gap: var(--space-16);
+        }
+    }
+
+    .who-list {
+        display: grid;
+        gap: var(--space-8);
+        margin: var(--space-10) 0 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .who-list li {
+        position: relative;
+        display: grid;
+        grid-template-columns: 6rem minmax(0, 1fr);
+        gap: var(--space-6);
+        align-items: center;
+    }
+
+    .who-photo {
+        overflow: hidden;
+        aspect-ratio: 1;
+        border-radius: 50%;
+    }
+
+    .who-photo :global(img) {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .who-list h3 {
+        margin-bottom: var(--space-2);
+    }
+
+    .who-list h3 a {
+        color: var(--color-ink);
+        text-decoration: none;
+    }
+
+    .who-list h3 a::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+    }
+
+    .who-list li:hover h3 a {
+        color: var(--color-clay-ink);
+    }
+
+    .who-list .muted {
+        margin: 0;
+        font-style: italic;
+    }
+
+    @media (min-width: 56rem) {
+        .who-list {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: var(--space-12);
+        }
+    }
+
+    .questions {
+        padding-top: 0;
+    }
+
+    .questions-inner {
+        display: grid;
+        gap: var(--space-10);
+    }
+
+    @media (min-width: 64rem) {
+        .questions-inner {
+            grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.4fr);
+            gap: var(--space-16);
+        }
+    }
+
+    .others {
+        padding: var(--space-12) 0;
+        border-top: 1px solid var(--color-line);
+        border-bottom: 1px solid var(--color-line);
+    }
+
+    .others ul {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2) var(--space-10);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .others a {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-3);
+        color: var(--color-ink);
+        font-family: var(--font-serif);
+        font-size: clamp(1.8rem, 1.4rem + 1.5vw, 2.8rem);
+        font-weight: 300;
+        text-decoration: none;
+    }
+
+    .others a:hover {
+        color: var(--color-clay-ink);
+        font-style: italic;
+    }
+
+    .others .dot {
+        width: 0.7rem;
+        height: 0.7rem;
+        border-radius: 50%;
+        background: var(--style-color);
+    }
+</style>

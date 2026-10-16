@@ -1,0 +1,347 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import Faq from '../components/Faq.astro';
+import Ripple from '../components/Ripple.astro';
+import Closing from '../components/Closing.astro';
+import { concessions, introOffer, memberships, passes } from '../data/pricing';
+import { faqPage } from '@core/lib/jsonld.js';
+
+const questions = [
+    { question: 'Can I pause my membership?', answer: 'Yes. Monthly and annual memberships can be frozen for up to two months a year, for travel, illness, a new baby or anything else. Tell the desk a few days ahead.' },
+    { question: 'Do passes run out?', answer: 'Five-class passes last three months and ten-class passes six. If life gets in the way, ask: we would rather extend a pass than lose a student.' },
+    { question: 'Can I share a pass?', answer: 'Ten-class passes can be shared with one other named person. Memberships are for one.' },
+    { question: 'How do concessions work?', answer: 'Tell us at the desk. We do not ask for proof. Pay-what-you-can on Sunday restorative is open to everyone, every week.' },
+];
+---
+
+<Base
+    title="Pricing and memberships"
+    description="Yoga class prices at Still Water in Alderwick: a $40 three-week intro offer, drop-ins, class passes, monthly and annual memberships, and concessions."
+    breadcrumbs={[{ name: 'Pricing', href: '/pricing/' }]}
+    jsonLd={[faqPage(questions)]}
+>
+    <PageHead
+        label="Pricing"
+        heading="Simple prices, *no small print*"
+        lead="Start with three weeks for $40. After that, come as often as suits you: a pass for now and then, a membership for most weeks. Mats are always free."
+    />
+
+    <section class="intro">
+        <div class="wide">
+            <div class="intro-card reveal">
+                <Ripple class="spread intro-ripple" rings={4} />
+                <div class="intro-price">
+                    <p class="label">{introOffer.name}</p>
+                    <p class="price">{introOffer.price}</p>
+                    <p class="per">{introOffer.per}</p>
+                </div>
+                <div class="intro-text">
+                    <p>{introOffer.note}</p>
+                    <a class="button" href="/new-students/">Claim the intro offer</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="plans band" aria-labelledby="memberships-heading">
+        <div class="wide">
+            <h2 id="memberships-heading" class="reveal">Memberships</h2>
+            <ul class="plan-list reveal-list">
+                {
+                    memberships.map((plan) => (
+                        <li class:list={['plan', { featured: plan.featured }]}>
+                            {plan.featured && <p class="tag">Most people choose this</p>}
+                            <h3>{plan.name}</h3>
+                            <p class="amount">
+                                <span class="price">{plan.price}</span> <span class="per">{plan.per}</span>
+                            </p>
+                            <p class="note">{plan.note}</p>
+                            <ul class="includes">
+                                {plan.includes.map((line) => <li>{line}</li>)}
+                            </ul>
+                        </li>
+                    ))
+                }
+            </ul>
+        </div>
+    </section>
+
+    <section class="passes band" aria-labelledby="passes-heading">
+        <div class="wide passes-inner">
+            <div class="reveal">
+                <h2 id="passes-heading">Passes</h2>
+                <p class="muted">For now and then. Pay at the desk, by card or cash.</p>
+            </div>
+            <dl class="pass-list">
+                {
+                    passes.map((pass) => (
+                        <div class="reveal">
+                            <dt>
+                                {pass.name}
+                                <span>{pass.note}</span>
+                            </dt>
+                            <dd>
+                                {pass.price}
+                                <span>{pass.per}</span>
+                            </dd>
+                        </div>
+                    ))
+                }
+            </dl>
+        </div>
+    </section>
+
+    <section class="kind band">
+        <div class="wide kind-inner reveal">
+            <h2>Yoga should not <em>depend on money</em></h2>
+            <ul>
+                {concessions.map((line) => <li>{line}</li>)}
+            </ul>
+        </div>
+    </section>
+
+    <section class="questions band" aria-labelledby="faq-heading">
+        <div class="wide questions-inner">
+            <h2 id="faq-heading" class="reveal">About <em>paying</em></h2>
+            <Faq items={questions} />
+        </div>
+    </section>
+
+    <Closing />
+</Base>
+
+<style>
+    .intro-card {
+        position: relative;
+        display: grid;
+        gap: var(--space-8);
+        padding: clamp(2rem, 1rem + 4vw, 5rem);
+        overflow: hidden;
+        border-radius: var(--radius);
+        background: var(--color-sage-mist);
+    }
+
+    .intro-card :global(.intro-ripple) {
+        top: -8rem;
+        right: -8rem;
+        width: 30rem;
+        --ring-color: var(--color-sage);
+    }
+
+    .intro-price,
+    .intro-text {
+        position: relative;
+    }
+
+    .intro-price .label {
+        margin-bottom: var(--space-2);
+    }
+
+    .price {
+        margin: 0;
+        font-family: var(--font-serif);
+        font-size: clamp(4.5rem, 3rem + 6vw, 8.5rem);
+        font-weight: 300;
+        line-height: 1;
+    }
+
+    .per {
+        margin: 0;
+        color: var(--color-muted);
+        font-family: var(--font-serif);
+        font-size: 1.6rem;
+        font-style: italic;
+    }
+
+    .intro-text p {
+        max-width: 28rem;
+        font-size: 1.15rem;
+    }
+
+    @media (min-width: 56rem) {
+        .intro-card {
+            grid-template-columns: auto minmax(0, 1fr);
+            align-items: center;
+            gap: var(--space-20);
+        }
+    }
+
+    .plans h2,
+    .passes h2 {
+        margin-bottom: var(--space-12);
+    }
+
+    .plan-list {
+        display: grid;
+        gap: var(--space-8);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .plan {
+        padding: var(--space-8) 0 0;
+        border-top: 1px solid var(--color-ink);
+    }
+
+    .plan h3 {
+        margin-bottom: var(--space-4);
+    }
+
+    .tag {
+        margin: 0 0 var(--space-3);
+        color: var(--color-clay-ink);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+    }
+
+    .amount {
+        margin: 0 0 var(--space-3);
+    }
+
+    .amount .price {
+        font-size: 3.4rem;
+    }
+
+    .amount .per {
+        font-size: 1.3rem;
+    }
+
+    .note {
+        color: var(--color-muted);
+    }
+
+    .includes {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .includes li {
+        position: relative;
+        padding: var(--space-2) 0 var(--space-2) var(--space-6);
+    }
+
+    .includes li::before {
+        content: '';
+        position: absolute;
+        top: 1.05rem;
+        left: 0;
+        width: 0.5rem;
+        height: 0.5rem;
+        border: 1px solid var(--color-clay);
+        border-radius: 50%;
+    }
+
+    @media (min-width: 60rem) {
+        .plan-list {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: var(--space-12);
+        }
+
+        .plan:nth-child(2) {
+            margin-top: var(--space-12);
+        }
+
+        .plan:nth-child(3) {
+            margin-top: var(--space-6);
+        }
+    }
+
+    .passes {
+        background: var(--color-paper);
+    }
+
+    .passes-inner {
+        display: grid;
+        gap: var(--space-8);
+    }
+
+    .pass-list {
+        margin: 0;
+    }
+
+    .pass-list div {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: var(--space-6);
+        padding: var(--space-6) 0;
+        border-top: 1px solid var(--color-line);
+    }
+
+    dt {
+        display: grid;
+        font-family: var(--font-serif);
+        font-size: 1.8rem;
+        line-height: 1.2;
+    }
+
+    dt span,
+    dd span {
+        color: var(--color-muted);
+        font-family: var(--font-sans);
+        font-size: 0.9rem;
+    }
+
+    dd {
+        display: grid;
+        justify-items: end;
+        margin: 0;
+        font-family: var(--font-serif);
+        font-size: 2.2rem;
+        line-height: 1.1;
+        text-align: right;
+        white-space: nowrap;
+    }
+
+    @media (min-width: 64rem) {
+        .passes-inner {
+            grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.6fr);
+            gap: var(--space-16);
+        }
+    }
+
+    .kind-inner {
+        display: grid;
+        gap: var(--space-8);
+    }
+
+    .kind ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .kind li {
+        padding: var(--space-4) 0;
+        border-top: 1px solid var(--color-line);
+        font-size: 1.1rem;
+    }
+
+    @media (min-width: 64rem) {
+        .kind-inner {
+            grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.3fr);
+            gap: var(--space-16);
+        }
+    }
+
+    .questions {
+        padding-top: 0;
+    }
+
+    .questions-inner {
+        display: grid;
+        gap: var(--space-10);
+    }
+
+    @media (min-width: 64rem) {
+        .questions-inner {
+            grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.4fr);
+            gap: var(--space-16);
+        }
+    }
+</style>

@@ -1,0 +1,269 @@
+---
+/**
+ * The new-student intro offer, received by the waffle app (docs/forms.md).
+ *
+ * It posts to /api/site/forms/intro-offer on this site; Caddy forwards that
+ * to the waffle app with the site key (docs/waffle-api.md). It works without
+ * script: the browser checks the fields, posts the form, and the app answers
+ * with a redirect to `thanks`. With script (src/scripts/forms.ts) it sends
+ * JSON and shows the answer in place, field by field.
+ *
+ * Fields: name, email, phone, experience, start_with.
+ */
+import { HONEYPOT } from '@core/lib/forms.js';
+import { classes } from '../data/classes';
+
+interface Props {
+    /** Where the app sends a browser without script after a good submission. */
+    thanks: string;
+    /** A class style to have chosen already, from the page the visitor came from. */
+    style?: string;
+    /** Distinguishes the ids when a page has the form more than once (it should not). */
+    id?: string;
+}
+
+const { thanks, style, id = 'intro' } = Astro.props;
+
+export const experiences = [
+    { value: 'none', label: 'Never tried it' },
+    { value: 'some', label: 'A few classes' },
+    { value: 'regular', label: 'I practise regularly' },
+    { value: 'returning', label: 'Coming back after a break' },
+];
+---
+
+<form class="form" method="post" action="/api/site/forms/intro-offer" data-site-form>
+    <input type="hidden" name="redirect" value={thanks} />
+
+    <div class="field">
+        <label for={`${id}-name`}>Your name</label>
+        <input id={`${id}-name`} name="name" type="text" autocomplete="name" required maxlength="100" />
+        <p class="error" data-error-for="name" hidden></p>
+    </div>
+
+    <div class="row">
+        <div class="field">
+            <label for={`${id}-email`}>Email</label>
+            <input id={`${id}-email`} name="email" type="email" autocomplete="email" required maxlength="254" />
+            <p class="error" data-error-for="email" hidden></p>
+        </div>
+
+        <div class="field">
+            <label for={`${id}-phone`}>Phone</label>
+            <input id={`${id}-phone`} name="phone" type="tel" autocomplete="tel" required maxlength="30" />
+            <p class="error" data-error-for="phone" hidden></p>
+        </div>
+    </div>
+
+    <fieldset class="field">
+        <legend>Your yoga so far</legend>
+        <div class="choices">
+            {
+                experiences.map((item, index) => (
+                    <label class="choice">
+                        <input type="radio" name="experience" value={item.value} required checked={index === 0} />
+                        <span>{item.label}</span>
+                    </label>
+                ))
+            }
+        </div>
+        <p class="error" data-error-for="experience" hidden></p>
+    </fieldset>
+
+    <div class="field">
+        <label for={`${id}-start`}>The class you would like to start with</label>
+        <select id={`${id}-start`} name="start_with" required>
+            {classes.map((item) => <option value={item.slug} selected={item.slug === (style ?? 'beginners')}>{item.name}: {item.line.toLowerCase()}</option>)}
+            <option value="unsure">Not sure yet: help me choose</option>
+        </select>
+        <p class="error" data-error-for="start_with" hidden></p>
+    </div>
+
+    <div class="trap" aria-hidden="true">
+        <label for={`${id}-website`}>Leave this empty</label>
+        <input id={`${id}-website`} name={HONEYPOT} type="text" tabindex="-1" autocomplete="off" />
+    </div>
+
+    <p class="status" role="status" aria-live="polite" data-status></p>
+
+    <div class="send">
+        <button class="button" type="submit">Claim three weeks for $40</button>
+        <p class="small">We will reply within a day with a welcome, and you pay at the desk on your first visit.</p>
+    </div>
+</form>
+
+<script>
+    import { enhanceForms } from '../scripts/forms';
+
+    enhanceForms(document);
+</script>
+
+<style>
+    .form {
+        display: grid;
+        gap: var(--space-8);
+    }
+
+    .row {
+        display: grid;
+        gap: var(--space-8);
+        grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+    }
+
+    .field {
+        display: grid;
+        gap: var(--space-2);
+        min-width: 0;
+        margin: 0;
+        padding: 0;
+        border: 0;
+    }
+
+    label,
+    legend {
+        color: var(--color-ink);
+        font-size: 0.9rem;
+        font-weight: 700;
+    }
+
+    legend {
+        margin-bottom: var(--space-3);
+    }
+
+    /* Fields are a single line under the words, like a page you write on. */
+    input:not([type='radio']),
+    select {
+        width: 100%;
+        min-height: 3.25rem;
+        padding: 0.6rem 0.1rem;
+        border: 0;
+        border-bottom: 1px solid var(--color-stone);
+        border-radius: 0;
+        background: transparent;
+        color: var(--color-ink);
+        font: inherit;
+        font-size: 1.1rem;
+        transition: border-color 0.6s var(--ease-settle), box-shadow 0.6s var(--ease-settle);
+    }
+
+    select {
+        appearance: none;
+        padding-right: 2rem;
+        background-image: linear-gradient(45deg, transparent 50%, var(--color-ink) 50%), linear-gradient(135deg, var(--color-ink) 50%, transparent 50%);
+        background-position: calc(100% - 0.9rem) 55%, calc(100% - 0.55rem) 55%;
+        background-size: 0.35rem 0.35rem;
+        background-repeat: no-repeat;
+        text-overflow: ellipsis;
+    }
+
+    input:not([type='radio']):focus,
+    select:focus {
+        border-color: var(--color-sage-deep);
+        outline: none;
+        box-shadow: 0 1px 0 0 var(--color-sage-deep);
+    }
+
+    input:not([type='radio']):focus-visible,
+    select:focus-visible {
+        outline: 2px solid var(--color-focus);
+        outline-offset: 4px;
+    }
+
+    .choices {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+    }
+
+    .choice {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        padding: 0.55rem 1.1rem;
+        border: 1px solid var(--color-line);
+        border-radius: 999px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.6s var(--ease-settle), border-color 0.6s var(--ease-settle);
+    }
+
+    .choice input {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .choice:hover {
+        border-color: var(--color-stone);
+    }
+
+    .choice:has(input:checked) {
+        border-color: var(--color-sage-deep);
+        background: var(--color-sage-mist);
+    }
+
+    .choice:has(input:focus-visible) {
+        outline: 2px solid var(--color-focus);
+        outline-offset: 3px;
+    }
+
+    [aria-invalid='true'] {
+        border-color: var(--color-error);
+    }
+
+    .error {
+        margin: 0;
+        color: var(--color-error);
+        font-size: 0.9rem;
+    }
+
+    .status:empty {
+        display: none;
+    }
+
+    .status {
+        margin: 0;
+        font-family: var(--font-serif);
+        font-size: 1.5rem;
+        font-style: italic;
+    }
+
+    .status[data-kind='sent'] {
+        color: var(--color-success);
+    }
+
+    .status[data-kind='invalid'],
+    .status[data-kind='failed'] {
+        color: var(--color-error);
+    }
+
+    /* Off screen rather than display:none, which some bots check for. */
+    .trap {
+        position: absolute;
+        left: -10000px;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+    }
+
+    .send {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-4) var(--space-6);
+    }
+
+    .small {
+        flex: 1 1 16rem;
+        margin: 0;
+        color: var(--color-muted);
+        font-size: 0.9rem;
+    }
+
+    @media (max-width: 40rem) {
+        .send .button {
+            width: 100%;
+        }
+    }
+</style>

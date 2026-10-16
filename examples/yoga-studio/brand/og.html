@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="fonts.css">
+<style>
+  html, body { margin: 0; width: 1200px; height: 630px; overflow: hidden; }
+  body { position: relative; background: #f3eee5; font-family: 'Nunito Sans', sans-serif; color: #2a2f2b; }
+  .rings span { position: absolute; border: 1.5px solid #a49c8f; border-radius: 50%; }
+  .orb { position: absolute; top: 95px; right: 110px; width: 440px; height: 440px; border-radius: 50%; overflow: hidden; }
+  .orb img { width: 100%; height: 100%; object-fit: cover; object-position: 45% 60%; }
+  .copy { position: absolute; left: 90px; top: 0; bottom: 0; width: 560px; display: flex; flex-direction: column; justify-content: center; }
+  .mark { display: flex; align-items: center; gap: 18px; margin-bottom: 48px; }
+  .mark svg { width: 70px; height: 70px; }
+  .mark span { font-size: 15px; font-weight: 700; letter-spacing: 0.3em; text-transform: uppercase; color: #4c5e4d; }
+  h1 { margin: 0; font-family: 'Cormorant', serif; font-weight: 300; font-size: 112px; line-height: 0.92; letter-spacing: -0.025em; }
+  h1 em { display: block; color: #8a462d; font-style: italic; }
+  p { margin: 36px 0 0; font-size: 24px; line-height: 1.45; color: #555a54; max-width: 470px; }
+  .dot { position: absolute; width: 14px; height: 14px; border-radius: 50%; background: #b8704f; top: 64px; right: 323px; }
+</style>
+</head>
+<body>
+  <div class="rings">
+    <span style="top:55px; right:70px; width:520px; height:520px; opacity:.55"></span>
+    <span style="top:15px; right:30px; width:600px; height:600px; opacity:.35"></span>
+    <span style="top:-30px; right:-15px; width:690px; height:690px; opacity:.2"></span>
+  </div>
+  <div class="orb"><img src="../src/assets/photos/river-mist.jpg" alt=""></div>
+  <div class="dot"></div>
+  <div class="copy">
+    <div class="mark">
+      <svg viewBox="0 0 48 48">
+        <circle cx="24" cy="24" r="22.5" fill="none" stroke="#4c5e4d" stroke-width="1" opacity="0.4"/>
+        <circle cx="24" cy="24" r="16" fill="none" stroke="#4c5e4d" stroke-width="1" opacity="0.65"/>
+        <path d="M15.5 24.6a8.5 8.5 0 0 1 17 0Z" fill="#b8704f"/>
+        <path d="M14.5 27.6h19M18 31h12M21.5 34.4h5" fill="none" stroke="#4c5e4d" stroke-width="1.3" stroke-linecap="round"/>
+      </svg>
+      <span>Still Water Yoga</span>
+    </div>
+    <h1>Arrive. Breathe. <em>Stay a while.</em></h1>
+    <p>An unhurried yoga studio in the old boathouse on the River Alder, Alderwick.</p>
+  </div>
+</body>
+</html>

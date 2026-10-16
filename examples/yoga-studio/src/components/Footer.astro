@@ -1,0 +1,198 @@
+---
+/**
+ * The footer: the studio's name, address, phone and hours on every page,
+ * written exactly as in src/site.ts, then the links. A deep river-green
+ * ground with one wide, slow ripple behind the address.
+ */
+import Logo from './Logo.astro';
+import { addressLine, site } from '../site';
+import { buildTime } from '@core/settings';
+
+const dayRange = (days: readonly string[]) =>
+    days.length === 1 ? days[0] : `${(days[0] ?? '').slice(0, 3)}–${(days[days.length - 1] ?? '').slice(0, 3)}`;
+const clock = (time: string) => {
+    const [hours = 0, minutes = 0] = time.split(':').map(Number);
+
+    return `${hours % 12 === 0 ? 12 : hours % 12}:${String(minutes).padStart(2, '0')} ${hours < 12 ? 'am' : 'pm'}`;
+};
+---
+
+<footer class="site-footer">
+    <div class="rings" aria-hidden="true"><span></span><span></span><span></span></div>
+    <div class="wide grid">
+        <div class="brand">
+            <Logo tone="light" />
+            <p class="tagline">{site.tagline}. Come as you are; leave a little slower.</p>
+            <address>
+                <span>{addressLine}</span>
+                <a href={`tel:${site.business.phoneE164}`}>{site.business.phone}</a>
+                <a href={`mailto:${site.business.email}`}>{site.business.email}</a>
+            </address>
+            <p class="hours">
+                {
+                    site.business.hours.map((hours) => (
+                        <span>
+                            {dayRange(hours.days)} · {clock(hours.opens)} – {clock(hours.closes)}
+                        </span>
+                    ))
+                }
+                <span class="note">{site.business.note}</span>
+            </p>
+        </div>
+        {
+            site.footer.map((column) => (
+                <nav aria-label={column.heading}>
+                    <h2>{column.heading}</h2>
+                    <ul>
+                        {column.links.map((link) => (
+                            <li>
+                                <a href={link.href}>{link.label}</a>
+                            </li>
+                        ))}
+                    </ul>
+                </nav>
+            ))
+        }
+    </div>
+    <div class="wide legal">
+        <p>© {buildTime.getUTCFullYear()} {site.business.legalName} · Teaching on the river since {site.business.founded}</p>
+        <p><a href="/privacy/">Privacy</a> · <a href="/credits/">Photo credits</a> · <a href="/blog/rss.xml">RSS</a></p>
+    </div>
+</footer>
+
+<style>
+    .site-footer {
+        position: relative;
+        padding: var(--space-24) 0 var(--space-8);
+        overflow: hidden;
+        background: var(--color-forest);
+        color: var(--color-on-forest-muted);
+        font-size: 0.95rem;
+    }
+
+    .rings {
+        position: absolute;
+        top: -14rem;
+        left: -10rem;
+        width: 36rem;
+        height: 36rem;
+        pointer-events: none;
+    }
+
+    .rings span {
+        position: absolute;
+        inset: 0;
+        border: 1px solid rgb(239 233 221 / 0.08);
+        border-radius: 50%;
+    }
+
+    .rings span:nth-child(2) {
+        inset: 5rem;
+    }
+
+    .rings span:nth-child(3) {
+        inset: 10rem;
+    }
+
+    .grid {
+        position: relative;
+        display: grid;
+        gap: var(--space-12) var(--space-8);
+        grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+    }
+
+    .brand {
+        grid-column: 1 / -1;
+        max-width: 26rem;
+    }
+
+    @media (min-width: 64rem) {
+        .grid {
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+        }
+
+        .brand {
+            grid-column: auto;
+        }
+    }
+
+    .tagline {
+        margin: var(--space-6) 0;
+        color: var(--color-on-forest);
+        font-family: var(--font-serif);
+        font-size: 1.35rem;
+        font-style: italic;
+        line-height: 1.35;
+    }
+
+    address {
+        display: grid;
+        gap: var(--space-1);
+        margin-bottom: var(--space-5);
+        font-style: normal;
+    }
+
+    address a,
+    address span {
+        color: var(--color-on-forest);
+        text-decoration: none;
+    }
+
+    .hours {
+        display: grid;
+        gap: var(--space-1);
+    }
+
+    .note {
+        margin-top: var(--space-2);
+        font-style: italic;
+    }
+
+    h2 {
+        margin-bottom: var(--space-5);
+        color: var(--color-on-forest);
+        font-family: var(--font-sans);
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+    }
+
+    ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    li + li {
+        margin-top: var(--space-2);
+    }
+
+    nav a,
+    .legal a {
+        color: var(--color-on-forest-muted);
+        text-decoration: none;
+    }
+
+    nav a:hover,
+    .legal a:hover,
+    address a:hover {
+        color: #ffffff;
+    }
+
+    .legal {
+        position: relative;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: var(--space-4);
+        margin-top: var(--space-20);
+        padding-top: var(--space-6);
+        border-top: 1px solid rgb(239 233 221 / 0.14);
+        font-size: 0.85rem;
+    }
+
+    .legal p {
+        margin: 0;
+    }
+</style>

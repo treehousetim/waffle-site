@@ -1,0 +1,157 @@
+---
+/**
+ * The mark and the name. The mark is a low sun on still water: a half disc,
+ * its reflection in three shortening lines, and two rings spreading from it
+ * like ripples (they spread, slowly, in the header). Drawn here, inline, so
+ * the page's own styles reach it; public/favicon.svg is the same drawing.
+ * The mark is decorative, so the name is the link's text.
+ */
+import { site } from '../site';
+
+interface Props {
+    tone?: 'dark' | 'light';
+    /** Animate the ripples (the header's logo; not the footer's). */
+    ripple?: boolean;
+}
+
+const { tone = 'dark', ripple = false } = Astro.props;
+---
+
+<a class:list={['logo', tone, { ripple }]} href="/">
+    <svg class="mark" viewBox="0 0 48 48" width="44" height="44" aria-hidden="true" focusable="false">
+        <circle class="ring ring-outer" cx="24" cy="24" r="22.5" fill="none" stroke="currentColor" stroke-width="0.9" />
+        <circle class="ring ring-inner" cx="24" cy="24" r="16" fill="none" stroke="currentColor" stroke-width="0.9" />
+        <path class="sun" d="M15.5 24.6a8.5 8.5 0 0 1 17 0Z" />
+        <path class="water" d="M14.5 27.6h19M18 31h12M21.5 34.4h5" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" />
+    </svg>
+    <span class="words">
+        <span class="name">Still Water</span>
+        <span class="kind">Yoga · Alderwick</span>
+    </span>
+    <span class="visually-hidden">, {site.name}, home</span>
+</a>
+
+<style>
+    .logo {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-3);
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    .mark {
+        flex: none;
+        overflow: visible;
+    }
+
+    .ring {
+        transform-box: fill-box;
+        transform-origin: center;
+    }
+
+    .ring-outer {
+        opacity: 0.38;
+    }
+
+    .ring-inner {
+        opacity: 0.62;
+    }
+
+    .sun {
+        fill: var(--color-clay);
+    }
+
+    .words {
+        display: grid;
+        line-height: 1;
+    }
+
+    .name {
+        font-family: var(--font-serif);
+        font-size: 1.6rem;
+        font-weight: 450;
+        letter-spacing: -0.01em;
+    }
+
+    .kind {
+        margin-top: 0.3rem;
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.28em;
+        text-transform: uppercase;
+    }
+
+    .dark {
+        color: var(--color-ink);
+    }
+
+    .dark .mark {
+        color: var(--color-sage-deep);
+    }
+
+    .dark .kind {
+        color: var(--color-sage-deep);
+    }
+
+    .light {
+        color: var(--color-on-forest);
+    }
+
+    .light .mark,
+    .light .kind {
+        color: var(--color-on-forest-muted);
+    }
+
+    .logo:hover {
+        color: inherit;
+    }
+
+    .logo:hover .light {
+        color: var(--color-on-forest);
+    }
+
+    /* Ripples spread from the sun and fade, one after the other, slowly. */
+    @media (prefers-reduced-motion: no-preference) {
+        .ripple .ring {
+            animation: logo-ripple 9s var(--ease-breath) infinite;
+        }
+
+        .ripple .ring-inner {
+            animation-delay: -4.5s;
+        }
+
+        .ripple .sun {
+            animation: logo-sun 9s var(--ease-breath) infinite;
+            transform-box: fill-box;
+            transform-origin: 50% 100%;
+        }
+    }
+
+    @keyframes logo-ripple {
+        0% {
+            transform: scale(0.55);
+            opacity: 0;
+        }
+
+        30% {
+            opacity: 0.7;
+        }
+
+        100% {
+            transform: scale(1.08);
+            opacity: 0;
+        }
+    }
+
+    @keyframes logo-sun {
+        0%,
+        100% {
+            transform: translateY(0.6px) scale(0.96);
+        }
+
+        45% {
+            transform: translateY(-0.4px) scale(1.03);
+        }
+    }
+</style>

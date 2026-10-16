@@ -1,0 +1,271 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import Photo from '../components/Photo.astro';
+import Ripple from '../components/Ripple.astro';
+import Closing from '../components/Closing.astro';
+import { site } from '../site';
+
+const room = [
+    { figure: '15', text: 'mats, with room between them' },
+    { figure: '12', text: 'in a beginners class, at most' },
+    { figure: '1923', text: 'the year the boathouse was built' },
+    { figure: '0', text: 'mirrors, music videos or heat' },
+];
+---
+
+<Base
+    title="About the studio"
+    description="Still Water Yoga is a small, independent yoga studio in a restored 1923 boathouse on the River Alder in Alderwick. Our story, the room and how we teach."
+    breadcrumbs={[{ name: 'About', href: '/about/' }]}
+>
+    <PageHead
+        label="The studio"
+        heading="An old boathouse, *a slow river*"
+        lead={`Still Water opened in ${site.business.founded} in the boathouse at the end of Ferry Lane: one long room of pale wood, windows on three sides, and the River Alder moving quietly under the floor.`}
+        photo="studioRoom"
+    />
+
+    <section class="story band">
+        <div class="wide story-inner">
+            <div class="prose-like reveal">
+                <p class="first">The boathouse was built in 1923 for the Alderwick rowing club, and spent most of the century after that full of boats and, later, nothing much. When Maya Lindqvist first saw it, the floor was rotten and there was a family of swallows in the rafters.</p>
+                <p>It took a year, a lot of help and every penny she had to make it into a studio. The swallows are still there in summer. So is the heron that stands on the jetty every morning while the six forty-five class does its sun salutations.</p>
+                <p>We are independent and intend to stay that way: no franchise, no investors, no app to download. Five teachers who love what they do, a front desk that knows your name, and a timetable built around the people who actually come.</p>
+            </div>
+            <div class="story-photo reveal">
+                <Photo name="riverMist" sizes="(min-width: 64rem) 30vw, 90vw" class="parallax" />
+            </div>
+        </div>
+    </section>
+
+    <section class="numbers band" aria-labelledby="room-heading">
+        <Ripple class="spread numbers-ripple" rings={4} />
+        <div class="wide">
+            <h2 id="room-heading" class="reveal">The room, <em>in numbers</em></h2>
+            <ul class="figures reveal-list">
+                {
+                    room.map((item) => (
+                        <li>
+                            <span class="figure">{item.figure}</span>
+                            <span class="what">{item.text}</span>
+                        </li>
+                    ))
+                }
+            </ul>
+        </div>
+    </section>
+
+    <section class="beliefs band" aria-labelledby="beliefs-heading">
+        <div class="wide beliefs-inner">
+            <h2 id="beliefs-heading" class="reveal">What we <em>believe</em></h2>
+            <dl>
+                <div class="reveal">
+                    <dt>Slow is not easy</dt>
+                    <dd>Moving slowly and staying still are skills. They take practice, and they are worth it.</dd>
+                </div>
+                <div class="reveal">
+                    <dt>Every body is the right body</dt>
+                    <dd>Props are for everyone, options are always offered, and nobody is ever too stiff, too old or too new.</dd>
+                </div>
+                <div class="reveal">
+                    <dt>Rest is part of the practice</dt>
+                    <dd>Every class ends lying down, for as long as it takes. Leaving early to beat the traffic is allowed but frowned on.</dd>
+                </div>
+                <div class="reveal">
+                    <dt>A studio is a neighbourhood</dt>
+                    <dd>Tea after class, a noticeboard by the door, pay-what-you-can on Sundays. We would like you to know the people on the mats beside you.</dd>
+                </div>
+            </dl>
+        </div>
+    </section>
+
+    <section class="tea">
+        <div class="wide tea-inner">
+            <div class="tea-photo reveal">
+                <Photo name="teaAndCandle" sizes="(min-width: 64rem) 28vw, 70vw" class="drift" />
+            </div>
+            <div class="reveal">
+                <p class="label">Visiting</p>
+                <h2>Find <em>the boathouse</em></h2>
+                <p>At the end of Ferry Lane, past the old ferry steps; the door faces the water. Parking on the lane, a bike rack by the porch, and the river path runs right past us from the town bridge, eight minutes on foot.</p>
+                <a class="arrow-link" href="/contact/">Contact and directions</a>
+            </div>
+        </div>
+    </section>
+
+    <Closing />
+</Base>
+
+<style>
+    .story-inner {
+        display: grid;
+        gap: var(--space-12);
+    }
+
+    .prose-like {
+        max-width: 38rem;
+        font-size: 1.1rem;
+    }
+
+    .first {
+        font-family: var(--font-serif);
+        font-size: clamp(1.6rem, 1.3rem + 1.1vw, 2.3rem);
+        font-weight: 350;
+        line-height: 1.3;
+    }
+
+    .story-photo {
+        overflow: hidden;
+        width: min(100%, 22rem);
+        aspect-ratio: 3 / 4;
+        border-radius: var(--radius-pebble);
+        justify-self: end;
+    }
+
+    .story-photo :global(img) {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    @media (min-width: 64rem) {
+        .story-inner {
+            grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.8fr);
+            gap: var(--space-20);
+            align-items: end;
+        }
+
+        .story-photo {
+            margin-bottom: -6rem;
+        }
+    }
+
+    .numbers {
+        position: relative;
+        overflow: hidden;
+        background: var(--color-paper);
+    }
+
+    .numbers :global(.numbers-ripple) {
+        top: -18rem;
+        right: -12rem;
+        width: 36rem;
+    }
+
+    .numbers h2 {
+        position: relative;
+        margin-bottom: var(--space-16);
+    }
+
+    .figures {
+        position: relative;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: var(--space-12) var(--space-6);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .figures li {
+        display: grid;
+        gap: var(--space-2);
+        padding-top: var(--space-5);
+        border-top: 1px solid var(--color-ink);
+    }
+
+    .figure {
+        font-family: var(--font-serif);
+        font-size: clamp(3.5rem, 2.5rem + 4vw, 6.5rem);
+        font-weight: 300;
+        line-height: 1;
+    }
+
+    .what {
+        color: var(--color-muted);
+    }
+
+    @media (min-width: 64rem) {
+        .figures {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: var(--space-10);
+        }
+
+        .figures li:nth-child(even) {
+            margin-top: var(--space-12);
+        }
+    }
+
+    .beliefs-inner {
+        display: grid;
+        gap: var(--space-10);
+    }
+
+    dl {
+        margin: 0;
+    }
+
+    dl div {
+        padding: var(--space-6) 0;
+        border-top: 1px solid var(--color-line);
+    }
+
+    dt {
+        margin-bottom: var(--space-2);
+        font-family: var(--font-serif);
+        font-size: 1.8rem;
+        font-style: italic;
+        line-height: 1.2;
+    }
+
+    dd {
+        margin: 0;
+        color: var(--color-muted);
+    }
+
+    @media (min-width: 64rem) {
+        .beliefs-inner {
+            grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.4fr);
+            gap: var(--space-16);
+        }
+    }
+
+    .tea {
+        padding-bottom: var(--space-12);
+    }
+
+    .tea-inner {
+        display: grid;
+        gap: var(--space-12);
+        align-items: center;
+    }
+
+    .tea-photo {
+        overflow: hidden;
+        width: min(80%, 22rem);
+        aspect-ratio: 1;
+        border-radius: 50%;
+    }
+
+    .tea-photo :global(img) {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .tea-inner p:not(.label) {
+        max-width: 34rem;
+    }
+
+    @media (min-width: 64rem) {
+        .tea-inner {
+            grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+            gap: var(--space-20);
+        }
+
+        .tea-photo {
+            justify-self: center;
+        }
+    }
+</style>
