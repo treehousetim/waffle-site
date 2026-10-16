@@ -1,0 +1,237 @@
+---
+/**
+ * Packages and pricing, from the waffle app at build time
+ * (GET /api/site/packages, checked by src/lib/packages.ts before anything
+ * renders). A development build reads api-fixtures/ instead. The page ships
+ * with the prices in it; they are as fresh as the last build.
+ */
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import RateCard from '../components/RateCard.astro';
+import Faq from '../components/Faq.astro';
+import { waffle } from '@core/settings';
+import { settings } from '@core/settings';
+import { formatHours, formatMoney, parsePackages } from '../lib/packages';
+import { faqPage } from '@core/lib/jsonld.js';
+
+const packages = parsePackages(await waffle.get('/api/site/packages'));
+const updated = new Date(`${packages.updated}T12:00:00Z`).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
+const per = { hour: 'per hour', item: 'each', day: 'per day' } as const;
+const lowest = Math.min(...packages.collections.map((item) => item.priceCents));
+
+const always = [
+    'Both of us at every wedding of six hours or more',
+    'A planning call, and a written timeline built around the light',
+    'Every finished photograph, colour-graded by hand, in full resolution',
+    'A private online gallery to share and download from',
+    'A print release: print them anywhere, as often as you like',
+    'Travel anywhere on the Saltgrass Coast and in the Calder Hills',
+];
+
+const questions = [
+    { question: 'How do we book a date?', answer: 'Send an enquiry. We reply within two working days, hold the date for a week while you decide, and confirm it with a signed agreement and a 30% retainer.' },
+    { question: 'When is the rest paid?', answer: 'The balance is due a month before the day. We take bank transfer or card, and we are happy to split the balance into payments.' },
+    { question: 'Do you travel further afield?', answer: 'Yes. Travel on the coast and in the hills is included; further afield we charge travel and a night’s stay at cost, and say so in writing first.' },
+    { question: 'Can we change package later?', answer: 'Yes, up to a month before. Plenty of couples add an hour or an album once the plan takes shape.' },
+];
+
+const catalog = {
+    '@type': 'OfferCatalog',
+    '@id': `${settings.siteUrl}/packages/#catalog`,
+    name: `Photography packages, ${packages.season}`,
+    itemListElement: packages.collections.map((item) => ({
+        '@type': 'Offer',
+        name: item.name,
+        description: item.summary,
+        price: (item.priceCents / 100).toFixed(2),
+        priceCurrency: packages.currency,
+        seller: { '@id': `${settings.siteUrl}/#organization` },
+    })),
+};
+---
+
+<Base
+    title="Packages & pricing"
+    description={`Wedding, elopement and portrait photography packages from ${formatMoney(lowest, packages.currency)}: hours of coverage, what is included, and the add-ons.`}
+    breadcrumbs={[{ name: 'Packages', href: '/packages/' }]}
+    jsonLd={[catalog, faqPage(questions)]}
+>
+    <PageHead
+        no="03"
+        label={`Packages · the ${packages.season} season`}
+        heading="Packages"
+        italic="& pricing."
+        lead="Five ways to work with us, priced openly. Every package can grow by the hour, and every one ends with all of your photographs, finished by hand."
+    >
+        <p class="updated">Prices as of {updated}.</p>
+    </PageHead>
+
+    <section class="page rates" aria-label="The packages">
+        <RateCard packages={packages} />
+    </section>
+
+    <section class="band">
+        <div class="page split">
+            <div>
+                <p class="kicker"><span class="no">i.</span> In every package</p>
+                <h2>What never costs extra</h2>
+            </div>
+            <ul class="always">
+                {always.map((line) => <li class="rise">{line}</li>)}
+            </ul>
+        </div>
+    </section>
+
+    <section class="band band-ink">
+        <div class="page split">
+            <div>
+                <p class="kicker"><span class="no">ii.</span> Add-ons</p>
+                <h2>A little more</h2>
+                <p class="standfirst">Added to any package, at any time up to a month before.</p>
+            </div>
+            <table class="addons">
+                <caption class="visually-hidden">Add-ons and their prices</caption>
+                <thead>
+                    <tr><th scope="col">Add-on</th><th scope="col">Price</th></tr>
+                </thead>
+                <tbody>
+                    {
+                        packages.addOns.map((item) => (
+                            <tr>
+                                <th scope="row">{item.name}</th>
+                                <td>
+                                    {formatMoney(item.priceCents, packages.currency)} <span>{per[item.per]}</span>
+                                </td>
+                            </tr>
+                        ))
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="band">
+        <div class="page split">
+            <div>
+                <p class="kicker"><span class="no">iii.</span> Booking</p>
+                <h2>About paying</h2>
+                <p class="note">The shortest package is {formatHours(Math.min(...packages.collections.map((item) => item.hours)))}; the longest, {formatHours(Math.max(...packages.collections.map((item) => item.hours)))}.</p>
+            </div>
+            <Faq items={questions} />
+        </div>
+        <div class="page closing">
+            <a class="button" href="/enquire/">Check your date</a>
+            <a class="arrow-link" href="/experience/">How a booking unfolds</a>
+        </div>
+    </section>
+</Base>
+
+<style>
+    .updated {
+        margin: 0;
+        color: var(--faint);
+        font-size: 0.85rem;
+        letter-spacing: 0.04em;
+    }
+
+    .rates {
+        padding-bottom: var(--space-8);
+    }
+
+    .split {
+        display: grid;
+        gap: var(--space-10) var(--space-16);
+        align-items: start;
+    }
+
+    .always {
+        display: grid;
+        gap: 0;
+        margin: 0;
+        padding: 0;
+        border-top: 1px solid var(--rule-strong);
+        list-style: none;
+        counter-reset: always;
+    }
+
+    .always li {
+        display: grid;
+        grid-template-columns: 3rem 1fr;
+        padding: var(--space-5) 0;
+        border-bottom: 1px solid var(--rule);
+        font-family: var(--font-display);
+        font-size: clamp(1.2rem, 1.05rem + 0.5vw, 1.45rem);
+        line-height: 1.3;
+        counter-increment: always;
+    }
+
+    .always li::before {
+        content: counter(always, lower-roman) '.';
+        color: var(--accent);
+        font-style: italic;
+    }
+
+    .addons {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .addons thead th {
+        padding-bottom: var(--space-3);
+        color: var(--on-ink-muted);
+        font-size: 0.72rem;
+        font-weight: 500;
+        letter-spacing: 0.22em;
+        text-align: left;
+        text-transform: uppercase;
+    }
+
+    .addons thead th:last-child,
+    .addons td {
+        text-align: right;
+    }
+
+    .addons tbody tr {
+        border-top: 1px solid color-mix(in srgb, var(--on-ink) 22%, transparent);
+    }
+
+    .addons tbody th,
+    .addons td {
+        padding: var(--space-5) 0;
+        font-family: var(--font-display);
+        font-size: clamp(1.15rem, 1rem + 0.5vw, 1.4rem);
+        font-weight: 400;
+        text-align: left;
+        vertical-align: baseline;
+    }
+
+    .addons td {
+        padding-left: var(--space-4);
+        text-align: right;
+        white-space: nowrap;
+    }
+
+    .addons td span {
+        color: var(--on-ink-muted);
+        font-family: var(--font-sans);
+        font-size: 0.8rem;
+    }
+
+    .note {
+        color: var(--muted);
+    }
+
+    .closing {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-6);
+        margin-top: var(--space-16);
+    }
+
+    @media (min-width: 64rem) {
+        .split {
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
+        }
+    }
+</style>

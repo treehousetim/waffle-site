@@ -1,0 +1,20 @@
+{
+  "success": true,
+  "data": {
+    "updated": "2026-10-14",
+    "months": [
+      { "month": "2026-11", "status": "limited", "open_dates": 2 },
+      { "month": "2026-12", "status": "open", "open_dates": 6 },
+      { "month": "2027-01", "status": "open", "open_dates": 8 },
+      { "month": "2027-02", "status": "open", "open_dates": 7 },
+      { "month": "2027-03", "status": "limited", "open_dates": 3 },
+      { "month": "2027-04", "status": "limited", "open_dates": 2 },
+      { "month": "2027-05", "status": "booked", "open_dates": 0 },
+      { "month": "2027-06", "status": "booked", "open_dates": 0 },
+      { "month": "2027-07", "status": "limited", "open_dates": 1 },
+      { "month": "2027-08", "status": "booked", "open_dates": 0 },
+      { "month": "2027-09", "status": "limited", "open_dates": 2 },
+      { "month": "2027-10", "status": "open", "open_dates": 5 }
+    ]
+  }
+}

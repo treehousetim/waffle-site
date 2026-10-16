@@ -1,0 +1,252 @@
+---
+/**
+ * /stories/<slug>/ for every story in src/data/stories.ts: the opener (its
+ * first photograph, which the story's card morphs into), the particulars,
+ * the story itself, the photographs as a spread with a full-screen viewer,
+ * a line from the couple, and the next story.
+ *
+ * Structured data: an ImageGallery of every photograph, with its caption
+ * and its real photographer's credit (the example photos are Unsplash
+ * stand-ins, credited honestly).
+ */
+import type { GetStaticPaths } from 'astro';
+import { getImage } from 'astro:assets';
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import Gallery from '../../components/Gallery.astro';
+import StoryCard from '../../components/StoryCard.astro';
+import { categories, categoryUrl, longDate, stories, storyUrl, type Story } from '../../data/stories';
+import { photos } from '../../data/photos';
+import { site } from '../../site';
+import { settings } from '@core/settings';
+import { absoluteUrl, canonicalUrl } from '@core/lib/seo.js';
+
+export const getStaticPaths = (() =>
+    stories.map((story, index) => ({
+        params: { slug: story.slug },
+        props: { story, index: index + 1, next: stories[(index + 1) % stories.length] as Story },
+    }))) satisfies GetStaticPaths;
+
+interface Props {
+    story: Story;
+    index: number;
+    next: Story;
+}
+
+const { story, index, next } = Astro.props;
+const category = categories.find((item) => item.slug === story.category) ?? categories[0];
+const singular = category.name.replace(/s$/, '');
+const combined = `${story.names}: ${story.title}`;
+const title = combined.length <= 48 ? combined : story.title;
+const url = canonicalUrl(Astro.url.pathname, settings.siteUrl);
+const first = story.frames[0];
+
+// Each photograph as the gallery's structured data and the link preview.
+const images = await Promise.all(
+    story.frames.map(async (frame) => {
+        const photo = photos[frame.photo];
+        const image = await getImage({ src: photo.src, width: 1600, format: 'jpg' });
+
+        return {
+            '@type': 'ImageObject',
+            contentUrl: absoluteUrl(image.src, settings.siteUrl),
+            width: image.attributes.width,
+            height: image.attributes.height,
+            caption: frame.caption,
+            description: photo.alt,
+            creditText: photo.credit.name,
+            license: 'https://unsplash.com/license',
+            acquireLicensePage: photo.credit.url,
+        };
+    }),
+);
+const preview = first ? await getImage({ src: photos[first.photo].src, width: 1200, height: 630, fit: 'cover', format: 'jpg' }) : null;
+const image = preview && first ? { src: absoluteUrl(preview.src, settings.siteUrl), alt: photos[first.photo].alt } : site.defaultImage;
+const gallery = {
+    '@type': 'ImageGallery',
+    '@id': `${url}#gallery`,
+    url,
+    name: `${story.names}: ${story.title}`,
+    description: story.summary,
+    datePublished: story.date,
+    contentLocation: { '@type': 'Place', name: story.place },
+    author: { '@id': `${settings.siteUrl}/#organization` },
+    image: images,
+};
+const facts = [
+    { term: 'The day', detail: longDate(story.date) },
+    { term: 'Where', detail: story.place },
+    { term: story.guests === null ? 'Sittings' : 'Guests', detail: story.guests === null ? 'Two, back to back' : story.guests === 2 ? 'Just the two of them' : String(story.guests) },
+    { term: 'Booked', detail: story.booked },
+];
+---
+
+<Base
+    title={title}
+    description={story.summary}
+    image={image}
+    breadcrumbs={[
+        { name: 'Stories', href: '/stories/' },
+        { name: story.names, href: storyUrl(story.slug) },
+    ]}
+    jsonLd={[gallery]}
+>
+    {
+        first && (
+            <PageHead
+                no={String(index).padStart(2, '0')}
+                label={`${singular} · ${story.place}`}
+                heading={story.names}
+                italic={story.title}
+                lead={story.summary}
+                photo={first.photo}
+                caption={first.caption}
+                photoHref={`#story-view-1`}
+                morph={`vt-story-${story.slug}`}
+            />
+        )
+    }
+
+    <section class="page particulars" aria-label="The particulars">
+        <dl>
+            {
+                facts.map((fact) => (
+                    <div>
+                        <dt>{fact.term}</dt>
+                        <dd>{fact.detail}</dd>
+                    </div>
+                ))
+            }
+        </dl>
+    </section>
+
+    <section class="page telling">
+        <p class="kicker side"><span class="no">i.</span> The story</p>
+        <div class="text dropcap">
+            {story.text.map((paragraph) => <p>{paragraph}</p>)}
+        </div>
+    </section>
+
+    <Gallery frames={story.frames} id="story" from={2} label={`Photographs from ${story.names}’s day`} />
+
+    <blockquote class="page pull rise">
+        <p>“{story.quote.text}”</p>
+        <footer>— {story.quote.by}</footer>
+    </blockquote>
+
+    <section class="band band-deep after">
+        <div class="page after-grid">
+            <div class="next">
+                <p class="rule-label">Next story</p>
+                <StoryCard story={next} index={stories.indexOf(next as (typeof stories)[number]) + 1} level="h2" shape="wide" sizes="(min-width: 64rem) 45vw, 100vw" />
+            </div>
+            <div class="more">
+                <p class="kicker"><span class="no">ii.</span> More like this</p>
+                <h2>More {category.name.toLowerCase()}, and how to book one</h2>
+                <p>{category.line}</p>
+                <p class="actions">
+                    <a class="button" href="/enquire/">Ask about your date</a>
+                    <a class="arrow-link" href={categoryUrl(category.slug)}>All {category.name.toLowerCase()}</a>
+                </p>
+            </div>
+        </div>
+    </section>
+</Base>
+
+<style>
+    .particulars {
+        padding-block: var(--space-10) var(--space-8);
+    }
+
+    dl {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+        gap: var(--space-6) var(--space-8);
+        margin: 0;
+        padding-top: var(--space-6);
+        border-top: 1px solid var(--rule-strong);
+    }
+
+    dt {
+        margin-bottom: var(--space-2);
+        color: var(--muted);
+        font-size: 0.72rem;
+        font-weight: 500;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+    }
+
+    dd {
+        margin: 0;
+        font-family: var(--font-display);
+        font-size: 1.3rem;
+        line-height: 1.3;
+    }
+
+    .telling {
+        display: grid;
+        gap: var(--space-6) var(--space-12);
+        padding-block: var(--space-12) var(--section);
+    }
+
+    .text {
+        max-width: var(--width-text);
+        font-size: 1.15rem;
+        line-height: 1.8;
+    }
+
+    .pull {
+        margin-block: var(--section);
+        padding: 0;
+        text-align: center;
+    }
+
+    .pull p {
+        max-width: 22ch;
+        margin: 0 auto var(--space-6);
+        font-family: var(--font-display);
+        font-size: clamp(2rem, 1.3rem + 3vw, 4rem);
+        font-style: italic;
+        line-height: 1.08;
+        letter-spacing: -0.02em;
+    }
+
+    .pull footer {
+        color: var(--accent);
+        font-size: 0.8rem;
+        font-weight: 500;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+    }
+
+    .after-grid {
+        display: grid;
+        gap: var(--space-16) var(--space-16);
+        align-items: end;
+    }
+
+    .more h2 {
+        font-size: clamp(2rem, 1.5rem + 2vw, 3.25rem);
+    }
+
+    .more p:not(.kicker, .actions) {
+        max-width: 30rem;
+        color: var(--muted);
+    }
+
+    @media (min-width: 64rem) {
+        .telling {
+            grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+        }
+
+        .side {
+            position: sticky;
+            top: calc(var(--header-height) + var(--space-8));
+            align-self: start;
+        }
+
+        .after-grid {
+            grid-template-columns: 1.2fr 1fr;
+        }
+    }
+</style>

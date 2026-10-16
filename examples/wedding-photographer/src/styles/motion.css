@@ -1,0 +1,381 @@
+/*
+ * Motion: slow, the way a good wedding film is slow. All CSS except the
+ * gallery viewer's keyboard and swipe (src/scripts/viewer.ts), so a page
+ * that never loads this file still reads perfectly.
+ *
+ *   - Pages turn with the browser's own view transitions (@view-transition):
+ *     the old page lifts away, the new one settles; the masthead stays put;
+ *     a story card's photograph grows into the story's hero.
+ *   - Openers rise in line by line; the logo draws itself and its sun
+ *     sinks into the vale and rises again, once every twenty seconds.
+ *   - Hero photographs drift (Ken Burns), very slowly, for as long as you look.
+ *   - Photographs in a story are uncovered by a curtain as they scroll into
+ *     view, and their captions slide in after them.
+ *   - On the home page the stories run sideways as you scroll down: a
+ *     horizontal track pinned to the screen. The places we work run past in
+ *     a marquee.
+ *   - The masthead gains its hairline as the page leaves the top; a journal
+ *     post shows how far through it you are.
+ *   - The film grain flickers, faintly.
+ *
+ * Scroll-driven rules are written as longhands, never the `animation`
+ * shorthand plus `animation-timeline`: the build's CSS minifier folds the
+ * pair into one shorthand with the timeline inside it, which browsers
+ * reject, and the animation silently never runs.
+ *
+ * Every rule is inside prefers-reduced-motion: no-preference, and the
+ * scroll-driven ones inside @supports as well: where either is missing the
+ * page is simply still, with nothing hidden. global.css switches every
+ * animation off under reduce.
+ */
+
+@view-transition {
+    navigation: auto;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    /* Page turns. */
+    ::view-transition-old(root) {
+        animation: 260ms var(--ease-out) both page-lift;
+    }
+
+    ::view-transition-new(root) {
+        animation: 520ms var(--ease-out) 60ms both page-settle;
+    }
+
+    .masthead {
+        view-transition-name: masthead;
+    }
+
+    /* Story photos morph: a card's photograph becomes the story's hero. One line per story (src/data/stories.ts). */
+    .vt-story-ines-and-callum { view-transition-name: story-ines-and-callum; }
+    .vt-story-margot-and-dev { view-transition-name: story-margot-and-dev; }
+    .vt-story-saoirse-and-jun { view-transition-name: story-saoirse-and-jun; }
+    .vt-story-autumn-sittings { view-transition-name: story-autumn-sittings; }
+
+    ::view-transition-group(*) {
+        animation-duration: 700ms;
+        animation-timing-function: cubic-bezier(0.65, 0, 0.2, 1);
+    }
+
+    ::view-transition-group(masthead) {
+        animation-duration: 0ms;
+    }
+
+    ::view-transition-old(*),
+    ::view-transition-new(*) {
+        height: 100%;
+        object-fit: cover;
+    }
+
+    /* Openers, on load: the kicker, the headline, then the standfirst. */
+    .opener .kicker,
+    .opener h1,
+    .opener .aside,
+    .hero .reveal {
+        animation: 900ms var(--ease-out) both rise-in;
+    }
+
+    .opener h1,
+    .hero .reveal:nth-child(2) { animation-delay: 90ms; }
+    .opener .aside,
+    .hero .reveal:nth-child(3) { animation-delay: 200ms; }
+    .hero .reveal:nth-child(4) { animation-delay: 320ms; }
+    .hero .reveal:nth-child(5) { animation-delay: 440ms; }
+
+    /* The headline's italic line wipes in from the left, like ink. */
+    .opener h1 em,
+    .hero h1 em {
+        animation: 1100ms var(--ease-curtain) 300ms both ink-wipe;
+    }
+
+    /* The opener's photograph opens like a curtain, then drifts. A story's
+       hero does not: it arrives by morphing out of the card you clicked. */
+    .opener-frame:not([class*='vt-story-']) {
+        animation: 1300ms var(--ease-curtain) 150ms both curtain-up;
+    }
+
+    /* Ken Burns: hero photographs drift for as long as you look at them. */
+    .opener-photo,
+    .hero-photo {
+        animation: ken-burns 34s ease-in-out 1.2s infinite alternate both;
+        transform-origin: 60% 40%;
+    }
+
+    /* The logo draws itself in, then its sun sinks into the vale and rises. */
+    .masthead .logo .frame,
+    .masthead .logo .vale {
+        stroke-dasharray: 1;
+        animation: 1600ms var(--ease-out) 200ms both draw;
+    }
+
+    .masthead .logo .vale {
+        animation-delay: 700ms;
+    }
+
+    .masthead .logo .sun {
+        animation:
+            700ms var(--ease-out) 1200ms both pop-in,
+            20s ease-in-out 3s infinite sunset;
+        transform-box: fill-box;
+        transform-origin: 50% 50%;
+    }
+
+    .logo:hover .sun {
+        animation-play-state: paused;
+    }
+
+    /* The places we work, running past. */
+    .marquee-track {
+        animation: marquee 48s linear infinite;
+    }
+
+    .marquee:hover .marquee-track {
+        animation-play-state: paused;
+    }
+
+    /* Film grain: the tile jumps a few pixels at a time, like projected film. */
+    body::after {
+        animation: grain 0.9s steps(6) infinite;
+    }
+
+    /* FAQ answers open to their height. */
+    :root {
+        interpolate-size: allow-keywords;
+    }
+
+    details::details-content {
+        height: 0;
+        overflow: clip;
+        transition: height 0.45s var(--ease-out), content-visibility 0.45s allow-discrete;
+    }
+
+    details[open]::details-content {
+        height: auto;
+    }
+
+    /* The full-screen viewer fades up. */
+    .slide:target {
+        animation: 420ms var(--ease-out) both viewer-in;
+    }
+
+    .slide:target picture {
+        animation: 700ms var(--ease-out) both settle-in;
+    }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+        /* Curtains: a story's photographs are uncovered as they come into view. */
+        .curtain {
+            animation-name: curtain-up;
+            animation-timing-function: linear;
+            animation-fill-mode: both;
+            animation-timeline: view();
+            animation-range: entry 5% cover 38%;
+        }
+
+        .curtain picture {
+            animation-name: unzoom;
+            animation-timing-function: linear;
+            animation-fill-mode: both;
+            animation-timeline: view();
+            animation-range: entry 0% cover 55%;
+        }
+
+        /* Captions slide in once the photograph is mostly open. */
+        .plate .caption,
+        .opener-figure .caption {
+            animation-name: caption-in;
+            animation-timing-function: linear;
+            animation-fill-mode: both;
+            animation-timeline: view();
+            animation-range: entry 40% entry 100%;
+        }
+
+        /* Bands rise into place. */
+        .rise,
+        .rate,
+        .faq details,
+        .story-card,
+        .post,
+        .month {
+            animation-name: rise-in;
+            animation-timing-function: linear;
+            animation-fill-mode: both;
+            animation-timeline: view();
+            animation-range: entry 0% entry 60%;
+        }
+
+        /* Inside the pinned track the cards are already on screen; the track itself moves. */
+        .track .story-card {
+            animation: none;
+        }
+
+        .month:nth-child(3n + 2) { animation-range: entry 6% entry 66%; }
+        .month:nth-child(3n + 3) { animation-range: entry 12% entry 72%; }
+
+        /* A photograph that drifts against the scroll: parallax. */
+        .parallax img {
+            animation-name: parallax;
+            animation-timing-function: linear;
+            animation-fill-mode: both;
+            animation-timeline: view();
+            animation-range: cover 0% cover 100%;
+        }
+
+        /*
+         * The horizontal track on the home page: the section is tall, its
+         * inside pinned to the screen, and the row of stories slides left
+         * as the page scrolls down. Without scroll-driven animation it is a
+         * row you scroll sideways (src/pages/index.astro).
+         */
+        .track-section {
+            height: 280vh;
+            view-timeline-name: --stories;
+        }
+
+        .track-pin {
+            position: sticky;
+            top: var(--header-height);
+            height: calc(100vh - var(--header-height));
+            overflow: hidden;
+            scroll-snap-type: none;
+        }
+
+        .track {
+            animation-name: track-slide;
+            animation-timing-function: linear;
+            animation-fill-mode: both;
+            animation-timeline: --stories;
+            animation-range: contain 0% contain 100%;
+        }
+
+        .track-progress span {
+            animation-name: grow;
+            animation-timing-function: linear;
+            animation-fill-mode: both;
+            animation-timeline: --stories;
+            animation-range: contain 0% contain 100%;
+        }
+
+        /* The masthead's hairline appears once the page has moved. */
+        .masthead {
+            animation-name: hairline;
+            animation-timing-function: linear;
+            animation-fill-mode: both;
+            animation-timeline: scroll(root);
+            animation-range: 0 6rem;
+        }
+
+        /* How far through a journal post you are. */
+        .reading-progress {
+            position: fixed;
+            inset: 0 0 auto;
+            z-index: 60;
+            height: 2px;
+            background: var(--accent);
+            transform-origin: 0 50%;
+            animation-name: grow;
+            animation-timing-function: linear;
+            animation-fill-mode: both;
+            animation-timeline: scroll(root);
+        }
+    }
+}
+
+@keyframes page-lift {
+    to { opacity: 0; transform: translateY(-1.5rem); }
+}
+
+@keyframes page-settle {
+    from { opacity: 0; transform: translateY(2.5rem); }
+    to { opacity: 1; transform: none; }
+}
+
+@keyframes rise-in {
+    from { opacity: 0; transform: translateY(2rem); }
+    to { opacity: 1; transform: none; }
+}
+
+@keyframes settle-in {
+    from { opacity: 0; transform: scale(0.97); }
+    to { opacity: 1; transform: none; }
+}
+
+@keyframes ink-wipe {
+    from { clip-path: inset(0 100% 0 0); }
+    to { clip-path: inset(0 0 0 0); }
+}
+
+@keyframes curtain-up {
+    from { clip-path: inset(0 0 100% 0); }
+    to { clip-path: inset(0 0 0 0); }
+}
+
+@keyframes unzoom {
+    from { transform: scale(1.18); }
+    to { transform: scale(1); }
+}
+
+@keyframes caption-in {
+    from { opacity: 0; transform: translateX(-2rem); }
+    to { opacity: 1; transform: none; }
+}
+
+@keyframes ken-burns {
+    from { transform: scale(1) translate(0, 0); }
+    to { transform: scale(1.12) translate(-2%, -1.5%); }
+}
+
+@keyframes parallax {
+    from { transform: translateY(-6%) scale(1.14); }
+    to { transform: translateY(6%) scale(1.14); }
+}
+
+@keyframes draw {
+    from { stroke-dashoffset: 1; }
+    to { stroke-dashoffset: 0; }
+}
+
+@keyframes pop-in {
+    from { opacity: 0; transform: translateY(-6px) scale(0.4); }
+    to { opacity: 1; transform: none; }
+}
+
+@keyframes sunset {
+    0%, 70%, 100% { transform: none; }
+    80% { transform: translateY(9px) scale(0.85); opacity: 0.25; }
+    90% { transform: translateY(1px); opacity: 1; }
+}
+
+@keyframes marquee {
+    to { transform: translateX(-50%); }
+}
+
+@keyframes grain {
+    0% { transform: translate(0, 0); }
+    20% { transform: translate(-3%, 2%); }
+    40% { transform: translate(2%, -4%); }
+    60% { transform: translate(-4%, -1%); }
+    80% { transform: translate(3%, 3%); }
+    100% { transform: translate(-1%, 4%); }
+}
+
+@keyframes viewer-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes track-slide {
+    to { transform: translateX(calc(-100% + 100vw)); }
+}
+
+@keyframes hairline {
+    to { border-bottom-color: var(--rule); }
+}
+
+@keyframes grow {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+}

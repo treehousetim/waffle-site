@@ -1,0 +1,201 @@
+---
+/**
+ * The back cover: a last invitation to enquire, the contents in three
+ * columns, how to reach the studio, and the name set across the whole page
+ * in the display face, like a magazine's back page.
+ */
+import Logo from './Logo.astro';
+import { site, addressLine } from '../site';
+
+const year = new Date().getFullYear();
+// On the enquiry pages the invitation would point at the page you are on.
+const invite = !Astro.url.pathname.startsWith('/enquire/');
+---
+
+<footer class="back-cover">
+    <div class="page">
+        {invite && (
+        <div class="invite">
+            <p class="kicker"><span class="no">Fin.</span> Booking {year + 1} and {year + 2}</p>
+            <p class="line">Tell us about the day you are planning.</p>
+            <a class="button button-light" href={site.cta.href}>Start an enquiry</a>
+        </div>
+        )}
+
+        <div class:list={['columns', { first: !invite }]}>
+            <div class="studio">
+                <Logo tone="paper" />
+                <p>{site.tagline}.</p>
+                <address>
+                    {addressLine}<br />
+                    Studio open {site.business.hours[0]?.days[0]}–{site.business.hours[0]?.days.at(-1)}, by appointment<br />
+                    <a href={`tel:${site.business.phoneE164}`}>{site.business.phone}</a> · <a href={`mailto:${site.business.email}`}>{site.business.email}</a>
+                </address>
+            </div>
+            {
+                site.footer.map((column) => (
+                    <nav aria-label={column.heading}>
+                        <p class="heading">{column.heading}</p>
+                        <ul>
+                            {column.links.map((link) => (
+                                <li>
+                                    <a href={link.href}>{link.label}</a>
+                                </li>
+                            ))}
+                        </ul>
+                    </nav>
+                ))
+            }
+        </div>
+
+        <p class="colophon">
+            <span>© {year} {site.business.legalName}. A fictional studio: an example site.</span>
+            <span>Photographs by the Unsplash photographers on the <a href="/credits/">credits page</a>. <a href="/journal/rss.xml">Journal feed</a>.</span>
+        </p>
+    </div>
+    <p class="giant" aria-hidden="true">Juniper <em>&amp;</em> Vale</p>
+</footer>
+
+<style>
+    .back-cover {
+        overflow: hidden;
+        padding-top: var(--section);
+        background: var(--ink);
+        color: var(--on-ink);
+    }
+
+    .back-cover a:hover {
+        color: var(--accent-on-ink);
+    }
+
+    .invite {
+        display: grid;
+        gap: var(--space-6);
+        justify-items: start;
+        padding-bottom: var(--space-16);
+        border-bottom: 1px solid color-mix(in srgb, var(--on-ink) 22%, transparent);
+    }
+
+    .invite .kicker {
+        margin: 0;
+        color: var(--on-ink-muted);
+    }
+
+    .invite .kicker .no {
+        color: var(--accent-on-ink);
+    }
+
+    .line {
+        max-width: 18ch;
+        margin: 0;
+        font-family: var(--font-display);
+        font-size: clamp(2.25rem, 1.4rem + 3.4vw, 4.25rem);
+        font-style: italic;
+        line-height: 1.02;
+        letter-spacing: -0.02em;
+    }
+
+    .columns {
+        display: grid;
+        gap: var(--space-10) var(--space-8);
+        padding-block: var(--space-16) var(--space-12);
+    }
+
+    .columns.first {
+        padding-top: 0;
+    }
+
+    .studio p {
+        max-width: 22rem;
+        margin: var(--space-6) 0 var(--space-4);
+        color: var(--on-ink-muted);
+    }
+
+    address {
+        color: var(--on-ink-muted);
+        font-size: 0.95rem;
+        font-style: normal;
+        line-height: 1.8;
+    }
+
+    address a {
+        color: var(--on-ink);
+    }
+
+    .heading {
+        margin-bottom: var(--space-4);
+        color: var(--on-ink-muted);
+        font-size: 0.72rem;
+        font-weight: 500;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+    }
+
+    nav ul {
+        display: grid;
+        gap: var(--space-2);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    nav a {
+        font-family: var(--font-display);
+        font-size: 1.2rem;
+        text-decoration: none;
+    }
+
+    .colophon {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: var(--space-2) var(--space-8);
+        margin: 0;
+        padding-top: var(--space-6);
+        border-top: 1px solid color-mix(in srgb, var(--on-ink) 22%, transparent);
+        color: var(--on-ink-muted);
+        font-size: 0.85rem;
+    }
+
+    .colophon a {
+        color: var(--on-ink);
+    }
+
+    /* The name across the bottom of the page, cropped by the edge like a printed bleed. */
+    .giant {
+        margin: var(--space-12) 0 -0.17em;
+        color: var(--on-ink);
+        font-family: var(--font-display);
+        font-size: clamp(3.4rem, -0.2rem + 15.6vw, 17rem);
+        font-weight: 500;
+        letter-spacing: -0.045em;
+        line-height: 0.8;
+        text-align: center;
+        white-space: nowrap;
+    }
+
+    .giant em {
+        color: var(--accent-on-ink);
+        font-weight: 400;
+    }
+
+    @media (min-width: 48rem) {
+        .columns {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .studio {
+            grid-column: 1 / -1;
+        }
+    }
+
+    @media (min-width: 72rem) {
+        .columns {
+            grid-template-columns: 1.6fr repeat(3, 1fr);
+        }
+
+        .studio {
+            grid-column: auto;
+        }
+    }
+</style>

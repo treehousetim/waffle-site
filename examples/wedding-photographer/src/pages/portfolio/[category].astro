@@ -1,0 +1,151 @@
+---
+/**
+ * /portfolio/weddings/, /portfolio/elopements/, /portfolio/portraits/: one
+ * room of the portfolio. Its cover, how we work on that kind of day, its
+ * stories, every frame from them as a contact sheet, and the packages for
+ * it, read from the waffle app (GET /api/site/packages, the same answer the
+ * packages page shows).
+ */
+import type { GetStaticPaths } from 'astro';
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import StoryCard from '../../components/StoryCard.astro';
+import ContactSheet from '../../components/ContactSheet.astro';
+import RateCard from '../../components/RateCard.astro';
+import { categories, stories, storiesIn } from '../../data/stories';
+import { waffle } from '@core/settings';
+import { parsePackages } from '../../lib/packages';
+
+export const getStaticPaths = (() => categories.map((category, index) => ({ params: { category: category.slug }, props: { index } }))) satisfies GetStaticPaths;
+
+const { index } = Astro.props as { index: number };
+const category = categories[index] ?? categories[0];
+const packages = parsePackages(await waffle.get('/api/site/packages'));
+const own = storiesIn(category.slug);
+const headings = {
+    weddings: { heading: 'Weddings,', italic: 'start to finish.' },
+    elopements: { heading: 'Elopements,', italic: 'for two.' },
+    portraits: { heading: 'Portraits,', italic: 'as you are.' },
+} as const;
+---
+
+<Base
+    title={`${category.name.replace(/s$/, "")} photography on the coast`}
+    description={category.summary}
+    breadcrumbs={[
+        { name: 'Portfolio', href: '/portfolio/' },
+        { name: category.name, href: `/portfolio/${category.slug}/` },
+    ]}
+>
+    <PageHead
+        no={`02.${index + 1}`}
+        label={`Portfolio · ${category.name}`}
+        heading={headings[category.slug].heading}
+        italic={headings[category.slug].italic}
+        lead={category.line}
+        photo={category.cover}
+        caption={`From ${stories.find((story) => story.frames.some((frame) => frame.photo === category.cover))?.names ?? 'the archive'}.`}
+    />
+
+    <section class="page intro">
+        <p class="kicker side"><span class="no">i.</span> How we work</p>
+        <div class="text dropcap">
+            {category.text.map((paragraph) => <p>{paragraph}</p>)}
+        </div>
+    </section>
+
+    <section class="band band-deep">
+        <div class="page">
+            <p class="rule-label">{own.length === 1 ? 'The story' : 'The stories'}</p>
+            <ul class="cards">
+                {
+                    own.map((story) => (
+                        <li>
+                            <StoryCard story={story} index={stories.indexOf(story) + 1} level="h2" shape="wide" sizes="(min-width: 64rem) 45vw, 100vw" />
+                        </li>
+                    ))
+                }
+                {
+                    own.length === 1 && own[0] && (
+                        <li class="solo">
+                            <p class="standfirst">{own[0].summary}</p>
+                            <p class="solo-place">{own[0].place}</p>
+                            <a class="arrow-link" href={`/stories/${own[0].slug}/`}>
+                                Read the story<span class="visually-hidden">: {own[0].names}</span>
+                            </a>
+                        </li>
+                    )
+                }
+            </ul>
+        </div>
+    </section>
+
+    <section class="band">
+        <div class="page">
+            <p class="rule-label">The frames</p>
+            <ContactSheet stories={own} />
+        </div>
+    </section>
+
+    <section class="band band-deep">
+        <div class="page">
+            <p class="kicker"><span class="no">ii.</span> Packages for {category.name.toLowerCase()}, {packages.season}</p>
+            <h2 class="rates-title">What it costs</h2>
+            <RateCard packages={packages} kind={category.slug} level="h3" />
+            <p class="actions">
+                <a class="button" href="/enquire/">Check your date</a>
+                <a class="arrow-link" href="/packages/">Every package and add-on</a>
+            </p>
+        </div>
+    </section>
+</Base>
+
+<style>
+    .intro {
+        display: grid;
+        gap: var(--space-6) var(--space-12);
+        padding-block: var(--section);
+    }
+
+    .text {
+        max-width: var(--width-text);
+        font-size: 1.15rem;
+        line-height: 1.8;
+    }
+
+    .cards {
+        display: grid;
+        gap: var(--space-16) var(--gutter);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .solo-place {
+        color: var(--faint);
+        font-size: 0.9rem;
+    }
+
+    .rates-title {
+        margin-bottom: var(--space-10);
+    }
+
+    @media (min-width: 64rem) {
+        .intro {
+            grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+        }
+
+        .cards {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .cards li:nth-child(2) {
+            margin-top: var(--space-20);
+        }
+
+        .cards .solo {
+            align-self: center;
+            margin-top: 0;
+        }
+    }
+</style>

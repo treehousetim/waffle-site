@@ -1,0 +1,54 @@
+---
+/**
+ * Served by Caddy, with status 404, for any path that is not in the build
+ * (docker/caddy/Caddyfile). Kept out of search results (src/site.ts).
+ */
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import StoryCard from '../components/StoryCard.astro';
+import { stories } from '../data/stories';
+---
+
+<Base title="Page not found" description="That page is not here. It may have moved, or the link may be mistyped. Try the stories, the packages or the journal instead.">
+    <PageHead
+        no="404"
+        label="Page not found"
+        heading="This page"
+        italic="was never printed."
+        lead="It may have moved, or the link may have a typo in it. These might be what you were looking for."
+    >
+        <p class="actions">
+            <a class="button" href="/">The front page</a>
+            <a class="arrow-link" href="/packages/">Packages</a>
+            <a class="arrow-link" href="/journal/">The journal</a>
+        </p>
+    </PageHead>
+
+    <section class="page more">
+        <p class="rule-label">From the stories</p>
+        <ul>
+            {
+                stories.slice(0, 3).map((story, index) => (
+                    <li>
+                        <StoryCard story={story} index={index + 1} />
+                    </li>
+                ))
+            }
+        </ul>
+    </section>
+</Base>
+
+<style>
+    .more {
+        padding-bottom: var(--section);
+    }
+
+    ul {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+        gap: var(--space-12) var(--gutter);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+</style>

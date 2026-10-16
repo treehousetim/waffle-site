@@ -1,0 +1,56 @@
+---
+/**
+ * Where the waffle app sends a browser without script after a good
+ * enquiry. Kept out of search results (src/site.ts, noindex).
+ */
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import StoryCard from '../../components/StoryCard.astro';
+import { stories } from '../../data/stories';
+---
+
+<Base title="Thank you, we have your enquiry" description="We have your enquiry and will reply personally within two working days. In the meantime, here are a few of our stories to read.">
+    <PageHead
+        label="Enquiry received"
+        heading="Thank you."
+        italic="We have it."
+        lead="One of us will write back personally within two working days, with whether your date is free and what we would suggest. Until then, a story or two."
+    >
+        <p class="actions">
+            <a class="button" href="/stories/">Read the stories</a>
+            <a class="arrow-link" href="/journal/">The journal</a>
+        </p>
+    </PageHead>
+
+    <section class="page more">
+        <ul>
+            {
+                stories.slice(0, 2).map((story, index) => (
+                    <li>
+                        <StoryCard story={story} index={index + 1} level="h2" shape="wide" sizes="(min-width: 64rem) 45vw, 100vw" />
+                    </li>
+                ))
+            }
+        </ul>
+    </section>
+</Base>
+
+<style>
+    .more {
+        padding-bottom: var(--section);
+    }
+
+    ul {
+        display: grid;
+        gap: var(--space-16) var(--gutter);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    @media (min-width: 64rem) {
+        ul {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+</style>

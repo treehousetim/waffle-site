@@ -1,0 +1,72 @@
+{
+  "success": true,
+  "data": {
+    "updated": "2026-10-01",
+    "currency": "USD",
+    "season": "2027",
+    "collections": [
+      {
+        "id": "sitting",
+        "name": "The Sitting",
+        "kind": "portraits",
+        "hours": 1.5,
+        "photographers": 1,
+        "price_cents": 65000,
+        "summary": "A relaxed portrait session at golden hour for families, couples, engagements and anniversaries.",
+        "inclusions": ["Ninety minutes at Calder Orchard or on the coast", "A planning call and a location guide", "At least 60 finished photographs", "A private online gallery for a year"],
+        "featured": false
+      },
+      {
+        "id": "elopement",
+        "name": "The Elopement",
+        "kind": "elopements",
+        "hours": 4,
+        "photographers": 1,
+        "price_cents": 380000,
+        "summary": "Half a day for two, planned around one place and the best light, with help on permits, tides and trails.",
+        "inclusions": ["Four hours of coverage", "Location scouting and a timing plan", "Permit and backup-spot planning", "At least 250 finished photographs", "A private online gallery for two years"],
+        "featured": false
+      },
+      {
+        "id": "gathering",
+        "name": "The Gathering",
+        "kind": "weddings",
+        "hours": 6,
+        "photographers": 2,
+        "price_cents": 520000,
+        "summary": "For small weddings of up to 60 guests: the ceremony, the families, supper and the first dance.",
+        "inclusions": ["Six hours with both of us", "A planning meeting and a timeline written with you", "At least 450 finished photographs", "A preview of 40 photographs within a week", "A private online gallery for two years"],
+        "featured": false
+      },
+      {
+        "id": "full-day",
+        "name": "The Full Day",
+        "kind": "weddings",
+        "hours": 9,
+        "photographers": 2,
+        "price_cents": 740000,
+        "summary": "The whole wedding, from the quiet hour before to the dancing, with both of us there all day.",
+        "inclusions": ["Nine hours with both of us", "Two planning meetings and a venue walk-through", "An engagement sitting", "At least 700 finished photographs", "A preview of 60 photographs within a week", "A linen-bound 30-page album"],
+        "featured": true
+      },
+      {
+        "id": "weekend",
+        "name": "The Elopement Weekend",
+        "kind": "elopements",
+        "hours": 12,
+        "photographers": 2,
+        "price_cents": 960000,
+        "summary": "Two days, several places and no rush: an elopement told across a sunset and the sunrise after.",
+        "inclusions": ["Twelve hours across two days with both of us", "Full location and itinerary planning", "Permit and backup-spot planning", "At least 600 finished photographs", "A linen-bound 40-page album"],
+        "featured": false
+      }
+    ],
+    "add_ons": [
+      { "id": "extra-hour", "name": "An extra hour of coverage", "price_cents": 45000, "per": "hour" },
+      { "id": "album", "name": "Linen-bound album, 30 pages", "price_cents": 95000, "per": "item" },
+      { "id": "parent-albums", "name": "A pair of parent albums", "price_cents": 70000, "per": "item" },
+      { "id": "film", "name": "Medium-format film alongside digital", "price_cents": 60000, "per": "day" },
+      { "id": "engagement", "name": "Engagement sitting", "price_cents": 50000, "per": "item" }
+    ]
+  }
+}

@@ -1,0 +1,122 @@
+---
+/**
+ * The questions couples ask most, in three groups, as <details> that open
+ * smoothly, with FAQPage structured data built from the same items.
+ */
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import Faq from '../components/Faq.astro';
+import { faqPage } from '@core/lib/jsonld.js';
+
+const groups = [
+    {
+        heading: 'Booking',
+        items: [
+            { question: 'How far ahead should we book?', answer: 'Most couples book us nine to fifteen months ahead, and summer Saturdays go first. Weekdays, winter and elopements are often free at shorter notice: ask about any date.' },
+            { question: 'Do you photograph more than one wedding a day?', answer: 'Never. One wedding a day, about twenty a year, so each gallery has our full attention.' },
+            { question: 'What if one of you is ill on the day?', answer: 'It has not happened yet, but if it did the other would cover the whole day, and we work with two photographers we trust who know our way of working.' },
+            { question: 'Do you take a deposit?', answer: 'A 30% retainer secures the date, with the balance due a month before. If you postpone, the retainer moves to your new date.' },
+        ],
+    },
+    {
+        heading: 'On the day',
+        items: [
+            { question: 'Will you tell us where to stand?', answer: 'Only when it helps. Most of the day we follow and watch. For the family photographs and a few minutes with the two of you, we guide gently, and quickly.' },
+            { question: 'How long do the family photographs take?', answer: 'About two minutes a group. We will help you write a list beforehand and ask someone who knows everyone to round people up.' },
+            { question: 'What if it rains?', answer: 'We plan a wet-weather route for every day, and we carry umbrellas. Some of our favourite photographs were taken in a downpour.' },
+            { question: 'Do you need feeding?', answer: 'If we are with you for more than six hours, yes please: a hot meal at the same time as your guests, so we are ready for the speeches.' },
+        ],
+    },
+    {
+        heading: 'Afterwards',
+        items: [
+            { question: 'When do we see the photographs?', answer: 'A preview within a week, and the whole gallery within six weeks of the day.' },
+            { question: 'How many photographs will we get?', answer: 'It depends on the day, but as a guide: 60 or more from a sitting, 250 or more from an elopement, and 450 to 900 from a wedding.' },
+            { question: 'Can we print them ourselves?', answer: 'Yes. Every package includes a print release. Print them anywhere, as often as you like.' },
+            { question: 'Do you share our photographs online?', answer: 'Only with your permission, asked for after the day, and you can say no without any awkwardness at all.' },
+        ],
+    },
+];
+
+const all = groups.flatMap((group) => group.items);
+let start = 1;
+const numbered = groups.map((group) => {
+    const first = start;
+    start += group.items.length;
+
+    return { ...group, start: first };
+});
+---
+
+<Base
+    title="Questions, answered"
+    description="Answers to what couples ask a wedding photographer most: booking, deposits, the family photographs, rain, how many photographs, and when they arrive."
+    breadcrumbs={[{ name: 'FAQ', href: '/faq/' }]}
+    jsonLd={[faqPage(all)]}
+>
+    <PageHead
+        no="06"
+        label="Questions"
+        heading="Questions,"
+        italic="answered plainly."
+        lead="The twelve things couples ask us most. If yours is not here, ask: we answer every letter ourselves."
+    />
+
+    <div class="page groups">
+        {
+            numbered.map((group, index) => (
+                <section class="group">
+                    <div class="label">
+                        <p class="kicker"><span class="no">{['i.', 'ii.', 'iii.'][index]}</span></p>
+                        <h2>{group.heading}</h2>
+                    </div>
+                    <Faq items={group.items} start={group.start} />
+                </section>
+            ))
+        }
+    </div>
+
+    <section class="band band-ink">
+        <div class="page ask">
+            <h2>Something else <em>on your mind?</em></h2>
+            <p class="actions">
+                <a class="button button-light" href="/enquire/">Ask us</a>
+                <a class="arrow-link" href="/experience/">How it all works</a>
+            </p>
+        </div>
+    </section>
+</Base>
+
+<style>
+    .groups {
+        display: grid;
+        gap: var(--section);
+        padding-bottom: var(--section);
+    }
+
+    .group {
+        display: grid;
+        gap: var(--space-8) var(--space-16);
+    }
+
+    .label h2 {
+        font-size: clamp(2rem, 1.6rem + 1.6vw, 3rem);
+    }
+
+    .ask h2 em {
+        display: block;
+        color: var(--accent-on-ink);
+    }
+
+    @media (min-width: 64rem) {
+        .group {
+            grid-template-columns: minmax(0, 1fr) minmax(0, 2.2fr);
+        }
+
+        .label {
+            position: sticky;
+            top: calc(var(--header-height) + var(--space-8));
+            align-self: start;
+        }
+    }
+</style>

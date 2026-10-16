@@ -1,0 +1,166 @@
+---
+/**
+ * The portfolio: its three rooms (weddings, elopements, portraits) as tall
+ * panels, then every photograph from every story as a contact sheet.
+ */
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import Photo from '../../components/Photo.astro';
+import ContactSheet from '../../components/ContactSheet.astro';
+import { categories, categoryUrl, stories, storiesIn } from '../../data/stories';
+---
+
+<Base
+    title="Portfolio: weddings, elopements, portraits"
+    description="The portfolio of Juniper & Vale, wedding and portrait photographers on the Saltgrass Coast: weddings, elopements and portrait sittings in natural light."
+    breadcrumbs={[{ name: 'Portfolio', href: '/portfolio/' }]}
+>
+    <PageHead
+        no="02"
+        label="Portfolio"
+        heading="Three rooms"
+        italic="in one house."
+        lead="Weddings, elopements and portraits ask different things of a photographer. Here is how each looks when we do it."
+    />
+
+    <ul class="rooms page">
+        {
+            categories.map((category, index) => (
+                <li class="room">
+                    <a href={categoryUrl(category.slug)}>
+                        <span class="frame">
+                            <Photo name={category.cover} alt="" sizes="(min-width: 64rem) 31vw, 100vw" priority={index === 0} maxWidth={1200} />
+                        </span>
+                        <span class="label">
+                            <span class="no">{['i', 'ii', 'iii'][index]}.</span>
+                            <span class="name">{category.name}</span>
+                            <span class="line"><span>{category.line}</span></span>
+                            <span class="count">
+                                {storiesIn(category.slug).length} {storiesIn(category.slug).length === 1 ? 'story' : 'stories'}
+                            </span>
+                        </span>
+                    </a>
+                </li>
+            ))
+        }
+    </ul>
+
+    <section class="band">
+        <div class="page">
+            <p class="rule-label">The contact sheet</p>
+            <h2 class="sheet-title">Every frame on this site, <em>in order of the day.</em></h2>
+            <ContactSheet stories={stories} />
+        </div>
+    </section>
+</Base>
+
+<style>
+    .rooms {
+        display: grid;
+        gap: var(--gutter);
+        margin-block: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .room a {
+        position: relative;
+        display: block;
+        overflow: hidden;
+        color: var(--on-ink);
+        text-decoration: none;
+    }
+
+    .frame {
+        display: block;
+        aspect-ratio: 3 / 4;
+        max-height: 80vh;
+        width: 100%;
+    }
+
+    .frame :global(img) {
+        transition: transform 1.6s var(--ease-out);
+    }
+
+    .room a:hover .frame :global(img) {
+        transform: scale(1.06);
+    }
+
+    .label {
+        position: absolute;
+        inset: auto 0 0;
+        display: grid;
+        gap: var(--space-1);
+        padding: var(--space-16) var(--space-6) var(--space-6);
+        background: linear-gradient(to top, rgb(22 19 15 / 0.85), rgb(22 19 15 / 0.45) 55%, transparent);
+    }
+
+    .no {
+        color: var(--accent-on-ink);
+        font-family: var(--font-display);
+        font-style: italic;
+    }
+
+    .name {
+        font-family: var(--font-display);
+        font-size: clamp(2.5rem, 2rem + 2vw, 3.75rem);
+        line-height: 1;
+    }
+
+    /* The line under the name opens on hover, like a page turning up. */
+    .line {
+        display: grid;
+        grid-template-rows: 0fr;
+        max-width: 22rem;
+        overflow: hidden;
+        color: var(--on-ink);
+        font-family: var(--font-display);
+        font-style: italic;
+        line-height: 1.35;
+        transition: grid-template-rows 0.5s var(--ease-out);
+    }
+
+    .line > span {
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    .room a:hover .line,
+    .room a:focus-visible .line {
+        grid-template-rows: 1fr;
+    }
+
+    .count {
+        margin-top: var(--space-2);
+        font-size: 0.72rem;
+        font-weight: 500;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+    }
+
+    .sheet-title {
+        max-width: 18ch;
+        margin-bottom: var(--space-12);
+    }
+
+    .sheet-title em {
+        display: block;
+        color: var(--accent);
+    }
+
+    @media (min-width: 64rem) {
+        .rooms {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .room:nth-child(2) {
+            margin-top: var(--space-16);
+        }
+    }
+
+    @media (hover: none) {
+        .line {
+            grid-template-rows: 1fr;
+        }
+    }
+</style>

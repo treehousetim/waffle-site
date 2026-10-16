@@ -1,0 +1,182 @@
+---
+/**
+ * The packages as a printed rate card, from the waffle app's answer
+ * (src/lib/packages.ts checked it): each collection a row with its hours,
+ * what is included and its price set large; the one the studio features
+ * printed in reverse. `kind` narrows it to one kind of day.
+ */
+import { formatHours, formatMoney, type Packages, type PackageKind } from '../lib/packages';
+
+interface Props {
+    packages: Packages;
+    kind?: PackageKind;
+    /** h2 on the packages page; h3 inside a section with its own heading. */
+    level?: 'h2' | 'h3';
+}
+
+const { packages, kind, level = 'h2' } = Astro.props;
+const Heading = level;
+const collections = kind === undefined ? packages.collections : packages.collections.filter((item) => item.kind === kind);
+const kindLabel = { weddings: 'Wedding', elopements: 'Elopement', portraits: 'Portrait' } as const;
+---
+
+<ol class="rates">
+    {
+        collections.map((item, index) => (
+            <li class:list={['rate', { featured: item.featured }]} id={`package-${item.id}`}>
+                <div class="head">
+                    <p class="kicker">
+                        <span class="no">{String(index + 1).padStart(2, '0')}</span>
+                        <span>{kindLabel[item.kind]}</span>
+                        {item.featured && <span class="flag">Most booked</span>}
+                    </p>
+                    <Heading class="name">{item.name}</Heading>
+                    <p class="hours">
+                        {formatHours(item.hours)} · {item.photographers === 1 ? 'one photographer' : `${item.photographers} photographers`}
+                    </p>
+                </div>
+                <div class="body">
+                    <p class="summary">{item.summary}</p>
+                    <ul class="includes">
+                        {item.inclusions.map((line) => (
+                            <li>{line}</li>
+                        ))}
+                    </ul>
+                </div>
+                <p class="price">
+                    <span class="from">from</span>
+                    <strong>{formatMoney(item.priceCents, packages.currency)}</strong>
+                </p>
+            </li>
+        ))
+    }
+</ol>
+
+<style>
+    .rates {
+        margin: 0;
+        padding: 0;
+        border-top: 1px solid var(--rule-strong);
+        list-style: none;
+    }
+
+    .rate {
+        display: grid;
+        gap: var(--space-6) var(--space-10);
+        padding: clamp(2rem, 1.5rem + 2vw, 3.25rem) 0;
+        border-bottom: 1px solid var(--rule);
+        transition: background-color 0.4s ease;
+    }
+
+    .featured {
+        margin-inline: calc(-1 * var(--gutter));
+        padding-inline: var(--gutter);
+        border-bottom-color: var(--ink);
+        background: var(--ink);
+        color: var(--on-ink);
+    }
+
+    .kicker {
+        margin-bottom: var(--space-3);
+    }
+
+    .featured .kicker {
+        color: var(--on-ink-muted);
+    }
+
+    .featured .kicker .no {
+        color: var(--accent-on-ink);
+    }
+
+    .flag {
+        padding: 0.1rem 0.55rem;
+        border: 1px solid currentColor;
+        color: var(--accent-on-ink);
+        letter-spacing: 0.18em;
+    }
+
+    .name {
+        margin: 0;
+        font-size: clamp(2rem, 1.6rem + 1.6vw, 3rem);
+    }
+
+    .featured .name {
+        color: var(--on-ink);
+    }
+
+    .hours {
+        margin: var(--space-2) 0 0;
+        font-family: var(--font-display);
+        font-size: 1.1rem;
+        font-style: italic;
+    }
+
+    .summary {
+        max-width: 34rem;
+    }
+
+    .featured .summary,
+    .featured .includes {
+        color: var(--on-ink-muted);
+    }
+
+    .includes {
+        display: grid;
+        gap: var(--space-1);
+        margin: 0;
+        padding: 0;
+        color: var(--muted);
+        font-size: 0.95rem;
+        list-style: none;
+    }
+
+    .includes li {
+        display: flex;
+        gap: var(--space-3);
+    }
+
+    .includes li::before {
+        content: '—';
+        flex: none;
+        color: var(--accent);
+    }
+
+    .featured .includes li::before {
+        color: var(--accent-on-ink);
+    }
+
+    .price {
+        display: grid;
+        align-content: start;
+        margin: 0;
+        line-height: 1;
+    }
+
+    .from {
+        margin-bottom: var(--space-2);
+        font-size: 0.72rem;
+        font-weight: 500;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+    }
+
+    .price strong {
+        font-family: var(--font-display);
+        font-size: clamp(2.75rem, 2rem + 3vw, 4.75rem);
+        font-weight: 400;
+        letter-spacing: -0.035em;
+        font-variant-numeric: lining-nums;
+    }
+
+    @media (min-width: 64rem) {
+        .rate {
+            grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.4fr) minmax(0, 0.8fr);
+            align-items: start;
+        }
+
+        .price {
+            justify-items: end;
+            text-align: right;
+        }
+    }
+</style>

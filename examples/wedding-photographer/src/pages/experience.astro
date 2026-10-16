@@ -1,0 +1,253 @@
+---
+/**
+ * The experience: how working with the studio unfolds, from the first
+ * letter to the album, as numbered chapters along a line that draws itself
+ * as you scroll (motion.css, "the thread").
+ */
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import Photo from '../components/Photo.astro';
+import type { PhotoName } from '../data/photos';
+
+interface Chapter {
+    when: string;
+    title: string;
+    text: string;
+    photo?: { name: PhotoName; caption: string };
+}
+
+const chapters: Chapter[] = [
+    {
+        when: 'The first week',
+        title: 'A letter, then a coffee',
+        text: 'You write to us; one of us writes back within two working days. If your date is free we meet, in Port Alder or on a call, to talk about the day you have in mind. No sales pitch: just whether we are the right people for it.',
+    },
+    {
+        when: 'When you are ready',
+        title: 'The date is yours',
+        text: 'We hold your date for a week while you decide. To book, you sign a plain-English agreement and pay a 30% retainer. From then on the date is yours and nobody else’s.',
+    },
+    {
+        when: 'Two to three months before',
+        title: 'Planning the light',
+        text: 'We sit down with your plans and build the timeline around the light: when to be on the headland, when the lawn turns gold, how long the family photographs really take. Couples tell us this is the most useful hour of their planning.',
+        photo: { name: 'ringsOnVows', caption: 'The quiet hour before: rings and vows on the windowsill.' },
+    },
+    {
+        when: 'Any time before',
+        title: 'An engagement sitting',
+        text: 'Included with the Full Day, and worth adding to any package. Ninety minutes at Calder Orchard or on the coast, so that by the wedding you have already forgotten the camera.',
+    },
+    {
+        when: 'The day itself',
+        title: 'Two of us, quietly',
+        text: 'One of us stays close to the two of you; the other is with your families and friends. We direct only when it helps, and we will tell you when to look up from your supper because the sky is doing something.',
+        photo: { name: 'firstDance', caption: 'The dance floor, late: the part of the day nobody remembers clearly.' },
+    },
+    {
+        when: 'Within a week',
+        title: 'A preview',
+        text: 'Forty to sixty finished photographs, so you have something to share while the rest are made.',
+    },
+    {
+        when: 'Within six weeks',
+        title: 'The whole story',
+        text: 'Every finished photograph in a private online gallery, edited by hand by the person who took it, in the order the day happened. Download them, share them, print them anywhere.',
+    },
+    {
+        when: 'When you have chosen',
+        title: 'The album',
+        text: 'Linen-bound, printed on heavy matte paper by a bindery in the hills. We design it with you, and it arrives about eight weeks after you approve the layout.',
+    },
+];
+---
+
+<Base
+    title="The experience: how we work"
+    description="How working with Juniper & Vale unfolds: the first letter, booking, planning around the light, the day itself, the preview in a week and the gallery in six."
+    breadcrumbs={[{ name: 'The experience', href: '/experience/' }]}
+>
+    <PageHead
+        no="04"
+        label="The experience"
+        heading="From the first letter"
+        italic="to the album."
+        lead="Eight chapters, most of them quiet. Here is what happens, when, and who does what."
+        photo="redwoodsBoardwalk"
+        caption="The end of a long, unhurried day: the boardwalk out of the Cathedral Grove."
+        focus="bottom"
+    />
+
+    <section class="page chapters-wrap">
+        <ol class="chapters">
+            {
+                chapters.map((chapter, index) => (
+                    <li class="chapter rise">
+                        <p class="numeral" aria-hidden="true">{['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII'][index]}</p>
+                        <div class="body">
+                            <p class="kicker">{chapter.when}</p>
+                            <h2>{chapter.title}</h2>
+                            <p>{chapter.text}</p>
+                            {chapter.photo && (
+                                <figure>
+                                    <span class="curtain">
+                                        <Photo name={chapter.photo.name} sizes="(min-width: 64rem) 40vw, 100vw" maxWidth={1200} />
+                                    </span>
+                                    <figcaption class="caption">
+                                        <span class="fig">Fig. {index + 1}</span>
+                                        <span>{chapter.photo.caption}</span>
+                                    </figcaption>
+                                </figure>
+                            )}
+                        </div>
+                    </li>
+                ))
+            }
+        </ol>
+    </section>
+
+    <section class="band band-deep">
+        <div class="page end">
+            <h2>The next chapter <em>is a letter from you.</em></h2>
+            <p class="actions">
+                <a class="button" href="/enquire/">Write to us</a>
+                <a class="arrow-link" href="/packages/">See the packages</a>
+                <a class="arrow-link" href="/faq/">Read the questions</a>
+            </p>
+        </div>
+    </section>
+</Base>
+
+<style>
+    .chapters-wrap {
+        padding-block: var(--section);
+    }
+
+    .chapters {
+        position: relative;
+        display: grid;
+        gap: clamp(3rem, 2rem + 4vw, 6rem);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    /* The thread: a hairline down the numerals, drawn as you scroll (motion.css). */
+    .chapters::before {
+        content: '';
+        position: absolute;
+        top: 0.5rem;
+        bottom: 0;
+        left: 1.6rem;
+        width: 1px;
+        background: var(--rule-strong);
+        transform-origin: 50% 0;
+    }
+
+    .chapter {
+        position: relative;
+        display: grid;
+        grid-template-columns: 3.2rem 1fr;
+        gap: var(--space-6);
+    }
+
+    .numeral {
+        position: relative;
+        z-index: 1;
+        align-self: start;
+        margin: 0;
+        padding-bottom: var(--space-2);
+        background: var(--paper);
+        color: var(--accent);
+        font-family: var(--font-display);
+        font-size: 1.6rem;
+        font-style: italic;
+        line-height: 1;
+        text-align: center;
+    }
+
+    .body {
+        max-width: 40rem;
+    }
+
+    .body h2 {
+        font-size: clamp(2rem, 1.6rem + 1.8vw, 3.25rem);
+    }
+
+    .body > p:not(.kicker) {
+        color: var(--muted);
+        font-size: 1.1rem;
+    }
+
+    figure {
+        margin: var(--space-10) 0 0;
+    }
+
+    .curtain {
+        display: block;
+        overflow: hidden;
+        aspect-ratio: 4 / 3;
+        background: var(--paper-deep);
+    }
+
+    .end h2 {
+        max-width: 16ch;
+    }
+
+    .end h2 em {
+        display: block;
+        color: var(--accent);
+    }
+
+    @media (min-width: 64rem) {
+        .chapters::before {
+            left: 50%;
+        }
+
+        .chapter {
+            grid-template-columns: 1fr 5rem 1fr;
+        }
+
+        .numeral {
+            grid-column: 2;
+            grid-row: 1;
+            font-size: 2.6rem;
+        }
+
+        .chapter:nth-child(odd) .body {
+            grid-column: 1;
+            grid-row: 1;
+            justify-self: end;
+            text-align: right;
+        }
+
+        .chapter:nth-child(odd) .body .kicker {
+            justify-content: flex-end;
+        }
+
+        .chapter:nth-child(odd) .caption {
+            justify-content: flex-end;
+        }
+
+        .chapter:nth-child(even) .body {
+            grid-column: 3;
+        }
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+        @supports (animation-timeline: view()) {
+            .chapters::before {
+                animation-name: thread;
+                animation-timing-function: linear;
+                animation-fill-mode: both;
+                animation-timeline: view();
+                animation-range: entry 10% exit 40%;
+            }
+        }
+    }
+
+    @keyframes thread {
+        from { transform: scaleY(0); }
+        to { transform: scaleY(1); }
+    }
+</style>

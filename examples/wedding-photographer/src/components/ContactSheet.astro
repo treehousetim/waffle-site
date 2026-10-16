@@ -1,0 +1,87 @@
+---
+/**
+ * Photographs as a contact sheet: a loose masonry of frames in columns,
+ * each with its frame number and caption, each a link to the story it
+ * belongs to. Used by the portfolio pages.
+ */
+import Photo from './Photo.astro';
+import { storyUrl, type Story } from '../data/stories';
+
+interface Props {
+    stories: readonly Story[];
+}
+
+const { stories } = Astro.props;
+const frames = stories.flatMap((story) => story.frames.map((frame, index) => ({ ...frame, story, n: index + 1 })));
+---
+
+<ul class="sheet">
+    {
+        frames.map((frame, index) => (
+            <li class="rise">
+                <a href={storyUrl(frame.story.slug)}>
+                    <span class="frame">
+                        <Photo name={frame.photo} sizes="(min-width: 64rem) 30vw, (min-width: 40rem) 45vw, 100vw" maxWidth={1100} />
+                    </span>
+                    <span class="caption">
+                        <span class="fig">{String(index + 1).padStart(2, '0')}</span>
+                        <span>
+                            {frame.caption} <span class="from">From {frame.story.names.replace(/^The /, 'the ')}.</span>
+                        </span>
+                    </span>
+                </a>
+            </li>
+        ))
+    }
+</ul>
+<p class="count">{frames.length} photographs from {stories.length} {stories.length === 1 ? 'story' : 'stories'}. Each links to the day it belongs to.</p>
+
+<style>
+    .sheet {
+        columns: 3 18rem;
+        column-gap: var(--gutter);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    li {
+        break-inside: avoid;
+        margin-bottom: clamp(2rem, 1.5rem + 2vw, 3.5rem);
+    }
+
+    a {
+        display: block;
+        text-decoration: none;
+    }
+
+    .frame {
+        display: block;
+        overflow: hidden;
+        background: var(--paper-deep);
+    }
+
+    .frame :global(img) {
+        height: auto;
+        transition: transform 1.2s var(--ease-out), filter 0.6s ease;
+    }
+
+    a:hover .frame :global(img),
+    a:focus-visible .frame :global(img) {
+        transform: scale(1.035);
+    }
+
+    .from {
+        color: var(--faint);
+        font-style: normal;
+        font-family: var(--font-sans);
+        font-size: 0.8rem;
+    }
+
+    .count {
+        margin: var(--space-8) 0 0;
+        color: var(--faint);
+        font-family: var(--font-display);
+        font-style: italic;
+    }
+</style>

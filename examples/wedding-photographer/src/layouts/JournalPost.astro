@@ -1,0 +1,249 @@
+---
+/**
+ * The one template every journal entry uses (docs/blog.md): set like a
+ * magazine feature. The headline and standfirst, a byline, the photograph
+ * across the page (the post's cover, or its topic's photo), the text in one
+ * calm column with a drop cap, the topics, a note on enquiring, and two
+ * more entries to read.
+ */
+import type { CollectionEntry } from 'astro:content';
+import { getImage } from 'astro:assets';
+import Base from './Base.astro';
+import FormattedDate from '../components/FormattedDate.astro';
+import Photo from '../components/Photo.astro';
+import PostCard from '../components/PostCard.astro';
+import { site } from '../site';
+import { settings } from '@core/settings';
+import { defaultPostPhoto, photos, topicPhotos } from '../data/photos';
+import { blogPosting } from '@core/lib/jsonld.js';
+import { absoluteUrl, canonicalUrl } from '@core/lib/seo.js';
+import { readingMinutes, tagSlug } from '@core/lib/posts.js';
+
+interface Props {
+    post: CollectionEntry<'journal'>;
+    related: CollectionEntry<'journal'>[];
+}
+
+const { post, related } = Astro.props;
+const { title, description, pubDate, updatedDate, tags, cover, coverAlt, draft } = post.data;
+const author = post.data.author ?? site.blog.defaultAuthor;
+const url = canonicalUrl(Astro.url.pathname, settings.siteUrl);
+const firstTag = tags[0];
+const topicPhoto = (firstTag !== undefined ? topicPhotos[tagSlug(firstTag)] : undefined) ?? defaultPostPhoto;
+
+// The link preview: the cover, or the topic photo, cropped to 1200x630.
+const preview = await getImage({ src: cover ?? photos[topicPhoto].src, width: 1200, height: 630, fit: 'cover', format: 'jpg' });
+const image = { src: absoluteUrl(preview.src, settings.siteUrl), alt: cover !== undefined ? (coverAlt ?? '') : photos[topicPhoto].alt };
+---
+
+<Base
+    title={title}
+    description={description}
+    type="article"
+    image={image}
+    breadcrumbs={[
+        { name: site.blog.title, href: '/journal/' },
+        { name: title, href: Astro.url.pathname },
+    ]}
+    article={{ published: pubDate, updated: updatedDate, tags }}
+    jsonLd={[blogPosting({ url, title, description, image: image.src, published: pubDate, updated: updatedDate, author, tags }, settings.siteUrl)]}
+>
+    <div class="reading-progress" aria-hidden="true"></div>
+    <article class="entry">
+        <header class="opener page">
+            <p class="kicker">
+                <a href="/journal/">{site.blog.title}</a>
+                {firstTag && (
+                    <>
+                        <span aria-hidden="true">/</span>
+                        <a href={`/journal/tags/${tagSlug(firstTag)}/`}>{firstTag}</a>
+                    </>
+                )}
+            </p>
+            {draft && <p class="draft">Draft: not published in production.</p>}
+            <h1>{title}</h1>
+            <p class="standfirst">{description}</p>
+            <p class="byline">
+                <span>By <strong>{author}</strong></span>
+                <span><FormattedDate date={pubDate} /></span>
+                <span>{readingMinutes(post.body ?? '')} min read</span>
+                {updatedDate && (
+                    <span>
+                        Updated <FormattedDate date={updatedDate} />
+                    </span>
+                )}
+            </p>
+        </header>
+
+        <figure class="cover">
+            <span class="opener-frame">
+                {cover && coverAlt ? (
+                    <Photo src={cover} alt={coverAlt} sizes="100vw" priority class="opener-photo" />
+                ) : (
+                    <Photo name={topicPhoto} sizes="100vw" priority class="opener-photo" />
+                )}
+            </span>
+        </figure>
+
+        <div class="measure prose dropcap body">
+            <slot />
+        </div>
+
+        <footer class="measure foot">
+            {
+                tags.length > 0 && (
+                    <ul class="tags" aria-label="Topics">
+                        {tags.map((tag) => (
+                            <li>
+                                <a href={`/journal/tags/${tagSlug(tag)}/`}>{tag}</a>
+                            </li>
+                        ))}
+                    </ul>
+                )
+            }
+            <div class="sign">
+                <p class="sign-line">Planning a day like this?</p>
+                <p>Tell us about it. One of us replies personally within two working days, with whether your date is free.</p>
+                <p class="actions">
+                    <a class="button" href={site.cta.href}>Enquire</a>
+                    <a class="arrow-link" href="/packages/">The packages</a>
+                </p>
+            </div>
+        </footer>
+    </article>
+
+    {
+        related.length > 0 && (
+            <section class="band band-deep related">
+                <div class="page">
+                    <p class="rule-label">Keep reading</p>
+                    <div class="pair">
+                        {related.map((other, index) => (
+                            <PostCard post={other} index={index + 1} level="h2" />
+                        ))}
+                    </div>
+                </div>
+            </section>
+        )
+    }
+</Base>
+
+<style>
+    .opener {
+        padding-top: clamp(2.5rem, 1.5rem + 5vw, 6rem);
+        text-align: center;
+    }
+
+    .opener .kicker {
+        justify-content: center;
+    }
+
+    .opener .kicker a {
+        text-decoration: none;
+    }
+
+    .draft {
+        display: inline-block;
+        padding: 0.15rem 0.6rem;
+        border: 1px solid var(--accent);
+        color: var(--accent);
+        font-size: 0.8rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+    }
+
+    h1 {
+        max-width: 16ch;
+        margin: 0 auto var(--space-6);
+        font-size: clamp(2.6rem, 1.6rem + 4.4vw, 5.75rem);
+    }
+
+    .standfirst {
+        margin: 0 auto;
+    }
+
+    .byline {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: var(--space-2) var(--space-6);
+        margin: var(--space-8) 0 0;
+        color: var(--faint);
+        font-size: 0.82rem;
+        letter-spacing: 0.06em;
+    }
+
+    .byline strong {
+        color: var(--text);
+    }
+
+    .cover {
+        margin: clamp(2.5rem, 1.5rem + 4vw, 5rem) 0 0;
+    }
+
+    .opener-frame {
+        display: block;
+        height: min(78vh, 52rem);
+        min-height: 20rem;
+        overflow: hidden;
+        background: var(--paper-deep);
+    }
+
+    .body {
+        margin-top: clamp(3rem, 2rem + 4vw, 6rem);
+        font-size: 1.15rem;
+        line-height: 1.8;
+    }
+
+    .foot {
+        margin-top: var(--space-16);
+        padding-bottom: var(--section);
+    }
+
+    .tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2) var(--space-5);
+        margin: 0 0 var(--space-12);
+        padding: var(--space-5) 0 0;
+        border-top: 1px solid var(--rule);
+        list-style: none;
+    }
+
+    .tags a {
+        font-family: var(--font-display);
+        font-size: 1.1rem;
+        font-style: italic;
+    }
+
+    .sign {
+        padding: var(--space-8);
+        background: var(--paper-deep);
+    }
+
+    .sign-line {
+        margin-bottom: var(--space-3);
+        font-family: var(--font-display);
+        font-size: 1.8rem;
+        line-height: 1.1;
+    }
+
+    .sign p:not(.sign-line, .actions) {
+        color: var(--muted);
+    }
+
+    .sign .actions {
+        margin-top: var(--space-6);
+    }
+
+    .pair {
+        display: grid;
+        gap: 0 var(--space-16);
+    }
+
+    @media (min-width: 64rem) {
+        .pair {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+</style>

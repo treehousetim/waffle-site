@@ -1,0 +1,276 @@
+---
+/**
+ * The masthead: the logo, the sections in small tracked capitals, and the
+ * way to enquire. It stays at the top as you scroll, and tightens with a
+ * hairline under it once the page has moved (motion.css).
+ *
+ * Two navigations, one shown at a time: a plain one on wide screens, and on
+ * phones a <details> menu that opens without any script into a full-page
+ * contents list. A browser hides a closed <details>'s contents whatever the
+ * CSS says, so the wide-screen navigation cannot live inside it.
+ */
+import Logo from './Logo.astro';
+import { site } from '../site';
+
+const current = Astro.url.pathname;
+const isCurrent = (href: string) => current === href || (href !== '/' && current.startsWith(href));
+---
+
+<header class="masthead">
+    <div class="bar">
+        <Logo />
+
+        <nav class="nav-wide" aria-label="Main">
+            <ul>
+                {
+                    site.nav.map((link) => (
+                        <li>
+                            <a href={link.href} aria-current={isCurrent(link.href) ? 'page' : undefined}>
+                                {link.label}
+                            </a>
+                        </li>
+                    ))
+                }
+            </ul>
+        </nav>
+
+        <a class="enquire" href={site.cta.href} aria-current={isCurrent(site.cta.href) ? 'page' : undefined}>
+            {site.cta.label}<span aria-hidden="true">⟶</span>
+        </a>
+
+        <details class="menu">
+            <summary>
+                <span class="summary-label">Menu</span>
+                <span class="burger" aria-hidden="true"><span></span><span></span></span>
+            </summary>
+            <nav class="nav-narrow" aria-label="Main, on small screens">
+                <p class="contents">Contents</p>
+                <ol>
+                    {
+                        [...site.nav, site.cta].map((link, index) => (
+                            <li>
+                                <a href={link.href} aria-current={isCurrent(link.href) ? 'page' : undefined}>
+                                    <span class="no">{String(index + 1).padStart(2, '0')}</span>
+                                    {link.label}
+                                </a>
+                            </li>
+                        ))
+                    }
+                </ol>
+                <p class="reach">
+                    <a href={`tel:${site.business.phoneE164}`}>{site.business.phone}</a>
+                    <a href={`mailto:${site.business.email}`}>{site.business.email}</a>
+                </p>
+            </nav>
+        </details>
+    </div>
+</header>
+
+<style>
+    .masthead {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        /* Solid, and no filter or transform: the phone menu inside is position: fixed. */
+        background: var(--paper);
+        border-bottom: 1px solid transparent;
+    }
+
+    .bar {
+        display: flex;
+        align-items: center;
+        gap: var(--space-8);
+        width: min(100% - 2 * var(--gutter), var(--width-page));
+        min-height: var(--header-height);
+        margin-inline: auto;
+    }
+
+    .nav-wide {
+        display: none;
+        margin-left: auto;
+    }
+
+    .nav-wide ul {
+        display: flex;
+        gap: clamp(1rem, 0.2rem + 1.4vw, 2.25rem);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .nav-wide a,
+    .enquire {
+        position: relative;
+        font-size: 0.75rem;
+        font-weight: 500;
+        letter-spacing: 0.2em;
+        text-decoration: none;
+        text-transform: uppercase;
+    }
+
+    /* A hairline draws under the link on hover, and stays under the current page. */
+    .nav-wide a::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0.2em;
+        bottom: -0.35rem;
+        height: 1px;
+        background: currentColor;
+        transform: scaleX(0);
+        transform-origin: 100% 50%;
+        transition: transform 0.4s var(--ease-curtain);
+    }
+
+    .nav-wide a:hover::after,
+    .nav-wide a[aria-current='page']::after {
+        transform: scaleX(1);
+        transform-origin: 0 50%;
+    }
+
+    .nav-wide a[aria-current='page'] {
+        color: var(--accent);
+    }
+
+    .enquire {
+        display: none;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.7rem 1.1rem;
+        border: 1px solid var(--ink);
+        transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    .enquire span {
+        font-family: var(--font-display);
+        letter-spacing: 0;
+        transition: transform 0.35s var(--ease-out);
+    }
+
+    .enquire:hover,
+    .enquire[aria-current='page'] {
+        background: var(--ink);
+        color: var(--paper);
+    }
+
+    .enquire:hover span {
+        transform: translateX(0.25rem);
+    }
+
+    /* The phone menu. */
+
+    .menu {
+        margin-left: auto;
+    }
+
+    summary {
+        position: relative;
+        z-index: 2;
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-3);
+        min-height: 2.75rem;
+        padding: 0 0.25rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        list-style: none;
+        cursor: pointer;
+    }
+
+    summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .burger {
+        display: grid;
+        gap: 6px;
+        width: 1.6rem;
+    }
+
+    .burger span {
+        display: block;
+        height: 1px;
+        background: currentColor;
+        transition: transform 0.35s var(--ease-out);
+    }
+
+    .menu[open] .burger span:first-child {
+        transform: translateY(3.5px) rotate(45deg);
+    }
+
+    .menu[open] .burger span:last-child {
+        transform: translateY(-3.5px) rotate(-45deg);
+    }
+
+    .nav-narrow {
+        position: fixed;
+        inset: 0;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        padding: calc(var(--header-height) + var(--space-8)) var(--gutter) var(--space-10);
+        overflow-y: auto;
+        background: var(--paper);
+    }
+
+    .contents {
+        margin-bottom: var(--space-4);
+        padding-bottom: var(--space-3);
+        border-bottom: 1px solid var(--rule);
+        color: var(--muted);
+        font-size: 0.75rem;
+        font-weight: 500;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+    }
+
+    .nav-narrow ol {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .nav-narrow ol a {
+        display: flex;
+        align-items: baseline;
+        gap: var(--space-4);
+        padding: 0.35rem 0;
+        font-family: var(--font-display);
+        font-size: clamp(2rem, 1.5rem + 3vw, 2.75rem);
+        line-height: 1.15;
+        text-decoration: none;
+    }
+
+    .nav-narrow ol a[aria-current='page'] {
+        font-style: italic;
+    }
+
+    .nav-narrow .no {
+        min-width: 1.6rem;
+        color: var(--accent);
+        font-family: var(--font-sans);
+        font-size: 0.75rem;
+        letter-spacing: 0.1em;
+    }
+
+    .reach {
+        display: grid;
+        gap: var(--space-2);
+        margin-top: auto;
+        padding-top: var(--space-8);
+        font-size: 1rem;
+    }
+
+    @media (min-width: 66rem) {
+        .nav-wide,
+        .enquire {
+            display: inline-flex;
+        }
+
+        .menu {
+            display: none;
+        }
+    }
+</style>

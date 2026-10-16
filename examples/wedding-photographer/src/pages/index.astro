@@ -1,0 +1,778 @@
+---
+/**
+ * The front page, set like a magazine: a cover (a photograph across the
+ * screen with the headline and the cover lines over it), the editors'
+ * letter, the stories running sideways as you scroll, the places we work
+ * in a marquee, the three kinds of day, a line from a couple, how it works,
+ * the packages from the waffle app (GET /api/site/packages) and the newest
+ * journal entries.
+ */
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import Photo from '../components/Photo.astro';
+import StoryCard from '../components/StoryCard.astro';
+import PostCard from '../components/PostCard.astro';
+import { categories, categoryUrl, stories } from '../data/stories';
+import { site } from '../site';
+import { buildTime, settings, waffle } from '@core/settings';
+import { visiblePosts } from '@core/lib/posts.js';
+import { formatHours, formatMoney, parsePackages } from '../lib/packages';
+
+const packages = parsePackages(await waffle.get('/api/site/packages'));
+const posts = visiblePosts(await getCollection('journal'), { includeDrafts: !settings.production, now: buildTime }).slice(0, 3);
+const lowest = Math.min(...packages.collections.map((item) => item.priceCents));
+const season = buildTime.toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+const volume = buildTime.getUTCFullYear() - site.business.founded + 1;
+---
+
+<Base title={`${site.name}: wedding & portrait photography`} description={site.description}>
+    <section class="hero" aria-labelledby="cover-title">
+        <div class="cover">
+            <Photo name="coastSeaStacksWalk" sizes="100vw" priority class="hero-photo" />
+        </div>
+        <div class="cover-text page">
+            <p class="issue reveal">
+                <span>Vol. {volume}</span>
+                <span>{season}</span>
+                <span>The Saltgrass Coast</span>
+            </p>
+            <h1 id="cover-title" class="reveal">Love stories, <em>told slowly.</em></h1>
+            <p class="cover-lead reveal">Wedding, elopement and portrait photography by {site.people.join(' & ')}: two people, one camera bag each, about twenty weddings a year.</p>
+            <ul class="cover-lines reveal" aria-label="In this issue">
+                <li><a href="/stories/"><span class="n">{stories.length}</span> stories, start to finish</a></li>
+                <li><a href="/packages/"><span class="n">{formatMoney(lowest, packages.currency)}</span> the packages, priced openly</a></li>
+                <li><a href="/enquire/"><span class="n">{packages.season}</span> dates now booking</a></li>
+            </ul>
+        </div>
+        <p class="cover-credit page caption"><span class="fig">Cover</span><span>Ines &amp; Callum at Gull Rock, the evening of the vows.</span></p>
+    </section>
+
+    <section class="band letter" aria-labelledby="letter-title">
+        <div class="page letter-grid">
+            <div class="letter-head">
+                <p class="kicker"><span class="no">i.</span> A letter from the studio</p>
+                <h2 id="letter-title">We would rather <em>be with you</em> than direct you.</h2>
+            </div>
+            <div class="letter-body dropcap">
+                <p>Most of a wedding is not posed, and most of our photographs are not either. We plan the day with you around the light, then spend it watching: the nerves before, the people who travelled, your grandmother at the back during the vows, the moment the dance floor fills.</p>
+                <p>There are always two of us, and never more than twenty weddings a year, so every gallery is finished by hand by whoever took it. What you get back is not a highlights reel. It is the story of your day, in order, the way it felt.</p>
+                <p class="signature">Juniper <em>&amp;</em> Theo</p>
+            </div>
+            <figure class="letter-photo">
+                <span class="curtain"><Photo name="ringsOnVows" sizes="(min-width: 64rem) 22vw, 60vw" maxWidth={900} /></span>
+                <figcaption class="caption"><span class="fig">Fig. 1</span><span>Vows, written the week before.</span></figcaption>
+            </figure>
+        </div>
+    </section>
+
+    <section class="track-section" aria-labelledby="stories-title">
+        <div class="track-pin">
+            <div class="track">
+                <div class="track-intro">
+                    <p class="kicker"><span class="no">ii.</span> The stories</p>
+                    <h2 id="stories-title">Four days, <em>told whole.</em></h2>
+                    <p class="standfirst">Scroll on: each is a whole day, with the captions we would write in the margin.</p>
+                    <a class="arrow-link" href="/stories/">All the stories</a>
+                </div>
+                {
+                    stories.map((story, index) => (
+                        <div class="track-card">
+                            <StoryCard story={story} index={index + 1} sizes="(min-width: 64rem) 28vw, 78vw" />
+                        </div>
+                    ))
+                }
+                <div class="track-end">
+                    <p class="end-line">Yours could be <em>the fifth.</em></p>
+                    <a class="button" href="/enquire/">Ask about your date</a>
+                </div>
+            </div>
+            <div class="track-progress page" aria-hidden="true"><span></span></div>
+        </div>
+    </section>
+
+    <div class="marquee" aria-hidden="true">
+        <div class="marquee-track">
+            {
+                [0, 1].map(() => (
+                    <span class="marquee-set">
+                        {site.areas.map((area) => (
+                            <span>
+                                {area} <i>✶</i>
+                            </span>
+                        ))}
+                    </span>
+                ))
+            }
+        </div>
+    </div>
+    <p class="visually-hidden">We work most often in {site.areas.join(', ')}.</p>
+
+    <section class="band rooms" aria-labelledby="rooms-title">
+        <div class="page">
+            <p class="kicker"><span class="no">iii.</span> The portfolio</p>
+            <h2 id="rooms-title" class="visually-hidden">Three kinds of day</h2>
+            <ul class="room-list">
+                {
+                    categories.map((category, index) => (
+                        <li>
+                            <a href={categoryUrl(category.slug)}>
+                                <span class="room-no">{['i', 'ii', 'iii'][index]}.</span>
+                                <span class="room-name">{category.name}</span>
+                                <span class="room-line">{category.line}</span>
+                                <span class="room-photo">
+                                    <Photo name={category.cover} alt="" sizes="(min-width: 64rem) 18rem, 40vw" maxWidth={700} />
+                                </span>
+                            </a>
+                        </li>
+                    ))
+                }
+            </ul>
+        </div>
+    </section>
+
+    <section class="band band-ink quote" aria-label="From a couple">
+        <figure class="page">
+            <blockquote class="rise">
+                <p>“{stories[1]?.quote.text}”</p>
+            </blockquote>
+            <figcaption>— {stories[1]?.quote.by}, of {stories[1]?.names}, at {stories[1]?.place}</figcaption>
+        </figure>
+    </section>
+
+    <section class="band how" aria-labelledby="how-title">
+        <div class="page how-grid">
+            <div>
+                <p class="kicker"><span class="no">iv.</span> The experience</p>
+                <h2 id="how-title">How it <em>unfolds.</em></h2>
+                <a class="arrow-link" href="/experience/">All eight chapters</a>
+            </div>
+            <ol class="steps">
+                <li class="rise"><span class="numeral">I</span><h3>A letter, then a coffee</h3><p>You write; we reply within two working days, then meet to see if we suit each other.</p></li>
+                <li class="rise"><span class="numeral">III</span><h3>Planning the light</h3><p>A timeline built around where the sun will be, written with you two months out.</p></li>
+                <li class="rise"><span class="numeral">VII</span><h3>The whole story</h3><p>A preview within a week; every finished photograph within six.</p></li>
+            </ol>
+        </div>
+    </section>
+
+    <section class="band band-deep prices" aria-labelledby="prices-title">
+        <div class="page prices-grid">
+            <div class="parallax prices-photo">
+                <Photo name="estateLawnRun" sizes="(min-width: 64rem) 40vw, 100vw" maxWidth={1200} />
+            </div>
+            <div>
+                <p class="kicker"><span class="no">v.</span> Packages, {packages.season}</p>
+                <h2 id="prices-title">Priced openly, <em>from {formatMoney(lowest, packages.currency)}.</em></h2>
+                <ul class="price-list">
+                    {
+                        packages.collections.map((item) => (
+                            <li class:list={{ featured: item.featured }}>
+                                <a href={`/packages/#package-${item.id}`}>
+                                    <span class="p-name">{item.name}</span>
+                                    <span class="p-hours">{formatHours(item.hours)}</span>
+                                    <span class="p-price">{formatMoney(item.priceCents, packages.currency)}</span>
+                                </a>
+                            </li>
+                        ))
+                    }
+                </ul>
+                <p class="actions">
+                    <a class="button" href="/packages/">What each includes</a>
+                    <a class="arrow-link" href="/enquire/">Check a date</a>
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section class="band journal" aria-labelledby="journal-title">
+        <div class="page">
+            <div class="journal-head">
+                <div>
+                    <p class="kicker"><span class="no">vi.</span> {site.blog.title}</p>
+                    <h2 id="journal-title">Notes for <em>the planning.</em></h2>
+                </div>
+                <a class="arrow-link" href="/journal/">Every entry</a>
+            </div>
+            <div class="journal-list">
+                {posts.map((post, index) => <PostCard post={post} index={index + 1} level="h3" />)}
+            </div>
+        </div>
+    </section>
+</Base>
+
+<style>
+    /* The cover. */
+    .hero {
+        position: relative;
+        display: grid;
+        min-height: min(94vh, 64rem);
+        overflow: hidden;
+        color: var(--on-ink);
+        background: var(--ink);
+    }
+
+    .cover {
+        position: absolute;
+        inset: 0;
+    }
+
+    .cover::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background:
+            linear-gradient(to top, rgb(22 19 15 / 0.88), rgb(22 19 15 / 0.35) 45%, rgb(22 19 15 / 0.1) 70%, rgb(22 19 15 / 0.45)),
+            linear-gradient(to right, rgb(22 19 15 / 0.45), transparent 60%);
+    }
+
+    .cover :global(.hero-photo) {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: 68% 60%;
+    }
+
+    .cover-text {
+        position: relative;
+        display: grid;
+        align-content: end;
+        gap: var(--space-6) var(--space-12);
+        padding-block: var(--space-16) var(--space-6);
+    }
+
+    .issue {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2) var(--space-6);
+        margin: 0;
+        font-size: 0.72rem;
+        font-weight: 500;
+        letter-spacing: 0.24em;
+        text-transform: uppercase;
+    }
+
+    @media (max-width: 40rem) {
+        .issue span:last-child {
+            display: none;
+        }
+    }
+
+    .issue span + span::before {
+        content: '';
+        display: inline-block;
+        width: 1.5rem;
+        height: 1px;
+        margin-right: var(--space-6);
+        background: currentColor;
+        vertical-align: middle;
+        opacity: 0.6;
+    }
+
+    .hero h1 {
+        max-width: 11ch;
+        margin: 0;
+        color: var(--on-ink);
+        font-size: clamp(3.4rem, 1.5rem + 8vw, 10rem);
+        line-height: 0.88;
+    }
+
+    .hero h1 em {
+        display: block;
+        color: var(--accent-on-ink);
+    }
+
+    .cover-lead {
+        max-width: 28rem;
+        margin: 0;
+        color: var(--on-ink);
+        font-family: var(--font-display);
+        font-size: clamp(1.15rem, 1rem + 0.5vw, 1.4rem);
+        font-style: italic;
+        line-height: 1.4;
+    }
+
+    .cover-lines {
+        display: grid;
+        gap: var(--space-3);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .cover-lines a {
+        display: grid;
+        grid-template-columns: 5.5rem 1fr;
+        align-items: baseline;
+        gap: var(--space-3);
+        padding-top: var(--space-3);
+        border-top: 1px solid color-mix(in srgb, var(--on-ink) 35%, transparent);
+        font-size: 0.78rem;
+        font-weight: 500;
+        letter-spacing: 0.16em;
+        text-decoration: none;
+        text-transform: uppercase;
+    }
+
+    .cover-lines a:hover {
+        color: var(--accent-on-ink);
+    }
+
+    .cover-lines .n {
+        font-family: var(--font-display);
+        font-size: 1.5rem;
+        font-style: italic;
+        letter-spacing: 0;
+        text-transform: none;
+    }
+
+    .cover-credit {
+        position: relative;
+        margin-block: 0 var(--space-6);
+        color: var(--on-ink-muted);
+    }
+
+    .cover-credit .fig {
+        color: var(--accent-on-ink);
+    }
+
+    /* The letter. */
+    .letter-grid {
+        display: grid;
+        gap: var(--space-10) var(--space-16);
+    }
+
+    .letter-head h2 em,
+    .track-intro h2 em,
+    .how h2 em,
+    .prices h2 em,
+    .journal h2 em {
+        display: block;
+        color: var(--accent);
+    }
+
+    .letter-body {
+        max-width: var(--width-text);
+        font-size: 1.15rem;
+        line-height: 1.8;
+    }
+
+    .signature {
+        margin-top: var(--space-8);
+        font-family: var(--font-display);
+        font-size: 2rem;
+        font-style: italic;
+    }
+
+    .signature em {
+        color: var(--accent);
+    }
+
+    .letter-photo {
+        max-width: 22rem;
+        margin: 0;
+    }
+
+    .letter-photo .curtain {
+        display: block;
+        overflow: hidden;
+        aspect-ratio: 4 / 5;
+    }
+
+    /* The stories track. Without scroll-driven animation: a row to scroll sideways. */
+    .track-section {
+        background: var(--paper);
+    }
+
+    .track-pin {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: var(--space-8);
+        padding-block: var(--space-12);
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        scroll-padding-inline: var(--gutter);
+    }
+
+    .track {
+        display: flex;
+        align-items: center;
+        gap: clamp(1.5rem, 1rem + 3vw, 4rem);
+        width: max-content;
+        max-width: none;
+        padding-inline: var(--gutter);
+    }
+
+    .track-intro {
+        display: grid;
+        gap: var(--space-4);
+        justify-items: start;
+        width: min(80vw, 26rem);
+        scroll-snap-align: start;
+    }
+
+    .track-intro h2 {
+        margin: 0;
+    }
+
+    .track-intro .standfirst {
+        margin: 0;
+    }
+
+    .track-card {
+        width: min(72vw, 22rem);
+        scroll-snap-align: center;
+    }
+
+    .track-card:nth-child(odd) {
+        margin-top: var(--space-16);
+    }
+
+    .track-end {
+        display: grid;
+        gap: var(--space-6);
+        justify-items: start;
+        width: min(80vw, 22rem);
+        padding-right: var(--gutter);
+    }
+
+    .end-line {
+        margin: 0;
+        font-family: var(--font-display);
+        font-size: clamp(2rem, 1.5rem + 2vw, 3.25rem);
+        line-height: 1.02;
+    }
+
+    .end-line em {
+        display: block;
+        color: var(--accent);
+    }
+
+    .track-progress {
+        position: sticky;
+        left: var(--gutter);
+        height: 1px;
+        background: var(--rule);
+    }
+
+    .track-progress span {
+        display: block;
+        height: 100%;
+        background: var(--ink);
+        transform-origin: 0 50%;
+    }
+
+    /* The marquee of places. */
+    .marquee {
+        overflow: hidden;
+        padding-block: var(--space-8);
+        border-block: 1px solid var(--rule-strong);
+    }
+
+    .marquee-track {
+        display: flex;
+        width: max-content;
+    }
+
+    .marquee-set {
+        display: flex;
+        flex: none;
+    }
+
+    .marquee-set > span {
+        padding-inline: var(--space-6);
+        font-family: var(--font-display);
+        font-size: clamp(2rem, 1.4rem + 3vw, 4.5rem);
+        font-style: italic;
+        line-height: 1.1;
+        white-space: nowrap;
+    }
+
+    .marquee i {
+        margin-left: var(--space-6);
+        color: var(--accent);
+        font-size: 0.5em;
+        font-style: normal;
+        vertical-align: middle;
+    }
+
+    /* The three rooms: type rows that show their photograph on hover. */
+    .room-list {
+        margin: 0;
+        padding: 0;
+        border-top: 1px solid var(--rule-strong);
+        list-style: none;
+    }
+
+    .room-list li {
+        border-bottom: 1px solid var(--rule);
+    }
+
+    .room-list a {
+        position: relative;
+        display: grid;
+        grid-template-columns: 2.5rem 1fr;
+        align-items: baseline;
+        gap: var(--space-2) var(--space-6);
+        padding: var(--space-8) 0;
+        text-decoration: none;
+    }
+
+    .room-no {
+        color: var(--accent);
+        font-family: var(--font-display);
+        font-style: italic;
+    }
+
+    .room-name {
+        font-family: var(--font-display);
+        font-size: clamp(3rem, 1.8rem + 6vw, 8rem);
+        line-height: 0.9;
+        letter-spacing: -0.035em;
+        transition: transform 0.6s var(--ease-out), color 0.3s ease;
+    }
+
+    .room-line {
+        grid-column: 2;
+        max-width: 26rem;
+        color: var(--muted);
+        font-family: var(--font-display);
+        font-style: italic;
+    }
+
+    .room-photo {
+        display: none;
+    }
+
+    .room-list a:hover .room-name,
+    .room-list a:focus-visible .room-name {
+        color: var(--accent);
+        transform: translateX(1.5rem);
+    }
+
+    /* Quote. */
+    .quote figure {
+        margin-block: 0;
+        text-align: center;
+    }
+
+    .quote blockquote {
+        margin: 0;
+    }
+
+    .quote blockquote p {
+        max-width: 22ch;
+        margin: 0 auto;
+        font-family: var(--font-display);
+        font-size: clamp(2.2rem, 1.2rem + 4.4vw, 5.5rem);
+        font-style: italic;
+        line-height: 1.04;
+        letter-spacing: -0.025em;
+    }
+
+    .quote figcaption {
+        margin-top: var(--space-10);
+        color: var(--accent-on-ink);
+        font-size: 0.78rem;
+        font-weight: 500;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+    }
+
+    /* How it works. */
+    .how-grid {
+        display: grid;
+        gap: var(--space-12) var(--space-16);
+    }
+
+    .steps {
+        display: grid;
+        gap: var(--space-10) var(--gutter);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .steps li {
+        padding-top: var(--space-5);
+        border-top: 1px solid var(--rule-strong);
+    }
+
+    .numeral {
+        display: block;
+        margin-bottom: var(--space-4);
+        color: var(--accent);
+        font-family: var(--font-display);
+        font-size: 3rem;
+        font-style: italic;
+        line-height: 1;
+    }
+
+    .steps p {
+        color: var(--muted);
+    }
+
+    /* Packages. */
+    .prices-grid {
+        display: grid;
+        gap: var(--space-12) var(--space-16);
+        align-items: center;
+    }
+
+    .prices-photo {
+        overflow: hidden;
+        aspect-ratio: 4 / 5;
+    }
+
+    .price-list {
+        margin: var(--space-10) 0 0;
+        padding: 0;
+        border-top: 1px solid var(--rule-strong);
+        list-style: none;
+    }
+
+    .price-list a {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 0 var(--space-6);
+        align-items: baseline;
+        padding: var(--space-4) 0;
+        border-bottom: 1px solid var(--rule);
+        text-decoration: none;
+    }
+
+    .p-name {
+        font-family: var(--font-display);
+        font-size: clamp(1.3rem, 1.1rem + 0.6vw, 1.6rem);
+    }
+
+    .p-hours {
+        grid-row: 2;
+        color: var(--faint);
+        font-size: 0.85rem;
+    }
+
+    .p-price {
+        grid-row: span 2;
+        font-family: var(--font-display);
+        font-size: clamp(1.5rem, 1.2rem + 1vw, 2.2rem);
+    }
+
+    .featured .p-name::after {
+        content: 'Most booked';
+        margin-left: var(--space-3);
+        color: var(--accent);
+        font-family: var(--font-sans);
+        font-size: 0.65rem;
+        font-weight: 500;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        vertical-align: middle;
+    }
+
+    /* Journal. */
+    .journal-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: end;
+        justify-content: space-between;
+        gap: var(--space-6);
+        margin-bottom: var(--space-8);
+    }
+
+    .journal-list {
+        display: grid;
+        border-top: 1px solid var(--rule-strong);
+    }
+
+    @media (min-width: 64rem) {
+        .cover-text {
+            grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+            padding-bottom: var(--space-10);
+        }
+
+        .issue,
+        .hero h1 {
+            grid-column: 1;
+        }
+
+        .cover-lead {
+            grid-column: 1;
+        }
+
+        /* Top right, in the sky: the couple walks the bottom right of the cover. */
+        .cover-lines {
+            grid-column: 2;
+            grid-row: 1 / span 2;
+            align-self: start;
+            max-width: 24rem;
+            justify-self: end;
+        }
+
+        .letter-grid {
+            grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.4fr) minmax(0, 0.8fr);
+            align-items: start;
+        }
+
+        .letter-photo {
+            margin-top: var(--space-24);
+        }
+
+        .track-card {
+            width: min(26vw, 24rem);
+        }
+
+        .room-list a {
+            grid-template-columns: 3rem auto 1fr;
+            align-items: center;
+        }
+
+        .room-line {
+            grid-column: 3;
+            justify-self: end;
+            text-align: right;
+        }
+
+        /* On a wide screen the room's photograph appears beside its name on hover. */
+        .room-photo {
+            position: absolute;
+            top: 50%;
+            left: 55%;
+            z-index: 2;
+            display: block;
+            width: 15rem;
+            aspect-ratio: 4 / 5;
+            overflow: hidden;
+            opacity: 0;
+            pointer-events: none;
+            transform: translate(-50%, -45%) rotate(-3deg) scale(0.9);
+            transition: opacity 0.35s ease, transform 0.6s var(--ease-out);
+        }
+
+        .room-list li:nth-child(2) .room-photo {
+            transform: translate(-50%, -45%) rotate(3deg) scale(0.9);
+        }
+
+        .room-list a:hover .room-photo,
+        .room-list a:focus-visible .room-photo {
+            opacity: 1;
+            transform: translate(-50%, -50%) rotate(-2deg) scale(1);
+        }
+
+        .how-grid {
+            grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+        }
+
+        .steps {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .prices-grid {
+            grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+        }
+
+        .journal-list {
+            grid-template-columns: repeat(3, 1fr);
+            column-gap: var(--space-10);
+        }
+    }
+</style>

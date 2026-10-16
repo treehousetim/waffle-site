@@ -1,0 +1,101 @@
+---
+/**
+ * Who took the photographs. The example photos are from Unsplash, free
+ * under the Unsplash License; credit is not required, but given. Kept out
+ * of search results (src/site.ts, noindex).
+ */
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import { photos } from '../data/photos';
+
+const credits = Object.values(photos);
+---
+
+<Base
+    title="Photo credits"
+    description="The photographers whose work stands in for the studio's on this example site, with links to the originals on Unsplash, and the typefaces used."
+    breadcrumbs={[{ name: 'Photo credits', href: '/credits/' }]}
+>
+    <PageHead
+        label="Credits"
+        heading="Photo credits"
+        italic="with thanks."
+        lead="Juniper & Vale is a fictional studio. Every photograph on this site is the work of the photographers below, from Unsplash, used under the Unsplash License."
+    />
+
+    <div class="page credits">
+        <ol class="list">
+            {
+                credits.map((photo, index) => (
+                    <li>
+                        <span class="no">{String(index + 1).padStart(2, '0')}</span>
+                        <span class="what">{photo.alt.replace(/\.$/, '')}</span>
+                        <a href={photo.credit.url}>{photo.credit.name}</a>
+                    </li>
+                ))
+            }
+        </ol>
+        <div class="notes">
+            <p>Photographs from <a href="https://unsplash.com/">Unsplash</a>, under the <a href="https://unsplash.com/license">Unsplash License</a>. They are not covered by this repository’s licence.</p>
+            <p>The typefaces are <a href="https://github.com/indestructible-type/Bodoni">Bodoni Moda</a> and <a href="https://github.com/indestructible-type/Jost">Jost</a>, both by indestructible type*, under the <a href="https://openfontlicense.org/">SIL Open Font License</a>.</p>
+        </div>
+    </div>
+</Base>
+
+<style>
+    .credits {
+        display: grid;
+        gap: var(--space-12);
+        padding-bottom: var(--section);
+    }
+
+    .list {
+        margin: 0;
+        padding: 0;
+        border-top: 1px solid var(--rule-strong);
+        list-style: none;
+    }
+
+    li {
+        display: grid;
+        grid-template-columns: 2.5rem 1fr;
+        gap: var(--space-1) var(--space-4);
+        padding: var(--space-4) 0;
+        border-bottom: 1px solid var(--rule);
+    }
+
+    .no {
+        grid-row: span 2;
+        color: var(--accent);
+        font-family: var(--font-display);
+        font-style: italic;
+    }
+
+    .what {
+        color: var(--muted);
+    }
+
+    li a {
+        font-family: var(--font-display);
+        font-size: 1.15rem;
+    }
+
+    .notes {
+        max-width: var(--width-text);
+        color: var(--muted);
+    }
+
+    @media (min-width: 64rem) {
+        li {
+            grid-template-columns: 2.5rem 1fr 14rem;
+        }
+
+        .no {
+            grid-row: auto;
+        }
+
+        li a {
+            text-align: right;
+        }
+    }
+</style>

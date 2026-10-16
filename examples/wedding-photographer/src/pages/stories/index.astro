@@ -1,0 +1,154 @@
+---
+/**
+ * Every story, as the contents of an issue: one spread per story, its
+ * photograph on alternate sides, its number set large.
+ */
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import Photo from '../../components/Photo.astro';
+import { categories, longDate, stories, storyUrl } from '../../data/stories';
+---
+
+<Base
+    title="Stories: weddings, elopements, portraits"
+    description="Every story from Juniper & Vale: whole wedding days, elopements on the coast and in the redwoods, and portrait sittings, each told in photographs."
+    breadcrumbs={[{ name: 'Stories', href: '/stories/' }]}
+>
+    <PageHead
+        no="01"
+        label="Stories"
+        heading="One day,"
+        italic="told properly."
+        lead="We would rather show you four whole days than forty best moments. Each of these is a story from beginning to end, with the captions we would write in the margin."
+    />
+
+    <ol class="issues page">
+        {
+            stories.map((story, index) => {
+                const category = categories.find((item) => item.slug === story.category);
+                const first = story.frames[0];
+
+                return (
+                    <li class:list={['issue', 'rise', { flip: index % 2 === 1 }]}>
+                        <a class="photo" href={storyUrl(story.slug)} tabindex="-1" aria-hidden="true">
+                            <span class:list={['frame', `vt-story-${story.slug}`]}>
+                                {first && <Photo name={first.photo} alt="" sizes="(min-width: 64rem) 58vw, 100vw" maxWidth={1500} />}
+                            </span>
+                        </a>
+                        <div class="copy">
+                            <p class="number" aria-hidden="true">
+                                {String(index + 1).padStart(2, '0')}
+                            </p>
+                            <p class="kicker">
+                                <span>{category?.name}</span>
+                                <span>{longDate(story.date)}</span>
+                            </p>
+                            <h2>
+                                <a href={storyUrl(story.slug)}>{story.names}</a>
+                            </h2>
+                            <p class="title">{story.title}</p>
+                            <p class="summary">{story.summary}</p>
+                            <p class="place">{story.place}</p>
+                            <a class="arrow-link" href={storyUrl(story.slug)}>
+                                Read the story<span class="visually-hidden">: {story.names}</span>
+                            </a>
+                        </div>
+                    </li>
+                );
+            })
+        }
+    </ol>
+</Base>
+
+<style>
+    .issues {
+        display: grid;
+        gap: clamp(5rem, 3rem + 7vw, 10rem);
+        margin-block: var(--space-8) var(--section);
+        padding: 0;
+        list-style: none;
+    }
+
+    .issue {
+        display: grid;
+        gap: var(--space-8) var(--space-12);
+        align-items: center;
+    }
+
+    .photo {
+        display: block;
+    }
+
+    .frame {
+        display: block;
+        overflow: hidden;
+        aspect-ratio: 5 / 4;
+        background: var(--paper-deep);
+    }
+
+    .frame :global(img) {
+        transition: transform 1.4s var(--ease-out);
+    }
+
+    .issue:hover .frame :global(img) {
+        transform: scale(1.04);
+    }
+
+    .number {
+        margin: 0 0 var(--space-4);
+        color: var(--accent);
+        font-family: var(--font-display);
+        font-size: clamp(4.5rem, 3rem + 6vw, 9rem);
+        font-style: italic;
+        line-height: 0.8;
+    }
+
+    .kicker {
+        margin-bottom: var(--space-4);
+    }
+
+    h2 {
+        margin: 0;
+    }
+
+    h2 a {
+        text-decoration: none;
+    }
+
+    h2 a:hover {
+        color: var(--accent);
+    }
+
+    .title {
+        margin: var(--space-2) 0 var(--space-6);
+        font-family: var(--font-display);
+        font-size: clamp(1.3rem, 1.1rem + 0.8vw, 1.75rem);
+        font-style: italic;
+    }
+
+    .summary {
+        max-width: 30rem;
+        color: var(--muted);
+    }
+
+    .place {
+        margin-bottom: var(--space-6);
+        color: var(--faint);
+        font-size: 0.85rem;
+        letter-spacing: 0.04em;
+    }
+
+    @media (min-width: 64rem) {
+        .issue {
+            grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+        }
+
+        .flip .photo {
+            order: 2;
+        }
+
+        .flip .frame {
+            aspect-ratio: 4 / 5;
+        }
+    }
+</style>
