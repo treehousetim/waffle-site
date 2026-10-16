@@ -1,0 +1,226 @@
+---
+/**
+ * The services as a sheet of stickers: each a link to its page, in its own
+ * colour, tilted a little, with the service's photo cut into a circle in
+ * the corner. The photo carries a view-transition name, so following the
+ * sticker grows that photo into the service page's hero (motion.css).
+ * Stickers squash and stretch when you hover them; urgent care stays calm.
+ */
+import Icon from './Icon.astro';
+import Photo from './Photo.astro';
+import { serviceUrl, type Service } from '../data/services';
+
+interface Props {
+    services: Service[];
+    level?: 'h2' | 'h3';
+    /** Draw the photos (and so the morph into the service's page). */
+    photos?: boolean;
+    /** The full sheet of seven in its mixed sizes, or an even grid for a few. */
+    layout?: 'sheet' | 'grid';
+}
+
+const { services, level = 'h3', photos = true, layout = 'sheet' } = Astro.props;
+const Heading = level;
+---
+
+<ul class:list={['sheet', `layout-${layout}`]}>
+    {
+        services.map((item, index) => (
+            <li class:list={['slot', { calm: item.tone === 'calm' }]}>
+                <a class:list={['sticker', 'svc', `tone-${item.tone}`, index % 2 === 0 ? 'tilt-left' : 'tilt-right']} href={serviceUrl(item.slug)}>
+                    <span class="icon">
+                        <Icon name={item.icon} size={30} />
+                    </span>
+                    <Heading class="name">{item.name}</Heading>
+                    <p class="summary">{item.summary}</p>
+                    <span class="more">
+                        {item.tone === 'calm' ? 'When it can’t wait' : 'Find out more'} <Icon name="arrow" size={18} />
+                    </span>
+                    {photos && (
+                        <span class:list={['thumb', 'cut', 'cut-circle', `vt-${item.slug}`]} aria-hidden="true">
+                            <Photo name={item.photo} sizes="8rem" />
+                        </span>
+                    )}
+                </a>
+            </li>
+        ))
+    }
+</ul>
+
+<style>
+    .sheet {
+        display: grid;
+        gap: clamp(1.75rem, 1rem + 2vw, 2.5rem);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .slot {
+        display: flex;
+    }
+
+    .svc {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        gap: var(--space-3);
+        min-height: 15rem;
+        padding: var(--space-6) var(--space-6) var(--space-6);
+        padding-right: clamp(6.5rem, 5rem + 4vw, 8.5rem);
+        color: var(--ink);
+        text-decoration: none;
+        transform-origin: 50% 100%;
+    }
+
+    .svc:hover {
+        color: var(--ink);
+    }
+
+    .tone-sun {
+        background: var(--sun);
+    }
+
+    .tone-mint {
+        background: var(--mint);
+    }
+
+    .tone-tomato {
+        background: var(--tomato-soft);
+    }
+
+    .tone-cream {
+        background: var(--paper);
+    }
+
+    .tone-calm {
+        background: var(--teal-deep);
+        color: var(--cream);
+        rotate: none;
+    }
+
+    .tone-calm:hover {
+        color: var(--cream);
+    }
+
+    .tone-calm .name {
+        color: var(--cream);
+    }
+
+    .icon {
+        display: inline-grid;
+        place-items: center;
+        width: 3.4rem;
+        height: 3.4rem;
+        border: var(--stroke) solid var(--line);
+        border-radius: 50%;
+        background: var(--paper);
+        color: var(--ink);
+    }
+
+    .tone-calm .icon {
+        border-color: var(--mint);
+        background: var(--teal);
+        color: var(--mint);
+    }
+
+    .name {
+        margin: var(--space-2) 0 0;
+    }
+
+    .summary {
+        margin: 0;
+        flex: 1;
+        font-weight: 600;
+        line-height: 1.5;
+    }
+
+    .more {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        font-family: var(--font-display);
+        font-size: 1.05rem;
+        font-weight: 600;
+    }
+
+    .more :global(svg) {
+        transition: translate 0.25s var(--spring);
+    }
+
+    .svc:hover .more :global(svg) {
+        translate: 4px 0;
+    }
+
+    .tone-calm .more {
+        color: var(--sun);
+    }
+
+    .thumb {
+        position: absolute;
+        top: -1rem;
+        right: -1rem;
+        width: clamp(6rem, 5rem + 3vw, 8rem);
+        box-shadow: var(--pop-small);
+    }
+
+    .tone-calm .thumb {
+        border-color: var(--mint);
+        box-shadow: none;
+    }
+
+    .thumb :global(picture),
+    .thumb :global(img) {
+        display: block;
+        width: 100%;
+        height: 100%;
+    }
+
+    .thumb :global(img) {
+        object-fit: cover;
+    }
+
+    @media (max-width: 39.99rem) {
+        .svc {
+            min-height: 0;
+            padding-right: var(--space-6);
+        }
+
+        .thumb {
+            right: -0.4rem;
+            width: 5.5rem;
+        }
+
+        .summary {
+            max-width: 26rem;
+        }
+    }
+
+    @media (min-width: 40rem) {
+        .sheet {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @media (min-width: 64rem) {
+        .layout-sheet {
+            grid-template-columns: repeat(12, minmax(0, 1fr));
+        }
+
+        .layout-sheet .slot:nth-child(7n + 1) { grid-column: span 7; }
+        .layout-sheet .slot:nth-child(7n + 2) { grid-column: span 5; }
+        .layout-sheet .slot:nth-child(7n + 3),
+        .layout-sheet .slot:nth-child(7n + 4),
+        .layout-sheet .slot:nth-child(7n + 5) { grid-column: span 4; }
+        .layout-sheet .slot:nth-child(7n + 6),
+        .layout-sheet .slot:nth-child(7n + 7) { grid-column: span 6; }
+
+        .layout-sheet .slot:nth-child(7n + 1) .name {
+            font-size: clamp(1.8rem, 1.2rem + 1vw, 2.3rem);
+        }
+
+        .layout-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+    }
+</style>

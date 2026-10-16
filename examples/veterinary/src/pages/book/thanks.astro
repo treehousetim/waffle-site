@@ -1,0 +1,92 @@
+---
+/**
+ * Where the waffle app sends a browser without script after a good
+ * appointment request. Kept out of search results (src/site.ts, noindex).
+ */
+import Base from '../../layouts/Base.astro';
+import Hero from '../../components/Hero.astro';
+import Icon from '../../components/Icon.astro';
+import { site } from '../../site';
+
+const meanwhile = [
+    { href: '/new-clients/', title: 'Your first visit', text: 'What to bring and how to make the trip calm.', icon: 'smile' },
+    { href: '/wellness-plans/', title: 'Wellness plans', text: 'Spread the year’s routine care into monthly payments.', icon: 'heart' },
+    { href: '/resources/', title: 'Pet resources', text: 'Household dangers, normal vital signs and a first-aid kit.', icon: 'leaf' },
+] as const;
+---
+
+<Base
+    title="Thanks, we have your request"
+    description="We have your appointment request and will call, text or email within one working day to confirm a time. If your pet is very unwell, please call us now."
+    closing={false}
+>
+    <Hero
+        tone="mint"
+        icon="check"
+        eyebrow="Request received"
+        heading="Thanks! We’ll be in touch soon."
+        lead={`We will confirm a time within one working day. If your pet gets worse in the meantime, please call us on ${site.business.phone} rather than waiting.`}
+        photo="samoyed"
+        shape="circle"
+        primary={{ label: 'Back to the home page', href: '/' }}
+        secondary={{ label: `Call ${site.business.phone}`, href: `tel:${site.business.phoneE164}` }}
+    />
+
+    <section class="band meanwhile" aria-labelledby="meanwhile-heading">
+        <div class="container">
+            <h2 id="meanwhile-heading">While you wait</h2>
+            <ul class="links">
+                {meanwhile.map((item, index) => (
+                    <li>
+                        <a class:list={['sticker', 'link', index === 1 ? 'sticker-sun' : index === 2 ? 'sticker-tomato' : '']} href={item.href}>
+                            <Icon name={item.icon} size={28} />
+                            <strong>{item.title}</strong>
+                            <span>{item.text}</span>
+                        </a>
+                    </li>
+                ))}
+            </ul>
+        </div>
+    </section>
+</Base>
+
+<style>
+    .meanwhile {
+        padding-top: var(--space-10);
+    }
+
+    .links {
+        display: grid;
+        gap: var(--space-8);
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+        margin: var(--space-8) 0 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .link {
+        display: grid;
+        gap: var(--space-2);
+        height: 100%;
+        padding: var(--space-6);
+        color: var(--ink);
+        text-decoration: none;
+        transition: translate 0.2s var(--spring), box-shadow 0.2s var(--spring);
+    }
+
+    .link:hover {
+        color: var(--ink);
+        translate: -3px -3px;
+        box-shadow: var(--pop-large);
+    }
+
+    .link strong {
+        font-family: var(--font-display);
+        font-size: 1.4rem;
+        font-weight: 600;
+    }
+
+    .link span {
+        font-weight: 600;
+    }
+</style>

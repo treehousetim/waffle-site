@@ -1,0 +1,299 @@
+---
+/**
+ * The wellness plans, from the waffle app (GET /api/site/wellness-plans):
+ * every plan by species and life stage, with its monthly price and what it
+ * includes, as of the last build. Nothing here is typed by hand except the
+ * explanation around it.
+ */
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+import PlanCard from '../components/PlanCard.astro';
+import Photo from '../components/Photo.astro';
+import Faq from '../components/Faq.astro';
+import Icon from '../components/Icon.astro';
+import type { PhotoName } from '../data/photos';
+import { loadWellnessPlans } from '../lib/load-plans';
+import { monthly, plansFor, speciesNames, speciesSummary, updatedOn, type Species } from '../lib/wellness-plans';
+import { formatPrice } from '@core/lib/prices.js';
+import { faqPage } from '@core/lib/jsonld.js';
+
+const plans = await loadWellnessPlans();
+const groups = speciesSummary(plans).map((entry) => ({ ...entry, plans: plansFor(plans, { species: entry.species }) }));
+const looks: Record<Species, { photo: PhotoName; tone: string; icon: 'dog' | 'cat' | 'rabbit'; blurb: string }> = {
+    dog: { photo: 'labradorTulip', tone: 'band-paper', icon: 'dog', blurb: 'Exams, vaccines, parasite prevention and nurse visits for every stage of a dog’s life.' },
+    cat: { photo: 'tabbyKitten', tone: 'band-mint', icon: 'cat', blurb: 'Everything a cat needs each year, with extra kidney and thyroid checks as they age.' },
+    rabbit: { photo: 'rabbit', tone: 'band-sun', icon: 'rabbit', blurb: 'Seen by our exotics vet, with tooth and gut checks at every single exam.' },
+};
+
+const faq = [
+    { question: 'What does a wellness plan cost?', answer: `From ${formatPrice(Math.min(...plans.plans.map((plan) => plan.monthlyPrice)), plans.currency)} a month, depending on species and life stage. Each plan’s monthly price is shown on its card, and there is no joining fee.` },
+    { question: 'Is a wellness plan the same as insurance?', answer: 'No. A plan covers routine, preventive care you know your pet will need. Insurance covers the unexpected: accidents and illness. Most of our clients have both.' },
+    { question: 'Can I cancel?', answer: 'Plans run for twelve months. If you cancel early, we compare what you have paid with what you have used, and settle the difference either way.' },
+    { question: 'What happens when my pet moves to the next life stage?', answer: 'We let you know a month ahead and move you to the next plan at your renewal, so the care keeps up with your pet.' },
+    { question: 'Do plans cover illness or emergencies?', answer: 'No, but plan members get unlimited nurse advice by phone, and 10% off most other treatment.' },
+];
+---
+
+<Base
+    title="Wellness plans for dogs, cats and rabbits"
+    description="Monthly wellness plans for dogs, cats and rabbits at every life stage: exams, vaccines, parasite prevention and nurse visits, with prices from the practice."
+    breadcrumbs={[{ name: 'Wellness plans', href: '/wellness-plans/' }]}
+    jsonLd={[faqPage(faq)]}
+>
+    <Hero
+        tone="sun"
+        icon="heart"
+        eyebrow="Wellness plans"
+        heading="The year’s care, in small monthly bites"
+        lead={`Pick your pet and their life stage. Every plan bundles the routine care they need, paid monthly. ${plans.plans.length} plans, prices updated ${updatedOn(plans)}.`}
+        photo="samoyed"
+        shape="arch"
+    >
+        <ul class="jump" aria-label="Jump to a species">
+            {
+                groups.map((group) => (
+                    <li>
+                        <a class="jump-link" href={`#${group.species}`}>
+                            <Icon name={looks[group.species].icon} size={24} />
+                            {speciesNames[group.species].many}
+                            <span>from {formatPrice(group.from, plans.currency)}</span>
+                        </a>
+                    </li>
+                ))
+            }
+        </ul>
+    </Hero>
+
+    {
+        groups.map((group) => (
+            <section id={group.species} class:list={['band', 'species-band', looks[group.species].tone]} aria-labelledby={`${group.species}-heading`}>
+                <div class="container">
+                    <div class="species-head">
+                        <div class="cut cut-circle species-photo">
+                            <Photo name={looks[group.species].photo} sizes="10rem" />
+                        </div>
+                        <div>
+                            <h2 id={`${group.species}-heading`}>Plans for {speciesNames[group.species].many.toLowerCase()}</h2>
+                            <p class="lead">{looks[group.species].blurb}</p>
+                        </div>
+                    </div>
+                    <ul class="plan-grid">
+                        {group.plans.map((plan) => (
+                            <li>
+                                <PlanCard plan={plan} currency={plans.currency} />
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            </section>
+        ))
+    }
+
+    <section class="band" aria-labelledby="how-heading">
+        <div class="container how">
+            <div>
+                <p class="eyebrow"><Icon name="sparkle" />How it works</p>
+                <h2 id="how-heading">Join at any visit, pay monthly, relax</h2>
+                <ol class="how-steps">
+                    <li><strong>Choose a plan</strong> for your pet’s species and age. We can help at the desk.</li>
+                    <li><strong>Pay monthly</strong> by card or direct debit. No joining fee.</li>
+                    <li><strong>Book the care</strong> as you need it. We remind you when things are due.</li>
+                </ol>
+            </div>
+            <div class="summary sticker sticker-tomato tilt-right">
+                <h3>Every plan at a glance</h3>
+                <table>
+                    <thead>
+                        <tr><th scope="col">Plan</th><th scope="col">Ages</th><th scope="col">A month</th></tr>
+                    </thead>
+                    <tbody>
+                        {plans.plans.map((plan) => (
+                            <tr>
+                                <th scope="row">{plan.name}</th>
+                                <td>{plan.ages}</td>
+                                <td>{monthly(plan, plans.currency)}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <section class="band band-paper" aria-labelledby="plans-faq-heading">
+        <div class="container">
+            <div class="band-head">
+                <p class="eyebrow"><Icon name="smile" />Questions</p>
+                <h2 id="plans-faq-heading">Plans, plainly explained</h2>
+            </div>
+            <Faq items={faq} />
+        </div>
+    </section>
+</Base>
+
+<style>
+    .jump {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-3);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .jump-link {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        padding: 0.5rem 1rem 0.5rem 0.75rem;
+        border: var(--stroke) solid var(--line);
+        border-radius: 999px;
+        background: var(--paper);
+        color: var(--ink);
+        font-family: var(--font-display);
+        font-size: 1.1rem;
+        font-weight: 600;
+        text-decoration: none;
+        box-shadow: 3px 3px 0 var(--line);
+        transition: translate 0.2s var(--spring), box-shadow 0.2s var(--spring);
+    }
+
+    .jump-link span {
+        color: var(--muted);
+        font-family: var(--font-body);
+        font-size: 0.85rem;
+        font-weight: 800;
+    }
+
+    .jump-link:hover {
+        color: var(--ink);
+        translate: -2px -2px;
+        box-shadow: 5px 5px 0 var(--line);
+    }
+
+    .species-band {
+        scroll-margin-top: var(--header-height);
+        border-top: var(--stroke) solid var(--line);
+    }
+
+    .band-sun {
+        --notch: var(--sun);
+    }
+
+    .band-mint {
+        --notch: var(--mint-soft);
+    }
+
+    .band-paper {
+        --notch: var(--paper);
+    }
+
+    .species-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-6) var(--space-8);
+        margin-bottom: var(--space-12);
+    }
+
+    .species-head h2 {
+        margin-bottom: var(--space-2);
+    }
+
+    .species-head .lead {
+        max-width: 36rem;
+        margin: 0;
+        color: var(--ink);
+    }
+
+    .species-photo {
+        flex: none;
+        width: clamp(7rem, 5rem + 6vw, 10rem);
+        box-shadow: var(--pop);
+    }
+
+    .species-photo :global(picture) {
+        display: block;
+        width: 100%;
+        height: 100%;
+    }
+
+    .plan-grid {
+        display: grid;
+        gap: var(--space-12) var(--space-8);
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+        margin: 0;
+        padding: var(--space-4) 0 0;
+        list-style: none;
+    }
+
+    @media (min-width: 64rem) {
+        .plan-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+    }
+
+    .how {
+        display: grid;
+        gap: var(--space-12);
+        align-items: start;
+    }
+
+    .how-steps {
+        display: grid;
+        gap: var(--space-4);
+        margin: var(--space-6) 0 0;
+        padding-left: 1.5rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+
+    .how-steps li::marker {
+        color: var(--tomato-ink);
+        font-family: var(--font-display);
+        font-weight: 700;
+    }
+
+    .summary {
+        padding: var(--space-6);
+        overflow-x: auto;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.98rem;
+    }
+
+    th,
+    td {
+        padding: 0.55rem 0.4rem;
+        border-bottom: 2px dashed rgb(23 50 58 / 0.3);
+        text-align: left;
+        vertical-align: top;
+    }
+
+    thead th {
+        font-size: 0.8rem;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    tbody th {
+        font-weight: 800;
+    }
+
+    td:last-child {
+        font-family: var(--font-display);
+        font-size: 1.15rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    @media (min-width: 64rem) {
+        .how {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+</style>

@@ -1,0 +1,67 @@
+---
+/**
+ * A strip of who we see, sliding slowly sideways (motion.css). The list is
+ * written twice so the loop is seamless; the second copy is hidden from
+ * screen readers, and without motion the strip simply sits still.
+ */
+import Icon from './Icon.astro';
+
+const patients = ['Dogs', 'Cats', 'Rabbits', 'Guinea pigs', 'Budgies', 'Tortoises', 'Ferrets', 'Rats', 'Cockatiels', 'Bearded dragons', 'Senior pups', 'Brand-new kittens'];
+---
+
+<div class="marquee">
+    <p class="visually-hidden">Patients we see: {patients.join(', ')}.</p>
+    <div class="track" aria-hidden="true">
+        {
+            [0, 1].map(() => (
+                <ul class="run">
+                    {patients.map((name) => (
+                        <li>
+                            <span>{name}</span>
+                            <Icon name="paw" size={22} />
+                        </li>
+                    ))}
+                </ul>
+            ))
+        }
+    </div>
+</div>
+
+<style>
+    .marquee {
+        position: relative;
+        overflow: hidden;
+        border-block: var(--stroke) solid var(--line);
+        background: var(--tomato-ink);
+        color: #ffffff;
+    }
+
+    .track {
+        display: flex;
+        width: max-content;
+    }
+
+    .run {
+        display: flex;
+        flex: none;
+        gap: 0;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    li {
+        display: inline-flex;
+        align-items: center;
+        gap: 1.25rem;
+        padding: 0.85rem 0 0.85rem 1.25rem;
+        font-family: var(--font-display);
+        font-size: clamp(1.2rem, 1rem + 0.8vw, 1.6rem);
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    li :global(svg) {
+        color: var(--sun);
+    }
+</style>

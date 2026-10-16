@@ -1,0 +1,37 @@
+---
+import ServicePage from '../../layouts/ServicePage.astro';
+---
+
+<ServicePage
+    slug="puppy-kitten-care"
+    title="Puppy and kitten care"
+    description="Puppy and kitten vaccine courses, microchips, worming, flea care and nurse clinics in Bramblewick: the first year done properly, and done kindly."
+    heading="The first year, done properly"
+    lead="New puppy? New kitten? Congratulations, and welcome. We will get the vaccines, microchip and parasite care sorted, and help you raise a pet who is happy to come and see us."
+    shape="blob"
+    glance={[
+        { label: 'First visit', value: 'Within a week or two of bringing them home' },
+        { label: 'Vaccines', value: 'From 8 weeks, then every 3 to 4 weeks to 16 weeks' },
+        { label: 'Free extras', value: 'Nurse weigh-ins and socialising visits' },
+        { label: 'Plans', value: 'Puppy Pack and Kitten Kit cover the lot' },
+    ]}
+    faq={[
+        { question: 'When can my puppy go for walks?', answer: 'About a week after the final puppy vaccine, usually around 16 to 17 weeks. Before then, carry them out to see the world and meet healthy, vaccinated dogs in a garden.' },
+        { question: 'Is microchipping painful?', answer: 'It is a quick injection, a little bigger than a vaccine. Most puppies and kittens are too busy with a treat to notice. We register the chip for you.' },
+        { question: 'How often should I worm?', answer: 'Every two weeks until 12 weeks old, then monthly until six months, then on a schedule that fits your pet’s life. The plans include it all.' },
+        { question: 'When should I think about spaying or neutering?', answer: 'We talk about it at the last vaccine visit. Cats are usually done at around five months; for dogs it depends on size and breed.' },
+    ]}
+>
+    <h2>The first visit</h2>
+    <p>Bring your new arrival, any paperwork from the breeder or shelter, and your questions (write them down: everyone forgets one). We give a full check, start or continue the vaccine course, check for fleas, ear mites and worms, and talk about food, toilet training, teething and sleep.</p>
+    <h2>The first year, step by step</h2>
+    <ul>
+        <li><strong>8 weeks:</strong> first exam and first vaccines, worming, microchip.</li>
+        <li><strong>11 to 12 weeks:</strong> second vaccines, a weight check, socialising tips.</li>
+        <li><strong>15 to 16 weeks:</strong> final puppy or kitten vaccines and rabies.</li>
+        <li><strong>5 to 12 months:</strong> spay or neuter, and a teeth and growth check.</li>
+    </ul>
+    <h2>Raising a pet who likes the vet</h2>
+    <p>Juniper, one of our nurses, runs short “happy visits” for puppies and kittens: come in, step on the scales, get a fuss and a treat, and leave without anything unpleasant happening at all. It is the single best thing you can do for every visit that comes after.</p>
+    <p class="callout">Puppies and kittens can go downhill quickly. If yours is not eating, is very quiet, or has diarrhoea for more than a day, call us that day.</p>
+</ServicePage>

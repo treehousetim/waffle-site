@@ -1,0 +1,33 @@
+---
+/**
+ * Served by Caddy, with status 404, for any path that is not in the build
+ * (docker/caddy/Caddyfile). Kept out of search results (src/site.ts).
+ */
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+import ServiceStickers from '../components/ServiceStickers.astro';
+import PawTrail from '../components/PawTrail.astro';
+import { services } from '../data/services';
+---
+
+<Base title="Page not found" description="That page has wandered off. It may have moved, or the link may be mistyped. Try our services, the wellness plans or the pet-health advice instead.">
+    <Hero
+        tone="tomato"
+        eyebrow="404: lost dog"
+        heading="This page has run off after a squirrel"
+        lead="It may have moved, or the link may have a typo in it. While we whistle for it, these might be what you were after."
+        photo="puppyOrange"
+        shape="circle"
+        primary={{ label: 'Back to the home page', href: '/' }}
+        secondary={{ label: 'Pet-health advice', href: '/blog/' }}
+    />
+    <PawTrail direction="left" tone="ink" />
+    <section class="band" aria-labelledby="lost-heading">
+        <div class="container">
+            <div class="band-head">
+                <h2 id="lost-heading">Our services</h2>
+            </div>
+            <ServiceStickers services={services.slice(0, 3)} layout="grid" />
+        </div>
+    </section>
+</Base>

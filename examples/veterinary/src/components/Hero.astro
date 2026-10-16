@@ -1,0 +1,260 @@
+---
+/**
+ * The top of an inner page. It holds the page's one <h1> (docs/seo.md, 5):
+ * a page that uses a Hero puts no other <h1> anywhere.
+ *
+ * A coloured band with the paw wallpaper, the copy on the left and, with
+ * `photo`, a photograph cut into a playful shape on the right with a few
+ * stickers floating round it. `tone="calm"` is for urgent care and
+ * emergencies: deep teal, a plain rounded photo, nothing floating and
+ * nothing bouncing. `morph` names the photo for the view transition from
+ * the card that linked here (motion.css).
+ */
+import Photo from './Photo.astro';
+import Icon, { type IconName } from './Icon.astro';
+import type { PhotoName } from '../data/photos';
+
+interface Link {
+    label: string;
+    href: string;
+}
+
+interface Props {
+    eyebrow?: string | undefined;
+    icon?: IconName;
+    heading: string;
+    lead?: string;
+    primary?: Link;
+    secondary?: Link;
+    photo?: PhotoName;
+    shape?: 'arch' | 'blob' | 'circle' | 'ticket';
+    tone?: 'sun' | 'mint' | 'tomato' | 'paper' | 'calm';
+    /** A view-transition class from motion.css, e.g. "vt-dental-care". */
+    morph?: string;
+}
+
+const { eyebrow, icon = 'paw', heading, lead, primary, secondary, photo, shape = 'arch', tone = 'sun', morph } = Astro.props;
+const calm = tone === 'calm';
+---
+
+<section class:list={['hero', `tone-${tone}`, { calm, pattern: !calm, 'with-photo': photo !== undefined }]}>
+    <div class="container inner">
+        <div class="copy">
+            {eyebrow && <p class="eyebrow"><Icon name={icon} />{eyebrow}</p>}
+            <h1>{heading}</h1>
+            {lead && <p class="lead">{lead}</p>}
+            {
+                (primary || secondary) && (
+                    <p class="actions">
+                        {primary && <a class:list={['button', 'button-large', calm ? 'button' : 'button-tomato']} href={primary.href}>{primary.label}</a>}
+                        {secondary && <a class="button button-cream button-large" href={secondary.href}>{secondary.label}</a>}
+                    </p>
+                )
+            }
+            {Astro.slots.has('default') && <div class="extra"><slot /></div>}
+        </div>
+        {
+            photo && (
+                <div class="media">
+                    <div class:list={['cut', calm ? 'cut-ticket' : `cut-${shape}`, 'hero-photo', morph]}>
+                        <Photo name={photo} sizes="(min-width: 64rem) 34rem, 90vw" priority />
+                    </div>
+                    {!calm && (
+                        <>
+                            <span class="float float-bone" aria-hidden="true"><Icon name="bone" size={44} /></span>
+                            <span class="float float-paw" aria-hidden="true"><Icon name="paw" size={34} /></span>
+                            <span class="float float-spark" aria-hidden="true"><Icon name="sparkle" size={30} /></span>
+                        </>
+                    )}
+                </div>
+            )
+        }
+    </div>
+    <svg class="edge" viewBox="0 0 1200 40" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+        <path d="M0 40V24C200 2 400 2 600 20S1000 38 1200 12V40Z"></path>
+    </svg>
+</section>
+
+<style>
+    .hero {
+        position: relative;
+        padding: clamp(2.75rem, 1.5rem + 4vw, 5.5rem) 0 clamp(4rem, 3rem + 4vw, 6.5rem);
+        border-bottom: 0;
+        overflow: hidden;
+    }
+
+    .tone-sun {
+        background-color: var(--sun);
+    }
+
+    .tone-mint {
+        background-color: var(--mint);
+    }
+
+    .tone-tomato {
+        background-color: var(--tomato-soft);
+    }
+
+    .tone-paper {
+        background-color: var(--paper);
+    }
+
+    .tone-calm {
+        background: var(--teal-deep);
+        color: var(--cream);
+    }
+
+    .tone-calm h1 {
+        color: var(--cream);
+    }
+
+    .tone-calm .lead {
+        color: var(--mint-soft);
+    }
+
+    .tone-calm .eyebrow {
+        background: var(--teal);
+        border-color: var(--mint);
+        color: var(--cream);
+        box-shadow: none;
+    }
+
+    .tone-calm .eyebrow :global(svg) {
+        color: var(--mint);
+    }
+
+    .inner {
+        position: relative;
+        display: grid;
+        gap: clamp(2.5rem, 1.5rem + 4vw, 4.5rem);
+        align-items: center;
+    }
+
+    .copy {
+        max-width: 40rem;
+    }
+
+    h1 {
+        font-size: clamp(2.6rem, 1.5rem + 4.4vw, 4.75rem);
+    }
+
+    .lead {
+        max-width: 36rem;
+        margin-bottom: 0;
+        color: var(--ink);
+    }
+
+    .actions {
+        margin-top: var(--space-8);
+    }
+
+    .extra {
+        margin-top: var(--space-8);
+    }
+
+    .media {
+        position: relative;
+        justify-self: center;
+        width: min(100%, 30rem);
+    }
+
+    .hero-photo {
+        aspect-ratio: 4 / 4.4;
+        box-shadow: var(--pop-large);
+    }
+
+    .cut-circle.hero-photo {
+        aspect-ratio: 1;
+    }
+
+    .cut-blob.hero-photo {
+        aspect-ratio: 1;
+        box-shadow: none;
+        filter: drop-shadow(10px 10px 0 var(--line));
+    }
+
+    .hero-photo :global(img) {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .calm .hero-photo {
+        aspect-ratio: 4 / 3.4;
+        border-color: var(--mint);
+        box-shadow: none;
+    }
+
+    .float {
+        position: absolute;
+        display: inline-grid;
+        place-items: center;
+        border: var(--stroke) solid var(--line);
+        border-radius: 50%;
+        box-shadow: var(--pop-small);
+    }
+
+    .float-bone {
+        top: 6%;
+        left: -6%;
+        width: 4.5rem;
+        height: 4.5rem;
+        background: var(--paper);
+        color: var(--ink);
+    }
+
+    .float-paw {
+        right: -4%;
+        bottom: 14%;
+        width: 4rem;
+        height: 4rem;
+        background: var(--tomato);
+        color: var(--paper);
+    }
+
+    .float-spark {
+        right: 8%;
+        top: -4%;
+        width: 3.25rem;
+        height: 3.25rem;
+        background: var(--mint);
+        color: var(--ink);
+    }
+
+    .tone-mint .float-spark {
+        background: var(--sun);
+    }
+
+    .edge {
+        position: absolute;
+        left: 0;
+        bottom: -1px;
+        width: 100%;
+        height: clamp(1.5rem, 1rem + 2vw, 2.75rem);
+        fill: var(--cream);
+    }
+
+    @media (min-width: 64rem) {
+        .with-photo .inner {
+            grid-template-columns: 1.15fr 0.85fr;
+        }
+
+        .media {
+            justify-self: end;
+        }
+    }
+
+    @media (max-width: 40rem) {
+        .media {
+            width: min(100%, 22rem);
+        }
+
+        .float-bone {
+            left: -2%;
+        }
+
+        .float-paw {
+            right: -2%;
+        }
+    }
+</style>

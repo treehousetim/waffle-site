@@ -1,0 +1,312 @@
+---
+/**
+ * The one template every blog post uses (docs/blog.md): the headline, the
+ * picture (the post's cover, or its topic's photo), the article, who wrote
+ * it, a way to get help with what it describes, and more to read. A tomato
+ * bar along the top fills as you read (motion.css).
+ */
+import type { CollectionEntry } from 'astro:content';
+import { getImage } from 'astro:assets';
+import Base from './Base.astro';
+import FormattedDate from '../components/FormattedDate.astro';
+import Photo from '../components/Photo.astro';
+import PostGrid from '../components/PostGrid.astro';
+import Icon from '../components/Icon.astro';
+import PawTrail from '../components/PawTrail.astro';
+import { site } from '../site';
+import { settings } from '@core/settings';
+import { defaultPostPhoto, photos, topicPhotos } from '../data/photos';
+import { blogPosting } from '@core/lib/jsonld.js';
+import { absoluteUrl, canonicalUrl } from '@core/lib/seo.js';
+import { readingMinutes, tagSlug } from '@core/lib/posts.js';
+
+interface Props {
+    post: CollectionEntry<'blog'>;
+    related: CollectionEntry<'blog'>[];
+}
+
+const { post, related } = Astro.props;
+const { title, description, pubDate, updatedDate, tags, cover, coverAlt, draft } = post.data;
+const author = post.data.author ?? site.blog.defaultAuthor;
+const url = canonicalUrl(Astro.url.pathname, settings.siteUrl);
+const firstTag = tags[0];
+const topicPhoto = (firstTag !== undefined ? topicPhotos[tagSlug(firstTag)] : undefined) ?? defaultPostPhoto;
+
+// The link preview: the cover, or the topic photo, cropped to 1200x630.
+const preview = await getImage({ src: cover ?? photos[topicPhoto].src, width: 1200, height: 630, fit: 'cover', format: 'jpg' });
+const image = { src: absoluteUrl(preview.src, settings.siteUrl), alt: cover !== undefined ? (coverAlt ?? '') : photos[topicPhoto].alt };
+const initials = author.replace(/^Dr\.?\s+/, '').split(/\s+/).filter((word) => /^[A-Z]/.test(word)).slice(0, 2).map((word) => word[0]).join('');
+---
+
+<Base
+    title={title}
+    description={description}
+    type="article"
+    image={image}
+    breadcrumbs={[
+        { name: site.blog.title, href: '/blog/' },
+        { name: title, href: Astro.url.pathname },
+    ]}
+    article={{ published: pubDate, updated: updatedDate, tags }}
+    jsonLd={[
+        blogPosting(
+            { url, title, description, image: image.src, published: pubDate, updated: updatedDate, author, tags },
+            settings.siteUrl,
+        ),
+    ]}
+>
+    <div class="reading-progress" aria-hidden="true"></div>
+    <article class="post">
+        <header class="head pattern">
+            <div class="head-inner">
+                <p class="crumbs">
+                    <a href="/blog/">{site.blog.title}</a>
+                    {firstTag && (
+                        <>
+                            <Icon name="paw" size={14} />
+                            <a href={`/blog/tags/${tagSlug(firstTag)}/`}>{firstTag}</a>
+                        </>
+                    )}
+                </p>
+                {draft && <p class="draft">Draft: not published in production.</p>}
+                <h1>{title}</h1>
+                <p class="lead">{description}</p>
+                <p class="meta">
+                    <span class="avatar" aria-hidden="true">{initials || 'PW'}</span>
+                    <span>
+                        <strong>{author}</strong>
+                        <span class="when">
+                            <FormattedDate date={pubDate} /> · {readingMinutes(post.body ?? '')} min read
+                            {updatedDate && (
+                                <>
+                                    {' '}
+                                    · Updated <FormattedDate date={updatedDate} />
+                                </>
+                            )}
+                        </span>
+                    </span>
+                </p>
+            </div>
+        </header>
+
+        <figure class="cover cut cut-ticket">
+            {
+                cover && coverAlt ? (
+                    <Photo src={cover} alt={coverAlt} sizes="(min-width: 64rem) 60rem, 100vw" priority />
+                ) : (
+                    <Photo name={topicPhoto} sizes="(min-width: 64rem) 60rem, 100vw" priority />
+                )
+            }
+        </figure>
+
+        <div class="prose body">
+            <slot />
+        </div>
+
+        <footer class="prose foot">
+            {
+                tags.length > 0 && (
+                    <ul class="tags" aria-label="Topics">
+                        {tags.map((tag) => (
+                            <li>
+                                <a href={`/blog/tags/${tagSlug(tag)}/`}>{tag}</a>
+                            </li>
+                        ))}
+                    </ul>
+                )
+            }
+
+            <div class="help sticker sticker-sun">
+                <span class="help-icon"><Icon name="stethoscope" size={28} /></span>
+                <div>
+                    <h2 class="help-title">Worried about your own pet?</h2>
+                    <p>Advice online is no substitute for a look. Book a visit, or call and a nurse will tell you whether it can wait.</p>
+                    <p class="actions">
+                        <a class="button button-tomato" href={site.cta.href}>{site.cta.label}</a>
+                        <a class="button button-cream" href={`tel:${site.business.phoneE164}`}>Call {site.business.phone}</a>
+                    </p>
+                </div>
+            </div>
+        </footer>
+    </article>
+
+    <PawTrail tone="teal" />
+
+    {
+        related.length > 0 && (
+            <section class="related" aria-labelledby="related-heading">
+                <div class="container">
+                    <h2 id="related-heading">Keep reading</h2>
+                    <PostGrid posts={related} level="h3" />
+                </div>
+            </section>
+        )
+    }
+</Base>
+
+<style>
+    .head {
+        padding: clamp(2.5rem, 2rem + 3vw, 4.5rem) 0 clamp(7rem, 5rem + 8vw, 11rem);
+        background-color: var(--mint);
+        border-bottom: var(--stroke) solid var(--line);
+    }
+
+    .head-inner {
+        width: min(100% - 2 * var(--gutter), 52rem);
+        margin-inline: auto;
+    }
+
+    .crumbs {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-2);
+        margin-bottom: var(--space-5);
+        font-weight: 800;
+    }
+
+    .crumbs a {
+        color: var(--ink);
+    }
+
+    .crumbs :global(svg) {
+        color: var(--tomato-ink);
+    }
+
+    .draft {
+        display: inline-block;
+        padding: 0.15rem 0.7rem;
+        border: 2px solid var(--line);
+        border-radius: 999px;
+        background: var(--tomato-soft);
+        font-weight: 800;
+    }
+
+    h1 {
+        font-size: clamp(2.5rem, 1.6rem + 3.6vw, 4.25rem);
+    }
+
+    .lead {
+        color: var(--ink);
+    }
+
+    .meta {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        margin: var(--space-8) 0 0;
+        line-height: 1.35;
+    }
+
+    .meta strong {
+        display: block;
+    }
+
+    .when {
+        font-size: 0.95rem;
+        font-weight: 700;
+    }
+
+    .avatar {
+        display: inline-grid;
+        flex: none;
+        place-items: center;
+        width: 3.25rem;
+        height: 3.25rem;
+        border: var(--stroke) solid var(--line);
+        border-radius: 50%;
+        background: var(--sun);
+        font-family: var(--font-display);
+        font-size: 1.1rem;
+        font-weight: 700;
+    }
+
+    .cover {
+        width: min(100% - 2 * var(--gutter), 60rem);
+        margin: clamp(-9rem, -4rem - 6vw, -5rem) auto 0;
+        aspect-ratio: 16 / 9;
+        box-shadow: var(--pop-large);
+        rotate: -1deg;
+    }
+
+    .cover :global(picture) {
+        display: block;
+        width: 100%;
+        height: 100%;
+    }
+
+    .body {
+        margin-top: clamp(2.5rem, 2rem + 3vw, 4.5rem);
+        font-size: 1.15rem;
+        line-height: 1.75;
+    }
+
+    .foot {
+        margin-top: var(--space-12);
+    }
+
+    .tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+        margin: 0 0 var(--space-10);
+        padding: 0;
+        list-style: none;
+    }
+
+    .tags a {
+        display: inline-block;
+        padding: 0.2rem 0.9rem;
+        border: 2px solid var(--line);
+        border-radius: 999px;
+        background: var(--mint);
+        color: var(--ink);
+        font-weight: 800;
+        text-decoration: none;
+    }
+
+    .tags a:hover {
+        background: var(--sun);
+    }
+
+    .help {
+        display: flex;
+        gap: var(--space-5);
+        padding: var(--space-8);
+    }
+
+    .help-icon {
+        display: inline-grid;
+        flex: none;
+        place-items: center;
+        width: 3.5rem;
+        height: 3.5rem;
+        border: var(--stroke) solid var(--line);
+        border-radius: 50%;
+        background: var(--paper);
+    }
+
+    .help-title {
+        margin-bottom: var(--space-2);
+        font-size: 1.6rem;
+    }
+
+    .help .actions {
+        margin: var(--space-5) 0 0;
+    }
+
+    .related {
+        padding: var(--space-8) 0 var(--section);
+    }
+
+    .related h2 {
+        margin-bottom: var(--space-10);
+    }
+
+    @media (max-width: 40rem) {
+        .help {
+            flex-direction: column;
+            padding: var(--space-6);
+        }
+    }
+</style>

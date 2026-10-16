@@ -1,0 +1,284 @@
+---
+/**
+ * The frame every service page shares (src/pages/services/<slug>.astro):
+ * the hero with the service's photo (which the sticker that linked here
+ * grows into), the page's own copy beside an "at a glance" sticker, the
+ * wellness plans from the waffle app that cover this kind of care, its
+ * questions, the other services, and the structured data that says this
+ * hospital offers this service.
+ *
+ * The copy in the slot is the page: write it for this service, from what
+ * owners actually ask.
+ */
+import Base from './Base.astro';
+import Hero from '../components/Hero.astro';
+import Faq, { type FaqItem } from '../components/Faq.astro';
+import Icon from '../components/Icon.astro';
+import PlanCard from '../components/PlanCard.astro';
+import ServiceStickers from '../components/ServiceStickers.astro';
+import UrgentBand from '../components/UrgentBand.astro';
+import { serviceBySlug, services } from '../data/services';
+import { photos } from '../data/photos';
+import { site } from '../site';
+import { settings } from '@core/settings';
+import { faqPage, service as serviceNode } from '@core/lib/jsonld.js';
+import { absoluteUrl, canonicalUrl } from '@core/lib/seo.js';
+import { loadWellnessPlans } from '../lib/load-plans';
+import { plansFor, updatedOn } from '../lib/wellness-plans';
+import { getImage } from 'astro:assets';
+
+interface Props {
+    /** The slug in src/data/services.ts. */
+    slug: string;
+    title: string;
+    description: string;
+    heading: string;
+    lead: string;
+    /** Short facts for the sticker beside the copy: "How long", "Book". */
+    glance: { label: string; value: string }[];
+    faq: FaqItem[];
+    shape?: 'arch' | 'blob' | 'circle';
+}
+
+const { slug, title, description, heading, lead, glance, faq, shape = 'arch' } = Astro.props;
+const entry = serviceBySlug(slug);
+const calm = entry.tone === 'calm';
+const tone = calm ? 'calm' : entry.tone === 'cream' ? 'paper' : entry.tone;
+const url = canonicalUrl(Astro.url.pathname, settings.siteUrl);
+const others = services.filter((item) => item.slug !== slug);
+const allPlans = await loadWellnessPlans();
+const plans = entry.plans === null ? [] : plansFor(allPlans, entry.plans);
+const preview = await getImage({ src: photos[entry.photo].src, width: 1200, height: 630, fit: 'cover', format: 'jpg' });
+---
+
+<Base
+    title={title}
+    description={description}
+    image={{ src: absoluteUrl(preview.src, settings.siteUrl), alt: photos[entry.photo].alt }}
+    breadcrumbs={[
+        { name: 'Services', href: '/services/' },
+        { name: entry.name, href: Astro.url.pathname },
+    ]}
+    jsonLd={[serviceNode({ url, name: entry.name, description, areas: site.areas }, settings.siteUrl), faqPage(faq)]}
+>
+    <Hero
+        eyebrow={entry.name}
+        icon={entry.icon}
+        heading={heading}
+        lead={lead}
+        photo={entry.photo}
+        shape={shape}
+        tone={tone}
+        morph={`vt-${entry.slug}`}
+        primary={calm ? { label: `Call ${site.business.phone}`, href: `tel:${site.business.phoneE164}` } : { label: site.cta.label, href: site.cta.href }}
+        secondary={calm ? { label: 'Signs it is an emergency', href: '/emergency/' } : { label: `Call ${site.business.phone}`, href: `tel:${site.business.phoneE164}` }}
+    />
+
+    <div class:list={['container', 'body', { calm }]}>
+        <div class="prose-column">
+            <slot />
+        </div>
+        <aside class="aside">
+            <div class:list={['glance', 'sticker', calm ? 'glance-calm' : 'sticker-sun', { 'tilt-right': !calm }]}>
+                <h2 class="glance-title"><Icon name={entry.icon} size={26} /> At a glance</h2>
+                <dl>
+                    {
+                        glance.map((row) => (
+                            <div>
+                                <dt>{row.label}</dt>
+                                <dd>{row.value}</dd>
+                            </div>
+                        ))
+                    }
+                </dl>
+                <p class="glance-actions">
+                    <a class:list={['button', calm ? 'button-teal' : 'button-tomato']} href={calm ? `tel:${site.business.phoneE164}` : site.cta.href}>
+                        {calm ? `Call ${site.business.phone}` : site.cta.label}
+                    </a>
+                </p>
+            </div>
+        </aside>
+    </div>
+
+    {
+        plans.length > 0 && (
+            <section class="band band-mint plans" aria-labelledby="plans-heading">
+                <div class="container">
+                    <div class="band-head">
+                        <p class="eyebrow"><Icon name="heart" />Wellness plans</p>
+                        <h2 id="plans-heading">Spread the cost with a plan</h2>
+                        <p class="lead">These plans cover the routine care on this page for a monthly fee. Prices from the practice, updated {updatedOn(allPlans)}.</p>
+                    </div>
+                    <ul class="plan-grid">
+                        {plans.map((plan) => (
+                            <li>
+                                <PlanCard plan={plan} currency={allPlans.currency} showSpecies />
+                            </li>
+                        ))}
+                    </ul>
+                    <p class="all-plans"><a href="/wellness-plans/">Compare every plan <Icon name="arrow" size={18} /></a></p>
+                </div>
+            </section>
+        )
+    }
+
+    <section class="band" aria-labelledby="faq-heading">
+        <div class="container faq-wrap">
+            <div class="band-head">
+                <p class="eyebrow"><Icon name="sparkle" />Good questions</p>
+                <h2 id="faq-heading">What owners ask us</h2>
+            </div>
+            <Faq items={faq} />
+        </div>
+    </section>
+
+    {calm ? null : <UrgentBand />}
+
+    <section class="band band-paper" aria-labelledby="others-heading">
+        <div class="container">
+            <div class="band-head">
+                <h2 id="others-heading">More ways we can help</h2>
+            </div>
+            <ServiceStickers services={others} layout="grid" />
+        </div>
+    </section>
+</Base>
+
+<style>
+    .body {
+        display: grid;
+        gap: var(--space-12);
+        padding: clamp(2.5rem, 2rem + 3vw, 4.5rem) 0 var(--section);
+    }
+
+    .prose-column {
+        max-width: var(--width-prose);
+        font-size: 1.1rem;
+    }
+
+    .prose-column :global(h2) {
+        font-size: clamp(1.7rem, 1.35rem + 1.3vw, 2.3rem);
+    }
+
+    .prose-column :global(* + h2) {
+        margin-top: var(--space-12);
+    }
+
+    .prose-column :global(ul:not(.paw-list)) {
+        padding-left: 1.3em;
+    }
+
+    .prose-column :global(li + li) {
+        margin-top: var(--space-2);
+    }
+
+    .prose-column :global(ul:not(.paw-list) li::marker) {
+        content: '● ';
+        color: var(--tomato);
+        font-size: 0.8em;
+    }
+
+    .prose-column :global(.callout) {
+        margin: var(--space-8) 0;
+        padding: var(--space-5) var(--space-6);
+        border: var(--stroke) solid var(--line);
+        border-radius: var(--radius);
+        background: var(--sun-soft);
+        box-shadow: var(--pop-small);
+        font-weight: 700;
+    }
+
+    .calm .prose-column :global(.callout) {
+        background: var(--mint-soft);
+        box-shadow: none;
+    }
+
+    .glance {
+        padding: var(--space-6);
+    }
+
+    .glance-calm {
+        background: var(--mint-soft);
+        box-shadow: none;
+    }
+
+    .glance-title {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        font-size: 1.5rem;
+    }
+
+    dl {
+        display: grid;
+        gap: var(--space-3);
+        margin: 0 0 var(--space-6);
+    }
+
+    dl div {
+        padding-bottom: var(--space-3);
+        border-bottom: 2px dashed rgb(23 50 58 / 0.35);
+    }
+
+    dt {
+        font-size: 0.82rem;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    dd {
+        margin: 0;
+        font-weight: 700;
+        line-height: 1.4;
+    }
+
+    .glance-actions {
+        margin: 0;
+    }
+
+    .glance-actions .button {
+        width: 100%;
+    }
+
+    @media (min-width: 64rem) {
+        .body {
+            grid-template-columns: minmax(0, 1fr) 21rem;
+            align-items: start;
+        }
+
+        .aside {
+            position: sticky;
+            top: calc(var(--header-height) + var(--space-8));
+        }
+    }
+
+    .plans {
+        --notch: var(--mint-soft);
+    }
+
+    .plan-grid {
+        display: grid;
+        gap: var(--space-10) var(--space-8);
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+        margin: 0;
+        padding: var(--space-4) 0 0;
+        list-style: none;
+    }
+
+    .all-plans {
+        margin: var(--space-10) 0 0;
+        font-family: var(--font-display);
+        font-size: 1.2rem;
+    }
+
+    .all-plans a {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+    }
+
+    .faq-wrap {
+        display: grid;
+    }
+</style>

@@ -1,0 +1,213 @@
+---
+/** The hospital's story, how it works, and the building. */
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+import Icon from '../components/Icon.astro';
+import Photo from '../components/Photo.astro';
+import PawTrail from '../components/PawTrail.astro';
+import TeamPolaroids from '../components/TeamPolaroids.astro';
+import { site } from '../site';
+import { team } from '../data/team';
+import { buildTime } from '@core/settings';
+
+const values = [
+    { title: 'At their pace', text: 'Exams on the floor, in your lap or in the carrier. Breaks whenever they are needed. Nobody is held down to get something done quickly.', icon: 'smile' },
+    { title: 'Prices before anything', text: 'A written estimate for anything beyond the exam. If the plan changes, we call you first.', icon: 'check' },
+    { title: 'Honest, kind advice', text: 'We tell you what we would do for our own pet, including when that is “nothing yet, let’s watch it”.', icon: 'heart' },
+    { title: 'Every kind of family', text: 'Dogs, cats, rabbits, budgies, rats and tortoises, and every kind of owner, first-timers very much included.', icon: 'paw' },
+] as const;
+
+const years = buildTime.getUTCFullYear() - site.business.founded;
+const openDays = site.business.hours.reduce((count, row) => count + row.days.length, 0);
+---
+
+<Base
+    title="About our animal hospital"
+    description={`The story of Paws & Whiskers, Bramblewick’s neighbourhood animal hospital since ${site.business.founded}: how we work, what we believe and the old bakery we call home.`}
+    breadcrumbs={[{ name: 'About', href: '/about/' }]}
+>
+    <Hero
+        tone="sun"
+        icon="paw"
+        eyebrow="Our story"
+        heading="A neighbourhood vet, in an old bakery"
+        lead={`Dr. Imogen Achebe opened Paws & Whiskers on Kettle Lane in ${site.business.founded}, in a bakery that still smells faintly of bread on warm days. We have been looking after Bramblewick’s animals ever since.`}
+        photo="whiteCatExam"
+        shape="arch"
+        primary={{ label: 'Meet the team', href: '/team/' }}
+        secondary={{ label: 'Book a visit', href: '/book/' }}
+    />
+
+    <section class="band" aria-labelledby="story-heading">
+        <div class="container story">
+            <div class="prose-like">
+                <h2 id="story-heading">Why we started</h2>
+                <p>Imogen trained and worked in big city hospitals, where she learned a great deal and met a lot of animals who were frightened before they reached the door. She wanted a practice small enough that every patient is known by name, and calm enough that they stop being frightened.</p>
+                <p>{years} years on, there are three vets, two nurses and Mags at the front desk, and the waiting room has a cat side and a dog side. The ovens are long gone; the treatment room is where they stood, and the old flour store is a quiet ward for recovering patients.</p>
+                <p>We are still independent, and still the kind of place where a nurse phones the evening after a surgery to ask how the patient is doing.</p>
+            </div>
+            <div class="numbers">
+                <div class="stat sticker sticker-tomato tilt-left"><strong>{site.business.founded}</strong><span>opened on Kettle Lane</span></div>
+                <div class="stat sticker sticker-mint tilt-right"><strong>{team.length}</strong><span>people who know your pet’s name</span></div>
+                <div class="stat sticker sticker-sun tilt-left"><strong>{openDays}</strong><span>days a week, with same-day urgent slots</span></div>
+            </div>
+        </div>
+    </section>
+
+    <PawTrail />
+
+    <section class="band band-paper" aria-labelledby="values-heading">
+        <div class="container">
+            <div class="band-head">
+                <p class="eyebrow"><Icon name="heart" />How we work</p>
+                <h2 id="values-heading">Four promises we keep</h2>
+            </div>
+            <ul class="values">
+                {values.map((value) => (
+                    <li class="value sticker">
+                        <span class="value-icon"><Icon name={value.icon} size={28} /></span>
+                        <h3>{value.title}</h3>
+                        <p>{value.text}</p>
+                    </li>
+                ))}
+            </ul>
+        </div>
+    </section>
+
+    <section class="band" aria-labelledby="building-heading">
+        <div class="container building">
+            <div class="cut cut-blob building-photo">
+                <Photo name="vetUltrasound" sizes="(min-width: 64rem) 28rem, 85vw" />
+            </div>
+            <div>
+                <p class="eyebrow"><Icon name="pin" />Under one roof</p>
+                <h2 id="building-heading">What’s inside</h2>
+                <ul class="paw-list">
+                    <li>Separate cat and dog waiting areas, and a quiet room for exotics and nervous pets.</li>
+                    <li>Three exam rooms with non-slip floors and room to sit on the floor.</li>
+                    <li>Digital X-ray, ultrasound and an in-house laboratory for same-day results.</li>
+                    <li>A surgery suite with nurse-monitored anaesthesia.</li>
+                    <li>Wards with separate spaces for dogs, cats and small pets.</li>
+                </ul>
+                <p class="actions"><a class="button button-teal" href="/contact/">Find us <Icon name="arrow" /></a></p>
+            </div>
+        </div>
+    </section>
+
+    <section class="band band-mint" aria-labelledby="who-heading">
+        <div class="container">
+            <div class="band-head">
+                <h2 id="who-heading">The people (and pets) behind it</h2>
+            </div>
+            <TeamPolaroids />
+        </div>
+    </section>
+</Base>
+
+<style>
+    .story {
+        display: grid;
+        gap: var(--space-12);
+        align-items: center;
+    }
+
+    .prose-like {
+        max-width: var(--width-prose);
+        font-size: 1.1rem;
+    }
+
+    .numbers {
+        display: grid;
+        gap: var(--space-6);
+    }
+
+    .stat {
+        display: grid;
+        gap: var(--space-1);
+        padding: var(--space-5) var(--space-6);
+    }
+
+    .stat strong {
+        font-family: var(--font-display);
+        font-size: 3rem;
+        font-weight: 700;
+        line-height: 1;
+    }
+
+    .stat span {
+        font-weight: 800;
+    }
+
+    @media (min-width: 64rem) {
+        .story {
+            grid-template-columns: 1.3fr 0.7fr;
+        }
+    }
+
+    .values {
+        display: grid;
+        gap: var(--space-8);
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .value {
+        padding: var(--space-6);
+    }
+
+    .value:nth-child(odd) {
+        rotate: -1deg;
+    }
+
+    .value:nth-child(even) {
+        rotate: 1.2deg;
+    }
+
+    .value-icon {
+        display: inline-grid;
+        place-items: center;
+        width: 3.4rem;
+        height: 3.4rem;
+        margin-bottom: var(--space-3);
+        border: var(--stroke) solid var(--line);
+        border-radius: 50%;
+        background: var(--sun);
+    }
+
+    .value p {
+        margin: 0;
+        font-weight: 600;
+    }
+
+    .building {
+        display: grid;
+        gap: var(--space-12);
+        align-items: center;
+    }
+
+    .building-photo {
+        justify-self: center;
+        width: min(100%, 28rem);
+        aspect-ratio: 1;
+        filter: drop-shadow(10px 10px 0 var(--line));
+    }
+
+    .building-photo :global(picture) {
+        display: block;
+        width: 100%;
+        height: 100%;
+    }
+
+    .building .paw-list {
+        margin: var(--space-6) 0 var(--space-8);
+        font-weight: 600;
+    }
+
+    @media (min-width: 64rem) {
+        .building {
+            grid-template-columns: 0.9fr 1.1fr;
+        }
+    }
+</style>

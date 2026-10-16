@@ -1,0 +1,289 @@
+---
+/**
+ * Emergencies. The one page that is calm all the way down: deep teal,
+ * plain cards, no tilt and no motion (`calm`), the two phone numbers first
+ * and big, then the signs that mean go now and what to do on the way.
+ * Someone reading this may be frightened; it is written to steady them.
+ */
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+import Icon from '../components/Icon.astro';
+import { addressLine, site } from '../site';
+import { faqPage } from '@core/lib/jsonld.js';
+
+const goNow = [
+    'Struggling to breathe, or breathing with the mouth open (cats)',
+    'Collapse, fainting, or unable to stand',
+    'A seizure lasting more than three minutes, or several in a row',
+    'A swollen, tight belly and retching with nothing coming up (dogs)',
+    'A male cat straining in the litter tray and passing nothing',
+    'Heavy bleeding that does not slow with firm pressure',
+    'Hit by a car, a fall, or a fight, even if they seem fine',
+    'Eaten something poisonous: chocolate, xylitol, grapes, lilies, medicines, antifreeze, bait',
+    'Pale, grey or blue gums',
+    'A rabbit that has not eaten or passed droppings for 12 hours',
+];
+
+const onTheWay = [
+    { title: 'Call ahead', text: 'Tell us what happened and when. A nurse will tell you what to do on the way, and we will be ready.' },
+    { title: 'Keep them still and warm', text: 'Slide a towel or board under an injured pet to carry them. Keep cats and small pets in a carrier.' },
+    { title: 'Press on bleeding', text: 'Firm, steady pressure with a clean cloth. Do not keep lifting it to look.' },
+    { title: 'Bring the evidence', text: 'The packet, the plant, the pill bottle, or a photo of it.' },
+];
+
+const faq = [
+    { question: 'What should I do if my pet eats something poisonous?', answer: 'Call us straight away, or the after-hours hospital, even if your pet seems fine. Do not make your pet vomit unless a vet tells you to. Bring the packaging with you.' },
+    { question: 'Where do I go at night or on a Sunday?', answer: `${site.afterHours.name}, ${site.afterHours.address}, ${site.afterHours.phone}. They are open every night, weekend and holiday.` },
+    { question: 'Will you see an emergency without an appointment?', answer: 'Yes, while we are open. Please call as you set off so we can be ready, but do not wait for a call back.' },
+];
+---
+
+<Base
+    title="Pet emergency? What to do now"
+    description="Pet emergency in Bramblewick? Call us while we are open, or our after-hours partner hospital. The signs that mean go now, and what to do on the way."
+    breadcrumbs={[{ name: 'Emergencies', href: '/emergency/' }]}
+    jsonLd={[faqPage(faq)]}
+    closing={false}
+>
+    <Hero
+        tone="calm"
+        icon="firstAid"
+        eyebrow="Emergencies"
+        heading="If you are worried, call now."
+        lead="You know your pet best. If something feels wrong, you do not need to be sure it is an emergency before you call. We would always rather hear from you."
+    />
+
+    <div class="calm emergency">
+        <section class="container numbers" aria-labelledby="numbers-heading">
+            <h2 id="numbers-heading" class="visually-hidden">Who to call</h2>
+            <div class="number-card">
+                <p class="when"><Icon name="clock" size={20} /> While we are open</p>
+                <a class="big-phone" href={`tel:${site.business.phoneE164}`}>{site.business.phone}</a>
+                <p>{site.business.name}<br />{addressLine}</p>
+                <ul class="hours">
+                    {site.business.hoursText.slice(0, site.business.hours.length).map((row) => <li>{row.days}: {row.time}</li>)}
+                </ul>
+            </div>
+            <div class="number-card night">
+                <p class="when"><Icon name="moon" size={20} /> Nights, Sundays and holidays</p>
+                <a class="big-phone" href={`tel:${site.afterHours.phoneE164}`}>{site.afterHours.phone}</a>
+                <p>{site.afterHours.name}<br />{site.afterHours.address}</p>
+                <p class="note">{site.afterHours.note}</p>
+            </div>
+        </section>
+
+        <section class="container block" aria-labelledby="signs-heading">
+            <h2 id="signs-heading">Go straight away if your pet has</h2>
+            <ul class="signs">
+                {goNow.map((sign) => (
+                    <li><Icon name="alert" size={20} /> <span>{sign}</span></li>
+                ))}
+            </ul>
+        </section>
+
+        <section class="container block" aria-labelledby="way-heading">
+            <h2 id="way-heading">What to do on the way</h2>
+            <ol class="way">
+                {onTheWay.map((step) => (
+                    <li>
+                        <h3>{step.title}</h3>
+                        <p>{step.text}</p>
+                    </li>
+                ))}
+            </ol>
+        </section>
+
+        <section class="container block" aria-labelledby="emergency-faq-heading">
+            <h2 id="emergency-faq-heading">Common questions</h2>
+            <dl class="qa">
+                {faq.map((item) => (
+                    <div>
+                        <dt>{item.question}</dt>
+                        <dd>{item.answer}</dd>
+                    </div>
+                ))}
+            </dl>
+            <p class="same-day">Not an emergency, but your pet needs seeing today? <a href="/services/urgent-care/">Book a same-day urgent visit</a>.</p>
+        </section>
+    </div>
+</Base>
+
+<style>
+    /* The hero's wave runs into this page's mint, not the usual cream. */
+    :global(.hero .edge) {
+        fill: var(--mint-soft);
+    }
+
+    .emergency {
+        padding-bottom: var(--section);
+        background: var(--mint-soft);
+    }
+
+    .numbers {
+        display: grid;
+        gap: var(--space-6);
+        padding: var(--space-12) 0 var(--space-8);
+    }
+
+    @media (min-width: 56rem) {
+        .numbers {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    .number-card {
+        padding: var(--space-8);
+        border: 2px solid var(--teal);
+        border-radius: var(--radius);
+        background: #ffffff;
+    }
+
+    .night {
+        background: var(--teal-deep);
+        border-color: var(--teal-deep);
+        color: var(--mint-soft);
+    }
+
+    .when {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        margin-bottom: var(--space-2);
+        font-weight: 900;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+    }
+
+    .big-phone {
+        display: inline-block;
+        margin-bottom: var(--space-4);
+        color: var(--teal-deep);
+        font-family: var(--font-display);
+        font-size: clamp(2.2rem, 1.6rem + 2.6vw, 3.4rem);
+        font-weight: 700;
+        line-height: 1.05;
+        text-decoration: none;
+    }
+
+    .night .big-phone {
+        color: var(--sun);
+    }
+
+    .big-phone:hover {
+        text-decoration: underline;
+    }
+
+    .number-card p {
+        font-weight: 700;
+    }
+
+    .hours {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        font-weight: 600;
+    }
+
+    .note {
+        margin: 0;
+        font-weight: 600 !important;
+    }
+
+    .block {
+        padding: var(--space-10) 0 var(--space-4);
+        border-top: 2px solid rgb(11 79 85 / 0.2);
+    }
+
+    .block h2 {
+        font-size: clamp(1.8rem, 1.4rem + 1.6vw, 2.5rem);
+    }
+
+    .signs {
+        display: grid;
+        gap: var(--space-3) var(--space-8);
+        margin: var(--space-6) 0 0;
+        padding: 0;
+        list-style: none;
+        font-size: 1.1rem;
+        font-weight: 700;
+    }
+
+    @media (min-width: 56rem) {
+        .signs {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    .signs li {
+        display: flex;
+        gap: var(--space-3);
+        align-items: flex-start;
+        padding: var(--space-3) var(--space-4);
+        border-radius: var(--radius-small);
+        background: #ffffff;
+        line-height: 1.4;
+    }
+
+    .signs :global(svg) {
+        flex: none;
+        margin-top: 0.1rem;
+        color: var(--error);
+    }
+
+    .way {
+        display: grid;
+        gap: var(--space-5);
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+        margin: var(--space-6) 0 0;
+        padding: 0;
+        list-style: none;
+        counter-reset: way;
+    }
+
+    .way li {
+        padding: var(--space-6);
+        border-left: 6px solid var(--teal);
+        border-radius: var(--radius-small);
+        background: #ffffff;
+        counter-increment: way;
+    }
+
+    .way h3::before {
+        content: counter(way) '. ';
+        color: var(--teal);
+    }
+
+    .way p {
+        margin: 0;
+        font-weight: 600;
+    }
+
+    .qa {
+        display: grid;
+        gap: var(--space-5);
+        max-width: 50rem;
+        margin: var(--space-6) 0 0;
+    }
+
+    .qa dt {
+        margin-bottom: var(--space-1);
+        font-family: var(--font-display);
+        font-size: 1.25rem;
+        font-weight: 600;
+    }
+
+    .qa dd {
+        margin: 0;
+        font-weight: 600;
+    }
+
+    .same-day {
+        margin: var(--space-10) 0 0;
+        font-size: 1.1rem;
+        font-weight: 700;
+    }
+
+    .same-day a {
+        color: var(--teal-deep);
+    }
+</style>

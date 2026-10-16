@@ -1,0 +1,428 @@
+/*
+ * Motion: springy, bouncy and happy, except where someone may be worried.
+ * All CSS; no script, so nothing here touches the content security policy,
+ * and a page that never loads this file still reads perfectly.
+ *
+ *   - Page changes: the browser's own view transitions. The header stays
+ *     put, the new page bounces up into place, and a service sticker's photo
+ *     grows into that service page's hero photo.
+ *   - Load: hero copy pops in with an overshoot, line by line; the photos
+ *     drop in like stickers being slapped down; the headline's squiggle
+ *     draws itself.
+ *   - Ambient: the logo's tail wags (and its ears flop when you hover), the
+ *     "new clients welcome" sticker wobbles, bones and hearts float, the
+ *     hero blob slowly changes shape, the marquee slides.
+ *   - Scroll-driven: paw prints walk across the page one step at a time, a
+ *     paw trots along the header as you read, band headings and stickers
+ *     spring into place, the first-visit path draws itself, and the team's
+ *     photos drift sideways as you pass.
+ *   - Hover: stickers squash and stretch, buttons lift and press.
+ *   - Calm: urgent care (.calm) has none of it. Ever.
+ *
+ * Every rule is inside prefers-reduced-motion: no-preference, the
+ * scroll-driven ones inside @supports as well: where either is missing the
+ * page is simply still, with nothing hidden. Under `reduce`, everything is
+ * switched off at the bottom of this file.
+ */
+
+@view-transition {
+    navigation: auto;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    ::view-transition-old(root) {
+        animation: 180ms ease-in both page-out;
+    }
+
+    ::view-transition-new(root) {
+        animation: 520ms var(--spring) both page-in;
+    }
+
+    ::view-transition-group(*) {
+        animation-duration: 520ms;
+        animation-timing-function: var(--spring);
+    }
+
+    .site-header {
+        view-transition-name: site-header;
+    }
+
+    /* A service sticker's photo becomes the service page's hero photo. */
+    .vt-wellness-exams-vaccines { view-transition-name: svc-wellness; }
+    .vt-dental-care { view-transition-name: svc-dental; }
+    .vt-surgery { view-transition-name: svc-surgery; }
+    .vt-urgent-care { view-transition-name: svc-urgent; }
+    .vt-puppy-kitten-care { view-transition-name: svc-young; }
+    .vt-senior-pets { view-transition-name: svc-senior; }
+    .vt-exotic-pets { view-transition-name: svc-exotic; }
+
+    /* ---- Load: pop, slap, draw. ---- */
+
+    .hero .copy > *,
+    .home-hero .copy > * {
+        animation: 760ms var(--spring) both pop-up;
+    }
+
+    :is(.hero, .home-hero) .copy > :nth-child(2) { animation-delay: 70ms; }
+    :is(.hero, .home-hero) .copy > :nth-child(3) { animation-delay: 140ms; }
+    :is(.hero, .home-hero) .copy > :nth-child(4) { animation-delay: 210ms; }
+    :is(.hero, .home-hero) .copy > :nth-child(5) { animation-delay: 280ms; }
+    :is(.hero, .home-hero) .copy > :nth-child(6) { animation-delay: 350ms; }
+
+    .home-hero .big-photo,
+    .hero .hero-photo {
+        animation: 900ms var(--spring) 150ms both slap-down;
+    }
+
+    .home-hero .small-photo {
+        animation: 800ms var(--spring) 420ms both slap-down-left;
+    }
+
+    .home-hero .badge {
+        animation:
+            700ms var(--spring) 650ms both badge-in,
+            5s ease-in-out 1.4s infinite wobble;
+    }
+
+    .home-hero .big-photo {
+        animation:
+            900ms var(--spring) 150ms both slap-down,
+            14s ease-in-out 1.2s infinite blob-morph;
+    }
+
+    .squiggle path {
+        stroke-dasharray: 1;
+        stroke-dashoffset: 1;
+        animation: 900ms var(--ease-out) 700ms forwards draw;
+    }
+
+    /* ---- Ambient. ---- */
+
+    .logo .tail {
+        animation: wag 2.6s ease-in-out infinite;
+    }
+
+    .logo:hover .tail {
+        animation-duration: 0.45s;
+    }
+
+    .logo:hover .ear-left {
+        animation: flop-left 0.6s var(--spring);
+    }
+
+    .logo:hover .ear-right {
+        animation: flop-right 0.6s var(--spring);
+    }
+
+    .float-bone {
+        animation: float 6s ease-in-out infinite;
+    }
+
+    .float-paw,
+    .float-heart {
+        animation: float 5s ease-in-out 1.2s infinite reverse;
+    }
+
+    .float-spark {
+        animation: twinkle 3.2s ease-in-out infinite;
+    }
+
+    .marquee .track {
+        animation: marquee 38s linear infinite;
+    }
+
+    .marquee:hover .track {
+        animation-play-state: paused;
+    }
+
+    /* ---- Hover: squash and stretch. ---- */
+
+    .svc:not(.tone-calm):hover,
+    .post-card:hover,
+    .species-card:hover,
+    .squash:hover {
+        animation: squash 520ms var(--ease-out);
+    }
+
+    /* ---- FAQ answers slide open. ---- */
+
+    :root {
+        interpolate-size: allow-keywords;
+    }
+
+    details::details-content {
+        height: 0;
+        overflow: clip;
+        transition: height 0.35s var(--ease-out), content-visibility 0.35s allow-discrete;
+    }
+
+    details[open]::details-content {
+        height: auto;
+    }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+        /* Band headings and stickers spring into place as they arrive. */
+        .band-head,
+        .sheet > .slot:not(.calm),
+        .posts > li,
+        .bubbles > li,
+        .plan-grid > li,
+        .stops > li,
+        .species > li,
+        .pop-in {
+            animation: spring-in linear both;
+            animation-timeline: view();
+            animation-range: entry 0% entry 80%;
+        }
+
+        :is(.sheet, .posts, .plan-grid, .species, .stops) > :nth-child(even) {
+            animation-range: entry 10% entry 90%;
+        }
+
+        /* Paw prints, one step at a time, as the trail crosses the screen. */
+        .paw-trail {
+            view-timeline-name: --trail;
+        }
+
+        .paw-trail .print {
+            animation: step-in linear both;
+            animation-timeline: --trail;
+        }
+
+        .paw-trail .print:nth-child(1) { animation-range: entry 0% entry 20%; }
+        .paw-trail .print:nth-child(2) { animation-range: entry 8% entry 28%; }
+        .paw-trail .print:nth-child(3) { animation-range: entry 16% entry 36%; }
+        .paw-trail .print:nth-child(4) { animation-range: entry 24% entry 44%; }
+        .paw-trail .print:nth-child(5) { animation-range: entry 32% entry 52%; }
+        .paw-trail .print:nth-child(6) { animation-range: entry 40% entry 60%; }
+        .paw-trail .print:nth-child(7) { animation-range: entry 48% entry 68%; }
+        .paw-trail .print:nth-child(8) { animation-range: entry 56% entry 76%; }
+        .paw-trail .print:nth-child(9) { animation-range: entry 64% entry 84%; }
+        .paw-trail .print:nth-child(10) { animation-range: entry 72% entry 92%; }
+        .paw-trail .print:nth-child(11) { animation-range: entry 80% cover 50%; }
+        .paw-trail .print:nth-child(12) { animation-range: entry 88% cover 55%; }
+
+        /* A paw trots along the bottom of the header as the page scrolls. */
+        header.site-header .paw-progress {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: -0.9rem;
+            display: block;
+            height: 1.25rem;
+            pointer-events: none;
+        }
+
+        .paw-walker {
+            position: absolute;
+            left: 0;
+            top: 0;
+            display: inline-grid;
+            place-items: center;
+            width: 1.6rem;
+            height: 1.6rem;
+            border: 2px solid var(--line);
+            border-radius: 50%;
+            background: var(--sun);
+            color: var(--ink);
+            animation: trot linear both;
+            animation-timeline: scroll(root);
+        }
+
+        .paw-walker svg {
+            width: 0.95rem;
+            height: 0.95rem;
+            rotate: 90deg;
+            animation: bob linear both;
+            animation-timeline: scroll(root);
+        }
+
+        /* The first visit's path draws itself. */
+        .first-visit .route {
+            stroke-dashoffset: 1;
+            stroke-dasharray: 1;
+            animation: draw linear both;
+            animation-timeline: view();
+            animation-range: entry 20% cover 55%;
+        }
+
+        /* The team's photos drift sideways as you pass (wide screens only;
+           without this the row wraps and all six are always in view). */
+        @media (min-width: 64rem) {
+            .polaroids.drift .row {
+                grid-template-columns: repeat(6, 16rem);
+                width: max-content;
+                animation: drift linear both;
+                animation-timeline: view();
+                animation-range: cover 0% cover 100%;
+            }
+
+            .polaroids.drift {
+                overflow: visible;
+            }
+        }
+
+        /* Reading progress on a post: a row of bones filling up. */
+        .reading-progress {
+            position: fixed;
+            inset: 0 0 auto;
+            z-index: 60;
+            height: 6px;
+            background: var(--tomato);
+            border-bottom: 2px solid var(--line);
+            transform-origin: 0 50%;
+            animation: grow linear both;
+            animation-timeline: scroll(root);
+        }
+    }
+}
+
+/* Calm means calm: no motion inside urgent care, whatever matched above. */
+@media (prefers-reduced-motion: no-preference) {
+    .calm,
+    .calm * {
+        animation: none !important;
+    }
+
+    .calm .svc:hover,
+    .calm .button:hover {
+        transform: none;
+    }
+}
+
+@keyframes page-out {
+    to { opacity: 0; scale: 0.98; }
+}
+
+@keyframes page-in {
+    from { opacity: 0; translate: 0 2.5rem; }
+    to { opacity: 1; translate: 0 0; }
+}
+
+@keyframes pop-up {
+    from { opacity: 0; translate: 0 1.75rem; scale: 0.92; }
+    to { opacity: 1; translate: 0 0; scale: 1; }
+}
+
+@keyframes slap-down {
+    from { opacity: 0; scale: 1.25; rotate: 6deg; }
+    to { opacity: 1; scale: 1; rotate: 0deg; }
+}
+
+@keyframes slap-down-left {
+    from { opacity: 0; scale: 1.3; rotate: -14deg; }
+    to { opacity: 1; scale: 1; rotate: -4deg; }
+}
+
+@keyframes badge-in {
+    from { opacity: 0; scale: 0.2; rotate: -60deg; }
+    to { opacity: 1; scale: 1; rotate: 0deg; }
+}
+
+@keyframes wobble {
+    0%, 100% { rotate: -6deg; }
+    50% { rotate: 7deg; }
+}
+
+@keyframes blob-morph {
+    0%, 100% { border-radius: 58% 42% 46% 54% / 48% 56% 44% 52%; }
+    33% { border-radius: 44% 56% 58% 42% / 56% 44% 56% 44%; }
+    66% { border-radius: 52% 48% 40% 60% / 42% 58% 48% 52%; }
+}
+
+@keyframes draw {
+    to { stroke-dashoffset: 0; }
+}
+
+@keyframes wag {
+    0%, 55%, 100% { rotate: 0deg; }
+    62% { rotate: -16deg; }
+    69% { rotate: 14deg; }
+    76% { rotate: -16deg; }
+    83% { rotate: 14deg; }
+    90% { rotate: 0deg; }
+}
+
+@keyframes flop-left {
+    40% { rotate: 14deg; }
+    100% { rotate: 0deg; }
+}
+
+@keyframes flop-right {
+    40% { rotate: -14deg; }
+    100% { rotate: 0deg; }
+}
+
+@keyframes float {
+    0%, 100% { translate: 0 0; rotate: -6deg; }
+    50% { translate: 0 -0.9rem; rotate: 8deg; }
+}
+
+@keyframes twinkle {
+    0%, 100% { scale: 1; rotate: 0deg; }
+    50% { scale: 1.15; rotate: 20deg; }
+}
+
+@keyframes marquee {
+    to { translate: -50% 0; }
+}
+
+@keyframes squash {
+    0% { scale: 1 1; }
+    22% { scale: 1.06 0.92; }
+    45% { scale: 0.97 1.05; }
+    68% { scale: 1.02 0.98; }
+    100% { scale: 1 1; }
+}
+
+@keyframes spring-in {
+    0% { opacity: 0; translate: 0 3rem; scale: 0.9; }
+    60% { opacity: 1; translate: 0 -0.5rem; scale: 1.03; }
+    80% { translate: 0 0.15rem; scale: 0.99; }
+    100% { opacity: 1; translate: 0 0; scale: 1; }
+}
+
+@keyframes step-in {
+    0% { opacity: 0; scale: 0.2; }
+    60% { opacity: 1; scale: 1.25; }
+    100% { opacity: 1; scale: 1; }
+}
+
+@keyframes trot {
+    from { left: 0; }
+    to { left: calc(100% - 1.6rem); }
+}
+
+@keyframes bob {
+    0%, 10%, 20%, 30%, 40%, 50%, 60%, 70%, 80%, 90%, 100% { translate: 0 0; }
+    5%, 15%, 25%, 35%, 45%, 55%, 65%, 75%, 85%, 95% { translate: 0 -2px; }
+}
+
+@keyframes drift {
+    from { translate: 12vw 0; }
+    to { translate: calc(-100% + 60vw) 0; }
+}
+
+@keyframes grow {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+}
+
+/* Reduced motion: everything still, nothing hidden. */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation: none !important;
+        transition: none !important;
+        scroll-behavior: auto !important;
+    }
+
+    ::view-transition-group(*),
+    ::view-transition-old(*),
+    ::view-transition-new(*) {
+        animation: none !important;
+    }
+}

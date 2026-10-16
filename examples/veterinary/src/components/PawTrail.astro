@@ -1,0 +1,94 @@
+---
+/**
+ * A trail of paw prints across the page, left foot, right foot. Purely
+ * decoration (aria-hidden). Where the browser can drive animation by scroll,
+ * the prints appear one step at a time as the trail passes through the
+ * viewport, as if something small just trotted across (motion.css);
+ * anywhere else they are simply printed there.
+ */
+import Icon from './Icon.astro';
+
+interface Props {
+    /** Which way it walks. */
+    direction?: 'right' | 'left';
+    tone?: 'ink' | 'tomato' | 'teal' | 'cream';
+}
+
+const { direction = 'right', tone = 'tomato' } = Astro.props;
+const steps = Array.from({ length: 12 }, (_, index) => index);
+---
+
+<div class:list={['paw-trail', direction, tone]} aria-hidden="true">
+    {
+        steps.map(() => (
+            <span class="print">
+                <Icon name="paw" size={30} />
+            </span>
+        ))
+    }
+</div>
+
+<style>
+    .paw-trail {
+        position: relative;
+        height: clamp(5rem, 4rem + 4vw, 8rem);
+        width: min(100% - 2 * var(--gutter), var(--width-content));
+        margin-inline: auto;
+        pointer-events: none;
+    }
+
+    .print {
+        position: absolute;
+        display: block;
+        width: clamp(1.8rem, 1.3rem + 1.2vw, 2.6rem);
+        height: clamp(1.8rem, 1.3rem + 1.2vw, 2.6rem);
+        rotate: 90deg;
+    }
+
+    .print :global(svg) {
+        width: 100%;
+        height: 100%;
+    }
+
+    .tomato {
+        color: var(--tomato);
+    }
+
+    .ink {
+        color: var(--ink);
+    }
+
+    .teal {
+        color: var(--teal);
+    }
+
+    .cream {
+        color: var(--cream);
+    }
+
+    /* Left foot up, right foot down, along a gentle wave. */
+    .print:nth-child(1) { left: 1%; top: 46%; }
+    .print:nth-child(2) { left: 9.5%; top: 18%; }
+    .print:nth-child(3) { left: 18%; top: 40%; }
+    .print:nth-child(4) { left: 26.5%; top: 10%; }
+    .print:nth-child(5) { left: 35%; top: 34%; }
+    .print:nth-child(6) { left: 43.5%; top: 8%; }
+    .print:nth-child(7) { left: 52%; top: 36%; }
+    .print:nth-child(8) { left: 60.5%; top: 14%; }
+    .print:nth-child(9) { left: 69%; top: 44%; }
+    .print:nth-child(10) { left: 77.5%; top: 22%; }
+    .print:nth-child(11) { left: 86%; top: 52%; }
+    .print:nth-child(12) { left: 94.5%; top: 30%; }
+
+    .print:nth-child(odd) {
+        rotate: 100deg;
+    }
+
+    .print:nth-child(even) {
+        rotate: 80deg;
+    }
+
+    .left {
+        scale: -1 1;
+    }
+</style>

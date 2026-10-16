@@ -1,0 +1,623 @@
+---
+/**
+ * The home page: who we are in one sunny screen, then what we do (the
+ * sticker sheet), the wellness plans from the waffle app, how a first visit
+ * goes, the team, what the neighbours say, urgent care said calmly, and the
+ * latest advice.
+ */
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import Photo from '../components/Photo.astro';
+import Icon from '../components/Icon.astro';
+import WelcomeBadge from '../components/WelcomeBadge.astro';
+import Marquee from '../components/Marquee.astro';
+import ServiceStickers from '../components/ServiceStickers.astro';
+import PawTrail from '../components/PawTrail.astro';
+import FirstVisit from '../components/FirstVisit.astro';
+import TeamPolaroids from '../components/TeamPolaroids.astro';
+import UrgentBand from '../components/UrgentBand.astro';
+import PostGrid from '../components/PostGrid.astro';
+import { site } from '../site';
+import { services } from '../data/services';
+import { reviews } from '../data/reviews';
+import { loadWellnessPlans } from '../lib/load-plans';
+import { formatPrice } from '@core/lib/prices.js';
+import { speciesNames, speciesSummary } from '../lib/wellness-plans';
+import { buildTime } from '@core/settings';
+import { visiblePosts } from '@core/lib/posts.js';
+
+const plans = await loadWellnessPlans();
+const species = speciesSummary(plans);
+const cheapest = Math.min(...plans.plans.map((plan) => plan.monthlyPrice));
+const posts = visiblePosts(await getCollection('blog'), { includeDrafts: false, now: buildTime }).slice(0, 3);
+const openDays = site.business.hours.reduce((count, row) => count + row.days.length, 0);
+const speciesIcon = { dog: 'dog', cat: 'cat', rabbit: 'rabbit' } as const;
+
+const steps = [
+    { title: 'Say hello', text: 'Book online or call. Tell us who is coming, and send any old records our way.', icon: 'calendar' },
+    { title: 'Arrive and settle', text: 'Separate cat and dog waiting areas, a quiet room if you need one, treats on tap.', icon: 'smile' },
+    { title: 'Nose-to-tail check', text: 'A full exam at your pet’s pace, with time for every one of your questions.', icon: 'stethoscope' },
+    { title: 'A plan you understand', text: 'Prices before anything happens, and notes emailed to you before you get home.', icon: 'check' },
+] as const;
+---
+
+<Base title="Your friendly neighbourhood vet in Bramblewick" description={site.description}>
+    <section class="home-hero pattern">
+        <div class="container hero-inner">
+            <div class="copy">
+                <p class="eyebrow"><Icon name="paw" />Bramblewick’s neighbourhood vet since {site.business.founded}</p>
+                <h1>
+                    Care that gets <span class="squiggle">tails wagging.<svg viewBox="0 0 300 24" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="M4 16 C 30 4, 50 4, 76 14 S 124 24, 150 12 S 200 2, 226 14 S 270 22, 296 8" pathLength="1"></path></svg></span>
+                </h1>
+                <p class="lead">
+                    Checkups, vaccines, dental care, surgery and same-day urgent visits for dogs, cats and the more unusual members of the family, from a team who will remember their name.
+                </p>
+                <p class="actions">
+                    <a class="button button-tomato button-large" href="/book/"><Icon name="calendar" />Book a visit</a>
+                    <a class="button button-cream button-large" href="/wellness-plans/">Plans from {formatPrice(cheapest, plans.currency)} a month</a>
+                </p>
+                <ul class="facts">
+                    <li><Icon name="clock" size={20} /> Open {openDays} days a week</li>
+                    <li><Icon name="firstAid" size={20} /> Same-day urgent slots</li>
+                    <li><Icon name="feather" size={20} /> Exotics welcome</li>
+                </ul>
+            </div>
+            <div class="collage">
+                <div class="cut cut-blob big-photo">
+                    <Photo name="chihuahuaHeld" sizes="(min-width: 64rem) 32rem, 85vw" priority />
+                </div>
+                <div class="cut cut-circle small-photo">
+                    <Photo name="catSunglasses" sizes="(min-width: 64rem) 14rem, 40vw" />
+                </div>
+                <WelcomeBadge class="badge" />
+                <span class="float-bone" aria-hidden="true"><Icon name="bone" size={52} /></span>
+                <span class="float-heart" aria-hidden="true"><Icon name="heart" size={30} /></span>
+            </div>
+        </div>
+    </section>
+
+    <Marquee />
+
+    <section class="band" aria-labelledby="services-heading">
+        <div class="container">
+            <div class="band-head split-head">
+                <div>
+                    <p class="eyebrow"><Icon name="stethoscope" />What we do</p>
+                    <h2 id="services-heading">Everything from first jabs to golden years</h2>
+                </div>
+                <p class="lead">Seven kinds of care under one roof, so your pet sees faces they know. Pick a sticker to see what each involves and what it costs.</p>
+            </div>
+            <ServiceStickers services={services} />
+            <p class="all-services"><a class="button button-cream" href="/services/">All our services <Icon name="arrow" /></a></p>
+        </div>
+    </section>
+
+    <PawTrail />
+
+    <section class="band band-teal plans-band" aria-labelledby="plans-heading">
+        <div class="container plans-inner">
+            <div>
+                <p class="eyebrow"><Icon name="heart" />Wellness plans</p>
+                <h2 id="plans-heading">A whole year of care, in small monthly bites</h2>
+                <p class="plans-lead">Exams, vaccines, parasite prevention and nurse visits, bundled by species and life stage and paid monthly. No surprises at the desk.</p>
+                <p class="actions"><a class="button button-large" href="/wellness-plans/">Compare all {plans.plans.length} plans</a></p>
+            </div>
+            <ul class="species">
+                {
+                    species.map((entry, index) => (
+                        <li class:list={['species-card', 'sticker', index % 2 === 0 ? 'tilt-left' : 'tilt-right']}>
+                            <span class="species-icon"><Icon name={speciesIcon[entry.species]} size={34} /></span>
+                            <h3>{speciesNames[entry.species].many}</h3>
+                            <p class="from">from <strong>{formatPrice(entry.from, plans.currency)}</strong> a month</p>
+                            <p class="count">{entry.count} {entry.count === 1 ? 'plan' : 'plans'}, by life stage</p>
+                            <a class="species-link" href={`/wellness-plans/#${entry.species}`}>
+                                <span class="visually-hidden">{speciesNames[entry.species].one} plans</span>
+                            </a>
+                        </li>
+                    ))
+                }
+            </ul>
+        </div>
+    </section>
+
+    <section class="band band-paper calm-visits" aria-labelledby="calm-heading">
+        <div class="container calm-inner">
+            <div class="cut cut-arch calm-photo">
+                <Photo name="vetExaminingDachshund" sizes="(min-width: 64rem) 28rem, 90vw" />
+            </div>
+            <div>
+                <p class="eyebrow"><Icon name="smile" />Low-stress visits</p>
+                <h2 id="calm-heading">A vet visit they won’t dread</h2>
+                <p class="lead">We go at your pet’s pace. Most of the exam happens on the floor or in your lap, and nobody is ever rushed off a table.</p>
+                <ul class="paw-list">
+                    <li>Separate waiting areas for cats and for dogs, with a quiet room on request.</li>
+                    <li>Pheromone diffusers, non-slip mats and towels warmed for cats.</li>
+                    <li>Treats, lick mats and as many breaks as it takes.</li>
+                    <li>Happy visits: pop in to say hello and get a biscuit, with no exam at all.</li>
+                </ul>
+                <p class="actions"><a class="button button-teal" href="/about/">How we work <Icon name="arrow" /></a></p>
+            </div>
+        </div>
+    </section>
+
+    <section class="band band-mint" aria-labelledby="visit-heading">
+        <div class="container">
+            <div class="band-head">
+                <p class="eyebrow"><Icon name="pin" />New here?</p>
+                <h2 id="visit-heading">Your first visit, four easy steps</h2>
+            </div>
+            <FirstVisit steps={[...steps]} />
+            <p class="visit-more"><a class="button button-tomato" href="/new-clients/">Everything new clients need <Icon name="arrow" /></a></p>
+        </div>
+    </section>
+
+    <section class="band" aria-labelledby="team-heading">
+        <div class="container">
+            <div class="band-head split-head">
+                <div>
+                    <p class="eyebrow"><Icon name="heart" />The team</p>
+                    <h2 id="team-heading">Meet us (and our own pets)</h2>
+                </div>
+                <p class="lead">Three vets, two nurses and a front desk who know every patient by name. Here they are with the animals who boss them around at home.</p>
+            </div>
+        </div>
+        <div class="team-track">
+            <div class="container">
+                <TeamPolaroids drift />
+            </div>
+        </div>
+        <div class="container">
+            <p class="team-more"><a class="button button-cream" href="/team/">Meet the whole team <Icon name="arrow" /></a></p>
+        </div>
+    </section>
+
+    <section class="band band-sun pattern reviews-band" aria-labelledby="reviews-heading">
+        <div class="container">
+            <div class="band-head">
+                <p class="eyebrow"><Icon name="smile" />Kind words</p>
+                <h2 id="reviews-heading">What the neighbours say</h2>
+            </div>
+            <ul class="bubbles">
+                {
+                    reviews.map((review) => (
+                        <li class="bubble sticker">
+                            <blockquote>
+                                <p>“{review.quote}”</p>
+                            </blockquote>
+                            <p class="by">
+                                <strong>{review.name}</strong> <span>with {review.pet}</span>
+                            </p>
+                        </li>
+                    ))
+                }
+            </ul>
+        </div>
+    </section>
+
+    <UrgentBand />
+
+    <section class="band" aria-labelledby="advice-heading">
+        <div class="container">
+            <div class="band-head split-head">
+                <div>
+                    <p class="eyebrow"><Icon name="leaf" />From the blog</p>
+                    <h2 id="advice-heading">Good advice, from people who love animals</h2>
+                </div>
+                <p><a class="button button-cream" href="/blog/">All our pet-health advice <Icon name="arrow" /></a></p>
+            </div>
+            <PostGrid posts={posts} level="h3" />
+        </div>
+    </section>
+</Base>
+
+<style>
+    /* The hero: a sunny screen, copy left, a collage of cut-out pets right. */
+    .home-hero {
+        position: relative;
+        padding: clamp(2.5rem, 1.5rem + 4vw, 5rem) 0 clamp(3rem, 2rem + 4vw, 5.5rem);
+        background-color: var(--sun);
+        overflow: hidden;
+    }
+
+    .hero-inner {
+        display: grid;
+        gap: clamp(3rem, 2rem + 4vw, 4.5rem);
+        align-items: center;
+    }
+
+    h1 {
+        font-size: clamp(3.1rem, 1.6rem + 6.4vw, 6.75rem);
+        line-height: 0.92;
+    }
+
+    .squiggle {
+        position: relative;
+        display: inline-block;
+        color: var(--tomato-ink);
+        white-space: nowrap;
+    }
+
+    .squiggle svg {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: -0.32em;
+        width: 100%;
+        height: 0.35em;
+        overflow: visible;
+    }
+
+    .squiggle path {
+        fill: none;
+        stroke: var(--ink);
+        stroke-width: 6;
+        stroke-linecap: round;
+        vector-effect: non-scaling-stroke;
+    }
+
+    .copy .lead {
+        max-width: 34rem;
+        margin-top: var(--space-8);
+        color: var(--ink);
+    }
+
+    .copy .actions {
+        margin-top: var(--space-8);
+    }
+
+    .facts {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-3) var(--space-5);
+        margin: var(--space-8) 0 0;
+        padding: 0;
+        list-style: none;
+        font-weight: 800;
+    }
+
+    .facts li {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+    }
+
+    .facts :global(svg) {
+        color: var(--teal);
+    }
+
+    .collage {
+        position: relative;
+        justify-self: center;
+        width: min(100%, 34rem);
+        padding: 0 0 4rem 2rem;
+    }
+
+    .big-photo {
+        aspect-ratio: 1 / 1.08;
+        border-width: 4px;
+        filter: drop-shadow(10px 10px 0 var(--line));
+        background: var(--tomato-soft);
+    }
+
+    .big-photo :global(picture),
+    .small-photo :global(picture) {
+        display: block;
+        width: 100%;
+        height: 100%;
+    }
+
+    .big-photo :global(img) {
+        object-position: 50% 30%;
+    }
+
+    .small-photo {
+        position: absolute;
+        left: -0.5rem;
+        bottom: 0;
+        width: 42%;
+        border-width: 4px;
+        box-shadow: var(--pop);
+    }
+
+    .collage :global(.badge) {
+        position: absolute;
+        top: -1.5rem;
+        right: -0.75rem;
+    }
+
+    .float-bone,
+    .float-heart {
+        position: absolute;
+        display: inline-grid;
+        place-items: center;
+        border: var(--stroke) solid var(--line);
+        border-radius: 50%;
+        box-shadow: var(--pop-small);
+    }
+
+    .float-bone {
+        right: 6%;
+        bottom: 1rem;
+        width: 5rem;
+        height: 5rem;
+        background: var(--paper);
+    }
+
+    .float-heart {
+        left: 0;
+        top: 12%;
+        width: 3.5rem;
+        height: 3.5rem;
+        background: var(--tomato);
+        color: var(--paper);
+    }
+
+    @media (min-width: 64rem) {
+        .hero-inner {
+            grid-template-columns: 1.1fr 0.9fr;
+        }
+    }
+
+    @media (max-width: 40rem) {
+        .collage {
+            padding: 0 0 3rem 1rem;
+        }
+
+        .collage :global(.badge) {
+            width: 7.25rem;
+            right: -0.25rem;
+        }
+
+        .collage :global(.badge .big) {
+            font-size: 1.3rem;
+        }
+
+        .collage :global(.badge .small) {
+            font-size: 0.62rem;
+        }
+
+        .float-bone {
+            width: 4rem;
+            height: 4rem;
+        }
+    }
+
+    /* Band heads that put the lead beside the heading on wide screens. */
+    .split-head {
+        max-width: none;
+    }
+
+    @media (min-width: 64rem) {
+        .split-head {
+            grid-template-columns: 1.2fr 1fr;
+            align-items: end;
+            gap: var(--space-12);
+        }
+    }
+
+    .all-services,
+    .visit-more,
+    .team-more {
+        margin: clamp(2.5rem, 2rem + 2vw, 3.5rem) 0 0;
+        text-align: center;
+    }
+
+    /* Plans: the teal band, a ticket per species. */
+    .plans-band {
+        overflow: hidden;
+    }
+
+    .plans-band .eyebrow {
+        background: var(--sun);
+    }
+
+    .plans-inner {
+        display: grid;
+        gap: var(--space-12);
+        align-items: center;
+    }
+
+    .plans-lead {
+        max-width: 32rem;
+        margin: var(--space-6) 0 var(--space-8);
+        color: var(--mint-soft);
+        font-size: 1.15rem;
+        font-weight: 600;
+    }
+
+    .species {
+        display: grid;
+        gap: var(--space-6);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .species-card {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        column-gap: var(--space-5);
+        align-items: center;
+        padding: var(--space-5) var(--space-6);
+        color: var(--ink);
+        transform-origin: 50% 100%;
+    }
+
+    .species-card:nth-child(1) {
+        background: var(--sun);
+    }
+
+    .species-card:nth-child(2) {
+        background: var(--paper);
+    }
+
+    .species-card:nth-child(3) {
+        background: var(--mint);
+    }
+
+    .species-icon {
+        grid-row: span 3;
+        display: inline-grid;
+        place-items: center;
+        width: 4.25rem;
+        height: 4.25rem;
+        border: var(--stroke) solid var(--line);
+        border-radius: 50%;
+        background: var(--paper);
+    }
+
+    .species-card h3 {
+        margin: 0;
+        color: var(--ink);
+        font-size: 1.6rem;
+    }
+
+    .from {
+        margin: 0;
+        font-weight: 700;
+    }
+
+    .from strong {
+        font-family: var(--font-display);
+        font-size: 1.5rem;
+        font-weight: 700;
+    }
+
+    .count {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.92rem;
+        font-weight: 700;
+    }
+
+    .species-link::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: var(--radius);
+    }
+
+    @media (min-width: 64rem) {
+        .plans-inner {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .species-card:nth-child(2) {
+            margin-left: 3rem;
+        }
+    }
+
+    /* Low-stress visits: an arch-cut photo beside the promise. */
+    .calm-inner {
+        display: grid;
+        gap: clamp(2.5rem, 1.5rem + 4vw, 5rem);
+        align-items: center;
+    }
+
+    .calm-photo {
+        justify-self: center;
+        width: min(100%, 26rem);
+        aspect-ratio: 4 / 5;
+        box-shadow: var(--pop-large);
+    }
+
+    .calm-photo :global(picture) {
+        display: block;
+        width: 100%;
+        height: 100%;
+    }
+
+    .calm-visits .paw-list {
+        margin: var(--space-6) 0 var(--space-8);
+        font-weight: 600;
+    }
+
+    @media (min-width: 64rem) {
+        .calm-inner {
+            grid-template-columns: 0.8fr 1fr;
+        }
+    }
+
+    /* The team row. */
+    .team-track {
+        overflow: hidden;
+    }
+
+    /* Reviews as speech bubbles. */
+    .bubbles {
+        display: grid;
+        gap: var(--space-10) var(--space-8);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .bubble {
+        padding: var(--space-6) var(--space-6) var(--space-5);
+        border-radius: var(--radius-large);
+    }
+
+    .bubble::after {
+        content: '';
+        position: absolute;
+        left: 2.5rem;
+        bottom: -1.15rem;
+        width: 1.8rem;
+        height: 1.8rem;
+        border-right: var(--stroke) solid var(--line);
+        border-bottom: var(--stroke) solid var(--line);
+        background: inherit;
+        rotate: 45deg;
+        skew: 12deg 12deg;
+    }
+
+    .bubble:nth-child(4n + 1) {
+        rotate: -1.2deg;
+    }
+
+    .bubble:nth-child(4n + 2) {
+        background: var(--mint);
+        rotate: 1deg;
+    }
+
+    .bubble:nth-child(4n + 3) {
+        background: var(--tomato-soft);
+        rotate: 0.8deg;
+    }
+
+    .bubble:nth-child(4n + 4) {
+        rotate: -0.8deg;
+    }
+
+    blockquote {
+        margin: 0;
+    }
+
+    blockquote p {
+        margin: 0;
+        font-family: var(--font-display);
+        font-size: clamp(1.2rem, 1.05rem + 0.5vw, 1.45rem);
+        font-weight: 500;
+        line-height: 1.35;
+    }
+
+    .by {
+        margin: var(--space-4) 0 0;
+        font-size: 0.95rem;
+    }
+
+    .by span {
+        color: var(--muted);
+        font-weight: 700;
+    }
+
+    @media (min-width: 48rem) {
+        .bubbles {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .bubble:nth-child(even) {
+            margin-top: var(--space-10);
+        }
+    }
+</style>

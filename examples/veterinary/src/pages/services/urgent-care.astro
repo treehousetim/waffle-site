@@ -1,0 +1,39 @@
+---
+import ServicePage from '../../layouts/ServicePage.astro';
+import { site } from '../../site';
+---
+
+<ServicePage
+    slug="urgent-care"
+    title="Same-day urgent vet care"
+    description="Same-day urgent appointments for sick or injured pets in Bramblewick: call first and a nurse will talk you through it, then we will see you today."
+    heading="Sick or hurt today? We’ll see you today."
+    lead="We keep appointments free every day for pets who are unwell and cannot wait for a routine slot. Call first: a nurse will listen, give you advice for the next few minutes, and find you a time."
+    glance={[
+        { label: 'First', value: 'Call us, so we can be ready when you arrive' },
+        { label: 'When', value: 'Same day, while we are open' },
+        { label: 'After hours', value: `${site.afterHours.name}, ${site.afterHours.phone}` },
+        { label: 'Bring', value: 'Any packaging, plant or pill your pet may have eaten' },
+    ]}
+    faq={[
+        { question: 'How do I know if it is urgent?', answer: 'If you are worried, call. Vomiting more than twice, not eating for a day, limping, a swollen face, an eye problem or a sudden change in behaviour all deserve a same-day look. Our emergency page lists the signs that mean go straight away.' },
+        { question: 'What does an urgent visit cost?', answer: 'An urgent exam costs a little more than a routine one because we fit it in on the day. We give you an estimate for any tests or treatment before we start.' },
+        { question: 'What if you are closed?', answer: `Call ${site.afterHours.name} on ${site.afterHours.phone}. They are open every night, weekend and holiday, and send us their notes so we can follow up the next day.` },
+        { question: 'Do I need to be a client already?', answer: 'No. We see new patients for urgent care too. Bring any records you have, or let us know your old vet and we will ask for them.' },
+    ]}
+>
+    <h2>Call first, then come in</h2>
+    <p>Phoning ahead means a nurse can tell you what to do on the way, a room is ready when you arrive and a vet knows what to expect. If your pet needs to be seen immediately, we will say so and see you straight away.</p>
+    <h2>What we can treat on the day</h2>
+    <ul>
+        <li>Vomiting, diarrhoea and pets who will not eat.</li>
+        <li>Limping, cuts, torn nails and bite wounds.</li>
+        <li>Itchy, sore or infected ears, eyes and skin.</li>
+        <li>Urinary problems: straining, blood, or going more often.</li>
+        <li>Swallowed things that might not pass: we have X-ray and ultrasound here.</li>
+        <li>Allergic reactions, bee stings and swollen faces.</li>
+    </ul>
+    <p class="callout">A male cat straining in the litter tray and producing nothing is an emergency. Call us, or Lantern Hill after hours, straight away.</p>
+    <h2>When it is an emergency</h2>
+    <p>Difficulty breathing, collapse, a seizure that does not stop, a swollen hard belly in a dog, heavy bleeding or a known poison need immediate care. Do not wait for an appointment: call as you set off. Our <a href="/emergency/">emergency page</a> has the full list and what to do on the way.</p>
+</ServicePage>
