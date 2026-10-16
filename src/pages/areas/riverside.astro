@@ -1,0 +1,20 @@
+---
+import AreaPage from '../../layouts/AreaPage.astro';
+import { reviewsFrom } from '../../data/reviews';
+---
+
+<AreaPage
+    slug="riverside"
+    title="Electrician in Riverside"
+    description="Electricians serving Riverside: panel upgrades, standby generators, sump pump circuits and storm repairs, about fifteen minutes from our Springfield shop."
+    heading="Electricians for Riverside homes, fifteen minutes away"
+    lead="Riverside sits low by the water, and the electrical work we do there reflects it: backup power, sump pump circuits and storm repairs."
+    reviews={reviewsFrom('Riverside')}
+>
+    <h2>Keeping the basement dry when the power goes</h2>
+    <p>A sump pump is only as good as the power behind it. We put sump pumps on their own circuit with GFCI protection, and many Riverside customers pair that with a standby generator or a battery backup so a spring storm does not become a flooded basement.</p>
+    <h2>After a storm</h2>
+    <p>If a storm pulls your service drop off the house or floods outlets, switch off the main breaker if it is safe to reach and call our emergency line. We make the house safe, coordinate with the utility, and repair the mast or meter base so they can reconnect you.</p>
+    <h2>Mid-century ranch houses</h2>
+    <p>Riverside's ranch homes from the 1950s and 60s often still have their original 100-amp panels. That is usually the first thing to upgrade before adding central air, a heat pump or an EV charger.</p>
+</AreaPage>

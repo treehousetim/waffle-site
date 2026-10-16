@@ -1,0 +1,41 @@
+# The local stack: Caddy serving the built site the way production does.
+#
+#   ./tools/npm.sh run build     -> builds into dist/
+#   docker compose up -d         -> http://localhost:8090
+#
+# Day to day, `./tools/npm.sh run dev` (http://localhost:4321) is quicker: it
+# rebuilds as you edit. This is for checking the real thing: the headers, the
+# 404 page, the redirects, and /api/site reaching a waffle app.
+#
+# No `version:` key: it is obsolete under Compose v2+ and only produces a warning.
+#
+# Every value has a local default after `:-`, and none is secret. In
+# production deploy.sh runs Compose under `doppler run --` with the server's
+# prod-serve config, which supplies WAFFLE_SITE_KEY.
+
+services:
+  caddy:
+    image: caddy:2.11
+    environment:
+      # Plain HTTP on a port, no hostname, no certificate.
+      SITE_ADDRESS: ":80"
+      SITE_ROOT: /srv/site/dist
+      # A waffle app on this machine (its default port). /api/site/* goes
+      # there; nothing else needs it.
+      WAFFLE_APP_URL: ${WAFFLE_APP_URL:-http://host.docker.internal:8080}
+      WAFFLE_SITE_KEY: ${WAFFLE_SITE_KEY:-local-site-key}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      # 8090, out of the way of a waffle app on 8080. Loopback only; override
+      # HTTP_PORT in your shell (not in Doppler) if something else has it.
+      - "127.0.0.1:${HTTP_PORT:-8090}:80"
+    volumes:
+      - .:/srv/site:ro
+      - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  caddy_data:
+  caddy_config:

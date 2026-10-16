@@ -1,0 +1,20 @@
+---
+import AreaPage from '../../layouts/AreaPage.astro';
+import { reviewsFrom } from '../../data/reviews';
+---
+
+<AreaPage
+    slug="lakewood"
+    title="Electrician in Lakewood"
+    description="Electricians serving Lakewood: lake houses, docks and boat lifts, pre-purchase inspections and outdoor lighting, about thirty-five minutes from Springfield."
+    heading="Electricians for Lakewood's lake houses and cottages"
+    lead="Lakewood's homes are close to the water, and electricity near water is unforgiving. Most of our work there is about doing it safely."
+    reviews={reviewsFrom('Lakewood')}
+>
+    <h2>Docks, lifts and shoreline power</h2>
+    <p>Boat lifts, dock lights and shoreline outlets need GFCI protection, the right cable and careful grounding. Faulty dock wiring can energize the water around it, so we test existing dock power as well as installing new circuits.</p>
+    <h2>Buying a lake house</h2>
+    <p>Lakewood has many seasonal cottages that were winterized and wired over decades. A pre-purchase inspection tells you what you are taking on, with a priced list of repairs to negotiate with.</p>
+    <h2>Outdoor and path lighting</h2>
+    <p>Low-voltage path and landscape lighting on a timer, wired so it survives a winter and does not light up the neighbors' windows.</p>
+</AreaPage>

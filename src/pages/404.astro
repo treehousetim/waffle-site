@@ -1,0 +1,19 @@
+---
+/**
+ * Served by Caddy, with status 404, for any path that is not in the build
+ * (docker/caddy/Caddyfile). Kept out of search results (src/site.ts).
+ */
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+---
+
+<Base title="Page not found" description="That page is not here. It may have moved, or the link may be mistyped. Try our services, the price guide or the advice articles instead.">
+    <Hero
+        size="small"
+        eyebrow="404"
+        heading="That page is not here"
+        lead="It may have moved, or the link may have a typo in it."
+        primary={{ label: 'See our services', href: '/services/' }}
+        secondary={{ label: 'Go to the home page', href: '/' }}
+    />
+</Base>

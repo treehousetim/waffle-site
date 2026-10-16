@@ -1,0 +1,28 @@
+---
+import ServicePage from '../../layouts/ServicePage.astro';
+---
+
+<ServicePage
+    slug="inspections"
+    title="Home electrical inspections"
+    description="Electrical inspections in Springfield for home buyers, sellers and insurers: a licensed electrician's written report with photos and prioritised repairs."
+    heading="Know exactly what is behind the walls"
+    lead="A general home inspection glances at the panel. An electrical inspection tests it, along with the outlets, the grounding and the parts of the system that tend to fail."
+    faq={[
+        { question: 'How long does an inspection take?', answer: 'About two hours for a typical house. The written report follows within one working day.' },
+        { question: 'What is in the report?', answer: 'Every issue we find, with a photo, a plain explanation, how urgent it is and what it would cost to fix.' },
+        { question: 'Is it worth it on a newer house?', answer: 'It is less likely to find anything serious, but we still find missing GFCI protection and loose connections in homes under ten years old.' },
+    ]}
+>
+    <h2>What we check</h2>
+    <ul>
+        <li>The service, meter base and panel, including breaker sizes against wire sizes.</li>
+        <li>Grounding and bonding, including water and gas lines.</li>
+        <li>GFCI and AFCI protection where the code expects it.</li>
+        <li>A sample of outlets and switches in every room, tested for polarity and ground.</li>
+        <li>Attic, basement and garage wiring for damage, splices and DIY work.</li>
+        <li>Smoke and carbon monoxide alarms: location, age and interconnection.</li>
+    </ul>
+    <h2>Buying a house?</h2>
+    <p>Book us inside your inspection window. A report with prices attached is a strong position to negotiate from, and it tells you what to budget for in the first year.</p>
+</ServicePage>

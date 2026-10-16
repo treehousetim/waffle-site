@@ -1,0 +1,28 @@
+---
+/** The mark and the name. Decorative mark, so the name is the link's text. */
+import { site } from '../site';
+---
+
+<a class="logo" href="/">
+    <svg width="30" height="30" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+        <rect x="2" y="2" width="28" height="28" rx="8" fill="currentColor" />
+        <path d="M17.5 6L9.5 18h6l-1.5 8 8.5-12.5h-6.2L17.5 6z" fill="var(--color-bg)" />
+    </svg>
+    <span>{site.name}</span>
+</a>
+
+<style>
+    .logo {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        color: var(--color-text);
+        font-weight: 800;
+        font-size: 1.15rem;
+        text-decoration: none;
+    }
+
+    .logo svg {
+        color: var(--color-brand);
+    }
+</style>

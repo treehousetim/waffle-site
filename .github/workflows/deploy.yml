@@ -1,0 +1,230 @@
+name: Deploy
+
+# Releases only. Nothing deploys from a branch push.
+on:
+  release:
+    types: [published]
+
+# One deploy at a time. Two releases published close together would otherwise
+# rsync over each other mid-transfer.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+# Every action is pinned to a commit (the major version is in the comment,
+# when this template was written). A tag can be moved by whoever controls the
+# action's repository; a commit cannot, and this job holds the production
+# server's key. Re-pin deliberately, never to a moving tag.
+
+jobs:
+  deploy:
+    name: Build and ship ${{ github.event.release.tag_name }}
+    # The template's own repository publishes releases too (semver) and has no
+    # server: never try to deploy from it. In a project started from it this
+    # is always true. tools/rename-project.sh leaves this line alone because
+    # it names treehousetim/waffle-site.
+    if: github.repository != 'treehousetim/waffle-site'
+    runs-on: ubuntu-latest
+
+    # A GitHub *environment*, not repository secrets: DOPPLER_TOKEN lives on
+    # it, so only a job that declares it can read the value, and its v* tag
+    # policy blocks a release cut from anything else (docs/fresh-install.md).
+    environment:
+      name: prod
+      url: https://waffle-site.example.com
+
+    steps:
+      # -------------------------------------------------------------------
+      # The tag is text somebody typed, and it reaches a shell on the server.
+      # Only a plain release number goes further. Read through the
+      # environment, never spliced into a script with ${{ }}.
+      # -------------------------------------------------------------------
+      - name: Refuse anything but a release tag
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$TAG" =~ ^v[1-9][0-9]*$ ]]; then
+            echo "::error::release tag is not vN (docs/releasing.md); refusing to deploy it"
+            exit 1
+          fi
+          echo "TAG=$TAG" >> "$GITHUB_ENV"
+
+      - name: Check out the release tag
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ github.event.release.tag_name }}
+
+      # -------------------------------------------------------------------
+      # Where the site lives and which waffle app it fronts, from the one
+      # place each is written (docker-compose.prod.yml). Neither is secret.
+      # -------------------------------------------------------------------
+      - name: Read the hostnames
+        run: |
+          set -euo pipefail
+          host="$(sed -n 's/^ *SITE_ADDRESS: *//p' docker-compose.prod.yml | tr -d '"' | head -n 1)"
+          app="$(sed -n 's/^ *WAFFLE_APP_URL: *//p' docker-compose.prod.yml | tr -d '"' | head -n 1)"
+          [ -n "$host" ] || { echo "::error::no SITE_ADDRESS in docker-compose.prod.yml"; exit 1; }
+          [ -n "$app" ] || { echo "::error::no WAFFLE_APP_URL in docker-compose.prod.yml"; exit 1; }
+          echo "SITE_URL=https://$host" >> "$GITHUB_ENV"
+          echo "WAFFLE_APP_URL=$app" >> "$GITHUB_ENV"
+
+      - name: Set up Node
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: '26'
+          cache: npm
+
+      # -------------------------------------------------------------------
+      # npm ci installs exactly the lockfile, checking every package against
+      # its recorded hash, with install scripts off (.npmrc). Then the
+      # registry signatures are verified, before anything is built from
+      # them (docs/supply-chain.md).
+      #
+      # The build is a production build: indexable, canonical URLs on
+      # SITE_URL, and the waffle app's live data (its public read
+      # endpoints, which need no key). `npm run build` type-checks, builds,
+      # and runs the SEO audit, any of which fails the release here, before
+      # anything reaches the server.
+      # -------------------------------------------------------------------
+      - name: Build the site
+        env:
+          SITE_ENV: production
+        run: |
+          npm ci
+          npm audit signatures
+          npm run build
+
+      - name: Verify the release artifact
+        run: |
+          set -euo pipefail
+          for required in dist/index.html dist/404.html dist/robots.txt dist/sitemap-index.xml; do
+            [ -e "$required" ] || { echo "::error::missing $required"; exit 1; }
+          done
+          echo "artifact complete"
+
+      # -------------------------------------------------------------------
+      # Secrets. DOPPLER_TOKEN is the ONLY GitHub secret, it lives on the
+      # `prod` environment, and it is scoped to Doppler's `prod-deploy`
+      # config, which holds nothing but the deploy credentials. The site's
+      # own secret (WAFFLE_SITE_KEY) is in `prod-serve`, read by the server
+      # itself, and never touches this runner.
+      #
+      # Loaded only now, after npm: it runs code from the packages it
+      # installs, and anything run after this step can read the server's key.
+      # -------------------------------------------------------------------
+      - name: Install the Doppler CLI
+        uses: dopplerhq/cli-action@014df23b1329b615816a38eb5f473bb9000700b1 # v3
+
+      - name: Load deploy credentials from Doppler
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          for name in DROPLET_HOST DROPLET_USER DROPLET_SSH_KEY DROPLET_SSH_KNOWN_HOSTS; do
+            value="$(doppler secrets get "$name" --plain)"
+
+            if [ -z "$value" ]; then
+              echo "::error::${name} is empty in Doppler's prod-deploy config"
+              exit 1
+            fi
+
+            # Mask before anything can echo it, including a later `set -x`.
+            while IFS= read -r line; do
+              [ -n "$line" ] && echo "::add-mask::$line"
+            done <<< "$value"
+
+            {
+              echo "${name}<<__DOPPLER_EOF__"
+              echo "$value"
+              echo "__DOPPLER_EOF__"
+            } >> "$GITHUB_ENV"
+          done
+
+      # known_hosts comes from Doppler rather than ssh-keyscan, which would
+      # trust whatever answers on the day.
+      - name: Configure SSH
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$DROPLET_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$DROPLET_SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      # -------------------------------------------------------------------
+      # Ship it, in two parts.
+      #
+      # The tree (Compose files, the Caddyfile, deploy/) goes to
+      # /opt/waffle_site with --delete, so a file removed in this release is
+      # removed there. Excluded paths are NOT deleted (that would need
+      # --delete-excluded, deliberately absent), which is what protects what
+      # lives only on the server:
+      #
+      #   releases/  every shipped release, for instant rollback
+      #   current    the link to the one being served
+      #   .deploy/   deploy state: the last tag
+      #
+      # The built site goes to releases/<tag>/, a directory of its own, so it
+      # is complete before anything points at it.
+      # -------------------------------------------------------------------
+      - name: Rsync the release to the server
+        run: |
+          set -euo pipefail
+          SSH="ssh -i ~/.ssh/deploy_key -o UserKnownHostsFile=~/.ssh/known_hosts -o StrictHostKeyChecking=yes"
+          rsync -az --delete -e "$SSH" \
+            --exclude '.git/' \
+            --exclude '.github/' \
+            --exclude 'node_modules/' \
+            --exclude 'dist/' \
+            --exclude 'coverage/' \
+            --exclude 'tests/' \
+            --exclude 'releases/' \
+            --exclude 'current' \
+            --exclude 'current.next' \
+            --exclude '.deploy/' \
+            --exclude '.env' \
+            ./ "${DROPLET_USER}@${DROPLET_HOST}:/opt/waffle_site/"
+          rsync -az --delete -e "$SSH" \
+            dist/ "${DROPLET_USER}@${DROPLET_HOST}:/opt/waffle_site/releases/${TAG}/"
+
+      # deploy.sh was rsync'd a moment ago, so the version invoked is this
+      # release's.
+      - name: Run the deploy
+        run: |
+          set -euo pipefail
+          ssh -i ~/.ssh/deploy_key \
+            -o UserKnownHostsFile=~/.ssh/known_hosts \
+            -o StrictHostKeyChecking=yes \
+            "${DROPLET_USER}@${DROPLET_HOST}" \
+            "bash /opt/waffle_site/deploy/deploy.sh '$TAG'"
+
+      # A failed deploy says so where people look. Optional:
+      # DEPLOY_ALERT_WEBHOOK, a Slack incoming-webhook URL in Doppler's
+      # prod-deploy config. Without it, the failed run here is the only notice.
+      - name: Tell Slack the deploy failed
+        if: failure()
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+        run: |
+          set -uo pipefail
+          url="$(doppler secrets get DEPLOY_ALERT_WEBHOOK --plain 2>/dev/null || true)"
+
+          if [ -z "$url" ]; then
+            echo "No DEPLOY_ALERT_WEBHOOK in Doppler's prod-deploy config; nothing sent."
+            exit 0
+          fi
+
+          echo "::add-mask::$url"
+          text="The deploy of ${TAG:-a release} failed: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          curl -fsS -m 10 -H 'Content-Type: application/json' -d "$(jq -n --arg text "$text" '{text: $text}')" "$url" >/dev/null \
+            || echo "::warning::the deploy alert could not be sent"
+
+      - name: Clean up credentials
+        if: always()
+        run: rm -f ~/.ssh/deploy_key ~/.ssh/known_hosts

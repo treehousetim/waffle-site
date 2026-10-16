@@ -1,0 +1,20 @@
+---
+import AreaPage from '../../layouts/AreaPage.astro';
+import { reviewsFrom } from '../../data/reviews';
+---
+
+<AreaPage
+    slug="millbrook"
+    title="Electrician in Millbrook"
+    description="Electricians serving Millbrook: kitchen and bath remodel wiring, lighting design, and the small shops on Main Street, about thirty minutes from Springfield."
+    heading="Electricians for Millbrook homes and Main Street shops"
+    lead="Millbrook keeps us busy with remodels: kitchens and bathrooms in its 1920s bungalows, and fit-outs for the shops and cafés along Main Street."
+    reviews={reviewsFrom('Millbrook')}
+>
+    <h2>Kitchen and bathroom remodels</h2>
+    <p>A remodel is the cheapest moment to fix a kitchen's wiring. We add the dedicated circuits a modern kitchen needs, GFCI protection by every sink, and lighting planned around the new layout, working to your contractor's timeline.</p>
+    <h2>Bungalow lighting</h2>
+    <p>Millbrook's bungalows have low ceilings and few original fixtures. Slim LED wafer lights and good dimmers make those rooms feel bigger without cutting into the plaster more than we must.</p>
+    <h2>Small businesses</h2>
+    <p>For shops and cafés we handle new circuits for equipment, exit and emergency lighting, and the paperwork the inspector expects before you open.</p>
+</AreaPage>

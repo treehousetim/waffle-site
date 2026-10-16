@@ -1,0 +1,27 @@
+---
+import ServicePage from '../../layouts/ServicePage.astro';
+---
+
+<ServicePage
+    slug="ev-chargers"
+    title="EV charger installation"
+    description="Level 2 home EV charger installation in Springfield, sized to your panel and permitted: charge overnight, add a full day of driving in a few hours."
+    heading="Wake up to a full battery every morning"
+    lead="A Level 2 charger adds 25 to 40 miles of range an hour, against three or four from a wall outlet. We install the charger you choose, on a circuit sized for it."
+    faq={[
+        { question: 'Will my panel handle an EV charger?', answer: 'Often yes. We do a load calculation first. If capacity is tight, a lower-amperage circuit or a load-sharing charger usually avoids a panel upgrade.' },
+        { question: 'Should I buy a plug-in or hardwired charger?', answer: 'Hardwired chargers can run at higher power and avoid wear on an outlet. Plug-in units are easier to take with you. We install both and will tell you which suits your garage.' },
+        { question: 'Can you install the charger outside?', answer: 'Yes, with an outdoor-rated charger and weatherproof fittings. We will suggest a spot the cable reaches without becoming a trip hazard.' },
+    ]}
+>
+    <h2>What a typical install looks like</h2>
+    <p>Most installs take half a day: a new 240-volt circuit from the panel, a mounted and tested charger, and a walkthrough of its app and settings. The price guide covers chargers up to 30 feet from the panel; longer runs are quoted after a quick look.</p>
+    <h2>Before we come out</h2>
+    <ul>
+        <li>Send a photo of your panel with the door open, and of where you want the charger.</li>
+        <li>Tell us the car, or cars, you will charge, and how far you drive in a typical day.</li>
+        <li>Check whether your utility offers a rebate or an off-peak EV rate: many do.</li>
+    </ul>
+    <h2>Charging two cars</h2>
+    <p>Two chargers do not need two big circuits. Chargers that share one circuit split the power between them, which is plenty for overnight charging and much easier on your panel.</p>
+</ServicePage>

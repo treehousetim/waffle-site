@@ -1,0 +1,33 @@
+# Node dependencies. tools/npm.sh keeps them in a Docker volume, not here; the
+# ignore stays for CI, which installs on the runner, and for the empty mount
+# point Docker leaves behind.
+node_modules/
+
+# Build output: `./tools/npm.sh run build` writes dist/, Astro keeps its
+# generated types and content store in .astro/.
+/dist/
+/.astro/
+
+# Coverage, the E2E builds and artifacts, and test-runner output.
+/coverage/
+
+# Secrets. There is no .env: production's one secret is injected by
+# `doppler run --`. The ignore stays so a stray one can never be committed.
+.env*
+
+# What lives only on the server (deploy/deploy.sh): every release, the link
+# to the one being served, and the deploy state.
+/releases/
+/current
+/current.next
+/.deploy/
+
+# macOS Finder metadata.
+.DS_Store
+
+# Editor / IDE directories.
+.idea/
+.vscode/
+
+# Log files.
+*.log

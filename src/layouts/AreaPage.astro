@@ -1,0 +1,90 @@
+---
+/**
+ * The frame every town page shares (src/pages/areas/<slug>.astro): the
+ * town's own copy in the slot, then the services, the reviews from that town
+ * and the way to get in touch.
+ *
+ * A town page earns its place only with copy that is true of that town and no
+ * other: the housing, the jobs done there, how long it takes to get there
+ * (docs/pages.md, "Town pages"). Swap the town's name into another page and
+ * search engines will treat both as doorway pages.
+ */
+import Base from './Base.astro';
+import Hero from '../components/Hero.astro';
+import Section from '../components/Section.astro';
+import CardGrid from '../components/CardGrid.astro';
+import Testimonials, { type Testimonial } from '../components/Testimonials.astro';
+import PhoneLink from '../components/PhoneLink.astro';
+import CallToAction from '../components/CallToAction.astro';
+import { areas } from '../data/areas';
+import { services, serviceUrl } from '../data/services';
+
+interface Props {
+    /** The slug in src/data/areas.ts. */
+    slug: string;
+    title: string;
+    description: string;
+    heading: string;
+    lead: string;
+    reviews?: Testimonial[];
+}
+
+const { slug, title, description, heading, lead, reviews = [] } = Astro.props;
+const area = areas.find((item) => item.slug === slug);
+
+if (area === undefined) {
+    throw new Error(`AreaPage: no area '${slug}' in src/data/areas.ts.`);
+}
+---
+
+<Base
+    title={title}
+    description={description}
+    breadcrumbs={[
+        { name: 'Areas we serve', href: '/areas/' },
+        { name: area.name, href: Astro.url.pathname },
+    ]}
+>
+    <Hero size="small" eyebrow={`Electricians in ${area.name}`} heading={heading} lead={lead} primary={{ label: 'Get a free quote', href: '/contact/' }}>
+        <div class="call">
+            <p>{area.drive} from the shop.</p>
+            <PhoneLink variant="button" />
+        </div>
+    </Hero>
+
+    <div class="prose body">
+        <slot />
+    </div>
+
+    <Section tone="surface" heading={`What we do in ${area.name}`}>
+        <CardGrid cards={services.map((item) => ({ href: serviceUrl(item.slug), title: item.name, text: item.summary, icon: item.icon }))} />
+    </Section>
+
+    {
+        reviews.length > 0 && (
+            <Section heading={`What ${area.name} customers say`}>
+                <Testimonials items={reviews} />
+            </Section>
+        )
+    }
+
+    <CallToAction heading={`Need an electrician in ${area.name}?`} text="Same-week appointments, and emergency call-outs around the clock." action={{ label: 'Request a free quote', href: '/contact/' }} />
+</Base>
+
+<style>
+    .body {
+        padding-top: var(--space-12);
+    }
+
+    .call {
+        padding: var(--space-8);
+        border-radius: var(--radius);
+        background: var(--color-bg);
+        box-shadow: var(--shadow);
+    }
+
+    .call p {
+        margin-bottom: var(--space-3);
+        font-weight: 650;
+    }
+</style>

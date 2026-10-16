@@ -1,0 +1,185 @@
+---
+/**
+ * The quote request, received by the waffle app (docs/forms.md).
+ *
+ * It posts to /api/site/forms/quote on this site; Caddy forwards that to the
+ * waffle app with the site key (docs/waffle-api.md). It works without script:
+ * the browser checks the fields, posts the form, and the app answers with a
+ * redirect to `thanks`. With script (src/scripts/forms.ts) it sends JSON and
+ * shows the answer in place, field by field.
+ */
+import { HONEYPOT } from '../lib/forms.js';
+import { services } from '../data/services';
+
+interface Props {
+    /** Where the app sends a browser without script after a good submission. */
+    thanks: string;
+    /** A service to have chosen already, from the page the visitor came from. */
+    service?: string;
+}
+
+const { thanks, service } = Astro.props;
+---
+
+<form class="form" method="post" action="/api/site/forms/quote" data-site-form>
+    <input type="hidden" name="redirect" value={thanks} />
+
+    <div class="row">
+        <div class="field">
+            <label for="quote-name">Your name</label>
+            <input id="quote-name" name="name" type="text" autocomplete="name" required maxlength="100" />
+            <p class="error" data-error-for="name" hidden></p>
+        </div>
+
+        <div class="field">
+            <label for="quote-phone">Phone</label>
+            <input id="quote-phone" name="phone" type="tel" autocomplete="tel" required maxlength="30" />
+            <p class="error" data-error-for="phone" hidden></p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="field">
+            <label for="quote-email">Email</label>
+            <input id="quote-email" name="email" type="email" autocomplete="email" required maxlength="254" />
+            <p class="error" data-error-for="email" hidden></p>
+        </div>
+
+        <div class="field">
+            <label for="quote-zip">ZIP code</label>
+            <input id="quote-zip" name="zip" type="text" inputmode="numeric" autocomplete="postal-code" required pattern="[0-9]{5}" maxlength="5" />
+            <p class="error" data-error-for="zip" hidden></p>
+        </div>
+    </div>
+
+    <div class="field">
+        <label for="quote-service">What do you need?</label>
+        <select id="quote-service" name="service" required>
+            <option value="">Choose a service</option>
+            {services.map((item) => <option value={item.slug} selected={item.slug === service}>{item.name}</option>)}
+            <option value="other">Something else</option>
+        </select>
+        <p class="error" data-error-for="service" hidden></p>
+    </div>
+
+    <div class="field">
+        <label for="quote-message">Tell us about the job</label>
+        <textarea id="quote-message" name="message" rows="5" required maxlength="5000"></textarea>
+        <p class="error" data-error-for="message" hidden></p>
+    </div>
+
+    <fieldset class="field">
+        <legend>Best way to reach you</legend>
+        <label class="choice"><input type="radio" name="contact_by" value="phone" checked /> Phone call</label>
+        <label class="choice"><input type="radio" name="contact_by" value="text" /> Text message</label>
+        <label class="choice"><input type="radio" name="contact_by" value="email" /> Email</label>
+    </fieldset>
+
+    <div class="trap" aria-hidden="true">
+        <label for="quote-website">Leave this empty</label>
+        <input id="quote-website" name={HONEYPOT} type="text" tabindex="-1" autocomplete="off" />
+    </div>
+
+    <p class="status" role="status" aria-live="polite" data-status></p>
+
+    <button class="button" type="submit">Request my free quote</button>
+    <p class="muted small">Electrical emergency? Don't wait for a reply: <a href="/emergency/">call us now</a>.</p>
+</form>
+
+<script>
+    import { enhanceForms } from '../scripts/forms';
+
+    enhanceForms(document);
+</script>
+
+<style>
+    .form {
+        display: grid;
+        gap: var(--space-6);
+        padding: var(--space-8);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius);
+        background: var(--color-bg);
+        box-shadow: var(--shadow);
+    }
+
+    .row {
+        display: grid;
+        gap: var(--space-6);
+        grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+    }
+
+    .field {
+        display: grid;
+        gap: var(--space-2);
+        margin: 0;
+        padding: 0;
+        border: 0;
+    }
+
+    label,
+    legend {
+        font-weight: 650;
+    }
+
+    .choice {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        font-weight: 400;
+    }
+
+    input:not([type='radio']),
+    select,
+    textarea {
+        width: 100%;
+        padding: 0.7rem 0.85rem;
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-small);
+        background: var(--color-bg);
+        color: var(--color-text);
+        font: inherit;
+    }
+
+    [aria-invalid='true'] {
+        border-color: var(--color-error);
+    }
+
+    .error {
+        margin: 0;
+        color: var(--color-error);
+        font-size: 0.9rem;
+    }
+
+    .status:empty {
+        display: none;
+    }
+
+    .status[data-kind='sent'] {
+        color: var(--color-success);
+        font-weight: 650;
+    }
+
+    .status[data-kind='invalid'],
+    .status[data-kind='failed'] {
+        color: var(--color-error);
+    }
+
+    /* Off screen rather than display:none, which some bots check for. */
+    .trap {
+        position: absolute;
+        left: -10000px;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+    }
+
+    button {
+        justify-self: start;
+    }
+
+    .small {
+        margin: 0;
+        font-size: 0.9rem;
+    }
+</style>

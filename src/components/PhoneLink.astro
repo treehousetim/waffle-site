@@ -1,0 +1,32 @@
+---
+/** The business's phone number, tappable on a phone. Written once, in src/site.ts. */
+import Icon from './Icon.astro';
+import { site } from '../site';
+
+interface Props {
+    variant?: 'button' | 'plain';
+    label?: string;
+}
+
+const { variant = 'plain', label } = Astro.props;
+---
+
+<a class:list={['phone', { button: variant === 'button' }]} href={`tel:${site.business.phoneE164}`}>
+    <Icon name="phone" size={18} />
+    <span>{label ?? site.business.phone}</span>
+</a>
+
+<style>
+    .phone {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .phone:not(.button) {
+        color: var(--color-brand-strong);
+        text-decoration: none;
+    }
+</style>

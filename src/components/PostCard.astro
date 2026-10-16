@@ -1,0 +1,59 @@
+---
+/** One post in a list: the blog index, a tag page, the home page. */
+import type { CollectionEntry } from 'astro:content';
+import FormattedDate from './FormattedDate.astro';
+
+interface Props {
+    post: CollectionEntry<'blog'>;
+    /** h2 on a page of posts; h3 inside a section that has its own h2. */
+    level?: 'h2' | 'h3';
+}
+
+const { post, level = 'h2' } = Astro.props;
+const Heading = level;
+---
+
+<article class="card">
+    <p class="meta muted">
+        <FormattedDate date={post.data.pubDate} />
+        {post.data.draft && <span class="draft">Draft</span>}
+    </p>
+    <Heading class="title"><a href={`/blog/${post.id}/`}>{post.data.title}</a></Heading>
+    <p class="muted">{post.data.description}</p>
+</article>
+
+<style>
+    .card {
+        padding: var(--space-6) 0;
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    .meta {
+        display: flex;
+        gap: var(--space-3);
+        margin-bottom: var(--space-2);
+        font-size: 0.9rem;
+    }
+
+    .draft {
+        padding: 0 var(--space-2);
+        border-radius: var(--radius-small);
+        background: var(--color-brand-soft);
+        color: var(--color-brand-strong);
+        font-weight: 700;
+    }
+
+    .title {
+        font-size: 1.4rem;
+        margin-bottom: var(--space-2);
+    }
+
+    .title a {
+        color: var(--color-text);
+        text-decoration: none;
+    }
+
+    .title a:hover {
+        text-decoration: underline;
+    }
+</style>

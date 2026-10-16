@@ -1,0 +1,35 @@
+---
+interface Props {
+    heading: string;
+    text?: string;
+    action: { label: string; href: string };
+}
+
+const { heading, text, action } = Astro.props;
+---
+
+<section class="cta">
+    <div class="container box">
+        <h2>{heading}</h2>
+        {text && <p class="lead">{text}</p>}
+        <a class="button" href={action.href}>{action.label}</a>
+    </div>
+</section>
+
+<style>
+    .cta {
+        padding: var(--space-16) 0 0;
+    }
+
+    .box {
+        padding: var(--space-16) var(--space-8);
+        border-radius: calc(var(--radius) * 2);
+        background: var(--color-brand-soft);
+        text-align: center;
+    }
+
+    .lead {
+        max-width: 36rem;
+        margin: 0 auto var(--space-8);
+    }
+</style>

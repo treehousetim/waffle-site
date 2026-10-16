@@ -1,0 +1,29 @@
+---
+import ServicePage from '../../layouts/ServicePage.astro';
+---
+
+<ServicePage
+    slug="repairs"
+    title="Electrical repairs and troubleshooting"
+    description="Breakers that trip, outlets that died, lights that flicker: licensed electricians in Springfield who find the fault fast and fix it for a written price."
+    heading="Electrical problems found and fixed, usually in one visit"
+    lead="Most repair calls are a loose connection, a worn-out device or an overloaded circuit. The skill is finding which one, quickly and safely."
+    faq={[
+        { question: 'How much does a service call cost?', answer: 'A weekday service call covers the trip, the diagnosis and the first half hour of work. The price guide has the current figure, and we tell you the price of any repair before we start it.' },
+        { question: 'Is a breaker that keeps tripping dangerous?', answer: 'A breaker trips to protect the wiring, so it is doing its job. Resetting it again and again is the dangerous part: it usually means an overloaded circuit or a fault that needs finding.' },
+        { question: 'Can you fix it today?', answer: 'Often, yes. Our vans carry the common breakers, outlets, switches and fittings, so most repairs are finished on the first visit.' },
+    ]}
+>
+    <h2>The calls we get every week</h2>
+    <ul>
+        <li><strong>A breaker that will not stay on</strong>, or trips whenever two things run at once.</li>
+        <li><strong>Outlets or a whole room with no power</strong>, often a tripped GFCI somewhere else in the house.</li>
+        <li><strong>Lights that flicker or dim</strong> when the furnace, the AC or the dryer starts.</li>
+        <li><strong>Warm outlet covers, buzzing switches or a faint burning smell</strong>, which should never wait.</li>
+    </ul>
+    <h2>How we troubleshoot</h2>
+    <p>We start with questions: when it happens, what else is running, what changed recently. Then we test the circuit from the panel outward rather than replacing parts and hoping. You get an explanation of what failed and why, and a fixed price for the repair.</p>
+    <p>If the fault is a sign of something bigger, such as an undersized panel or brittle old wiring, we will say so and put it in writing, with no pressure to do it today.</p>
+    <h2>When to call right away</h2>
+    <p>A burning smell, scorch marks, sparking, or an outlet too hot to touch: switch off that circuit at the panel and <a href="/emergency/">call our 24/7 line</a>.</p>
+</ServicePage>

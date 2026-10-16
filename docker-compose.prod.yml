@@ -1,0 +1,49 @@
+# Production overrides for the server at /opt/waffle_site.
+#
+# Always used together with the base file, never on its own:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#
+# deploy/deploy.sh invokes it exactly that way, under `doppler run --`.
+
+services:
+  caddy:
+    environment:
+      # The hostname Caddy serves and gets the certificate for. Written once,
+      # by tools/rename-project.sh; deploy.sh reads this line to check DNS
+      # before anything starts, and the release workflow reads it for the
+      # build's SITE_URL. A literal, not a Doppler value: nothing per
+      # environment to get wrong.
+      SITE_ADDRESS: waffle-site.example.com
+      # The release deploy.sh brought into service (deploy.sh, "Switch").
+      SITE_ROOT: /srv/site/current
+      # The waffle app this site fronts. Also a literal, written by
+      # tools/rename-project.sh, and read by the release workflow for the
+      # build's waffle data.
+      WAFFLE_APP_URL: https://app.waffle-site.example.com
+      # The only secret: how the waffle app knows a request came through this
+      # site (docs/waffle-api.md). From Doppler's prod-serve config; Compose
+      # refuses to start without it.
+      WAFFLE_SITE_KEY: ${WAFFLE_SITE_KEY:?WAFFLE_SITE_KEY is not set; is Compose running under doppler run?}
+    # !reset clears the base file's list; the app is on the internet, not
+    # this machine.
+    extra_hosts: !reset []
+    # !override REPLACES the base list instead of merging with it.
+    ports: !override
+      - "80:80"
+      - "443:443"
+      # HTTP/3.
+      - "443:443/udp"
+    volumes: !override
+      - .:/srv/site:ro
+      - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      # The certificates and the ACME account. A named volume, never a path
+      # in the tree: a wiped store means a new certificate every deploy until
+      # Let's Encrypt's rate limit locks the hostname out for days. Never
+      # `docker compose down -v` here.
+      - caddy_data:/data
+      - caddy_config:/config
+    restart: unless-stopped
+
+volumes:
+  caddy_data:
+  caddy_config:

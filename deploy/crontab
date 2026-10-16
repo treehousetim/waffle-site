@@ -1,0 +1,20 @@
+# Cron jobs.
+#
+# THIS IS A TEMPLATE. Do not edit the installed crontab on the server, and do
+# not edit this file on the server either: deploy/deploy.sh renders it
+# (swapping __SITE_URL__ for the site's address and __HEARTBEAT__ for an
+# optional outside ping) and pipes it through `crontab -` on every deploy, so
+# any hand edit is silently overwritten on the next release. Change it here,
+# in the repository, and release.
+#
+# The site is files and a proxy, so there is little to schedule. Every line
+# carries the reason for its interval.
+
+MAILTO=""
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# The site answers over HTTPS with a page, end to end through DNS, the
+# certificate and Caddy. Every five minutes because it is what pings the
+# heartbeat: the outside service alerts when the pings stop. Without
+# HEARTBEAT_URL it still runs, and does nothing anyone sees.
+*/5 * * * * curl -fsS -m 20 -o /dev/null __SITE_URL__/ >/dev/null 2>&1__HEARTBEAT__

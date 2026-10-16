@@ -1,0 +1,18 @@
+---
+/**
+ * Where the waffle app sends a browser without script after a good
+ * submission. Kept out of search results (src/site.ts, noindex).
+ */
+import Base from '../../layouts/Base.astro';
+import Hero from '../../components/Hero.astro';
+---
+
+<Base title="Thanks, we have your request" description="We have your quote request and will reply the same working day. Electrical emergency? Please call our 24/7 line instead of waiting.">
+    <Hero
+        size="small"
+        heading="Thanks, we have your request"
+        lead="We will reply the same working day. If it is an emergency, please call us instead of waiting."
+        primary={{ label: 'Back to the home page', href: '/' }}
+        secondary={{ label: 'Read our advice', href: '/blog/' }}
+    />
+</Base>

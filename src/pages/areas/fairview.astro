@@ -1,0 +1,20 @@
+---
+import AreaPage from '../../layouts/AreaPage.astro';
+import { reviewsFrom } from '../../data/reviews';
+---
+
+<AreaPage
+    slug="fairview"
+    title="Electrician in Fairview"
+    description="Electricians serving Fairview's newer subdivisions: EV chargers, home offices, data wiring and basement finishing, about twenty minutes from Springfield."
+    heading="Electricians for Fairview, twenty minutes from the shop"
+    lead="Fairview grew fast over the last twenty years, and most of its homes have sound wiring. What they need now is more of it, in the right places."
+    reviews={reviewsFrom('Fairview')}
+>
+    <h2>EV chargers in two-car garages</h2>
+    <p>Fairview is where we install the most EV chargers. Most of these homes have 200-amp panels with room for a 48-amp circuit, and when a second electric car arrives, a load-sharing charger avoids a second big circuit.</p>
+    <h2>Home offices and Wi-Fi that reaches</h2>
+    <p>Large floor plans and finished basements leave Wi-Fi dead zones. We run network cable to home offices and mount access points on the ceiling, usually in a single day.</p>
+    <h2>Finishing the basement</h2>
+    <p>Finishing a basement needs a permit, AFCI-protected circuits and smoke alarms tied into the rest of the house. We wire it to pass the first time and coordinate with your contractor's schedule.</p>
+</AreaPage>

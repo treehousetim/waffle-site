@@ -1,0 +1,51 @@
+---
+/**
+ * A band of the page with an optional heading and intro. `tone="surface"`
+ * gives it the alternate background so neighbouring sections read apart.
+ */
+interface Props {
+    id?: string;
+    eyebrow?: string;
+    heading?: string;
+    intro?: string;
+    tone?: 'plain' | 'surface';
+    align?: 'start' | 'center';
+}
+
+const { id, eyebrow, heading, intro, tone = 'plain', align = 'center' } = Astro.props;
+---
+
+<section id={id} class:list={['section', tone, align]}>
+    <div class="container">
+        {
+            (eyebrow || heading || intro) && (
+                <header>
+                    {eyebrow && <span class="eyebrow">{eyebrow}</span>}
+                    {heading && <h2>{heading}</h2>}
+                    {intro && <p class="lead">{intro}</p>}
+                </header>
+            )
+        }
+        <slot />
+    </div>
+</section>
+
+<style>
+    .section {
+        padding: var(--space-16) 0;
+    }
+
+    .surface {
+        background: var(--color-surface);
+    }
+
+    header {
+        max-width: 44rem;
+        margin-bottom: var(--space-12);
+    }
+
+    .center header {
+        margin-inline: auto;
+        text-align: center;
+    }
+</style>

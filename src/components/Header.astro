@@ -1,0 +1,169 @@
+---
+/**
+ * The site header: a strip with the phone number and the emergency line
+ * (what most visitors to an electrician's site came for), then the logo,
+ * the navigation and the quote button.
+ *
+ * The menu is a <details> element on small screens, so it opens without any
+ * script (the content security policy allows no inline handlers, and a menu
+ * should not depend on JavaScript anyway).
+ */
+import Logo from './Logo.astro';
+import PhoneLink from './PhoneLink.astro';
+import { site } from '../site';
+
+const current = Astro.url.pathname;
+const isCurrent = (href: string) => current === href || (href !== '/' && current.startsWith(href));
+---
+
+<div class="strip">
+    <div class="container strip-inner">
+        <p><a href="/emergency/">Power out or burning smell? 24/7 emergency service</a></p>
+        <PhoneLink />
+    </div>
+</div>
+<header class="site-header">
+    <div class="container bar">
+        <Logo />
+        <details class="menu">
+            <summary aria-label="Menu">
+                <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                </svg>
+            </summary>
+            <nav aria-label="Main">
+                <ul>
+                    {
+                        site.nav.map((link) => (
+                            <li>
+                                <a href={link.href} aria-current={isCurrent(link.href) ? 'page' : undefined}>
+                                    {link.label}
+                                </a>
+                            </li>
+                        ))
+                    }
+                </ul>
+                <a class="button" href={site.cta.href}>{site.cta.label}</a>
+            </nav>
+        </details>
+    </div>
+</header>
+
+<style>
+    .strip {
+        background: var(--color-brand-strong);
+        color: var(--color-on-brand);
+        font-size: 0.9rem;
+    }
+
+    .strip-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-4);
+        min-height: 2.5rem;
+    }
+
+    .strip p {
+        margin: 0;
+    }
+
+    .strip a,
+    .strip a:hover,
+    .strip :global(.phone) {
+        color: var(--color-on-brand);
+    }
+
+    .site-header {
+        position: relative;
+        border-bottom: 1px solid var(--color-border);
+        background: var(--color-bg);
+    }
+
+    .bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 4.5rem;
+    }
+
+    summary {
+        display: inline-flex;
+        padding: var(--space-2);
+        list-style: none;
+        cursor: pointer;
+        border-radius: var(--radius-small);
+    }
+
+    summary::-webkit-details-marker {
+        display: none;
+    }
+
+    nav {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 100%;
+        z-index: 5;
+        padding: var(--space-4) var(--space-6) var(--space-6);
+        background: var(--color-bg);
+        border-bottom: 1px solid var(--color-border);
+        box-shadow: var(--shadow);
+    }
+
+    ul {
+        margin: 0 0 var(--space-4);
+        padding: 0;
+        list-style: none;
+    }
+
+    li a {
+        display: block;
+        padding: var(--space-2) 0;
+        color: var(--color-text);
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    li a[aria-current='page'] {
+        color: var(--color-brand-strong);
+    }
+
+    @media (max-width: 36rem) {
+        .strip p {
+            display: none;
+        }
+
+        .strip-inner {
+            justify-content: center;
+        }
+    }
+
+    @media (min-width: 60rem) {
+        summary {
+            display: none;
+        }
+
+        /* Always open on wide screens, whatever the details element thinks. */
+        .menu > nav {
+            position: static;
+            display: flex;
+            align-items: center;
+            gap: var(--space-6);
+            padding: 0;
+            border: 0;
+            box-shadow: none;
+            background: none;
+        }
+
+        .menu:not([open]) > nav {
+            display: flex;
+        }
+
+        ul {
+            display: flex;
+            gap: var(--space-6);
+            margin: 0;
+        }
+    }
+</style>

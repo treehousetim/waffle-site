@@ -1,0 +1,92 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+import Section from '../components/Section.astro';
+import CardGrid from '../components/CardGrid.astro';
+import TrustBar from '../components/TrustBar.astro';
+import Steps from '../components/Steps.astro';
+import Testimonials from '../components/Testimonials.astro';
+import PostCard from '../components/PostCard.astro';
+import PhoneLink from '../components/PhoneLink.astro';
+import CallToAction from '../components/CallToAction.astro';
+import { site } from '../site';
+import { services, serviceUrl } from '../data/services';
+import { areas, areaUrl } from '../data/areas';
+import { reviews } from '../data/reviews';
+import { buildTime, settings } from '../settings';
+import { visiblePosts } from '../lib/posts.js';
+
+const latest = visiblePosts(await getCollection('blog'), { includeDrafts: !settings.production, now: buildTime }).slice(0, 3);
+---
+
+<Base title={`${site.name}: licensed electricians in Springfield and nearby`} description={site.description}>
+    <Hero
+        eyebrow="Licensed electricians · Springfield and nearby"
+        heading="Electrical work done right, the first time"
+        lead="Repairs, panel upgrades, EV chargers and rewiring for homes and small businesses. Upfront written prices, tidy work, and a real person answering the phone, day or night."
+        primary={{ label: 'Get a free quote', href: '/contact/' }}
+    >
+        <div class="call">
+            <p class="eyebrow">Electrical emergency?</p>
+            <p>No power, sparking or a burning smell? We answer 24/7.</p>
+            <PhoneLink variant="button" label={`Call ${site.business.phone}`} />
+        </div>
+    </Hero>
+
+    <div class="container">
+        <TrustBar />
+    </div>
+
+    <Section heading="What we do" intro="Everything from a dead outlet to a whole-home rewire, by electricians who hold the licence and pull the permit.">
+        <CardGrid cards={services.map((item) => ({ href: serviceUrl(item.slug), title: item.name, text: item.summary, icon: item.icon }))} />
+    </Section>
+
+    <Section tone="surface" heading="How it works">
+        <Steps
+            steps={[
+                { title: 'Tell us what is wrong', text: 'Call, text or send the quote form. Photos help, and we reply the same working day.' },
+                { title: 'Get a written price', text: 'Small jobs are priced on the phone. Bigger ones get a free visit and a fixed quote.' },
+                { title: 'We do the work and clean up', text: 'On the day we said, permit and inspection handled, and nothing left behind but working power.' },
+            ]}
+        />
+    </Section>
+
+    <Section heading="What customers say">
+        <Testimonials items={reviews.slice(0, 3)} />
+        <p class="more"><a href="/reviews/">Read more reviews</a></p>
+    </Section>
+
+    <Section tone="surface" heading="Areas we serve" intro="Based in Springfield since 2009, and in these towns every week.">
+        <CardGrid cards={areas.map((area) => ({ href: areaUrl(area.slug), title: area.name, text: `Electricians in ${area.name}.`, note: area.drive, icon: 'pin' }))} />
+    </Section>
+
+    {
+        latest.length > 0 && (
+            <Section heading="Electrical advice" intro="Straight answers to the questions we get asked most." align="start">
+                {latest.map((post) => <PostCard post={post} level="h3" />)}
+                <p><a href="/blog/">All articles</a></p>
+            </Section>
+        )
+    }
+
+    <CallToAction heading="Get a straight answer and a written price" text="Free estimates for any job over $500. No call-out fee for quotes." action={{ label: 'Request a free quote', href: '/contact/' }} />
+</Base>
+
+<style>
+    .call {
+        padding: var(--space-8);
+        border-radius: var(--radius);
+        background: var(--color-bg);
+        box-shadow: var(--shadow);
+    }
+
+    .call .eyebrow {
+        margin: 0;
+    }
+
+    .more {
+        margin-top: var(--space-8);
+        text-align: center;
+    }
+</style>

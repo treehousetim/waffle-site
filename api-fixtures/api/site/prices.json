@@ -1,0 +1,20 @@
+{
+  "success": true,
+  "data": {
+    "updated": "2026-10-01",
+    "items": [
+      { "id": "estimate", "category": "Call-outs and repairs", "name": "Written estimate", "description": "For any job over $500, in person or by video call.", "from_cents": 0, "currency": "USD", "unit": "job" },
+      { "id": "service-call", "category": "Call-outs and repairs", "name": "Service call", "description": "Diagnosis and the first half hour of work, weekdays.", "from_cents": 9500, "currency": "USD", "unit": "visit", "service": "repairs" },
+      { "id": "hourly", "category": "Call-outs and repairs", "name": "Electrician, per hour", "description": "After the first half hour, billed in 15-minute steps.", "from_cents": 11000, "currency": "USD", "unit": "hour", "service": "repairs" },
+      { "id": "emergency", "category": "Call-outs and repairs", "name": "Emergency call-out", "description": "Nights, weekends and holidays, within the hour where we can.", "from_cents": 19500, "currency": "USD", "unit": "visit" },
+      { "id": "panel-200", "category": "Panels and wiring", "name": "200-amp panel upgrade", "description": "Panel, breakers, permit and inspection; utility coordination included.", "from_cents": 240000, "currency": "USD", "unit": "job", "service": "panel-upgrades" },
+      { "id": "subpanel", "category": "Panels and wiring", "name": "Subpanel installation", "description": "For a garage, workshop or addition.", "from_cents": 120000, "currency": "USD", "unit": "job", "service": "panel-upgrades" },
+      { "id": "rewire", "category": "Panels and wiring", "name": "Whole-home rewire", "description": "Typical three-bedroom house; priced after a survey.", "from_cents": 950000, "currency": "USD", "unit": "job", "service": "rewiring" },
+      { "id": "ev-l2", "category": "EV charging", "name": "Level 2 charger installation", "description": "Charger you supply, up to 30 feet from the panel, permit included.", "from_cents": 89900, "currency": "USD", "unit": "job", "service": "ev-chargers" },
+      { "id": "recessed", "category": "Lighting", "name": "Recessed light", "description": "New LED can light in an existing ceiling, per light.", "from_cents": 18500, "currency": "USD", "unit": "fixture", "service": "lighting" },
+      { "id": "fan", "category": "Lighting", "name": "Ceiling fan", "description": "Replacing an existing light or fan, per fan.", "from_cents": 16500, "currency": "USD", "unit": "fixture", "service": "lighting" },
+      { "id": "generator", "category": "Backup power", "name": "Standby generator", "description": "22 kW, transfer switch, pad and permit.", "from_cents": 750000, "currency": "USD", "unit": "job", "service": "generators" },
+      { "id": "inspection", "category": "Inspections", "name": "Home electrical inspection", "description": "Written report with photos; ideal before buying.", "from_cents": 14900, "currency": "USD", "unit": "visit", "service": "inspections" }
+    ]
+  }
+}

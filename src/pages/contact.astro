@@ -1,0 +1,46 @@
+---
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+import QuoteForm from '../components/QuoteForm.astro';
+import PhoneLink from '../components/PhoneLink.astro';
+import { addressLine, site } from '../site';
+---
+
+<Base
+    title="Get a free quote"
+    description="Request a free, written quote from a licensed Springfield electrician. Tell us about the job and we reply the same working day, often within the hour."
+    breadcrumbs={[{ name: 'Contact', href: '/contact/' }]}
+>
+    <Hero size="small" eyebrow="Contact" heading="Get a free, written quote" lead="Tell us about the job. We reply the same working day, often within the hour." />
+
+    <div class="container layout">
+        <QuoteForm thanks="/contact/thanks/" />
+        <aside>
+            <h2>Call or visit</h2>
+            <p><PhoneLink /></p>
+            <p><a href={`mailto:${site.business.email}`}>{site.business.email}</a></p>
+            <p class="muted">{addressLine}</p>
+            <h2>Emergency?</h2>
+            <p>Please <a href="/emergency/">call our 24/7 line</a> rather than using the form.</p>
+        </aside>
+    </div>
+</Base>
+
+<style>
+    .layout {
+        display: grid;
+        gap: var(--space-12);
+        padding-top: var(--space-8);
+    }
+
+    aside h2 {
+        font-size: 1.2rem;
+    }
+
+    @media (min-width: 60rem) {
+        .layout {
+            grid-template-columns: 2fr 1fr;
+            align-items: start;
+        }
+    }
+</style>

@@ -1,0 +1,95 @@
+---
+/**
+ * The price guide, as the waffle app sends it (src/lib/prices.js has the
+ * shape and refuses anything else). Rendered at build time: the page ships
+ * with the prices in it. `service` narrows it to one service's prices.
+ */
+import { byCategory, formatPrice, type PriceGuide } from '../lib/prices.js';
+
+interface Props {
+    guide: PriceGuide;
+    service?: string;
+    showCategories?: boolean;
+}
+
+const { guide, service, showCategories = true } = Astro.props;
+const items = service === undefined ? guide.items : guide.items.filter((item) => item.service === service);
+const per = { job: '', hour: ' / hour', visit: ' / visit', fixture: ' each' } as const;
+---
+
+{
+    items.length > 0 && (
+        <div class="guide">
+            {byCategory(items).map((group) => (
+                <section>
+                    {showCategories && <h3>{group.category}</h3>}
+                    <dl>
+                        {group.items.map((item) => (
+                            <div class="item">
+                                <dt>
+                                    {item.service ? <a href={`/services/${item.service}/`}>{item.name}</a> : item.name}
+                                    <span class="muted">{item.description}</span>
+                                </dt>
+                                <dd>
+                                    {item.fromCents > 0 && <span class="from">from </span>}
+                                    <strong>{formatPrice(item.fromCents, item.currency)}</strong>
+                                    {item.fromCents > 0 && per[item.unit]}
+                                </dd>
+                            </div>
+                        ))}
+                    </dl>
+                </section>
+            ))}
+        </div>
+    )
+}
+
+<style>
+    .guide {
+        display: grid;
+        gap: var(--space-8);
+    }
+
+    h3 {
+        margin-bottom: var(--space-3);
+    }
+
+    dl {
+        margin: 0;
+        border-top: 1px solid var(--color-border);
+    }
+
+    .item {
+        display: flex;
+        justify-content: space-between;
+        gap: var(--space-6);
+        padding: var(--space-4) 0;
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    dt {
+        display: grid;
+        gap: var(--space-1);
+        font-weight: 650;
+    }
+
+    dt span {
+        font-weight: 400;
+        font-size: 0.95rem;
+    }
+
+    dd {
+        margin: 0;
+        white-space: nowrap;
+        text-align: right;
+    }
+
+    dd strong {
+        font-size: 1.2rem;
+    }
+
+    .from {
+        color: var(--color-muted);
+        font-size: 0.9rem;
+    }
+</style>

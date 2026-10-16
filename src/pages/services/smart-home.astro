@@ -1,0 +1,27 @@
+---
+import ServicePage from '../../layouts/ServicePage.astro';
+---
+
+<ServicePage
+    slug="smart-home"
+    title="Smart home and data wiring"
+    description="Smart switches, video doorbells, Wi-Fi access points and network cabling installed in Springfield, neatly and on circuits that can handle them."
+    heading="Smart devices that work, on wiring that suits them"
+    lead="Most smart-home trouble is electrical: switch boxes without a neutral, doorbell transformers too weak to power a camera, Wi-Fi that cannot reach the back of the house."
+    faq={[
+        { question: 'My smart switch needs a neutral wire. Do I have one?', answer: 'Homes wired after the mid-1980s usually do. Older switch boxes often do not, and we can run one or recommend a switch that works without it.' },
+        { question: 'Why does my video doorbell keep restarting?', answer: 'Usually the doorbell transformer is too small. Replacing it with one rated for the doorbell fixes it for good.' },
+        { question: 'Do you run network cable in finished walls?', answer: 'Yes, the same way we run electrical cable: from the attic or basement, with small openings and a tidy plate at each end.' },
+    ]}
+>
+    <h2>What we install</h2>
+    <ul>
+        <li>Smart switches and dimmers, including in boxes that never had a neutral.</li>
+        <li>Video doorbells with properly sized transformers.</li>
+        <li>Security cameras with power where you want them.</li>
+        <li>Ethernet to the rooms that need it, and ceiling-mounted Wi-Fi access points.</li>
+        <li>Whole-home surge protection at the panel, which protects all of the above.</li>
+    </ul>
+    <h2>Wired where it counts</h2>
+    <p>Wi-Fi is convenient; a cable is reliable. A run to the home office, the TV and each access point takes most of the strain off your wireless network, and is far cheaper to add during other electrical work.</p>
+</ServicePage>

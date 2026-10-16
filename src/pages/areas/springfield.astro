@@ -1,0 +1,20 @@
+---
+import AreaPage from '../../layouts/AreaPage.astro';
+import { reviewsFrom } from '../../data/reviews';
+---
+
+<AreaPage
+    slug="springfield"
+    title="Electrician in Springfield"
+    description="Licensed electricians based in Springfield since 2009: repairs, panel upgrades, rewiring and 24/7 emergency call-outs, usually same week."
+    heading="Your Springfield electricians, since 2009"
+    lead="Our shop is on Example Avenue, so most Springfield jobs are a ten-minute drive. Same-week appointments are the norm, and emergencies get a truck within the hour."
+    reviews={reviewsFrom('Springfield')}
+>
+    <h2>Working on Springfield's older homes</h2>
+    <p>A lot of our Springfield work is in the houses around downtown and the historic district, many built before 1940. Knob-and-tube wiring, two-prong outlets and 60-amp fuse boxes are still common, and we have rewired dozens of these homes without losing their plaster or their character.</p>
+    <h2>Permits and inspections</h2>
+    <p>We pull permits through the city's building department every week and know what its inspectors look for, which keeps panel swaps and rewires on schedule.</p>
+    <h2>Newer neighborhoods</h2>
+    <p>On the newer west side, the calls are different: EV chargers, panel capacity for heat pumps, and recessed lighting in basements being finished.</p>
+</AreaPage>

@@ -1,0 +1,49 @@
+---
+/**
+ * Questions and answers as <details>, readable without script. Pass the same
+ * items to faqPage() in the page's jsonLd so search engines can read them too
+ * (src/pages/pricing.astro does).
+ */
+export interface FaqItem {
+    question: string;
+    answer: string;
+}
+
+interface Props {
+    items: FaqItem[];
+}
+
+const { items } = Astro.props;
+---
+
+<div class="faq">
+    {
+        items.map((item) => (
+            <details>
+                <summary>{item.question}</summary>
+                <p>{item.answer}</p>
+            </details>
+        ))
+    }
+</div>
+
+<style>
+    .faq {
+        max-width: var(--width-prose);
+        margin-inline: auto;
+    }
+
+    details {
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    summary {
+        padding: var(--space-4) 0;
+        font-weight: 650;
+        cursor: pointer;
+    }
+
+    p {
+        color: var(--color-muted);
+    }
+</style>

@@ -1,0 +1,74 @@
+---
+/**
+ * The top of a page. It holds the page's one <h1> (docs/seo.md, 5): a page
+ * that uses a Hero puts no other <h1> anywhere.
+ */
+interface Link {
+    label: string;
+    href: string;
+}
+
+interface Props {
+    eyebrow?: string;
+    heading: string;
+    lead?: string;
+    primary?: Link;
+    secondary?: Link;
+    size?: 'large' | 'small';
+}
+
+const { eyebrow, heading, lead, primary, secondary, size = 'large' } = Astro.props;
+---
+
+<section class:list={['hero', size]}>
+    <div class="container inner">
+        <div class="copy">
+            {eyebrow && <span class="eyebrow">{eyebrow}</span>}
+            <h1>{heading}</h1>
+            {lead && <p class="lead">{lead}</p>}
+            {
+                (primary || secondary) && (
+                    <p class="actions">
+                        {primary && <a class="button" href={primary.href}>{primary.label}</a>}
+                        {secondary && <a class="button button-secondary" href={secondary.href}>{secondary.label}</a>}
+                    </p>
+                )
+            }
+        </div>
+        {Astro.slots.has('default') && <div class="media"><slot /></div>}
+    </div>
+</section>
+
+<style>
+    .hero {
+        padding: var(--space-24) 0 var(--space-16);
+        background: radial-gradient(60rem 30rem at 85% -10%, var(--color-brand-soft), transparent 70%);
+    }
+
+    .small {
+        padding: var(--space-16) 0 var(--space-8);
+    }
+
+    .inner {
+        display: grid;
+        gap: var(--space-12);
+        align-items: center;
+    }
+
+    .copy {
+        max-width: 44rem;
+    }
+
+    .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-3);
+        margin-top: var(--space-8);
+    }
+
+    @media (min-width: 60rem) {
+        .inner:has(.media) {
+            grid-template-columns: 1.1fr 1fr;
+        }
+    }
+</style>

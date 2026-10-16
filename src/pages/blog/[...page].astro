@@ -1,0 +1,97 @@
+---
+/** /blog/, then /blog/2/ and on: every post the build shows, newest first. */
+import type { GetStaticPaths, Page } from 'astro';
+import { getCollection, type CollectionEntry } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Hero from '../../components/Hero.astro';
+import PostCard from '../../components/PostCard.astro';
+import { site } from '../../site';
+import { buildTime, settings } from '../../settings';
+import { tagIndex, visiblePosts } from '../../lib/posts.js';
+
+export const getStaticPaths = (async ({ paginate }) => {
+    const posts = visiblePosts(await getCollection('blog'), { includeDrafts: !settings.production, now: buildTime });
+
+    return paginate(posts, { pageSize: 10, props: { tags: tagIndex(posts) } });
+}) satisfies GetStaticPaths;
+
+interface Props {
+    page: Page<CollectionEntry<'blog'>>;
+    tags: ReturnType<typeof tagIndex>;
+}
+
+const { page, tags } = Astro.props;
+const first = page.currentPage === 1;
+// Page 2 and on need their own title and description (docs/seo.md, 12).
+const title = first ? site.blog.title : `${site.blog.title}, page ${page.currentPage}`;
+const description = first ? site.blog.description : `${site.blog.description} Page ${page.currentPage} of ${page.lastPage}.`;
+---
+
+<Base title={title} description={description} breadcrumbs={[{ name: site.blog.title, href: '/blog/' }]}>
+    <Hero size="small" eyebrow={first ? undefined : `Page ${page.currentPage}`} heading={first ? site.blog.title : title} lead={site.blog.description} />
+
+    <div class="prose">
+        {page.data.length === 0 && <p>No posts yet.</p>}
+        {page.data.map((post) => <PostCard post={post} />)}
+
+        {
+            (page.url.prev || page.url.next) && (
+                <nav class="pager" aria-label="More posts">
+                    {page.url.prev && <a href={page.url.prev}>Newer posts</a>}
+                    {page.url.next && <a href={page.url.next}>Older posts</a>}
+                </nav>
+            )
+        }
+
+        {
+            tags.length > 0 && (
+                <aside class="tags">
+                    <h2>Topics</h2>
+                    <ul>
+                        {tags.map((tag) => (
+                            <li>
+                                <a href={`/blog/tags/${tag.slug}/`}>
+                                    {tag.tag} <span class="muted">({tag.count})</span>
+                                </a>
+                            </li>
+                        ))}
+                    </ul>
+                </aside>
+            )
+        }
+    </div>
+</Base>
+
+<style>
+    .pager {
+        display: flex;
+        justify-content: space-between;
+        margin-top: var(--space-8);
+    }
+
+    .tags {
+        margin-top: var(--space-12);
+    }
+
+    .tags h2 {
+        font-size: 1.1rem;
+    }
+
+    .tags ul {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .tags a {
+        display: inline-block;
+        padding: var(--space-1) var(--space-3);
+        border-radius: 999px;
+        background: var(--color-surface);
+        color: var(--color-text);
+        text-decoration: none;
+    }
+</style>

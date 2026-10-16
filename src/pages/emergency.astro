@@ -1,0 +1,74 @@
+---
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+import Section from '../components/Section.astro';
+import PhoneLink from '../components/PhoneLink.astro';
+import { site } from '../site';
+import { areaNames } from '../data/areas';
+---
+
+<Base
+    title="24/7 emergency electrician"
+    description="Electrical emergency in Springfield or nearby? No power, sparking, burning smell or storm damage: call our 24/7 line and we aim to be there within the hour."
+    breadcrumbs={[{ name: 'Emergency', href: '/emergency/' }]}
+>
+    <Hero
+        size="small"
+        eyebrow="24/7 emergency service"
+        heading="Electrical emergency? Call now."
+        lead={`A licensed electrician answers day and night, and we aim to be with you within the hour in ${areaNames.join(', ')}.`}
+    >
+        <div class="call">
+            <PhoneLink variant="button" label={`Call ${site.business.phone}`} />
+            <p class="muted">Please call rather than using the form: forms are read in office hours.</p>
+        </div>
+    </Hero>
+
+    <div class="prose">
+        <h2>If you smell burning or see smoke</h2>
+        <ol>
+            <li>If there are flames, leave the house and call 911.</li>
+            <li>If it is safe to reach, switch off the main breaker at the panel.</li>
+            <li>Do not touch anything that is sparking, wet or scorched.</li>
+            <li>Call us, and tell us what you saw and smelled.</li>
+        </ol>
+        <h2>What counts as an emergency</h2>
+        <ul>
+            <li>A burning smell, scorch marks or smoke from an outlet, switch or panel.</li>
+            <li>Sparking, buzzing or crackling from wiring or the panel.</li>
+            <li>No power in the house when your neighbors have it.</li>
+            <li>A service line pulled down by a storm or a fallen tree.</li>
+            <li>Water in the panel, outlets or light fixtures.</li>
+        </ul>
+        <h2>What it costs</h2>
+        <p>Emergency call-outs have a fixed call-out price, shown in our <a href="/prices/">price guide</a>. We make the situation safe first, then give you a written price for any repair before doing it.</p>
+    </div>
+
+    <Section tone="surface" heading="Not an emergency after all?">
+        <p class="center">If it can wait for office hours, a normal service call costs less. <a href="/contact/">Request a quote</a> and we will reply the same working day.</p>
+    </Section>
+</Base>
+
+<style>
+    .call {
+        display: grid;
+        gap: var(--space-3);
+        padding: var(--space-8);
+        border-radius: var(--radius);
+        background: var(--color-bg);
+        box-shadow: var(--shadow);
+        justify-items: start;
+    }
+
+    .call p {
+        margin: 0;
+    }
+
+    .prose {
+        padding-top: var(--space-12);
+    }
+
+    .center {
+        text-align: center;
+    }
+</style>

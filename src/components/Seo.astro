@@ -1,0 +1,52 @@
+---
+/**
+ * Everything in <head> that search engines and link previews read. Rendered
+ * once per page by Base.astro; tools/audit.mjs checks the output against
+ * docs/seo.md's rules after every build.
+ */
+import { site } from '../site';
+import { settings } from '../settings';
+import { absoluteUrl, canonicalUrl, isNoindex, pageTitle, robotsMeta } from '../lib/seo.js';
+import { serializeJsonLd } from '../lib/jsonld.js';
+
+interface Props {
+    title: string;
+    description: string;
+    /** Path or absolute URL of the link-preview image, and its alt text. */
+    image: { src: string; alt: string };
+    type: 'website' | 'article';
+    jsonLd: Record<string, unknown>;
+    article?: { published: Date; updated?: Date; tags: readonly string[] } | undefined;
+}
+
+const { title, description, image, type, jsonLd, article } = Astro.props;
+const path = Astro.url.pathname;
+const noindex = isNoindex(path, site.noindex);
+const canonical = canonicalUrl(path, settings.siteUrl);
+const fullTitle = pageTitle(title, site.name);
+const imageUrl = absoluteUrl(image.src, settings.siteUrl);
+---
+
+<title>{fullTitle}</title>
+<meta name="description" content={description} />
+<meta name="robots" content={robotsMeta({ indexable: settings.indexable, noindex })} />
+{!noindex && <link rel="canonical" href={canonical} />}
+
+<meta property="og:site_name" content={site.name} />
+<meta property="og:locale" content={site.locale} />
+<meta property="og:type" content={type} />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonical} />
+<meta property="og:image" content={imageUrl} />
+<meta property="og:image:alt" content={image.alt} />
+{article && <meta property="article:published_time" content={article.published.toISOString()} />}
+{article?.updated && <meta property="article:modified_time" content={article.updated.toISOString()} />}
+{article?.tags.map((tag) => <meta property="article:tag" content={tag} />)}
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={title} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={imageUrl} />
+
+<script type="application/ld+json" set:html={serializeJsonLd(jsonLd)} />

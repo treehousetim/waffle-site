@@ -1,0 +1,27 @@
+---
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+import Section from '../components/Section.astro';
+import Testimonials from '../components/Testimonials.astro';
+import CallToAction from '../components/CallToAction.astro';
+import { reviews } from '../data/reviews';
+---
+
+<Base
+    title="Customer reviews"
+    description="What Springfield-area homeowners say about Waffle Site electricians: repairs, panel upgrades, EV chargers, rewiring and emergency call-outs."
+    breadcrumbs={[{ name: 'Reviews', href: '/reviews/' }]}
+>
+    <Hero
+        size="small"
+        eyebrow="Reviews"
+        heading="What our customers say"
+        lead="A selection of reviews from the last year, shared with permission. You will find more on our Google Business Profile."
+    />
+
+    <Section>
+        <Testimonials items={reviews} />
+    </Section>
+
+    <CallToAction heading="Ready when you are" text="Same-week appointments for most jobs, and a written price before we start." action={{ label: 'Request a free quote', href: '/contact/' }} />
+</Base>

@@ -1,0 +1,27 @@
+---
+import Base from '../../layouts/Base.astro';
+import Hero from '../../components/Hero.astro';
+import Section from '../../components/Section.astro';
+import CardGrid from '../../components/CardGrid.astro';
+import CallToAction from '../../components/CallToAction.astro';
+import { areas, areaUrl } from '../../data/areas';
+---
+
+<Base
+    title="Areas we serve"
+    description="Waffle Site electricians work across Springfield, Riverside, Fairview, Oakdale, Millbrook and Lakewood, with emergency call-outs in every town."
+    breadcrumbs={[{ name: 'Areas we serve', href: '/areas/' }]}
+>
+    <Hero
+        size="small"
+        eyebrow="Areas we serve"
+        heading="Local electricians, a short drive away"
+        lead="We are based in Springfield and work in these towns every week. Outside them? Call anyway: we often can, especially for bigger jobs."
+    />
+
+    <Section>
+        <CardGrid cards={areas.map((area) => ({ href: areaUrl(area.slug), title: area.name, text: `Repairs, upgrades and emergency call-outs in ${area.name}.`, note: area.drive, icon: 'pin' }))} level="h2" />
+    </Section>
+
+    <CallToAction heading="Not on the list?" text="Tell us where you are and what you need, and we will tell you straight away whether we can help." action={{ label: 'Ask us', href: '/contact/' }} />
+</Base>

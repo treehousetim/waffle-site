@@ -1,0 +1,47 @@
+---
+/** The four things people check before they let an electrician in. */
+import Icon from './Icon.astro';
+import { site } from '../site';
+import { buildTime } from '../settings';
+
+const years = buildTime.getUTCFullYear() - site.business.founded;
+const items = [
+    { icon: 'shield', text: 'Licensed and insured' },
+    { icon: 'calendar', text: `${years} years in business` },
+    { icon: 'clock', text: '24/7 emergency service' },
+    { icon: 'dollar', text: 'Free written estimates' },
+] as const;
+---
+
+<ul class="trust" aria-label="Why people choose us">
+    {
+        items.map((item) => (
+            <li>
+                <Icon name={item.icon} size={20} />
+                {item.text}
+            </li>
+        ))
+    }
+</ul>
+
+<style>
+    .trust {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-3) var(--space-8);
+        margin: var(--space-8) 0 0;
+        padding: 0;
+        list-style: none;
+        font-weight: 600;
+    }
+
+    li {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+    }
+
+    li :global(svg) {
+        color: var(--color-brand);
+    }
+</style>

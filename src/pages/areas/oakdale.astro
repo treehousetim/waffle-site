@@ -1,0 +1,20 @@
+---
+import AreaPage from '../../layouts/AreaPage.astro';
+import { reviewsFrom } from '../../data/reviews';
+---
+
+<AreaPage
+    slug="oakdale"
+    title="Electrician in Oakdale"
+    description="Electricians serving Oakdale's farmhouses, outbuildings and village homes: rewiring, barn and shop circuits, generators and 24/7 emergency call-outs."
+    heading="Electricians for Oakdale's homes, barns and workshops"
+    lead="Oakdale is part village, part farmland. Alongside the usual house calls, we wire a lot of barns, workshops and long runs to outbuildings."
+    reviews={reviewsFrom('Oakdale')}
+>
+    <h2>Outbuildings and long runs</h2>
+    <p>Power to a detached shop or barn means a buried feeder sized for the distance, a subpanel and proper grounding at the building. We size the wire for the voltage drop, not just the breaker, so tools start without dimming the lights.</p>
+    <h2>Farmhouses and additions</h2>
+    <p>Many Oakdale farmhouses have been added to over a century, each addition wired by whoever was around at the time. An inspection usually finds a mix of eras behind the walls, and a plan to bring it all onto one safe system.</p>
+    <h2>Further out, still on call</h2>
+    <p>At about twenty-five minutes from Springfield, Oakdale is well inside our emergency area. Night and weekend calls get the same answer as in town.</p>
+</AreaPage>

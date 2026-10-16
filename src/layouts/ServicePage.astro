@@ -1,0 +1,133 @@
+---
+/**
+ * The frame every service page shares (src/pages/services/<slug>.astro):
+ * the hero with both ways to get in touch, the page's own copy, this
+ * service's prices from the waffle app, its questions, the towns served,
+ * and the structured data that says this business offers this service there.
+ *
+ * The copy in the slot is the page: write it for this service, from what
+ * customers actually ask (docs/pages.md, "Service pages").
+ */
+import Base from './Base.astro';
+import Hero from '../components/Hero.astro';
+import Section from '../components/Section.astro';
+import Faq, { type FaqItem } from '../components/Faq.astro';
+import PriceGuide from '../components/PriceGuide.astro';
+import PhoneLink from '../components/PhoneLink.astro';
+import CallToAction from '../components/CallToAction.astro';
+import { areas, areaNames, areaUrl } from '../data/areas';
+import { services } from '../data/services';
+import { waffle, settings } from '../settings';
+import { faqPage, service as serviceNode } from '../lib/jsonld.js';
+import { parsePriceGuide } from '../lib/prices.js';
+import { canonicalUrl } from '../lib/seo.js';
+
+interface Props {
+    /** The slug in src/data/services.ts. */
+    slug: string;
+    title: string;
+    description: string;
+    heading: string;
+    lead: string;
+    faq: FaqItem[];
+}
+
+const { slug, title, description, heading, lead, faq } = Astro.props;
+const entry = services.find((item) => item.slug === slug);
+
+if (entry === undefined) {
+    throw new Error(`ServicePage: no service '${slug}' in src/data/services.ts.`);
+}
+
+const guide = parsePriceGuide(await waffle.get('/api/site/prices'));
+const hasPrices = guide.items.some((item) => item.service === slug);
+const url = canonicalUrl(Astro.url.pathname, settings.siteUrl);
+---
+
+<Base
+    title={title}
+    description={description}
+    breadcrumbs={[
+        { name: 'Services', href: '/services/' },
+        { name: entry.name, href: Astro.url.pathname },
+    ]}
+    jsonLd={[serviceNode({ url, name: entry.name, description, areas: areaNames }, settings.siteUrl), faqPage(faq)]}
+>
+    <Hero size="small" eyebrow={entry.name} heading={heading} lead={lead} primary={{ label: 'Get a free quote', href: '/contact/' }}>
+        <div class="call">
+            <p>Prefer to talk it through?</p>
+            <PhoneLink variant="button" />
+        </div>
+    </Hero>
+
+    <div class="prose body">
+        <slot />
+    </div>
+
+    {
+        hasPrices && (
+            <Section tone="surface" heading="What it costs" intro={`Starting prices, updated ${guide.updated}. Every job gets a written quote before work starts.`}>
+                <div class="prose-wide">
+                    <PriceGuide guide={guide} service={slug} showCategories={false} />
+                    <p><a href="/prices/">See the full price guide</a></p>
+                </div>
+            </Section>
+        )
+    }
+
+    <Section heading="Questions we hear a lot">
+        <Faq items={faq} />
+    </Section>
+
+    <Section tone="surface" heading={`${entry.name} near you`} intro="We work across these towns every week.">
+        <ul class="towns">
+            {areas.map((area) => <li><a href={areaUrl(area.slug)}>{area.name}</a></li>)}
+        </ul>
+    </Section>
+
+    <CallToAction heading="Get a straight answer and a written price" text="Tell us about the job. We reply the same working day." action={{ label: 'Request a free quote', href: '/contact/' }} />
+</Base>
+
+<style>
+    .body {
+        padding-top: var(--space-12);
+    }
+
+    .prose-wide {
+        max-width: 48rem;
+        margin-inline: auto;
+    }
+
+    .call {
+        padding: var(--space-8);
+        border-radius: var(--radius);
+        background: var(--color-bg);
+        box-shadow: var(--shadow);
+    }
+
+    .call p {
+        margin-bottom: var(--space-3);
+        font-weight: 650;
+    }
+
+    .towns {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: var(--space-3);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .towns a {
+        display: inline-block;
+        padding: var(--space-2) var(--space-4);
+        border-radius: 999px;
+        background: var(--color-bg);
+        border: 1px solid var(--color-border);
+        color: var(--color-text);
+        text-decoration: none;
+        font-weight: 600;
+    }
+</style>
