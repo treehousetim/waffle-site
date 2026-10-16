@@ -1,0 +1,317 @@
+---
+/**
+ * The tap board: every beer pouring now, from the waffle app's tap list
+ * (src/lib/taplist.ts), styled like the split-flap boards of an old railway
+ * station. Each row flips into place (motion.css): on load where it is the
+ * page's subject (`flip="load"`), as it scrolls into view elsewhere.
+ *
+ * A tap that pours a core beer links to that beer's page, by the slug the
+ * parser checked; nothing from the app becomes a URL on its own.
+ */
+import type { Tap } from '../lib/taplist';
+import { dollars } from '../lib/taplist';
+import { abv, beerBySlug, beerUrl } from '../data/beers';
+
+interface Props {
+    taps: Tap[];
+    updated: Date;
+    level?: 'h2' | 'h3';
+    flip?: 'load' | 'scroll';
+}
+
+const { taps, updated, level = 'h3', flip = 'scroll' } = Astro.props;
+const Heading = level;
+const when = updated.toLocaleString('en-US', { weekday: 'long', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' });
+---
+
+<div class:list={['board', 'plate', `flip-${flip}`]}>
+    <div class="board-head" aria-hidden="true">
+        <span>Tap</span>
+        <span>Beer</span>
+        <span class="col-stats">ABV · IBU</span>
+        <span class="col-pours">Pours</span>
+    </div>
+    <ol class="taps">
+        {
+            taps.map((tap) => {
+                const beer = beerBySlug(tap.beer);
+
+                return (
+                    <li class="tap">
+                        <span class="no tile">
+                            <span class="visually-hidden">Tap </span>
+                            {String(tap.tap).padStart(2, '0')}
+                        </span>
+                        <div class="who">
+                            <Heading class="name">{beer ? <a href={beerUrl(beer.slug)}>{tap.name}</a> : tap.name}</Heading>
+                            <p class="style">
+                                {tap.style}
+                                {tap.isNew && <span class="flag flag-new">New</span>}
+                                {tap.limited && <span class="flag flag-limited">Limited</span>}
+                                {tap.dispense !== 'draft' && <span class="flag flag-plain">{tap.dispense}</span>}
+                            </p>
+                        </div>
+                        <dl class="stats">
+                            <div>
+                                <dt>ABV</dt>
+                                <dd class="tile">{abv(tap.abv)}</dd>
+                            </div>
+                            <div>
+                                <dt>IBU</dt>
+                                <dd class="tile">{tap.ibu ?? '–'}</dd>
+                            </div>
+                        </dl>
+                        <ul class="pours" aria-label={`Pours of ${tap.name}`}>
+                            {tap.pours.map((pour) => (
+                                <li>
+                                    <span class="size">
+                                        {pour.size} <span class="oz">{pour.ounces} oz</span>
+                                    </span>
+                                    <span class="price">{dollars(pour.priceCents)}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </li>
+                );
+            })
+        }
+    </ol>
+    <p class="updated">
+        <span class="stencil">Board updated</span>
+        <time datetime={updated.toISOString()}>{when}</time>
+    </p>
+</div>
+
+<style>
+    .board {
+        padding: clamp(1rem, 0.5rem + 2vw, 2rem);
+        background-color: #12100e;
+        perspective: 900px;
+    }
+
+    .board-head {
+        display: none;
+        gap: var(--space-5);
+        padding: 0 var(--space-4) var(--space-3);
+        border-bottom: 2px solid var(--copper);
+        color: var(--copper);
+        font-family: var(--font-stencil);
+        font-size: 0.9rem;
+        font-weight: 800;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+    }
+
+    .taps {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .tap {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: var(--space-3) var(--space-4);
+        align-items: center;
+        padding: var(--space-4);
+        border-bottom: 1px solid var(--seam);
+        transform-origin: 50% 0;
+        transition: background-color 0.2s ease;
+    }
+
+    .tap:hover {
+        background: rgb(220 141 80 / 0.06);
+    }
+
+    /* A split-flap tile: two halves and the hinge between them. */
+    .tile {
+        position: relative;
+        display: inline-grid;
+        place-items: center;
+        min-width: 3.1rem;
+        padding: 0.35rem 0.5rem 0.25rem;
+        border-radius: 3px;
+        background: linear-gradient(180deg, #2b2622 0 49%, #1f1b18 51% 100%);
+        box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06), 0 2px 0 #000;
+        color: var(--foam);
+        font-family: var(--font-display);
+        font-weight: 800;
+        font-variant-numeric: tabular-nums;
+        line-height: 1;
+    }
+
+    .tile::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 50%;
+        height: 1px;
+        background: rgb(0 0 0 / 0.75);
+    }
+
+    .no {
+        grid-row: span 1;
+        align-self: start;
+        color: var(--copper-bright);
+        font-size: 1.65rem;
+    }
+
+    .who {
+        min-width: 0;
+    }
+
+    .name {
+        margin: 0 0 var(--space-1);
+        font-size: clamp(1.5rem, 1.2rem + 1vw, 2.1rem);
+        line-height: 0.95;
+        letter-spacing: 0.02em;
+    }
+
+    .name a {
+        color: var(--bone);
+        text-decoration: none;
+        background: linear-gradient(var(--copper), var(--copper)) 0 100% / 0 3px no-repeat;
+        transition: background-size 0.3s ease, color 0.2s ease;
+    }
+
+    .name a:hover {
+        color: var(--copper-bright);
+        background-size: 100% 3px;
+    }
+
+    .style {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-2);
+        margin: 0;
+        color: var(--ash);
+        font-size: 0.95rem;
+    }
+
+    .stats {
+        display: flex;
+        grid-column: 2;
+        gap: var(--space-3);
+        margin: 0;
+    }
+
+    .stats div {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+    }
+
+    .stats dt {
+        color: var(--slag);
+        font-family: var(--font-stencil);
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+    }
+
+    .stats dd {
+        margin: 0;
+        font-size: 1.25rem;
+    }
+
+    .pours {
+        display: flex;
+        flex-wrap: wrap;
+        grid-column: 2;
+        gap: var(--space-2);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .pours li {
+        display: inline-flex;
+        align-items: baseline;
+        gap: var(--space-2);
+        padding: 0.3rem 0.6rem;
+        border: 1px solid var(--seam);
+        border-radius: 3px;
+        font-size: 0.9rem;
+        line-height: 1.2;
+    }
+
+    .size {
+        color: var(--ash);
+    }
+
+    .oz {
+        color: var(--slag);
+        font-size: 0.8rem;
+    }
+
+    .price {
+        color: var(--hop);
+        font-family: var(--font-display);
+        font-size: 1.2rem;
+        font-weight: 800;
+    }
+
+    .updated {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2) var(--space-3);
+        margin: var(--space-5) 0 0;
+        color: var(--ash);
+        font-size: 0.9rem;
+    }
+
+    .updated .stencil {
+        color: var(--copper);
+    }
+
+    /* Phones: the ounces step aside (still read aloud) so pours fit a line. */
+    @media (max-width: 40rem) {
+        .tap {
+            padding-inline: 0;
+        }
+
+        .pours li {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        .oz {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip-path: inset(50%);
+        }
+    }
+
+    @media (min-width: 60rem) {
+        .board-head {
+            display: grid;
+            grid-template-columns: 3.6rem minmax(0, 1fr) 10rem 24rem;
+        }
+
+        .tap {
+            grid-template-columns: 3.6rem minmax(0, 1fr) 10rem 24rem;
+            gap: var(--space-5);
+        }
+
+        .stats,
+        .pours {
+            grid-column: auto;
+        }
+
+        .stats dt {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip-path: inset(50%);
+        }
+
+        .pours {
+            justify-content: flex-end;
+        }
+    }
+</style>

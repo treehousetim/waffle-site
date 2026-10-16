@@ -1,0 +1,17 @@
+---
+/**
+ * Where the waffle app sends a browser without script after a good event
+ * enquiry. Kept out of search results (src/site.ts, noindex).
+ */
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+---
+
+<Base title="Thanks, we have your enquiry" description="We have your event enquiry and will reply within two working days with availability and a quote. Meanwhile, see what is on tap.">
+    <PageHead eyebrow="Enquiry received" heading="Cheers. We have it." lead="Our events lead will reply within two working days with availability, a written quote and any questions. Nothing is booked until you say so." ghost="Cheers">
+        <p class="actions">
+            <a class="button button-large" href="/on-tap/">See what is on tap</a>
+            <a class="button button-ghost button-large" href="/">Back to the home page</a>
+        </p>
+    </PageHead>
+</Base>

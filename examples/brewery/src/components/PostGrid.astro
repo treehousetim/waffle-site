@@ -1,0 +1,41 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import PostCard from './PostCard.astro';
+
+interface Props {
+    posts: CollectionEntry<'blog'>[];
+    level?: 'h2' | 'h3';
+    /** The first post as a wide card across the top. */
+    feature?: boolean;
+}
+
+const { posts, level = 'h2', feature = false } = Astro.props;
+const [first, ...rest] = posts;
+---
+
+{feature && first && <div class="feature"><PostCard post={first} level={level} featured /></div>}
+
+<ul class="posts">
+    {
+        (feature ? rest : posts).map((post) => (
+            <li>
+                <PostCard post={post} level={level} />
+            </li>
+        ))
+    }
+</ul>
+
+<style>
+    .feature {
+        margin-bottom: var(--space-8);
+    }
+
+    .posts {
+        display: grid;
+        gap: var(--space-8) var(--space-6);
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+</style>

@@ -1,0 +1,136 @@
+---
+/**
+ * What is pouring now: the whole tap board, from the waffle app's tap list
+ * (GET /api/site/taplist, parsed by src/lib/taplist.ts), as of the last
+ * build. The bar changes it in the app; a release publishes it.
+ */
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import TapBoard from '../components/TapBoard.astro';
+import LastCall from '../components/LastCall.astro';
+import { site } from '../site';
+import { waffle } from '@core/settings';
+import { parseTaplist } from '../lib/taplist';
+
+const taplist = parseTaplist(await waffle.get('/api/site/taplist'));
+const counts = {
+    all: taplist.taps.length,
+    fresh: taplist.taps.filter((tap) => tap.isNew).length,
+    limited: taplist.taps.filter((tap) => tap.limited).length,
+};
+---
+
+<Base
+    title="On tap now"
+    description="Every beer pouring at the Ironwood taproom right now, with style, ABV, bitterness, pour sizes and prices. New and limited releases flagged."
+    breadcrumbs={[{ name: 'On tap now', href: '/on-tap/' }]}
+>
+    <PageHead
+        eyebrow="The board"
+        heading="On tap now"
+        lead={`${counts.all} taps pouring: ${counts.fresh} new this week and ${counts.limited} we will not have for long. Ask for a taster of anything before you commit.`}
+        ghost="On tap"
+    />
+
+    <section class="container board-wrap">
+        <div class="age-bar">
+            <span class="age-stamp" aria-hidden="true">21+</span>
+            <p><strong>{site.agePolicy.short}</strong> Tasters count: no one under 21 is served, not even a sip.</p>
+        </div>
+
+        <TapBoard taps={taplist.taps} updated={taplist.updated} level="h2" flip="load" />
+
+        <div class="legend">
+            <section class="plate legend-card">
+                <h2>Reading the board</h2>
+                <dl>
+                    <div><dt><span class="flag flag-new">New</span></dt><dd>Tapped in the last seven days.</dd></div>
+                    <div><dt><span class="flag flag-limited">Limited</span></dt><dd>One batch, or one keg. When it is gone, it is gone.</dd></div>
+                    <div><dt><span class="flag flag-plain">Nitro</span></dt><dd>Poured with nitrogen for a creamy, cascading head.</dd></div>
+                    <div><dt><span class="flag flag-plain">Cask</span></dt><dd>Unfiltered, naturally conditioned, hand-pulled and served cellar cool.</dd></div>
+                    <div><dt>ABV</dt><dd>Alcohol by volume. Our core range sits between 4.9% and 6.8%.</dd></div>
+                    <div><dt>IBU</dt><dd>International bitterness units: higher is more bitter. A dash means it is not measured.</dd></div>
+                </dl>
+            </section>
+            <section class="plate legend-card">
+                <h2>To take home</h2>
+                <p>Most of the board can be filled to go in a 32 oz crowler, sealed at the bar, or a 64 oz growler if you bring a clean one. Cans of the core range are in the cooler by the door.</p>
+                <p class="muted">Crowlers and growlers are sold to over-21s only, with ID, and must stay sealed in the car. Ohio law, and common sense.</p>
+                <p class="actions"><a class="button button-ghost" href="/beers/">The core range</a></p>
+            </section>
+        </div>
+    </section>
+
+    <LastCall heading="Thirsty yet?" text="The board above is as of our last update. The bartenders will always know better: call ahead if you are coming for something limited." />
+</Base>
+
+<style>
+    .board-wrap {
+        padding-block: var(--space-12) var(--section);
+    }
+
+    .age-bar {
+        display: flex;
+        align-items: center;
+        gap: var(--space-5);
+        margin-bottom: var(--space-8);
+        padding: var(--space-4) var(--space-6);
+        border: 1px dashed var(--signal);
+        border-radius: var(--radius);
+    }
+
+    .age-bar p {
+        margin: 0;
+    }
+
+    .age-bar .age-stamp {
+        width: 3.5rem;
+        height: 3.5rem;
+        font-size: 1.2rem;
+    }
+
+    .legend {
+        display: grid;
+        gap: var(--space-6);
+        margin-top: var(--space-12);
+    }
+
+    .legend-card {
+        padding: var(--space-8);
+    }
+
+    .legend-card h2 {
+        font-size: clamp(2rem, 1.6rem + 1.2vw, 2.6rem);
+    }
+
+    dl {
+        display: grid;
+        gap: var(--space-3);
+        margin: 0;
+    }
+
+    dl div {
+        display: grid;
+        grid-template-columns: 5.5rem 1fr;
+        gap: var(--space-4);
+        align-items: baseline;
+    }
+
+    dt {
+        color: var(--copper);
+        font-family: var(--font-stencil);
+        font-weight: 800;
+        letter-spacing: 0.12em;
+    }
+
+    dd {
+        margin: 0;
+        color: var(--ash);
+    }
+
+    @media (min-width: 56rem) {
+        .legend {
+            grid-template-columns: 1.2fr 1fr;
+        }
+    }
+</style>

@@ -1,0 +1,473 @@
+/*
+ * Motion: what moves, and when. All CSS; no script, so nothing here touches
+ * the content security policy, and a page that never loads this file still
+ * reads perfectly.
+ *
+ *   - Page changes pour in: the new page fills the screen from the bottom up
+ *     (cross-document view transitions, no router). The header stays put,
+ *     and a beer's can morphs from the range into its own page.
+ *   - The logo's bubbles rise; the "on tap now" ticker runs; carbonation
+ *     rises behind the home page's hero and the closing band.
+ *   - The home hero's lines slide up out of a slot, one after another.
+ *   - The tap board's rows flip into place like a split-flap departures board.
+ *   - A can turns on its card when you hover or focus it.
+ *   - The pint fills, foam and all, as you scroll through "grain to glass".
+ *   - Giant display type slides across the screen as the page scrolls.
+ *   - Cards, stubs, plates and headings rise into view; FAQ answers open
+ *     smoothly; a copper pour line tracks reading progress on articles.
+ *
+ * Every rule is inside prefers-reduced-motion: no-preference, and the
+ * scroll-driven ones inside @supports as well: where either is missing the
+ * page is simply still, with nothing hidden. Content is never invisible
+ * before an animation runs unless the browser can run it.
+ */
+
+@view-transition {
+    navigation: auto;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    /* Pages pour in from the bottom, like a glass filling. */
+    ::view-transition-old(root) {
+        animation: 280ms ease-in both settle-out;
+    }
+
+    ::view-transition-new(root) {
+        animation: 520ms cubic-bezier(0.25, 0.8, 0.25, 1) both pour-in;
+    }
+
+    .site-header {
+        view-transition-name: site-header;
+    }
+
+    ::view-transition-group(site-header) {
+        animation-duration: 0s;
+    }
+
+    /* A can morphs from the range into its beer's page. */
+    .vt-pour-line-pilsner { view-transition-name: can-pour-line-pilsner; }
+    .vt-cupola-ipa { view-transition-name: can-cupola-ipa; }
+    .vt-tamsen-haze { view-transition-name: can-tamsen-haze; }
+    .vt-cast-iron-stout { view-transition-name: can-cast-iron-stout; }
+    .vt-ferrymans-rye { view-transition-name: can-ferrymans-rye; }
+    .vt-bellows-saison { view-transition-name: can-bellows-saison; }
+
+    ::view-transition-group(*) {
+        animation-duration: 480ms;
+        animation-timing-function: cubic-bezier(0.3, 0.9, 0.3, 1);
+    }
+
+    /* The logo: three bubbles rising off the hop, over and over. */
+    .site-header .mark .fizz-dots circle {
+        animation: logo-bubble 2.8s ease-in infinite;
+        transform-box: fill-box;
+        transform-origin: 50% 50%;
+    }
+
+    .site-header .mark .fizz-dots .b2 { animation-delay: 0.9s; }
+    .site-header .mark .fizz-dots .b3 { animation-delay: 1.8s; }
+
+    /* The ticker runs; hovering it holds it still to read. */
+    .ticker .track {
+        animation: marquee 70s linear infinite;
+    }
+
+    .ticker:hover .track,
+    .ticker:focus-visible .track {
+        animation-play-state: paused;
+    }
+
+    .ticker .dot {
+        animation: blink 1.6s ease-in-out infinite;
+    }
+
+    /* Carbonation. */
+    .bubbles {
+        container-type: size;
+    }
+
+    .bubbles span {
+        top: 100% !important;
+        opacity: 0;
+    }
+
+    .bubbles span:nth-child(1) { animation: rise-a 11.2s linear -3.1s infinite; }
+    .bubbles span:nth-child(2) { animation: rise-b 8.4s linear -7.9s infinite; }
+    .bubbles span:nth-child(3) { animation: rise-a 13.6s linear -1.2s infinite; }
+    .bubbles span:nth-child(4) { animation: rise-b 9.7s linear -5.5s infinite; }
+    .bubbles span:nth-child(5) { animation: rise-a 15.1s linear -12.4s infinite; }
+    .bubbles span:nth-child(6) { animation: rise-b 7.3s linear -2.6s infinite; }
+    .bubbles span:nth-child(7) { animation: rise-a 10.5s linear -9.8s infinite; }
+    .bubbles span:nth-child(8) { animation: rise-b 12.9s linear -4.4s infinite; }
+    .bubbles span:nth-child(9) { animation: rise-a 8.8s linear -0.7s infinite; }
+    .bubbles span:nth-child(10) { animation: rise-b 14.2s linear -10.3s infinite; }
+    .bubbles span:nth-child(11) { animation: rise-a 9.1s linear -6.6s infinite; }
+    .bubbles span:nth-child(12) { animation: rise-b 11.8s linear -11.1s infinite; }
+    .bubbles span:nth-child(13) { animation: rise-a 7.9s linear -3.9s infinite; }
+    .bubbles span:nth-child(14) { animation: rise-b 13.1s linear -8.2s infinite; }
+    .bubbles span:nth-child(15) { animation: rise-a 10.1s linear -1.9s infinite; }
+    .bubbles span:nth-child(16) { animation: rise-b 15.6s linear -13.7s infinite; }
+    .bubbles span:nth-child(17) { animation: rise-a 8.1s linear -5.1s infinite; }
+    .bubbles span:nth-child(18) { animation: rise-b 12.2s linear -2.2s infinite; }
+    .bubbles span:nth-child(19) { animation: rise-a 9.4s linear -7.4s infinite; }
+    .bubbles span:nth-child(20) { animation: rise-b 14.8s linear -0.4s infinite; }
+    .bubbles span:nth-child(21) { animation: rise-a 7.6s linear -6.1s infinite; }
+    .bubbles span:nth-child(22) { animation: rise-b 10.8s linear -9.2s infinite; }
+    .bubbles span:nth-child(23) { animation: rise-a 13.3s linear -4.8s infinite; }
+    .bubbles span:nth-child(24) { animation: rise-b 8.6s linear -1.5s infinite; }
+    .bubbles span:nth-child(25) { animation: rise-a 11.5s linear -10.9s infinite; }
+    .bubbles span:nth-child(26) { animation: rise-b 9.9s linear -3.3s infinite; }
+    .bubbles span:nth-child(27) { animation: rise-a 12.6s linear -8.8s infinite; }
+    .bubbles span:nth-child(28) { animation: rise-b 7.1s linear -5.9s infinite; }
+
+    /* The home hero: each line slides up out of its slot. */
+    .hero .line-inner {
+        animation: slot-up 900ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    }
+
+    .hero .line:nth-child(2) .line-inner { animation-delay: 120ms; }
+    .hero .line:nth-child(3) .line-inner { animation-delay: 240ms; }
+    .hero .line:nth-child(4) .line-inner { animation-delay: 360ms; }
+
+    .hero .hero-copy > :not(h1) {
+        animation: rise-in 800ms cubic-bezier(0.2, 0.8, 0.2, 1) 480ms both;
+    }
+
+    .hero .hero-copy > .actions { animation-delay: 600ms; }
+
+    .hero .hero-photo {
+        animation: drift-in 2400ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    }
+
+    .hero .tonight {
+        animation: plate-in 900ms cubic-bezier(0.3, 1.3, 0.5, 1) 700ms both;
+    }
+
+    /* Inner pages: the heading rises, the outline word drifts for ever. */
+    .page-head .copy > * {
+        animation: rise-in 700ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    }
+
+    .page-head .copy > :nth-child(2) { animation-delay: 80ms; }
+    .page-head .copy > :nth-child(3) { animation-delay: 160ms; }
+    .page-head .copy > :nth-child(4) { animation-delay: 240ms; }
+
+    .page-head .frame {
+        animation: plate-in 900ms cubic-bezier(0.3, 1.2, 0.5, 1) 150ms both;
+    }
+
+    .page-head .ghost {
+        animation: ghost-drift 60s linear infinite;
+    }
+
+    /* The tap board, where it is the page's subject: rows flip in on load. */
+    .board.flip-load .tap {
+        animation: flap-in 700ms cubic-bezier(0.3, 1.3, 0.5, 1) both;
+    }
+
+    .board.flip-load .tap:nth-child(2) { animation-delay: 60ms; }
+    .board.flip-load .tap:nth-child(3) { animation-delay: 120ms; }
+    .board.flip-load .tap:nth-child(4) { animation-delay: 180ms; }
+    .board.flip-load .tap:nth-child(5) { animation-delay: 240ms; }
+    .board.flip-load .tap:nth-child(6) { animation-delay: 300ms; }
+    .board.flip-load .tap:nth-child(7) { animation-delay: 360ms; }
+    .board.flip-load .tap:nth-child(8) { animation-delay: 420ms; }
+    .board.flip-load .tap:nth-child(9) { animation-delay: 480ms; }
+    .board.flip-load .tap:nth-child(10) { animation-delay: 540ms; }
+    .board.flip-load .tap:nth-child(11) { animation-delay: 600ms; }
+    .board.flip-load .tap:nth-child(n + 12) { animation-delay: 660ms; }
+
+    /* And each tile clacks through a few flaps before it settles. */
+    .board .tile {
+        animation: flap-tile 900ms steps(6, end) both;
+    }
+
+    .board .tap:nth-child(2n) .tile { animation-delay: 140ms; }
+    .board .tap:nth-child(3n) .tile { animation-delay: 280ms; }
+
+    /* A can turns while you hover or focus its card. */
+    .can-card:hover .wrap,
+    .can-card:focus-within .wrap {
+        animation: can-spin 2.6s linear infinite;
+    }
+
+    /* The pint's fizz rises the whole time. */
+    .pint-fizz circle {
+        animation: fizz 3.2s ease-in infinite;
+        transform-box: fill-box;
+    }
+
+    .pint-fizz circle:nth-child(2) { animation-delay: 0.6s; }
+    .pint-fizz circle:nth-child(3) { animation-delay: 1.3s; }
+    .pint-fizz circle:nth-child(4) { animation-delay: 1.9s; }
+    .pint-fizz circle:nth-child(5) { animation-delay: 2.4s; }
+    .pint-fizz circle:nth-child(6) { animation-delay: 0.3s; }
+
+    /* FAQ answers open to their height instead of jumping. */
+    .faq {
+        interpolate-size: allow-keywords;
+    }
+
+    .faq details::details-content {
+        block-size: 0;
+        overflow: clip;
+        transition: block-size 0.35s ease, content-visibility 0.35s allow-discrete;
+    }
+
+    .faq details[open]::details-content {
+        block-size: auto;
+    }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+        /* Things rise into place as they scroll into view. */
+        .reveal,
+        .section-head,
+        .can-grid > li,
+        .posts > li,
+        .feature,
+        .events > li,
+        .steps > li,
+        .space-card,
+        .fact,
+        .quote,
+        .faq details,
+        .last-call .hours {
+            animation: rise-in linear both;
+            animation-timeline: view();
+            animation-range: entry 0% entry 65%;
+        }
+
+        :is(.can-grid, .posts, .space-grid) > li:nth-child(3n + 2) {
+            animation-range: entry 8% entry 73%;
+        }
+
+        :is(.can-grid, .posts, .space-grid) > li:nth-child(3n + 3) {
+            animation-range: entry 16% entry 81%;
+        }
+
+        .events > li {
+            animation-name: stub-in;
+        }
+
+        /* The home page's board flips in as it arrives. */
+        .board.flip-scroll .tap {
+            animation: flap-in linear both;
+            animation-timeline: view();
+            animation-range: entry 10% entry 90%;
+        }
+
+        .board.flip-scroll .tile {
+            animation: none;
+        }
+
+        /* The age stamp thumps down as it comes into view. */
+        .age-stamp {
+            animation: stamp linear both;
+            animation-timeline: view();
+            animation-range: entry 20% entry 90%;
+        }
+
+        /* The pint fills as you scroll through "grain to glass". */
+        .pint-liquid {
+            animation: pint-fill linear both;
+            animation-timeline: --pint;
+            animation-range: cover 18% cover 62%;
+        }
+
+        /* Kinetic type: two lines slide past each other. */
+        .kinetic .one {
+            animation: slide-left linear both;
+            animation-timeline: view();
+            animation-range: cover;
+        }
+
+        .kinetic .two {
+            animation: slide-right linear both;
+            animation-timeline: view();
+            animation-range: cover;
+        }
+
+        /* The hero photo sinks slower than the page: parallax. */
+        .hero .hero-photo {
+            animation: parallax linear both;
+            animation-timeline: scroll(root);
+            animation-range: 0 100vh;
+        }
+
+        /* Photos in a band ease from smoky to clear as they arrive. */
+        .smoke-in {
+            animation: smoke-in linear both;
+            animation-timeline: view();
+            animation-range: entry 0% cover 40%;
+        }
+
+        /* The header darkens and casts a shadow once the page moves. */
+        .site-header {
+            animation: header-lift linear both;
+            animation-timeline: scroll(root);
+            animation-range: 0 10rem;
+        }
+
+        /* Reading progress: a copper pour line under the header. */
+        .reading-progress {
+            position: fixed;
+            top: var(--header-height);
+            left: 0;
+            right: 0;
+            z-index: 29;
+            height: 4px;
+            background: linear-gradient(90deg, var(--copper-deep), var(--copper-bright), var(--hop));
+            transform-origin: 0 50%;
+            animation: grow linear both;
+            animation-timeline: scroll(root);
+        }
+    }
+}
+
+/* With reduced motion, nothing moves at all. */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation: none !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+
+    ::view-transition-group(*),
+    ::view-transition-old(*),
+    ::view-transition-new(*) {
+        animation: none !important;
+    }
+}
+
+@keyframes settle-out {
+    to { opacity: 0; transform: scale(0.985); }
+}
+
+@keyframes pour-in {
+    from { clip-path: inset(100% 0 0 0); }
+    to { clip-path: inset(0 0 0 0); }
+}
+
+@keyframes logo-bubble {
+    0% { opacity: 0; transform: translateY(6px) scale(0.6); }
+    25% { opacity: 1; }
+    100% { opacity: 0; transform: translateY(-9px) scale(1.15); }
+}
+
+@keyframes marquee {
+    to { transform: translateX(-50%); }
+}
+
+@keyframes blink {
+    50% { opacity: 0.35; }
+}
+
+@keyframes rise-a {
+    0% { opacity: 0; transform: translate(0, 0); }
+    10% { opacity: 0.7; }
+    50% { transform: translate(0.6rem, -55cqh); }
+    90% { opacity: 0.5; }
+    100% { opacity: 0; transform: translate(-0.3rem, -112cqh); }
+}
+
+@keyframes rise-b {
+    0% { opacity: 0; transform: translate(0, 0); }
+    10% { opacity: 0.6; }
+    50% { transform: translate(-0.7rem, -55cqh); }
+    90% { opacity: 0.45; }
+    100% { opacity: 0; transform: translate(0.4rem, -112cqh); }
+}
+
+@keyframes slot-up {
+    from { transform: translateY(105%); }
+    to { transform: none; }
+}
+
+@keyframes rise-in {
+    from { opacity: 0; transform: translateY(1.75rem); }
+    to { opacity: 1; transform: none; }
+}
+
+@keyframes stub-in {
+    from { opacity: 0; transform: translateX(-2.5rem); }
+    to { opacity: 1; transform: none; }
+}
+
+@keyframes plate-in {
+    from { opacity: 0; transform: translateY(1.5rem) rotate(2deg) scale(0.96); }
+    to { opacity: 1; transform: none; }
+}
+
+@keyframes drift-in {
+    from { transform: scale(1.14); }
+    to { transform: scale(1.04); }
+}
+
+@keyframes parallax {
+    from { transform: scale(1.04); }
+    to { transform: translateY(14%) scale(1.1); }
+}
+
+@keyframes ghost-drift {
+    to { transform: translate(-33.33%, -50%); }
+}
+
+@keyframes flap-in {
+    0% { opacity: 0; transform: rotateX(-92deg); }
+    60% { opacity: 1; transform: rotateX(12deg); }
+    100% { opacity: 1; transform: none; }
+}
+
+@keyframes flap-tile {
+    0%, 100% { transform: none; }
+    16%, 50%, 83% { transform: scaleY(0.15); }
+    33%, 66% { transform: scaleY(1); }
+}
+
+@keyframes can-spin {
+    to { transform: translateX(-50%); }
+}
+
+@keyframes fizz {
+    0% { opacity: 0; transform: translateY(0); }
+    20% { opacity: 1; }
+    100% { opacity: 0; transform: translateY(-230px); }
+}
+
+@keyframes stamp {
+    from { opacity: 0; transform: rotate(-30deg) scale(2.2); }
+    to { opacity: 1; transform: rotate(-12deg); }
+}
+
+@keyframes pint-fill {
+    from { transform: translateY(268px); }
+    to { transform: none; }
+}
+
+@keyframes slide-left {
+    from { transform: translateX(0); }
+    to { transform: translateX(-38%); }
+}
+
+@keyframes slide-right {
+    from { transform: translateX(-42%); }
+    to { transform: translateX(-4%); }
+}
+
+@keyframes smoke-in {
+    from { filter: grayscale(1) brightness(0.6) blur(3px); transform: scale(1.06); }
+    to { filter: none; transform: none; }
+}
+
+@keyframes header-lift {
+    to { background-color: rgb(12 11 10 / 0.98); box-shadow: 0 14px 30px -16px rgb(0 0 0 / 0.95); }
+}
+
+@keyframes grow {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+}

@@ -1,0 +1,412 @@
+---
+/**
+ * /beers/<slug>/: one page per core beer (src/data/beers.ts). Its can (which
+ * morphs in from the range, motion.css), its numbers, tasting notes, story
+ * and brew sheet, and whether it is pouring today, from the waffle app's tap
+ * list (GET /api/site/taplist): the tap it is on, and its pours and prices.
+ */
+import type { GetStaticPaths } from 'astro';
+import Base from '../../layouts/Base.astro';
+import CanArt from '../../components/CanArt.astro';
+import CanCard from '../../components/CanCard.astro';
+import Photo from '../../components/Photo.astro';
+import LastCall from '../../components/LastCall.astro';
+import Bubbles from '../../components/Bubbles.astro';
+import { abv, beers, beerUrl, type Beer } from '../../data/beers';
+import { waffle } from '@core/settings';
+import { dollars, parseTaplist } from '../../lib/taplist';
+
+export const getStaticPaths = (() => beers.map((beer) => ({ params: { slug: beer.slug }, props: { beer } }))) satisfies GetStaticPaths;
+
+interface Props {
+    beer: Beer;
+}
+
+const { beer } = Astro.props;
+const taplist = parseTaplist(await waffle.get('/api/site/taplist'));
+const pouring = taplist.taps.find((tap) => tap.beer === beer.slug);
+const others = beers.filter((other) => other.slug !== beer.slug).slice(0, 3);
+const description = `${beer.name}, our ${beer.abv}% ${beer.style}: ${beer.summary}`.slice(0, 158).replace(/\s+\S*$/, '') + '.';
+---
+
+<Base
+    title={`${beer.name}, ${beer.style}`}
+    description={description}
+    breadcrumbs={[
+        { name: 'Our beers', href: '/beers/' },
+        { name: beer.name, href: beerUrl(beer.slug) },
+    ]}
+>
+    <section class:list={['beer-head', `tone-${beer.tone}`]}>
+        <Bubbles count={18} />
+        <div class="container head-grid">
+            <div class="can-col">
+                <CanArt beer={beer} size="big" />
+            </div>
+            <div class="copy">
+                <p class="eyebrow"><a href="/beers/">Our beers</a> · {beer.style}</p>
+                <h1>{beer.name}</h1>
+                <p class="lead">{beer.summary}</p>
+                <dl class="numbers">
+                    <div><dt>ABV</dt><dd>{abv(beer.abv)}</dd></div>
+                    <div><dt>IBU</dt><dd>{beer.ibu}</dd></div>
+                    <div><dt>Serve at</dt><dd>{beer.serveAt}°F</dd></div>
+                </dl>
+                <div class:list={['status', 'plate', { live: pouring !== undefined }]}>
+                    {
+                        pouring ? (
+                            <>
+                                <p class="status-title">
+                                    <span class="dot" aria-hidden="true" /> On tap now, tap {pouring.tap}
+                                </p>
+                                <ul class="pours">
+                                    {pouring.pours.map((pour) => (
+                                        <li>
+                                            {pour.size} ({pour.ounces} oz) <strong>{dollars(pour.priceCents)}</strong>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </>
+                        ) : (
+                            <p class="status-title">Not pouring today. {beer.available}; ask at the bar, or <a href="/on-tap/">see what is on</a>.</p>
+                        )
+                    }
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container">
+            <h2 class="section-title">Tasting notes</h2>
+            <ol class="notes">
+                <li class="plate note"><span class="stencil">Aroma</span><p>{beer.notes.aroma}</p></li>
+                <li class="plate note"><span class="stencil">Palate</span><p>{beer.notes.palate}</p></li>
+                <li class="plate note"><span class="stencil">Finish</span><p>{beer.notes.finish}</p></li>
+            </ol>
+        </div>
+    </section>
+
+    <section class="section story-band">
+        <div class="container story-grid">
+            <div class="story reveal">
+                <p class="eyebrow">The name</p>
+                <h2>Why {beer.name}</h2>
+                {beer.story.map((paragraph) => <p>{paragraph}</p>)}
+            </div>
+            <figure class="story-photo plate">
+                <Photo name={beer.photo} sizes="(min-width: 64rem) 38vw, 100vw" class="smoke-in" />
+            </figure>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container sheet-grid">
+            <div class="sheet plate plate-inset">
+                <p class="sheet-title stencil">Brew sheet · {beer.name}</p>
+                <dl>
+                    <div><dt>Malts</dt><dd>{beer.malts.join(' · ')}</dd></div>
+                    <div><dt>Hops</dt><dd>{beer.hops.join(' · ')}</dd></div>
+                    <div><dt>Yeast</dt><dd>{beer.yeast}</dd></div>
+                    <div><dt>Glass</dt><dd>{beer.glass}</dd></div>
+                    <div><dt>Serve at</dt><dd>{beer.serveAt}°F</dd></div>
+                    <div><dt>Find it</dt><dd>{beer.available}</dd></div>
+                </dl>
+            </div>
+            <div class="pairings reveal">
+                <h2>Good with</h2>
+                <ul>
+                    {beer.pairings.map((pairing) => <li>{pairing}</li>)}
+                </ul>
+                <p class="muted">The trucks outside change by the day: <a href="/taproom/">see who is parked up</a>.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="section others">
+        <div class="container">
+            <h2 class="section-title">The rest of the range</h2>
+            <ul class="can-grid">
+                {
+                    others.map((other) => (
+                        <li>
+                            <CanCard beer={other} />
+                        </li>
+                    ))
+                }
+            </ul>
+        </div>
+    </section>
+
+    <LastCall />
+</Base>
+
+<style>
+    .beer-head {
+        --glow: rgb(226 179 60 / 0.22);
+
+        position: relative;
+        overflow: hidden;
+        padding: clamp(3rem, 2rem + 4vw, 6rem) 0;
+        background:
+            radial-gradient(36rem 30rem at 22% 55%, var(--glow), transparent 70%),
+            var(--soot);
+        border-bottom: 1px solid var(--seam);
+    }
+
+    .tone-amber { --glow: rgb(217 121 46 / 0.24); }
+    .tone-haze { --glow: rgb(183 209 100 / 0.2); }
+    .tone-stout { --glow: rgb(184 86 44 / 0.2); }
+    .tone-copper { --glow: rgb(168 83 44 / 0.28); }
+    .tone-straw { --glow: rgb(239 226 184 / 0.16); }
+
+    .head-grid {
+        position: relative;
+        display: grid;
+        gap: var(--space-10);
+        align-items: center;
+    }
+
+    .can-col {
+        display: grid;
+        justify-items: center;
+    }
+
+    .can-col :global(.can) {
+        width: min(60vw, 17rem);
+        transform: rotate(-4deg);
+    }
+
+    .eyebrow a {
+        color: inherit;
+        text-decoration: none;
+    }
+
+    h1 {
+        font-size: clamp(3.4rem, 1.4rem + 6vw, 7.5rem);
+    }
+
+    .numbers {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-3);
+        margin: var(--space-8) 0;
+    }
+
+    .numbers div {
+        min-width: 6rem;
+        padding: var(--space-3) var(--space-4) var(--space-2);
+        border: 1px solid var(--seam-strong);
+        border-radius: 3px;
+        background: linear-gradient(180deg, #2b2622 0 49%, #1f1b18 51% 100%);
+    }
+
+    .numbers dt {
+        color: var(--slag);
+        font-family: var(--font-stencil);
+        font-size: 0.85rem;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+    }
+
+    .numbers dd {
+        margin: 0;
+        color: var(--foam);
+        font-family: var(--font-display);
+        font-size: 2.6rem;
+        font-weight: 850;
+        line-height: 1;
+    }
+
+    .status {
+        padding: var(--space-5) var(--space-6);
+    }
+
+    .status.live {
+        border-color: var(--hop-deep);
+    }
+
+    .status-title {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-2);
+        margin: 0;
+        font-weight: 700;
+    }
+
+    .live .status-title {
+        color: var(--hop);
+        font-family: var(--font-stencil);
+        font-size: 1.15rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+    }
+
+    .dot {
+        width: 0.6rem;
+        height: 0.6rem;
+        border-radius: 50%;
+        background: var(--hop);
+        box-shadow: 0 0 0 4px var(--hop-glow);
+    }
+
+    .pours {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2) var(--space-5);
+        margin: var(--space-3) 0 0;
+        padding: 0;
+        color: var(--ash);
+        list-style: none;
+    }
+
+    .pours strong {
+        color: var(--hop);
+    }
+
+    @media (min-width: 56rem) {
+        .head-grid {
+            grid-template-columns: 0.8fr 1.2fr;
+        }
+    }
+
+    .section-title {
+        margin-bottom: var(--space-10);
+    }
+
+    .notes {
+        display: grid;
+        gap: var(--space-5);
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        counter-reset: none;
+    }
+
+    .note {
+        padding: var(--space-8);
+    }
+
+    .note .stencil {
+        color: var(--copper);
+        font-size: 1.1rem;
+    }
+
+    .note p {
+        margin: var(--space-3) 0 0;
+        color: var(--bone);
+        font-size: 1.1rem;
+    }
+
+    .story-band {
+        background: var(--soot);
+        border-block: 1px solid var(--seam);
+    }
+
+    .story-grid,
+    .sheet-grid {
+        display: grid;
+        gap: var(--space-12);
+        align-items: center;
+    }
+
+    .story p {
+        color: #ddd2c1;
+    }
+
+    .story-photo {
+        margin: 0;
+        padding: 10px;
+    }
+
+    .story-photo :global(img) {
+        width: 100%;
+        aspect-ratio: 4 / 3;
+        object-fit: cover;
+        border-radius: 2px;
+    }
+
+    .sheet {
+        padding: var(--space-8);
+        background-color: #1a1714;
+    }
+
+    .sheet-title {
+        margin-bottom: var(--space-5);
+        color: var(--copper);
+    }
+
+    .sheet dl {
+        display: grid;
+        gap: 0;
+        margin: 0;
+    }
+
+    .sheet dl div {
+        display: grid;
+        grid-template-columns: 6.5rem 1fr;
+        gap: var(--space-4);
+        padding: var(--space-3) 0;
+        border-bottom: 1px dashed var(--seam);
+    }
+
+    .sheet dt {
+        color: var(--slag);
+        font-family: var(--font-stencil);
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+    }
+
+    .sheet dd {
+        margin: 0;
+    }
+
+    .pairings ul {
+        margin: 0 0 var(--space-6);
+        padding: 0;
+        list-style: none;
+    }
+
+    .pairings li {
+        padding: var(--space-3) 0;
+        border-bottom: 1px solid var(--seam);
+        font-family: var(--font-display);
+        font-size: 1.75rem;
+        font-weight: 750;
+        line-height: 1.1;
+        text-transform: uppercase;
+    }
+
+    .pairings li::before {
+        content: '• ';
+        color: var(--copper);
+    }
+
+    @media (min-width: 60rem) {
+        .story-grid {
+            grid-template-columns: 1.1fr 0.9fr;
+        }
+
+        .sheet-grid {
+            grid-template-columns: 1fr 1fr;
+            align-items: start;
+        }
+    }
+
+    .others {
+        background: var(--char);
+    }
+
+    .can-grid {
+        display: grid;
+        gap: var(--space-12) var(--space-8);
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+</style>

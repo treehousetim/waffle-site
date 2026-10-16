@@ -1,0 +1,169 @@
+---
+/** Contact and directions: the address, phone, email and hours, how to get here, and the event enquiry form. */
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import PrivateEventForm from '../components/PrivateEventForm.astro';
+import { addressLine, clock, dayRange, site } from '../site';
+---
+
+<Base
+    title="Contact and directions"
+    description="Find Ironwood Brewing Co. at 14 Foundry Row, Wrenford, by the Tamsen River: phone, email, taproom hours, parking, and the private event enquiry form."
+    breadcrumbs={[{ name: 'Contact', href: '/contact/' }]}
+>
+    <PageHead eyebrow="Find us" heading="Contact and directions" lead="At the bottom of Foundry Row, where the road meets the river. Look for the brick chimney with IRONWOOD painted down it." ghost="Contact" />
+
+    <section class="section">
+        <div class="container contact-grid">
+            <div class="plate card">
+                <h2>The taproom</h2>
+                <address>
+                    <span class="address">{addressLine}</span>
+                    <a href={`tel:${site.business.phoneE164}`}>{site.business.phone}</a>
+                    <a href={`mailto:${site.business.email}`}>{site.business.email}</a>
+                </address>
+                <dl class="hours">
+                    {
+                        site.business.hours.map((hours) => (
+                            <div>
+                                <dt>{dayRange(hours.days)}</dt>
+                                <dd>
+                                    {clock(hours.opens)}–{clock(hours.closes)}
+                                </dd>
+                            </div>
+                        ))
+                    }
+                    <div><dt>Mon–Tue</dt><dd>Closed</dd></div>
+                </dl>
+            </div>
+
+            <div class="plate card map-card">
+                <h2>Getting here</h2>
+                <svg class="map" viewBox="0 0 320 200" role="img" aria-label="Sketch map: Foundry Row runs down to the Tamsen River; the brewery is at the bottom by the iron bridge, with parking in the rail yard behind.">
+                    <path d="M0 150 C80 130 120 170 200 150 S300 120 320 135 L320 200 L0 200 Z" fill="#1f3236"></path>
+                    <path d="M0 150 C80 130 120 170 200 150 S300 120 320 135" fill="none" stroke="#3c5c62" stroke-width="2"></path>
+                    <path d="M150 0 L170 140" stroke="#574e45" stroke-width="10" stroke-linecap="round"></path>
+                    <path d="M222 120 L240 175" stroke="#968a7b" stroke-width="5" stroke-dasharray="4 3"></path>
+                    <rect x="60" y="70" width="70" height="36" fill="none" stroke="#574e45" stroke-dasharray="3 3"></rect>
+                    <rect x="176" y="96" width="34" height="28" fill="#dc8d50"></rect>
+                    <text x="95" y="92" text-anchor="middle" fill="#bdb1a1" font-size="10">PARKING</text>
+                    <text x="166" y="20" fill="#bdb1a1" font-size="10">FOUNDRY ROW</text>
+                    <text x="193" y="90" text-anchor="middle" fill="#f0a76b" font-size="10">IRONWOOD</text>
+                    <text x="250" y="168" fill="#968a7b" font-size="9">IRON BRIDGE</text>
+                    <text x="30" y="185" fill="#6f9aa1" font-size="10" letter-spacing="2">TAMSEN RIVER</text>
+                </svg>
+                <ul class="ways">
+                    <li><strong>By car:</strong> free parking in the old rail yard behind the building, off Foundry Row.</li>
+                    <li><strong>By bike or on foot:</strong> the riverside trail passes the loading dock; racks by the door.</li>
+                    <li><strong>Getting home:</strong> the bar will happily call you a cab. Please never drink and drive.</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <section class="section form-band">
+        <div class="container form-grid">
+            <div>
+                <p class="eyebrow">Planning something?</p>
+                <h2>Send an event enquiry</h2>
+                <p class="muted">For parties, rehearsal dinners, team nights, group tours and anything with more than twelve people. Everything else, just call or email.</p>
+                <p class="muted">Trade and wholesale enquiries: <a href={`mailto:${site.business.email}`}>{site.business.email}</a>, with “Trade” in the subject.</p>
+            </div>
+            <PrivateEventForm thanks="/contact/thanks/" />
+        </div>
+    </section>
+</Base>
+
+<style>
+    .contact-grid,
+    .form-grid {
+        display: grid;
+        gap: var(--space-8);
+    }
+
+    @media (min-width: 60rem) {
+        .contact-grid {
+            grid-template-columns: 1fr 1.2fr;
+            align-items: start;
+        }
+
+        .form-grid {
+            grid-template-columns: 0.7fr 1.3fr;
+            align-items: start;
+        }
+    }
+
+    .card {
+        padding: var(--space-8);
+    }
+
+    .card h2 {
+        font-size: 2.4rem;
+    }
+
+    address {
+        display: grid;
+        gap: var(--space-2);
+        margin-bottom: var(--space-6);
+        font-style: normal;
+    }
+
+    .address {
+        font-family: var(--font-display);
+        font-size: 1.8rem;
+        font-weight: 800;
+        line-height: 1.05;
+        text-transform: uppercase;
+    }
+
+    address a {
+        font-weight: 700;
+    }
+
+    .hours {
+        display: grid;
+        gap: var(--space-2);
+        margin: 0;
+    }
+
+    .hours div {
+        display: flex;
+        justify-content: space-between;
+        padding-bottom: var(--space-2);
+        border-bottom: 1px dashed var(--seam);
+    }
+
+    .hours dt {
+        color: var(--copper);
+        font-family: var(--font-stencil);
+        font-weight: 800;
+        letter-spacing: 0.12em;
+    }
+
+    .hours dd {
+        margin: 0;
+    }
+
+    .map {
+        width: 100%;
+        margin-bottom: var(--space-5);
+        border: 1px solid var(--seam);
+        border-radius: 3px;
+        background: #12100e;
+        font-family: var(--font-stencil);
+    }
+
+    .ways {
+        display: grid;
+        gap: var(--space-3);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        color: var(--ash);
+    }
+
+    .form-band {
+        background: var(--soot);
+        border-top: 1px solid var(--seam);
+    }
+</style>

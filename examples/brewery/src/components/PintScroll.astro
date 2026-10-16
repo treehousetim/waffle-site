@@ -1,0 +1,177 @@
+---
+/**
+ * "From grain to glass": the brewing steps down one side, and a pint glass
+ * that stays in view beside them and fills, foam and all, as you scroll
+ * through the section (a scroll-driven animation on the section's own view
+ * timeline, motion.css). Where scroll-driven animation is not supported, or
+ * motion is reduced, the pint is simply full.
+ *
+ * The glass is a drawing (aria-hidden); the steps are an ordered list.
+ */
+interface Step {
+    title: string;
+    text: string;
+}
+
+interface Props {
+    heading: string;
+    eyebrow?: string;
+    steps: Step[];
+}
+
+const { heading, eyebrow, steps } = Astro.props;
+---
+
+<section class="pint-story">
+    <div class="container layout">
+        <div class="glass-col" aria-hidden="true">
+            <svg class="pint" viewBox="0 0 200 330" focusable="false">
+                <defs>
+                    <clipPath id="pint-inside">
+                        <path d="M24 14 L176 14 L163 302 Q162 314 150 314 L50 314 Q38 314 37 302 Z"></path>
+                    </clipPath>
+                    <linearGradient id="pint-beer" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0" stop-color="#b36b19"></stop>
+                        <stop offset="0.35" stop-color="#f0b24a"></stop>
+                        <stop offset="0.6" stop-color="#e6a640"></stop>
+                        <stop offset="1" stop-color="#9a5a14"></stop>
+                    </linearGradient>
+                </defs>
+                <g clip-path="url(#pint-inside)">
+                    <rect x="0" y="0" width="200" height="330" fill="#0f0d0c"></rect>
+                    <g class="pint-liquid">
+                        <rect x="0" y="52" width="200" height="290" fill="url(#pint-beer)"></rect>
+                        <g class="pint-fizz" fill="none" stroke="#fff3d6" stroke-opacity="0.55" stroke-width="1.2">
+                            <circle cx="70" cy="290" r="2"></circle>
+                            <circle cx="96" cy="300" r="1.5"></circle>
+                            <circle cx="118" cy="280" r="2.4"></circle>
+                            <circle cx="140" cy="296" r="1.6"></circle>
+                            <circle cx="84" cy="270" r="1.4"></circle>
+                            <circle cx="128" cy="306" r="2"></circle>
+                        </g>
+                        <path class="pint-foam" d="M0 18 Q12 8 24 16 Q36 6 50 15 Q62 5 76 14 Q90 4 104 14 Q118 5 130 15 Q144 6 156 15 Q170 7 184 16 Q194 10 200 14 L200 56 Q186 62 172 55 Q158 63 144 56 Q130 63 116 56 Q102 64 88 56 Q74 63 60 56 Q46 62 32 55 Q16 62 0 56 Z" fill="#fbf4e6"></path>
+                    </g>
+                </g>
+                <path d="M24 14 L176 14 L163 302 Q162 314 150 314 L50 314 Q38 314 37 302 Z" fill="none" stroke="#f2e9da" stroke-opacity="0.75" stroke-width="3"></path>
+                <path d="M31 60 L172 60" stroke="#f2e9da" stroke-opacity="0.12" stroke-width="2"></path>
+                <path d="M44 40 L56 290" stroke="#ffffff" stroke-opacity="0.18" stroke-width="7" stroke-linecap="round"></path>
+                <text x="100" y="326" text-anchor="middle" fill="#968a7b" font-size="11" letter-spacing="3">16 OZ</text>
+            </svg>
+        </div>
+
+        <div class="steps-col">
+            {eyebrow && <p class="eyebrow">{eyebrow}</p>}
+            <h2>{heading}</h2>
+            <ol class="steps">
+                {
+                    steps.map((step, index) => (
+                        <li class="step plate">
+                            <span class="step-no">{String(index + 1).padStart(2, '0')}</span>
+                            <div>
+                                <h3>{step.title}</h3>
+                                <p>{step.text}</p>
+                            </div>
+                        </li>
+                    ))
+                }
+            </ol>
+        </div>
+    </div>
+</section>
+
+<style>
+    .pint-story {
+        position: relative;
+        padding-block: var(--section);
+        background:
+            radial-gradient(40rem 30rem at 10% 40%, rgb(230 166 64 / 0.1), transparent 70%),
+            var(--char);
+        view-timeline-name: --pint;
+    }
+
+    .layout {
+        display: grid;
+        grid-template-columns: 4.75rem minmax(0, 1fr);
+        gap: var(--space-4);
+        align-items: start;
+    }
+
+    @media (max-width: 55.99rem) {
+        .steps .step {
+            grid-template-columns: 1fr;
+            gap: var(--space-2);
+            padding: var(--space-5);
+        }
+
+        .steps .step-no {
+            font-size: 2rem;
+        }
+    }
+
+    .glass-col {
+        position: sticky;
+        top: calc(var(--header-height) + 1.5rem);
+    }
+
+    .pint {
+        width: 100%;
+        filter: drop-shadow(0 30px 30px rgb(0 0 0 / 0.6));
+    }
+
+    .steps {
+        display: grid;
+        gap: var(--space-5);
+        margin: var(--space-10) 0 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .step {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: var(--space-5);
+        padding: var(--space-6) var(--space-6) var(--space-5);
+    }
+
+    .step-no {
+        color: var(--copper);
+        font-family: var(--font-stencil);
+        font-size: 2.6rem;
+        font-weight: 900;
+        line-height: 0.9;
+    }
+
+    .step h3 {
+        margin-bottom: var(--space-2);
+    }
+
+    .step p {
+        margin: 0;
+        color: var(--ash);
+    }
+
+    @media (min-width: 56rem) {
+        .layout {
+            grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+            gap: clamp(2rem, 1rem + 5vw, 7rem);
+        }
+
+        .glass-col {
+            top: calc(var(--header-height) + 3rem);
+            display: grid;
+            justify-items: center;
+        }
+
+        .pint {
+            width: min(100%, 22rem);
+        }
+
+        .steps {
+            gap: var(--space-8);
+        }
+
+        .step {
+            padding: var(--space-8);
+        }
+    }
+</style>

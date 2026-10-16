@@ -1,0 +1,113 @@
+---
+/**
+ * What is coming up in the taproom, from the waffle app's events
+ * (GET /api/site/events, parsed by src/lib/events.ts), as of the last build.
+ * Each is also described to search engines as a schema.org Event at this
+ * address.
+ */
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import EventList from '../components/EventList.astro';
+import LastCall from '../components/LastCall.astro';
+import { site } from '../site';
+import { settings, waffle } from '@core/settings';
+import { parseEvents } from '../lib/events';
+
+const events = parseEvents(await waffle.get('/api/site/events'));
+const { street, city, region, postalCode, country } = site.business.address;
+const place = {
+    '@type': 'Place',
+    name: site.business.name,
+    address: { '@type': 'PostalAddress', streetAddress: street, addressLocality: city, addressRegion: region, postalCode, addressCountry: country },
+};
+const eventNodes = events.map((event) => ({
+    '@type': 'Event',
+    '@id': `${settings.siteUrl}/events/#${event.id}`,
+    name: event.title,
+    description: event.description,
+    startDate: event.time ? `${event.date}T${event.time}` : event.date,
+    eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+    eventStatus: 'https://schema.org/EventScheduled',
+    location: place,
+    organizer: { '@id': `${settings.siteUrl}/#organization` },
+}));
+---
+
+<Base
+    title="Events at the taproom"
+    description="What is on at Ironwood: Wednesday quiz, live music, beer releases, makers markets, brewing classes and food truck nights in an old Ohio foundry."
+    breadcrumbs={[{ name: 'Events', href: '/events/' }]}
+    jsonLd={eventNodes}
+>
+    <PageHead
+        eyebrow="Coming up"
+        heading="Events"
+        lead="Quiz on Wednesdays, music on Saturdays, and a release party whenever a tank is ready. Almost everything is free and needs no booking; classes and the occasional ticketed night say so."
+        ghost="Events"
+    />
+
+    <section class="section">
+        <div class="container events-grid">
+            <EventList events={events} level="h2" />
+            <aside class="side">
+                <div class="plate side-card">
+                    <h2>Planning your own?</h2>
+                    <p class="muted">The Pattern Shop, the loading dock or the whole foundry floor, for eight to a hundred and fifty.</p>
+                    <p class="actions"><a class="button" href="/private-hire/">Private hire</a></p>
+                </div>
+                <div class="plate side-card">
+                    <h2>Good to know</h2>
+                    <ul>
+                        <li>All ages until 8pm unless an event says otherwise.</li>
+                        <li>{site.agePolicy.short}</li>
+                        <li>Dogs welcome at most events; markets on the loading dock especially.</li>
+                    </ul>
+                </div>
+            </aside>
+        </div>
+    </section>
+
+    <LastCall />
+</Base>
+
+<style>
+    .events-grid {
+        display: grid;
+        gap: var(--space-10);
+    }
+
+    .side {
+        display: grid;
+        gap: var(--space-5);
+        align-content: start;
+    }
+
+    .side-card {
+        padding: var(--space-8);
+    }
+
+    .side-card h2 {
+        font-size: 2.1rem;
+    }
+
+    .side-card ul {
+        margin: 0;
+        padding-left: 1.1em;
+        color: var(--ash);
+    }
+
+    .side-card li + li {
+        margin-top: var(--space-2);
+    }
+
+    @media (min-width: 64rem) {
+        .events-grid {
+            grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+        }
+
+        .side {
+            position: sticky;
+            top: calc(var(--header-height) + var(--space-8));
+        }
+    }
+</style>

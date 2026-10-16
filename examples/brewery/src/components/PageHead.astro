@@ -1,0 +1,123 @@
+---
+/**
+ * The top of an inner page, and its one <h1> (docs/seo.md, 5): a page that
+ * uses PageHead puts no other <h1> anywhere.
+ *
+ * A stencil eyebrow, the heading in tall condensed capitals, a lead, and
+ * optionally a photograph in a riveted, angle-cut frame beside it. Behind
+ * it all, a word in outline (`ghost`) drifts slowly sideways: decoration,
+ * hidden from assistive technology. The default slot sits under the lead.
+ */
+import Photo from './Photo.astro';
+import type { PhotoName } from '../data/photos';
+
+interface Props {
+    eyebrow?: string | undefined;
+    heading: string;
+    lead?: string | undefined;
+    photo?: PhotoName | undefined;
+    /** A word drawn huge, in outline, behind the heading. */
+    ghost?: string | undefined;
+}
+
+const { eyebrow, heading, lead, photo, ghost } = Astro.props;
+---
+
+<section class:list={['page-head', { 'with-photo': photo !== undefined }]}>
+    {ghost && <p class="ghost" aria-hidden="true">{ghost} · {ghost} · {ghost}</p>}
+    <div class="container inner">
+        <div class="copy">
+            {eyebrow && <p class="eyebrow">{eyebrow}</p>}
+            <h1>{heading}</h1>
+            {lead && <p class="lead">{lead}</p>}
+            {Astro.slots.has('default') && <div class="extra"><slot /></div>}
+        </div>
+        {
+            photo && (
+                <div class="frame plate">
+                    <Photo name={photo} sizes="(min-width: 64rem) 40vw, 100vw" priority class="frame-image" />
+                </div>
+            )
+        }
+    </div>
+</section>
+
+<style>
+    .page-head {
+        position: relative;
+        overflow: hidden;
+        padding: clamp(3rem, 2rem + 4vw, 6rem) 0 clamp(3rem, 2rem + 3vw, 5rem);
+        background:
+            radial-gradient(50rem 26rem at 85% 0%, var(--copper-glow), transparent 70%),
+            linear-gradient(180deg, var(--soot), transparent);
+        border-bottom: 1px solid var(--seam);
+    }
+
+    .ghost {
+        position: absolute;
+        top: 50%;
+        left: 0;
+        margin: 0;
+        color: transparent;
+        font-family: var(--font-display);
+        font-size: clamp(8rem, 4rem + 18vw, 20rem);
+        font-weight: 900;
+        line-height: 1;
+        text-transform: uppercase;
+        white-space: nowrap;
+        -webkit-text-stroke: 1px rgb(220 141 80 / 0.16);
+        transform: translateY(-50%);
+        pointer-events: none;
+        user-select: none;
+    }
+
+    .inner {
+        position: relative;
+        display: grid;
+        gap: var(--space-10);
+        align-items: center;
+    }
+
+    .copy {
+        max-width: 52rem;
+    }
+
+    h1 {
+        margin-bottom: var(--space-6);
+    }
+
+    .lead {
+        margin-bottom: 0;
+    }
+
+    .extra {
+        margin-top: var(--space-8);
+    }
+
+    .frame {
+        padding: 10px;
+        clip-path: polygon(0 0, 100% 0, 100% calc(100% - 2.5rem), calc(100% - 2.5rem) 100%, 0 100%);
+    }
+
+    .frame :global(.frame-image) {
+        width: 100%;
+        aspect-ratio: 4 / 3;
+        object-fit: cover;
+        border-radius: 2px;
+        filter: saturate(0.9) contrast(1.05);
+    }
+
+    @media (min-width: 64rem) {
+        .with-photo .inner {
+            grid-template-columns: 1.15fr 0.85fr;
+        }
+
+        .with-photo h1 {
+            font-size: clamp(3.4rem, 1.4rem + 4.6vw, 6.75rem);
+        }
+
+        .frame :global(.frame-image) {
+            aspect-ratio: 4 / 4.4;
+        }
+    }
+</style>

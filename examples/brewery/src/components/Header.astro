@@ -1,0 +1,370 @@
+---
+/**
+ * The site header, sticky: the logo, the navigation and private hire, then
+ * the "on tap now" ticker, a marquee of what is pouring, read from the
+ * waffle app's tap list at build time (src/lib/taplist.ts).
+ *
+ * Two navigations, one shown at a time: a plain one on wide screens, and on
+ * phones a <details> menu that opens without any script. A browser hides a
+ * closed <details>'s contents whatever the CSS says, so the wide-screen
+ * navigation cannot live inside it.
+ *
+ * The ticker is one link to /on-tap/ that says what it is in words; the
+ * moving track is decoration for sighted visitors (aria-hidden), doubled so
+ * it loops. With reduced motion it stands still and scrolls sideways.
+ */
+import Logo from './Logo.astro';
+import { site } from '../site';
+import { waffle } from '@core/settings';
+import { parseTaplist } from '../lib/taplist';
+import { abv } from '../data/beers';
+
+const taplist = parseTaplist(await waffle.get('/api/site/taplist'));
+const current = Astro.url.pathname;
+const isCurrent = (href: string) => current === href || (href !== '/' && current.startsWith(href));
+const fresh = taplist.taps.filter((tap) => tap.isNew).length;
+---
+
+<header class="site-header">
+    <div class="container bar">
+        <Logo />
+
+        <nav class="nav-wide" aria-label="Main">
+            <ul>
+                {
+                    site.nav.map((link) => (
+                        <li>
+                            <a href={link.href} aria-current={isCurrent(link.href) ? 'page' : undefined}>
+                                {link.label}
+                            </a>
+                        </li>
+                    ))
+                }
+            </ul>
+        </nav>
+
+        <a class="button cta-wide" href={site.cta.href}>{site.cta.label}</a>
+
+        <details class="menu">
+            <summary>
+                <span class="visually-hidden">Menu</span>
+                <span class="burger" aria-hidden="true"><span></span><span></span><span></span></span>
+            </summary>
+            <nav class="nav-narrow" aria-label="Main, on small screens">
+                <ul>
+                    {
+                        site.nav.map((link) => (
+                            <li>
+                                <a href={link.href} aria-current={isCurrent(link.href) ? 'page' : undefined}>
+                                    {link.label}
+                                </a>
+                            </li>
+                        ))
+                    }
+                    <li><a href="/about/">Our story</a></li>
+                    <li><a href="/contact/">Contact and directions</a></li>
+                </ul>
+                <p class="actions">
+                    <a class="button" href={site.cta.href}>{site.cta.label}</a>
+                    <a class="button button-ghost" href={`tel:${site.business.phoneE164}`}>Call {site.business.phone}</a>
+                </p>
+                <p class="menu-age">{site.agePolicy.short}</p>
+            </nav>
+        </details>
+    </div>
+
+    <a class="ticker" href="/on-tap/">
+        <span class="ticker-label"><span class="dot" aria-hidden="true"></span>On tap now</span>
+        <span class="visually-hidden">: {taplist.taps.length} beers pouring, {fresh} of them new. See the full tap list.</span>
+        <span class="track" aria-hidden="true">
+            {
+                [0, 1].map(() => (
+                    <span class="run">
+                        {taplist.taps.map((tap) => (
+                            <span class="item">
+                                <span class="no">{String(tap.tap).padStart(2, '0')}</span>
+                                {tap.name}
+                                <span class="abv">{abv(tap.abv)}</span>
+                                {tap.isNew && <span class="flag flag-new">New</span>}
+                            </span>
+                        ))}
+                        <span class="item age">{site.agePolicy.short}</span>
+                    </span>
+                ))
+            }
+        </span>
+    </a>
+</header>
+
+<style>
+    .site-header {
+        position: sticky;
+        top: 0;
+        z-index: 30;
+        background: rgb(12 11 10 / 0.92);
+        border-bottom: 1px solid var(--seam);
+        backdrop-filter: blur(10px) saturate(1.2);
+        -webkit-backdrop-filter: blur(10px) saturate(1.2);
+    }
+
+    .bar {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-6);
+        min-height: 4.4rem;
+    }
+
+    ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .nav-wide,
+    .cta-wide {
+        display: none;
+    }
+
+    .nav-wide ul {
+        display: flex;
+        gap: var(--space-1);
+    }
+
+    .nav-wide a {
+        position: relative;
+        display: block;
+        padding: var(--space-2) var(--space-3);
+        color: var(--bone);
+        font-family: var(--font-display);
+        font-size: 1.2rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-decoration: none;
+        text-transform: uppercase;
+    }
+
+    /* A copper pour line runs in under the link. */
+    .nav-wide a::after {
+        content: '';
+        position: absolute;
+        left: var(--space-3);
+        right: var(--space-3);
+        bottom: 0.2rem;
+        height: 3px;
+        background: var(--copper);
+        transform: scaleX(0);
+        transform-origin: 0 50%;
+        transition: transform 0.25s cubic-bezier(0.3, 0.8, 0.3, 1);
+    }
+
+    .nav-wide a:hover::after,
+    .nav-wide a[aria-current='page']::after {
+        transform: scaleX(1);
+    }
+
+    .nav-wide a[aria-current='page'] {
+        color: var(--copper-bright);
+    }
+
+    .cta-wide {
+        min-height: 2.75rem;
+        padding: 0.55rem 1.1rem 0.5rem;
+        font-size: 1rem;
+    }
+
+    summary {
+        display: inline-grid;
+        place-items: center;
+        width: 3rem;
+        height: 3rem;
+        border: 1px solid var(--seam-strong);
+        border-radius: var(--radius-small);
+        list-style: none;
+        cursor: pointer;
+    }
+
+    summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .burger {
+        display: grid;
+        gap: 5px;
+        width: 1.4rem;
+    }
+
+    .burger span {
+        height: 2px;
+        background: var(--bone);
+        transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+
+    .menu[open] .burger span:nth-child(1) {
+        transform: translateY(7px) rotate(45deg);
+    }
+
+    .menu[open] .burger span:nth-child(2) {
+        opacity: 0;
+    }
+
+    .menu[open] .burger span:nth-child(3) {
+        transform: translateY(-7px) rotate(-45deg);
+    }
+
+    .nav-narrow {
+        position: absolute;
+        left: calc(-1 * var(--gutter));
+        right: calc(-1 * var(--gutter));
+        top: 100%;
+        z-index: 2;
+        max-height: calc(100dvh - 4.4rem);
+        overflow-y: auto;
+        padding: var(--space-4) var(--gutter) var(--space-8);
+        background: var(--soot);
+        border-bottom: 2px solid var(--copper);
+    }
+
+    .nav-narrow ul {
+        margin-bottom: var(--space-6);
+    }
+
+    .nav-narrow li + li {
+        border-top: 1px solid var(--seam);
+    }
+
+    .nav-narrow li a {
+        display: block;
+        padding: var(--space-3) 0;
+        color: var(--bone);
+        font-family: var(--font-display);
+        font-size: 1.75rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        text-decoration: none;
+        text-transform: uppercase;
+    }
+
+    .nav-narrow li a[aria-current='page'] {
+        color: var(--copper-bright);
+    }
+
+    .menu-age {
+        margin: var(--space-5) 0 0;
+        color: var(--ash);
+        font-size: 0.95rem;
+    }
+
+    /* The ticker. */
+    .ticker {
+        position: relative;
+        display: flex;
+        align-items: stretch;
+        height: 2.2rem;
+        overflow: hidden;
+        background: var(--copper);
+        color: var(--soot);
+        text-decoration: none;
+    }
+
+    .ticker:hover {
+        color: var(--soot);
+        background: var(--copper-bright);
+    }
+
+    .ticker-label {
+        position: relative;
+        z-index: 1;
+        display: inline-flex;
+        flex: none;
+        align-items: center;
+        gap: var(--space-2);
+        padding: 0 var(--space-4) 0 var(--gutter);
+        background: var(--soot);
+        color: var(--copper);
+        font-family: var(--font-stencil);
+        font-size: 0.95rem;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        clip-path: polygon(0 0, 100% 0, calc(100% - 0.9rem) 100%, 0 100%);
+        padding-right: 1.6rem;
+    }
+
+    .dot {
+        width: 0.5rem;
+        height: 0.5rem;
+        border-radius: 50%;
+        background: var(--hop);
+        box-shadow: 0 0 0 3px var(--hop-glow);
+    }
+
+    .track {
+        display: flex;
+        flex: none;
+        align-items: center;
+        width: max-content;
+    }
+
+    .run {
+        display: flex;
+        flex: none;
+        align-items: center;
+    }
+
+    .item {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        padding: 0 var(--space-5);
+        border-right: 1px solid rgb(12 11 10 / 0.3);
+        font-family: var(--font-display);
+        font-size: 1.1rem;
+        font-weight: 750;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    .no {
+        font-family: var(--font-stencil);
+        opacity: 0.7;
+    }
+
+    .abv {
+        font-weight: 600;
+        opacity: 0.8;
+    }
+
+    .item .flag {
+        vertical-align: baseline;
+        background: var(--soot);
+        color: var(--hop);
+    }
+
+    .age {
+        font-family: var(--font-text);
+        font-size: 0.9rem;
+        font-weight: 700;
+        letter-spacing: 0;
+        text-transform: none;
+    }
+
+    @media (min-width: 75rem) {
+        .nav-wide,
+        .cta-wide {
+            display: flex;
+        }
+
+        .menu {
+            display: none;
+        }
+    }
+
+    @media (max-width: 26rem) {
+        .bar :global(.sub) {
+            display: none;
+        }
+    }
+</style>

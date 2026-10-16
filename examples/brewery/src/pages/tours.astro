@@ -1,0 +1,208 @@
+---
+/** Brewery tours: what each tour includes, when, and how to book. */
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import Photo from '../components/Photo.astro';
+import Kinetic from '../components/Kinetic.astro';
+import LastCall from '../components/LastCall.astro';
+import { site } from '../site';
+
+const tours = [
+    {
+        name: 'The Saturday tour',
+        when: 'Saturdays at 1pm and 3pm',
+        length: '45 minutes',
+        price: '$18',
+        text: 'Through the mill room, past the mash tun and the copper-clad kettle, into the cold room and up onto the gantry over the fermenters, with the story of the stove works on the way. Four tasters straight from the tanks, and a glass to keep.',
+        book: 'Walk in, or book ahead at the bar. Twenty places per tour.',
+    },
+    {
+        name: 'Brewer’s bench',
+        when: 'Thursdays at 5pm, by booking',
+        length: '90 minutes',
+        price: '$45',
+        text: 'For the curious: an hour with one of our brewers, tasting malts and rubbing hops, then a guided flight of six with the recipe sheet for each. Ends with a pint of your choice in the Pattern Shop.',
+        book: 'Eight places. Book by phone or with the enquiry form.',
+    },
+    {
+        name: 'Group tours',
+        when: 'Any day, by arrangement',
+        length: 'An hour or so',
+        price: 'From $22 a head',
+        text: 'For birthdays, work outings and clubs of ten to forty: the Saturday tour, at a time that suits you, with a flight each and a table kept for afterwards.',
+        book: 'Send a private event enquiry and choose “Group tour and tasting”.',
+    },
+];
+---
+
+<Base
+    title="Brewery tours"
+    description="Tour the Ironwood brewhouse and the 1888 stove foundry it stands in: Saturday tours with four tasters, a brewer's bench session, and private group tours."
+    breadcrumbs={[{ name: 'Brewery tours', href: '/tours/' }]}
+>
+    <PageHead
+        eyebrow="See how it is made"
+        heading="Brewery tours"
+        lead="Stand on the gantry over the fermenters, put your hand in a sack of malt, smell the hops going in, and hear how a stove foundry became a brewery."
+        photo="copperBrewhouse"
+        ghost="Tours"
+    />
+
+    <section class="section">
+        <div class="container">
+            <ol class="tours">
+                {
+                    tours.map((tour, index) => (
+                        <li class="tour plate plate-inset">
+                            <span class="tour-no" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
+                            <div class="tour-main">
+                                <h2>{tour.name}</h2>
+                                <p>{tour.text}</p>
+                                <p class="muted book">{tour.book}</p>
+                            </div>
+                            <dl class="tour-facts">
+                                <div><dt>When</dt><dd>{tour.when}</dd></div>
+                                <div><dt>How long</dt><dd>{tour.length}</dd></div>
+                                <div><dt>Price</dt><dd class="price">{tour.price}</dd></div>
+                            </dl>
+                        </li>
+                    ))
+                }
+            </ol>
+        </div>
+    </section>
+
+    <Kinetic lines={['Mill · Mash · Boil', 'Ferment · Condition · Pour']} />
+
+    <section class="section">
+        <div class="container know-grid">
+            <figure class="plate know-photo"><Photo name="tankHall" sizes="(min-width: 64rem) 45vw, 100vw" class="smoke-in" /></figure>
+            <div>
+                <p class="eyebrow">Before you come</p>
+                <h2>Good to know</h2>
+                <ul class="know">
+                    <li><strong>Tasters are for over-21s</strong> with photo ID. Under-21s may join the Saturday tour with an adult and get a root beer instead.</li>
+                    <li><strong>Wear closed shoes.</strong> The brewhouse floor is wet, and there are steel stairs to the gantry.</li>
+                    <li><strong>Step-free option.</strong> Tell us and we will take the ground-floor route, with the gantry seen from below.</li>
+                    <li><strong>Call ahead for groups</strong> of more than six: <a href={`tel:${site.business.phoneE164}`}>{site.business.phone}</a>.</li>
+                </ul>
+                <p class="actions">
+                    <a class="button" href="/private-hire/#enquire">Book a group tour</a>
+                    <a class="button button-ghost" href="/faq/">Questions</a>
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <LastCall />
+</Base>
+
+<style>
+    .tours {
+        display: grid;
+        gap: var(--space-6);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .tour {
+        display: grid;
+        gap: var(--space-5) var(--space-10);
+        padding: clamp(1.5rem, 1rem + 2vw, 3rem);
+    }
+
+    .tour-no {
+        color: transparent;
+        font-family: var(--font-display);
+        font-size: 5rem;
+        font-weight: 900;
+        line-height: 0.8;
+        -webkit-text-stroke: 2px var(--copper);
+    }
+
+    .tour-main p {
+        color: #ddd2c1;
+    }
+
+    .book {
+        margin: 0;
+    }
+
+    .tour-facts {
+        display: grid;
+        gap: var(--space-3);
+        align-content: start;
+        margin: 0;
+    }
+
+    .tour-facts div {
+        padding-bottom: var(--space-3);
+        border-bottom: 1px dashed var(--seam);
+    }
+
+    .tour-facts dt {
+        color: var(--copper);
+        font-family: var(--font-stencil);
+        font-size: 0.9rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+    }
+
+    .tour-facts dd {
+        margin: 0;
+        font-weight: 600;
+    }
+
+    .price {
+        color: var(--hop);
+        font-family: var(--font-display);
+        font-size: 2rem;
+        line-height: 1.1;
+    }
+
+    @media (min-width: 60rem) {
+        .tour {
+            grid-template-columns: 6rem minmax(0, 1fr) 15rem;
+        }
+    }
+
+    .know-grid {
+        display: grid;
+        gap: var(--space-12);
+        align-items: center;
+    }
+
+    .know-photo {
+        margin: 0;
+        padding: 10px;
+    }
+
+    .know-photo :global(img) {
+        width: 100%;
+        aspect-ratio: 4 / 3;
+        object-fit: cover;
+        border-radius: 2px;
+    }
+
+    .know {
+        display: grid;
+        gap: var(--space-3);
+        margin: 0 0 var(--space-8);
+        padding: 0;
+        list-style: none;
+    }
+
+    .know li {
+        padding-left: var(--space-5);
+        border-left: 3px solid var(--copper);
+        color: var(--ash);
+    }
+
+    @media (min-width: 64rem) {
+        .know-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+</style>

@@ -1,0 +1,632 @@
+---
+/**
+ * The home page: the foundry, what is pouring now (from the waffle app's tap
+ * list), the core range as cans, how a pint is made, the taproom, what is
+ * coming up (from the waffle app's events), and the way in.
+ */
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import Photo from '../components/Photo.astro';
+import Bubbles from '../components/Bubbles.astro';
+import TapBoard from '../components/TapBoard.astro';
+import Kinetic from '../components/Kinetic.astro';
+import CanCard from '../components/CanCard.astro';
+import PintScroll from '../components/PintScroll.astro';
+import EventList from '../components/EventList.astro';
+import PostGrid from '../components/PostGrid.astro';
+import LastCall from '../components/LastCall.astro';
+import { site } from '../site';
+import { beers } from '../data/beers';
+import { overheard } from '../data/overheard';
+import { waffle, buildTime, settings } from '@core/settings';
+import { parseTaplist } from '../lib/taplist';
+import { parseEvents } from '../lib/events';
+import { visiblePosts } from '@core/lib/posts.js';
+
+const taplist = parseTaplist(await waffle.get('/api/site/taplist'));
+const events = parseEvents(await waffle.get('/api/site/events'));
+const posts = visiblePosts(await getCollection('blog'), { includeDrafts: !settings.production, now: buildTime }).slice(0, 3);
+const fresh = taplist.taps.filter((tap) => tap.isNew);
+
+const steps = [
+    { title: 'Mill and mash', text: 'Barley malt from a floor maltings in Wisconsin, cracked on our own mill and steeped in river-valley water at exactly the right heat to turn starch into sugar.' },
+    { title: 'Boil and hop', text: 'An hour at a rolling boil in the copper-clad kettle, with hops thrown in early for bitterness and late for aroma. The whole street smells of it.' },
+    { title: 'Ferment', text: 'Into one of eight fermenters with a yeast we keep alive from batch to batch. Ales take a week or two; our lagers sit cold for six.' },
+    { title: 'Condition', text: 'Chilled, rested, carbonated slowly. This is where a beer gets its polish, and the step most breweries rush.' },
+    { title: 'Pour', text: 'Twenty yards of beer line from the cold room to the bar, and into a clean glass at the right temperature. Then it is yours.' },
+];
+---
+
+<Base title={site.name} description={site.description}>
+    <section class="hero">
+        <div class="hero-media" aria-hidden="true">
+            <Photo name="taproomTanks" sizes="100vw" priority decorative class="hero-photo" />
+        </div>
+        <Bubbles count={28} />
+        <div class="container hero-inner">
+            <div class="hero-copy">
+                <p class="eyebrow">Wrenford, Ohio · Since {site.business.founded}</p>
+                <h1>
+                    <span class="line"><span class="line-inner">Brewed in</span></span>
+                    <span class="line"><span class="line-inner">a foundry.</span></span>
+                    <span class="line copper"><span class="line-inner">Poured by</span></span>
+                    <span class="line copper"><span class="line-inner">the river.</span></span>
+                </h1>
+                <p class="lead">Small-batch lagers, ales and stouts, brewed and served under the steel trusses of the {site.business.built} Wrenford Stove Works, at the foot of Foundry Row.</p>
+                <p class="actions">
+                    <a class="button button-large" href="/on-tap/">See what is on tap</a>
+                    <a class="button button-ghost button-large" href="/taproom/">Plan a visit</a>
+                </p>
+            </div>
+
+            <aside class="tonight plate plate-inset" aria-label="At the bar">
+                <p class="stencil tonight-label">At the bar</p>
+                <p class="tonight-count"><span class="big-number">{taplist.taps.length}</span> beers on tap</p>
+                {fresh.length > 0 && (
+                    <p class="tonight-new">
+                        <span class="flag flag-new">New</span> {fresh.map((tap) => tap.name).join(', ')}
+                    </p>
+                )}
+                <p class="tonight-hours">Open Wednesday to Sunday. {site.business.closedDays}.</p>
+                <div class="tonight-age">
+                    <span class="age-stamp" aria-hidden="true">21+</span>
+                    <p>{site.agePolicy.short}</p>
+                </div>
+            </aside>
+        </div>
+    </section>
+
+    <section class="section on-tap">
+        <div class="container">
+            <header class="section-head split-head">
+                <div>
+                    <p class="eyebrow">Pouring now</p>
+                    <h2>On tap at the bar</h2>
+                </div>
+                <p class="muted">Straight from the bar's own tap list: what the bartenders are pouring, with every pour size and price. The board changes most weeks.</p>
+            </header>
+            <TapBoard taps={taplist.taps.slice(0, 6)} updated={taplist.updated} />
+            <p class="more"><a class="button button-hop" href="/on-tap/">All {taplist.taps.length} taps →</a></p>
+        </div>
+    </section>
+
+    <Kinetic lines={['Small batch · River water', 'Foundry fired · Since 2016']} />
+
+    <section class="section range">
+        <div class="container">
+            <header class="section-head split-head">
+                <div>
+                    <p class="eyebrow">The core range</p>
+                    <h2>Six beers, all year</h2>
+                </div>
+                <p class="muted">The beers we never let run dry, each named for a piece of the foundry or the river. Hover a can to give it a turn.</p>
+            </header>
+            <ul class="can-grid">
+                {
+                    beers.map((beer) => (
+                        <li>
+                            <CanCard beer={beer} />
+                        </li>
+                    ))
+                }
+            </ul>
+        </div>
+    </section>
+
+    <PintScroll eyebrow="How it is made" heading="From grain to glass" steps={steps} />
+
+    <section class="section taproom-band">
+        <div class="container taproom-grid">
+            <div class="mosaic" aria-hidden="true">
+                <Photo name="busyBar" sizes="(min-width: 64rem) 30vw, 60vw" decorative class="m1 smoke-in" />
+                <Photo name="barDog" sizes="(min-width: 64rem) 18vw, 40vw" decorative class="m2 smoke-in" />
+                <Photo name="foodTruckNight" sizes="(min-width: 64rem) 22vw, 50vw" decorative class="m3 smoke-in" />
+            </div>
+            <div class="taproom-copy">
+                <p class="eyebrow">The taproom</p>
+                <h2>Long tables, high windows, dogs welcome</h2>
+                <p class="lead">The old casting floor seats a hundred and ten on benches built from the foundry’s own pattern-shop timber. There is a covered loading dock over the river for warm evenings and a wood stove for cold ones.</p>
+                <ul class="facts">
+                    <li class="fact"><strong>A food truck</strong> parked outside Wednesday to Sunday, or bring your own food.</li>
+                    <li class="fact"><strong>Kids welcome</strong> with an adult until 8pm. Root beer on tap; no one under 21 is served alcohol.</li>
+                    <li class="fact"><strong>Dogs welcome</strong> on the loading dock and the foundry floor, on a lead.</li>
+                </ul>
+                <p class="actions"><a class="button" href="/taproom/">The taproom</a></p>
+            </div>
+        </div>
+    </section>
+
+    <section class="section events-band">
+        <div class="container events-grid">
+            <header class="section-head">
+                <p class="eyebrow">Coming up</p>
+                <h2>On the calendar</h2>
+                <p class="muted">Quiz on Wednesdays, music most Saturdays, and a release whenever a tank is ready.</p>
+                <p class="actions"><a class="button button-ghost" href="/events/">Every event</a></p>
+            </header>
+            <EventList events={events} limit={3} />
+        </div>
+    </section>
+
+    <section class="section overheard">
+        <div class="container">
+            <header class="section-head">
+                <p class="eyebrow">Overheard at the bar</p>
+                <h2 class="visually-hidden">What people say</h2>
+            </header>
+            <ul class="quotes">
+                {
+                    overheard.map((quote) => (
+                        <li class="quote">
+                            <blockquote>
+                                <p>{quote.text}</p>
+                            </blockquote>
+                            <p class="who">{quote.who}</p>
+                        </li>
+                    ))
+                }
+            </ul>
+        </div>
+    </section>
+
+    <section class="section hire">
+        <div class="container hire-grid">
+            <a class="hire-card plate" href="/private-hire/">
+                <Photo name="cheers" sizes="(min-width: 64rem) 40vw, 100vw" decorative class="hire-photo" />
+                <span class="hire-body">
+                    <span class="stencil hire-kicker">Private hire</span>
+                    <span class="hire-title">Have the Pattern Shop to yourselves</span>
+                    <span class="hire-text">Birthdays, rehearsal dinners, team nights and weddings, for eight to a hundred and fifty.</span>
+                    <span class="hire-go">Plan an event →</span>
+                </span>
+            </a>
+            <a class="hire-card plate" href="/tours/">
+                <Photo name="copperBrewhouse" sizes="(min-width: 64rem) 40vw, 100vw" decorative class="hire-photo" />
+                <span class="hire-body">
+                    <span class="stencil hire-kicker">Brewery tours</span>
+                    <span class="hire-title">Stand where the iron was poured</span>
+                    <span class="hire-text">Saturday tours of the brewhouse and the foundry’s story, with four tasters straight from the tanks.</span>
+                    <span class="hire-go">Book a tour →</span>
+                </span>
+            </a>
+        </div>
+    </section>
+
+    {
+        posts.length > 0 && (
+            <section class="section notes">
+                <div class="container">
+                    <header class="section-head split-head">
+                        <div>
+                            <p class="eyebrow">Brewing notes</p>
+                            <h2>From the brewhouse floor</h2>
+                        </div>
+                        <p class="actions"><a class="button button-ghost" href="/blog/">All notes</a></p>
+                    </header>
+                    <PostGrid posts={posts} level="h3" />
+                </div>
+            </section>
+        )
+    }
+
+    <LastCall />
+</Base>
+
+<style>
+    /* The hero: the taproom behind, smoke-dark, and carbonation rising. */
+    .hero {
+        position: relative;
+        overflow: hidden;
+        min-height: calc(100svh - var(--header-height));
+        padding: clamp(3rem, 2rem + 5vw, 7rem) 0 clamp(3rem, 2rem + 4vw, 6rem);
+        display: grid;
+        align-items: center;
+        background: var(--soot);
+    }
+
+    .hero-media {
+        position: absolute;
+        inset: 0;
+    }
+
+    .hero-media::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background:
+            linear-gradient(90deg, rgb(12 11 10 / 0.96) 0%, rgb(12 11 10 / 0.82) 45%, rgb(12 11 10 / 0.45) 100%),
+            linear-gradient(0deg, rgb(12 11 10 / 1) 0%, transparent 35%),
+            radial-gradient(50rem 30rem at 80% 100%, rgb(220 141 80 / 0.25), transparent 70%);
+    }
+
+    .hero-media :global(.hero-photo) {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        filter: sepia(0.35) saturate(0.8) brightness(0.85);
+        transform: scale(1.04);
+    }
+
+    .hero-inner {
+        position: relative;
+        display: grid;
+        gap: var(--space-12);
+        align-items: end;
+    }
+
+    h1 {
+        display: grid;
+        margin-bottom: var(--space-8);
+        font-size: clamp(3.6rem, 1.4rem + 9vw, 10.5rem);
+        line-height: 0.84;
+    }
+
+    .line {
+        display: block;
+        overflow: hidden;
+        padding-bottom: 0.04em;
+    }
+
+    .line-inner {
+        display: block;
+    }
+
+    .copper {
+        color: var(--copper);
+    }
+
+    .hero .lead {
+        color: #d4c9b8;
+    }
+
+    .hero .actions {
+        margin-top: var(--space-8);
+    }
+
+    .tonight {
+        display: grid;
+        gap: var(--space-3);
+        max-width: 24rem;
+        padding: var(--space-8);
+        background-color: rgb(30 27 24 / 0.86);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+    }
+
+    .tonight p {
+        margin: 0;
+    }
+
+    .tonight-label {
+        color: var(--copper);
+    }
+
+    .tonight-count {
+        display: flex;
+        align-items: baseline;
+        gap: var(--space-3);
+        font-family: var(--font-display);
+        font-size: 1.6rem;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+
+    .tonight-count .big-number {
+        color: var(--hop);
+        font-size: 4.5rem;
+    }
+
+    .tonight-new,
+    .tonight-hours {
+        color: var(--ash);
+        font-size: 0.95rem;
+    }
+
+    .tonight-age {
+        display: flex;
+        align-items: center;
+        gap: var(--space-4);
+        margin-top: var(--space-3);
+        padding-top: var(--space-4);
+        border-top: 1px dashed var(--seam-strong);
+    }
+
+    .tonight-age .age-stamp {
+        width: 4rem;
+        height: 4rem;
+        font-size: 1.4rem;
+    }
+
+    .tonight-age p {
+        color: var(--bone);
+        font-weight: 700;
+    }
+
+    @media (min-width: 64rem) {
+        .hero-inner {
+            grid-template-columns: minmax(0, 1fr) 22rem;
+        }
+    }
+
+    /* Section heads. */
+    .section-head {
+        margin-bottom: var(--space-10);
+    }
+
+    .split-head {
+        display: grid;
+        gap: var(--space-4) var(--space-10);
+        align-items: end;
+    }
+
+    .split-head h2 {
+        margin: 0;
+    }
+
+    .split-head p {
+        max-width: 30rem;
+        margin: 0;
+    }
+
+    @media (min-width: 56rem) {
+        .split-head {
+            grid-template-columns: 1fr auto;
+        }
+    }
+
+    .on-tap {
+        background: var(--char);
+    }
+
+    .more {
+        margin: var(--space-8) 0 0;
+        text-align: right;
+    }
+
+    .range {
+        background:
+            radial-gradient(60rem 30rem at 50% 0%, rgb(174 203 92 / 0.07), transparent 70%),
+            var(--char);
+    }
+
+    .can-grid {
+        display: grid;
+        gap: var(--space-16) var(--space-8);
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    @media (max-width: 34rem) {
+        .can-grid {
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-12) var(--space-4);
+        }
+
+        .can-grid :global(.summary) {
+            display: none;
+        }
+    }
+
+    /* The taproom band: a mosaic of photos at odd angles. */
+    .taproom-band {
+        background: var(--soot);
+        border-block: 1px solid var(--seam);
+    }
+
+    .taproom-grid {
+        display: grid;
+        gap: var(--space-12);
+        align-items: center;
+    }
+
+    .mosaic {
+        position: relative;
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        grid-template-rows: repeat(6, clamp(2.75rem, 1.5rem + 3vw, 4.5rem));
+    }
+
+    .mosaic :global(img) {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border: 8px solid var(--plate-raised);
+        box-shadow: 0 20px 40px -20px #000;
+    }
+
+    .mosaic :global(.m1) {
+        grid-column: 1 / 5;
+        grid-row: 1 / 5;
+    }
+
+    .mosaic :global(.m2) {
+        z-index: 1;
+        grid-column: 4 / 7;
+        grid-row: 3 / 7;
+        rotate: 3deg;
+    }
+
+    /* rotate, not transform: the smoke-in animation owns transform. */
+    .mosaic :global(.m3) {
+        grid-column: 1 / 4;
+        grid-row: 5 / 7;
+        rotate: -2deg;
+    }
+
+    .facts {
+        display: grid;
+        gap: var(--space-3);
+        margin: var(--space-6) 0 var(--space-8);
+        padding: 0;
+        list-style: none;
+    }
+
+    .fact {
+        padding: var(--space-4) var(--space-5);
+        border-left: 3px solid var(--hop);
+        background: var(--plate);
+        color: var(--ash);
+    }
+
+    @media (min-width: 64rem) {
+        .taproom-grid {
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-20);
+        }
+    }
+
+    .events-grid {
+        display: grid;
+        gap: var(--space-8);
+    }
+
+    @media (min-width: 64rem) {
+        .events-grid {
+            grid-template-columns: 0.8fr 1.2fr;
+            align-items: start;
+        }
+
+        .events-grid .section-head {
+            position: sticky;
+            top: calc(var(--header-height) + var(--space-8));
+        }
+    }
+
+    /* Overheard: quotes hung like chalk notes on the wall. */
+    .overheard {
+        background: var(--soot);
+        border-block: 1px solid var(--seam);
+    }
+
+    .quotes {
+        display: grid;
+        gap: var(--space-6);
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .quote {
+        padding: var(--space-6);
+        border-top: 3px solid var(--copper);
+        background: var(--plate);
+    }
+
+    .quote::before {
+        content: '“';
+        display: block;
+        height: 2.6rem;
+        color: var(--copper);
+        font-family: var(--font-display);
+        font-size: 6rem;
+        font-weight: 900;
+        line-height: 1;
+    }
+
+    .quote:nth-child(even) {
+        margin-top: 1.5rem;
+        border-color: var(--hop);
+    }
+
+    .quote:nth-child(even)::before {
+        color: var(--hop);
+    }
+
+    blockquote {
+        margin: 0;
+    }
+
+    blockquote p {
+        margin: 0 0 var(--space-4);
+        color: var(--bone);
+        font-size: 1.08rem;
+        font-style: italic;
+        line-height: 1.55;
+    }
+
+    .who {
+        margin: 0;
+        color: var(--copper);
+        font-family: var(--font-stencil);
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+    }
+
+    /* Private hire and tours: two big riveted cards. */
+    .hire-grid {
+        display: grid;
+        gap: var(--space-8);
+    }
+
+    @media (min-width: 56rem) {
+        .hire-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    .hire-card {
+        display: grid;
+        overflow: hidden;
+        padding: 10px;
+        color: var(--bone);
+        text-decoration: none;
+        transition: border-color 0.25s ease, transform 0.25s ease;
+    }
+
+    .hire-card:hover {
+        border-color: var(--copper);
+        color: var(--bone);
+        transform: translateY(-4px);
+    }
+
+    .hire-card :global(.hire-photo) {
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        object-fit: cover;
+        border-radius: 2px;
+        filter: sepia(0.3) brightness(0.8);
+        transition: filter 0.4s ease;
+    }
+
+    .hire-card:hover :global(.hire-photo) {
+        filter: none;
+    }
+
+    .hire-body {
+        display: grid;
+        gap: var(--space-3);
+        padding: var(--space-6) var(--space-4) var(--space-4);
+    }
+
+    .hire-kicker {
+        color: var(--copper);
+    }
+
+    .hire-title {
+        font-family: var(--font-display);
+        font-size: clamp(2rem, 1.5rem + 1.5vw, 2.9rem);
+        font-weight: 850;
+        line-height: 0.92;
+        text-transform: uppercase;
+    }
+
+    .hire-text {
+        color: var(--ash);
+    }
+
+    .hire-go {
+        color: var(--hop);
+        font-family: var(--font-stencil);
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+    }
+
+    .notes {
+        background: var(--char);
+    }
+</style>

@@ -1,0 +1,176 @@
+---
+/**
+ * Upcoming taproom events from the waffle app (src/lib/events.ts), each as a
+ * ticket stub: the date punched out on the left, the kind stencilled, then
+ * the title and what to expect. `limit` shows the first few (the home page).
+ */
+import type { TaproomEvent } from '../lib/events';
+import { dateParts, kindLabels } from '../lib/events';
+import { clock } from '../site';
+
+interface Props {
+    events: TaproomEvent[];
+    limit?: number;
+    level?: 'h2' | 'h3';
+}
+
+const { events, limit, level = 'h3' } = Astro.props;
+const Heading = level;
+const shown = limit === undefined ? events : events.slice(0, limit);
+---
+
+{shown.length === 0 && <p class="none">Nothing on the calendar just now. The bar is open all the same.</p>}
+
+<ol class="events">
+    {
+        shown.map((event) => {
+            const parts = dateParts(event.date);
+
+            return (
+                <li class:list={['stub', `kind-${event.kind}`]}>
+                    <p class="date">
+                        <time datetime={event.time ? `${event.date}T${event.time}` : event.date}>
+                            <span class="weekday">{parts.weekday}</span>
+                            <span class="day">{parts.day}</span>
+                            <span class="month">{parts.month}</span>
+                        </time>
+                    </p>
+                    <div class="body">
+                        <p class="meta">
+                            <span class="kind">{kindLabels[event.kind]}</span>
+                            <span>{event.time ? `From ${clock(event.time)}` : 'All day'}</span>
+                        </p>
+                        <Heading class="title">{event.title}</Heading>
+                        <p class="description">{event.description}</p>
+                    </div>
+                </li>
+            );
+        })
+    }
+</ol>
+
+<style>
+    .events {
+        display: grid;
+        gap: var(--space-5);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .stub {
+        --kind: var(--copper);
+
+        position: relative;
+        display: grid;
+        grid-template-columns: 5.5rem minmax(0, 1fr);
+        overflow: hidden;
+        border: 1px solid var(--seam);
+        border-radius: var(--radius);
+        background: var(--plate);
+        transition: translate 0.25s ease, border-color 0.25s ease;
+    }
+
+    /* translate, not transform: the scroll-in animation owns transform. */
+    .stub:hover {
+        border-color: var(--kind);
+        translate: 0.35rem 0;
+    }
+
+    .kind-music,
+    .kind-community {
+        --kind: var(--hop);
+    }
+
+    .kind-release {
+        --kind: var(--signal);
+    }
+
+    .date {
+        position: relative;
+        display: grid;
+        place-items: center;
+        margin: 0;
+        padding: var(--space-4) var(--space-2);
+        background: var(--kind);
+        color: var(--soot);
+        text-align: center;
+    }
+
+    /* The perforation between the stub and the ticket. */
+    .date::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        right: -5px;
+        width: 10px;
+        background: radial-gradient(circle, var(--plate) 0 3.5px, transparent 4px) 0 4px / 10px 12px repeat-y;
+    }
+
+    time {
+        display: grid;
+        line-height: 1;
+    }
+
+    .weekday,
+    .month {
+        font-family: var(--font-stencil);
+        font-size: 0.85rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+    }
+
+    .day {
+        font-family: var(--font-display);
+        font-size: 2.9rem;
+        font-weight: 900;
+    }
+
+    .body {
+        padding: var(--space-5) var(--space-6);
+    }
+
+    .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2) var(--space-4);
+        margin: 0 0 var(--space-2);
+        color: var(--ash);
+        font-size: 0.9rem;
+    }
+
+    .kind {
+        color: var(--kind);
+        font-family: var(--font-stencil);
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+    }
+
+    .title {
+        margin-bottom: var(--space-2);
+        font-size: clamp(1.45rem, 1.2rem + 0.8vw, 1.9rem);
+    }
+
+    .description {
+        margin: 0;
+        color: var(--ash);
+        font-size: 0.97rem;
+    }
+
+    .none {
+        color: var(--ash);
+    }
+
+    @media (min-width: 48rem) {
+        .stub {
+            grid-template-columns: 7rem minmax(0, 1fr);
+        }
+
+        .day {
+            font-size: 3.6rem;
+        }
+    }
+</style>

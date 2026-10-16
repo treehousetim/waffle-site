@@ -1,0 +1,221 @@
+---
+/**
+ * A drawn 16 oz can wearing a core beer's label: the art on its card and at
+ * the top of its own page. Decoration (aria-hidden): the words beside it say
+ * what it is. Hover its card and the label turns (motion.css: the label
+ * slides round under a fixed highlight, which is all a turning cylinder
+ * looks like). Colours come from the beer's `tone`, a fixed set of classes,
+ * since the site writes no inline styles; `vt-<slug>` names it for the view
+ * transition that morphs it from the range into its page.
+ *
+ * With `href`, it is a link out of the tab order (its card's heading is the
+ * way in); without, a plain picture.
+ */
+import type { Beer } from '../data/beers';
+import { abv } from '../data/beers';
+
+interface Props {
+    beer: Beer;
+    href?: string;
+    size?: 'card' | 'big';
+}
+
+const { beer, href, size = 'card' } = Astro.props;
+const Tag = href === undefined ? 'div' : 'a';
+---
+
+<Tag class:list={['can', size, `tone-${beer.tone}`, `vt-${beer.slug}`]} href={href} tabindex={href === undefined ? undefined : '-1'} aria-hidden="true">
+    <span class="rim top"></span>
+    <span class="label">
+        <span class="wrap">
+            {
+                [0, 1].map(() => (
+                    <span class="panel">
+                        <span class="brand">Ironwood Brewing</span>
+                        <span class="can-name">{beer.name}</span>
+                        <span class="can-style">{beer.style}</span>
+                        <span class="badge">{abv(beer.abv)}</span>
+                        <span class="stripes"></span>
+                    </span>
+                ))
+            }
+        </span>
+    </span>
+    <span class="rim bottom"></span>
+    <span class="shine"></span>
+</Tag>
+
+<style>
+
+    .can {
+        --label: #e2b33c;
+        --ink: #1a1408;
+        --accent: #8c2f17;
+    }
+
+    .tone-amber {
+        --label: #d9792e;
+        --ink: #1a0e06;
+        --accent: #3d5a12;
+    }
+
+    .tone-haze {
+        --label: #b7d164;
+        --ink: #14190a;
+        --accent: #d9792e;
+    }
+
+    .tone-stout {
+        --label: #201b18;
+        --ink: #ebc98f;
+        --accent: #b8562c;
+    }
+
+    .tone-copper {
+        --label: #a8532c;
+        --ink: #fbe9d4;
+        --accent: #1d1916;
+    }
+
+    .tone-straw {
+        --label: #efe2b8;
+        --ink: #2a2414;
+        --accent: #4f6a1c;
+    }
+
+    .can {
+        position: relative;
+        display: block;
+        width: min(100%, 13rem);
+        aspect-ratio: 0.56;
+        margin-inline: auto;
+        overflow: hidden;
+        border-radius: 1.4rem / 0.9rem;
+        background: linear-gradient(90deg, #6d6863, #d9d4cd 30%, #8b857f 60%, #4a4642);
+        box-shadow: 0 30px 40px -24px rgb(0 0 0 / 0.95), 0 0 0 1px rgb(0 0 0 / 0.6);
+        container-type: inline-size;
+        transition: transform 0.4s cubic-bezier(0.3, 1.3, 0.5, 1);
+    }
+
+    .rim {
+        position: absolute;
+        left: 0;
+        right: 0;
+        z-index: 2;
+        height: 7%;
+        background: linear-gradient(90deg, #57524d, #e6e1da 28%, #9a948d 55%, #3e3a37);
+    }
+
+    .rim.top {
+        top: 0;
+        border-bottom: 2px solid rgb(0 0 0 / 0.35);
+    }
+
+    .rim.bottom {
+        bottom: 0;
+        height: 5%;
+        border-top: 2px solid rgb(0 0 0 / 0.35);
+    }
+
+    .label {
+        position: absolute;
+        inset: 7% 0 5%;
+        overflow: hidden;
+        background: var(--label);
+    }
+
+    .wrap {
+        display: flex;
+        width: 200%;
+        height: 100%;
+    }
+
+    .panel {
+        position: relative;
+        display: flex;
+        flex: 1 0 50%;
+        flex-direction: column;
+        align-items: center;
+        padding: 12cqw 10cqw 0;
+        color: var(--ink);
+        text-align: center;
+    }
+
+    .brand {
+        font-family: var(--font-stencil);
+        font-size: 6.2cqw;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        opacity: 0.85;
+    }
+
+    .can-name {
+        margin-top: 10cqw;
+        font-family: var(--font-display);
+        font-size: 19cqw;
+        font-weight: 900;
+        line-height: 0.86;
+        text-transform: uppercase;
+        text-wrap: balance;
+    }
+
+    .can-style {
+        margin-top: 5cqw;
+        font-family: var(--font-text);
+        font-size: 6.6cqw;
+        font-style: italic;
+        font-weight: 600;
+    }
+
+    .badge {
+        display: grid;
+        place-items: center;
+        width: 30cqw;
+        height: 30cqw;
+        margin-top: auto;
+        margin-bottom: 26cqw;
+        border: 1.2cqw solid var(--ink);
+        border-radius: 50%;
+        font-family: var(--font-display);
+        font-size: 9cqw;
+        font-weight: 900;
+    }
+
+    .stripes {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 18cqw;
+        background: repeating-linear-gradient(90deg, var(--accent) 0 6cqw, transparent 6cqw 10cqw);
+        opacity: 0.85;
+    }
+
+    /* The cylinder: dark at both edges, a hard highlight left of centre. */
+    .shine {
+        position: absolute;
+        inset: 0;
+        z-index: 3;
+        background: linear-gradient(
+            90deg,
+            rgb(0 0 0 / 0.55) 0%,
+            rgb(0 0 0 / 0.1) 14%,
+            rgb(255 255 255 / 0.32) 24%,
+            rgb(255 255 255 / 0.04) 34%,
+            transparent 55%,
+            rgb(0 0 0 / 0.18) 78%,
+            rgb(0 0 0 / 0.6) 100%
+        );
+        pointer-events: none;
+    }
+
+    .big {
+        width: min(100%, 20rem);
+    }
+
+    :global(.can-card:hover) .can,
+    :global(.can-card:focus-within) .can {
+        transform: translateY(-0.5rem) rotate(-3deg);
+    }
+</style>

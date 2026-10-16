@@ -1,0 +1,271 @@
+---
+/** The taproom: hours, the food trucks, the house rules on kids, dogs and ID, and getting here. */
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import Photo from '../components/Photo.astro';
+import Kinetic from '../components/Kinetic.astro';
+import LastCall from '../components/LastCall.astro';
+import { addressLine, clock, site } from '../site';
+import { trucks } from '../data/trucks';
+
+const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] as const;
+const week = days.map((day) => {
+    const hours = site.business.hours.find((entry) => (entry.days as readonly string[]).includes(day));
+    const truck = trucks.find((entry) => entry.day === day);
+
+    return { day, hours: hours ? `${clock(hours.opens)}–${clock(hours.closes)}` : null, truck };
+});
+
+const rules = [
+    { title: '21+ to drink', text: site.agePolicy.long, tone: 'signal' },
+    { title: 'Families until 8pm', text: 'Children are welcome with an adult until 8pm, at tables rather than the bar. We keep root beer and a ginger soda on tap, board games on the shelf and crayons behind the bar.', tone: 'hop' },
+    { title: 'Dogs welcome', text: 'Well-behaved dogs on a lead are welcome on the foundry floor and the loading dock, with water bowls by the door. Not in the Pattern Shop during a private event, and not on the furniture.', tone: 'hop' },
+    { title: 'Bring your own food', text: 'We have pretzels and snacks at the bar and a truck outside five days a week. You are welcome to bring your own food or have it delivered to the door.', tone: 'copper' },
+];
+---
+
+<Base
+    title="The taproom: hours, food and house rules"
+    description="Ironwood's taproom in the old Wrenford stove foundry: opening hours, which food truck is parked when, kids until 8pm, dogs welcome, 21+ to drink."
+    breadcrumbs={[{ name: 'The taproom', href: '/taproom/' }]}
+>
+    <PageHead
+        eyebrow="14 Foundry Row"
+        heading="The taproom"
+        lead="The casting floor of an 1888 stove works, with the brewhouse behind glass, twelve taps on a bar made from a foundry crane beam, and a covered loading dock hanging over the Tamsen River."
+        photo="taproomTanks"
+        ghost="Taproom"
+    />
+
+    <section class="section">
+        <div class="container week-grid">
+            <header>
+                <p class="eyebrow">The week</p>
+                <h2>Hours and trucks</h2>
+                <p class="muted">Last orders thirty minutes before close. Hours change on holidays and for big private events; the <a href="/events/">events page</a> says when.</p>
+            </header>
+            <ol class="week">
+                {
+                    week.map((row) => (
+                        <li class:list={['day', 'plate', { shut: row.hours === null }]}>
+                            <span class="day-name">{row.day}</span>
+                            <span class="day-hours">{row.hours ?? 'Closed: brew days'}</span>
+                            {row.truck ? (
+                                <span class="day-truck">
+                                    <strong>{row.truck.name}</strong> {row.truck.food}
+                                </span>
+                            ) : (
+                                <span class="day-truck muted">No truck</span>
+                            )}
+                        </li>
+                    ))
+                }
+            </ol>
+        </div>
+    </section>
+
+    <section class="section rules-band">
+        <div class="container">
+            <p class="eyebrow">House rules</p>
+            <h2>Who is welcome, and when</h2>
+            <ul class="rules">
+                {
+                    rules.map((rule) => (
+                        <li class:list={['rule', 'plate', `rule-${rule.tone}`]}>
+                            <h3>{rule.title}</h3>
+                            <p>{rule.text}</p>
+                        </li>
+                    ))
+                }
+            </ul>
+        </div>
+    </section>
+
+    <Kinetic lines={['Long tables · Dogs welcome', 'Twelve taps · One river']} />
+
+    <section class="section">
+        <div class="container gallery">
+            <figure class="plate g1"><Photo name="busyBar" sizes="(min-width: 64rem) 45vw, 100vw" class="smoke-in" /><figcaption>The bar, built on a crane beam from the old casting floor.</figcaption></figure>
+            <figure class="plate g2"><Photo name="foodTruckNight" sizes="(min-width: 64rem) 30vw, 100vw" class="smoke-in" /><figcaption>A truck on Foundry Row, Wednesday to Sunday.</figcaption></figure>
+            <figure class="plate g3"><Photo name="barDog" sizes="(min-width: 64rem) 22vw, 100vw" class="smoke-in" /><figcaption>Regulars, of every kind.</figcaption></figure>
+        </div>
+    </section>
+
+    <section class="section getting-here">
+        <div class="container here-grid">
+            <div>
+                <p class="eyebrow">Getting here</p>
+                <h2>At the foot of Foundry Row</h2>
+                <p>{addressLine}. Free parking in the old rail yard behind the building; bike racks by the loading dock. The riverside trail passes the door.</p>
+                <p>Step-free from the yard entrance, with an accessible restroom on the ground floor. The Pattern Shop is up four steps, with a lift on request.</p>
+                <p class="actions"><a class="button" href="/contact/">Directions and contact</a></p>
+            </div>
+            <div class="plate address-card">
+                <p class="stencil">Ironwood Brewing Co.</p>
+                <p class="address-line">{site.business.address.street}<br />{site.business.address.city}, {site.business.address.region} {site.business.address.postalCode}</p>
+                <p><a href={`tel:${site.business.phoneE164}`}>{site.business.phone}</a></p>
+            </div>
+        </div>
+    </section>
+
+    <LastCall />
+</Base>
+
+<style>
+    .week-grid,
+    .here-grid {
+        display: grid;
+        gap: var(--space-10);
+    }
+
+    @media (min-width: 64rem) {
+        .week-grid {
+            grid-template-columns: 0.75fr 1.25fr;
+            align-items: start;
+        }
+
+        .here-grid {
+            grid-template-columns: 1.2fr 0.8fr;
+            align-items: center;
+        }
+    }
+
+    .week {
+        display: grid;
+        gap: var(--space-3);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .day {
+        display: grid;
+        grid-template-columns: 7.5rem 1fr;
+        gap: var(--space-1) var(--space-5);
+        align-items: baseline;
+        padding: var(--space-4) var(--space-6);
+    }
+
+    .day-name {
+        color: var(--copper);
+        font-family: var(--font-stencil);
+        font-size: 1.1rem;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+    }
+
+    .day-hours {
+        font-family: var(--font-display);
+        font-size: 1.7rem;
+        font-weight: 800;
+        line-height: 1.1;
+    }
+
+    .day-truck {
+        grid-column: 2;
+        color: var(--ash);
+        font-size: 0.95rem;
+    }
+
+    .day-truck strong {
+        display: block;
+        color: var(--hop);
+    }
+
+    .shut {
+        opacity: 0.72;
+    }
+
+    .shut .day-hours {
+        color: var(--slag);
+    }
+
+    .rules-band {
+        background: var(--soot);
+        border-block: 1px solid var(--seam);
+    }
+
+    .rules {
+        display: grid;
+        gap: var(--space-5);
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+        margin: var(--space-10) 0 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .rule {
+        padding: var(--space-8) var(--space-6);
+        border-top: 4px solid var(--copper);
+    }
+
+    .rule-signal {
+        border-top-color: var(--signal);
+    }
+
+    .rule-hop {
+        border-top-color: var(--hop);
+    }
+
+    .rule p {
+        margin: 0;
+        color: var(--ash);
+    }
+
+    .gallery {
+        display: grid;
+        gap: var(--space-5);
+    }
+
+    .gallery figure {
+        margin: 0;
+        padding: 10px;
+    }
+
+    .gallery :global(img) {
+        width: 100%;
+        height: 100%;
+        max-height: 34rem;
+        object-fit: cover;
+        border-radius: 2px;
+    }
+
+    figcaption {
+        padding: var(--space-3) var(--space-2) var(--space-1);
+        color: var(--ash);
+        font-size: 0.9rem;
+    }
+
+    @media (min-width: 60rem) {
+        .gallery {
+            grid-template-columns: 1.5fr 1fr 0.8fr;
+            align-items: end;
+        }
+
+        .g2 {
+            transform: translateY(-2rem);
+        }
+    }
+
+    .getting-here {
+        background: var(--soot);
+        border-top: 1px solid var(--seam);
+    }
+
+    .address-card {
+        padding: var(--space-8);
+    }
+
+    .address-card .stencil {
+        color: var(--copper);
+    }
+
+    .address-line {
+        font-family: var(--font-display);
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1.05;
+        text-transform: uppercase;
+    }
+</style>

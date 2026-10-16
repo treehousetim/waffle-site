@@ -1,0 +1,250 @@
+---
+/**
+ * The footer: a riveted rail, the age policy stamped plainly, then the
+ * brewery's name, address, phone and taproom hours on every page, written
+ * exactly as in src/site.ts, then the links. The giant IRONWOOD at the foot
+ * is decoration (aria-hidden).
+ */
+import Logo from './Logo.astro';
+import { addressLine, clock, dayRange, site } from '../site';
+import { buildTime } from '@core/settings';
+---
+
+<footer class="site-footer">
+    <div class="rivet-rail" aria-hidden="true"></div>
+
+    <div class="container age">
+        <span class="age-stamp" aria-hidden="true">21+</span>
+        <p><strong>21 and over to drink.</strong> {site.agePolicy.long}</p>
+    </div>
+
+    <div class="container grid">
+        <div class="brand">
+            <Logo size="large" />
+            <p class="tagline">{site.tagline}.</p>
+            <address>
+                <span>{addressLine}</span>
+                <a href={`tel:${site.business.phoneE164}`}>{site.business.phone}</a>
+                <a href={`mailto:${site.business.email}`}>{site.business.email}</a>
+            </address>
+        </div>
+
+        <div class="hours">
+            <h2>Taproom hours</h2>
+            <dl>
+                {
+                    site.business.hours.map((hours) => (
+                        <div>
+                            <dt>{dayRange(hours.days)}</dt>
+                            <dd>
+                                {clock(hours.opens)}–{clock(hours.closes)}
+                            </dd>
+                        </div>
+                    ))
+                }
+                <div class="closed">
+                    <dt>Mon–Tue</dt>
+                    <dd>Closed: we brew</dd>
+                </div>
+            </dl>
+        </div>
+
+        {
+            site.footer.map((column) => (
+                <nav aria-label={column.heading}>
+                    <h2>{column.heading}</h2>
+                    <ul>
+                        {column.links.map((link) => (
+                            <li>
+                                <a href={link.href}>{link.label}</a>
+                            </li>
+                        ))}
+                    </ul>
+                </nav>
+            ))
+        }
+    </div>
+
+    <div class="container legal">
+        <p>© {buildTime.getUTCFullYear()} {site.business.legalName}. Please drink responsibly, and never drink and drive.</p>
+        <p><a href="/blog/rss.xml">RSS</a> · <a href="/privacy/">Privacy</a> · <a href="/credits/">Credits</a></p>
+    </div>
+
+    <p class="giant" aria-hidden="true">Ironwood</p>
+</footer>
+
+<style>
+    .site-footer {
+        position: relative;
+        overflow: hidden;
+        margin-top: 0;
+        padding-bottom: 0;
+        background: var(--soot);
+        color: var(--ash);
+        font-size: 0.97rem;
+    }
+
+    .age {
+        display: flex;
+        align-items: center;
+        gap: var(--space-6);
+        padding: var(--space-10) 0;
+        border-bottom: 1px solid var(--seam);
+    }
+
+    .age p {
+        max-width: 50rem;
+        margin: 0;
+        color: var(--bone);
+        font-size: 1.05rem;
+    }
+
+    .grid {
+        display: grid;
+        gap: var(--space-10) var(--space-6);
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr));
+        padding: var(--space-16) 0 var(--space-12);
+    }
+
+    .brand,
+    .hours {
+        grid-column: 1 / -1;
+    }
+
+    .brand {
+        max-width: 24rem;
+    }
+
+    .hours {
+        max-width: 22rem;
+    }
+
+    @media (min-width: 68rem) {
+        .grid {
+            grid-template-columns: 1.6fr 1.1fr 1fr 1fr 1fr;
+        }
+
+        .brand,
+        .hours {
+            grid-column: auto;
+        }
+    }
+
+    .tagline {
+        margin: var(--space-5) 0;
+    }
+
+    address {
+        display: grid;
+        gap: var(--space-1);
+        font-style: normal;
+        color: var(--bone);
+    }
+
+    address a {
+        color: var(--bone);
+        text-decoration: none;
+    }
+
+    address a:hover {
+        color: var(--copper-bright);
+    }
+
+    h2 {
+        margin-bottom: var(--space-4);
+        color: var(--copper);
+        font-family: var(--font-stencil);
+        font-size: 1rem;
+        font-weight: 800;
+        letter-spacing: 0.18em;
+    }
+
+    dl {
+        display: grid;
+        gap: var(--space-2);
+        margin: 0;
+    }
+
+    dl div {
+        display: flex;
+        justify-content: space-between;
+        gap: var(--space-4);
+        padding-bottom: var(--space-2);
+        border-bottom: 1px dashed var(--seam);
+    }
+
+    dt {
+        color: var(--bone);
+        font-weight: 600;
+    }
+
+    dd {
+        margin: 0;
+        text-align: right;
+    }
+
+    .closed dd {
+        color: var(--slag);
+    }
+
+    ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    li + li {
+        margin-top: var(--space-3);
+    }
+
+    nav a,
+    .legal a {
+        color: var(--ash);
+        text-decoration: none;
+    }
+
+    nav a:hover,
+    .legal a:hover {
+        color: var(--copper-bright);
+    }
+
+    .legal {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: var(--space-4);
+        padding: var(--space-6) 0;
+        border-top: 1px solid var(--seam);
+        font-size: 0.88rem;
+    }
+
+    .legal p {
+        margin: 0;
+    }
+
+    .giant {
+        margin: 0 0 -0.16em;
+        color: transparent;
+        font-family: var(--font-display);
+        font-size: clamp(5rem, 1rem + 21vw, 22rem);
+        font-weight: 900;
+        line-height: 0.8;
+        letter-spacing: 0.02em;
+        text-align: center;
+        text-transform: uppercase;
+        -webkit-text-stroke: 1px var(--seam-strong);
+        user-select: none;
+    }
+
+    @media (max-width: 34rem) {
+        .age {
+            align-items: flex-start;
+        }
+
+        .age .age-stamp {
+            width: 4.25rem;
+            height: 4.25rem;
+            font-size: 1.5rem;
+        }
+    }
+</style>
