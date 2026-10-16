@@ -1,0 +1,269 @@
+---
+/**
+ * About the two photographers: a portrait and a short profile each, set
+ * like a magazine's contributors page, then what the studio believes, and
+ * where it works (site.areas).
+ */
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import Photo from '../components/Photo.astro';
+import { site } from '../site';
+
+const people = [
+    {
+        name: 'Juniper Ashby',
+        role: 'Photographer, and the planner',
+        photo: 'juniperWithCamera',
+        text: [
+            'Juniper grew up in Wrenmouth, two streets from the harbour, and learned to print in her grandfather’s darkroom above the chandlery. She photographed her first wedding at nineteen, for a cousin, on a borrowed camera and a single roll of film.',
+            'She plans every day we photograph, writes the timelines, and knows the tide tables for Gull Rock by heart. On the day she stays close to the two of you.',
+        ],
+        facts: ['Shoots on a quiet mirrorless camera and one roll of film per wedding', 'Has never once asked anyone to “look natural”'],
+    },
+    {
+        name: 'Theo Vale',
+        role: 'Photographer, and the one in the crowd',
+        photo: 'theoWithCamera',
+        text: [
+            'Theo came to weddings from street photography, which is why he is happiest in a crowd and nearly invisible in one. He spent six years photographing markets and festivals before Juniper talked him into his first wedding in 2014.',
+            'On the day he is with your families and friends: the speeches, the dancing, the grandmother who cried at the vows. He edits every gallery, by hand, frame by frame.',
+        ],
+        facts: ['Can name every venue on the coast by its light at four o’clock', 'Dances, when asked, and only when asked'],
+    },
+] as const;
+
+const beliefs = [
+    { title: 'Light before lists.', text: 'We plan the day around where the light will be, not around a list of poses. Good light does more for a photograph than any pose.' },
+    { title: 'Always the two of us.', text: 'At every wedding of six hours or more, both of us are there, so nothing is missed and nobody is rushed.' },
+    { title: 'Twenty weddings a year.', text: 'No more. Each gallery is edited by the person who took it, and arrives within six weeks.' },
+    { title: 'Your photographs are yours.', text: 'Every finished photograph, in full resolution, with a print release. Print them anywhere, as often as you like.' },
+];
+---
+
+<Base
+    title="About the two photographers"
+    description="Juniper Ashby and Theo Vale: two wedding and portrait photographers on the Saltgrass Coast, working together since 2014, about twenty weddings a year."
+    breadcrumbs={[{ name: 'About', href: '/about/' }]}
+>
+    <PageHead
+        no="05"
+        label="About · the contributors"
+        heading="Two people,"
+        italic="one way of seeing."
+        lead={`We are ${site.people.join(' and ')}. We have photographed weddings together on this coast since ${site.business.founded}, and we still drive to every one in the same old car.`}
+    />
+
+    <section class="page people">
+        {
+            people.map((person, index) => (
+                <article class:list={['person', { flip: index === 1 }]}>
+                    <figure class="portrait">
+                        <span class="curtain">
+                            <Photo name={person.photo} sizes="(min-width: 64rem) 40vw, 100vw" priority={index === 0} maxWidth={1400} />
+                        </span>
+                        <figcaption class="caption">
+                            <span class="fig">Fig. {index + 1}</span>
+                            <span>{person.name.split(' ')[0]}, at work.</span>
+                        </figcaption>
+                    </figure>
+                    <div class="bio">
+                        <p class="kicker"><span class="no">{index === 0 ? 'i.' : 'ii.'}</span> {person.role}</p>
+                        <h2>{person.name}</h2>
+                        <div class:list={['text', { dropcap: true }]}>
+                            {person.text.map((paragraph) => <p>{paragraph}</p>)}
+                        </div>
+                        <ul class="facts">
+                            {person.facts.map((fact) => <li>{fact}</li>)}
+                        </ul>
+                    </div>
+                </article>
+            ))
+        }
+    </section>
+
+    <section class="band band-ink">
+        <div class="page">
+            <p class="kicker"><span class="no">iii.</span> What we believe</p>
+            <h2 class="beliefs-title">Four things we will not change</h2>
+            <ol class="beliefs">
+                {
+                    beliefs.map((belief, index) => (
+                        <li class="rise">
+                            <span class="n" aria-hidden="true">{index + 1}</span>
+                            <h3>{belief.title}</h3>
+                            <p>{belief.text}</p>
+                        </li>
+                    ))
+                }
+            </ol>
+        </div>
+    </section>
+
+    <section class="where">
+        <figure class="landscape parallax">
+            <Photo name="coastalHills" sizes="100vw" />
+        </figure>
+        <div class="page where-copy">
+            <p class="kicker"><span class="no">iv.</span> Where we work</p>
+            <h2>The Saltgrass Coast <em>and the hills behind it.</em></h2>
+            <p class="standfirst">Most of our days are within an hour of the studio. We know the coves, the orchards and the old houses, and when each of them is at its best.</p>
+            <ul class="areas">
+                {site.areas.map((area) => <li>{area}</li>)}
+            </ul>
+            <p class="actions">
+                <a class="button" href="/enquire/">Say hello</a>
+                <a class="arrow-link" href="/experience/">How we work</a>
+            </p>
+        </div>
+    </section>
+</Base>
+
+<style>
+    .people {
+        display: grid;
+        gap: var(--section);
+        padding-bottom: var(--section);
+    }
+
+    .person {
+        display: grid;
+        gap: var(--space-10) clamp(3rem, 2rem + 5vw, 8rem);
+        align-items: center;
+    }
+
+    .portrait {
+        margin: 0;
+    }
+
+    .curtain {
+        display: block;
+        overflow: hidden;
+        aspect-ratio: 4 / 5;
+        background: var(--paper-deep);
+    }
+
+    .text {
+        max-width: var(--width-text);
+    }
+
+    .facts {
+        display: grid;
+        gap: var(--space-2);
+        margin: var(--space-8) 0 0;
+        padding: var(--space-6) 0 0;
+        border-top: 1px solid var(--rule);
+        color: var(--muted);
+        font-family: var(--font-display);
+        font-size: 1.1rem;
+        font-style: italic;
+        list-style: none;
+    }
+
+    .beliefs-title {
+        max-width: 16ch;
+        margin-bottom: var(--space-16);
+    }
+
+    .beliefs {
+        display: grid;
+        gap: var(--space-12) var(--gutter);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .beliefs li {
+        padding-top: var(--space-6);
+        border-top: 1px solid color-mix(in srgb, var(--on-ink) 25%, transparent);
+    }
+
+    .n {
+        display: block;
+        margin-bottom: var(--space-4);
+        color: var(--accent-on-ink);
+        font-family: var(--font-display);
+        font-size: 3.5rem;
+        font-style: italic;
+        line-height: 1;
+    }
+
+    .beliefs h3 {
+        font-size: 1.6rem;
+    }
+
+    .beliefs p {
+        color: var(--on-ink-muted);
+    }
+
+    .where {
+        display: grid;
+    }
+
+    .landscape {
+        height: min(90vh, 60rem);
+        margin: 0;
+        overflow: hidden;
+    }
+
+    .where-copy {
+        padding-block: var(--section);
+    }
+
+    .where-copy h2 {
+        max-width: 18ch;
+    }
+
+    .where-copy h2 em {
+        display: block;
+        color: var(--accent);
+    }
+
+    .areas {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2) var(--space-6);
+        margin: var(--space-8) 0 0;
+        padding: 0;
+        font-family: var(--font-display);
+        font-size: clamp(1.4rem, 1.2rem + 0.8vw, 2rem);
+        font-style: italic;
+        list-style: none;
+    }
+
+    .areas li:not(:last-child)::after {
+        content: '·';
+        margin-left: var(--space-6);
+        color: var(--accent);
+        font-style: normal;
+    }
+
+    @media (min-width: 64rem) {
+        .person {
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+        }
+
+        .flip .portrait {
+            order: 2;
+        }
+
+        .beliefs {
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        .where {
+            grid-template-columns: 1fr 1fr;
+            align-items: center;
+        }
+
+        .landscape {
+            height: 100%;
+            min-height: 46rem;
+        }
+
+        .where-copy {
+            width: auto;
+            margin: 0;
+            padding-inline: clamp(2rem, 1rem + 4vw, 6rem);
+        }
+    }
+</style>

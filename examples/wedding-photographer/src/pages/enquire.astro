@@ -1,0 +1,145 @@
+---
+/**
+ * Enquire: the calendar for the next twelve months, read from the waffle
+ * app at build time (GET /api/site/availability), and the enquiry form,
+ * which posts to the app (POST /api/site/forms/enquiry). Its package
+ * choices come from GET /api/site/packages.
+ */
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import AvailabilityStrip from '../components/AvailabilityStrip.astro';
+import EnquiryForm from '../components/EnquiryForm.astro';
+import { waffle } from '@core/settings';
+import { parseAvailability } from '../lib/availability';
+import { parsePackages } from '../lib/packages';
+import { site, addressLine } from '../site';
+
+const availability = parseAvailability(await waffle.get('/api/site/availability'));
+const packages = parsePackages(await waffle.get('/api/site/packages'));
+const open = availability.months.filter((month) => month.status !== 'booked').length;
+---
+
+<Base
+    title="Enquire about your date"
+    description="Check our availability for the next twelve months and tell us about your wedding, elopement or portrait sitting. We reply personally within two working days."
+    breadcrumbs={[{ name: 'Enquire', href: '/enquire/' }]}
+>
+    <PageHead
+        no="07"
+        label="Enquire"
+        heading="Tell us"
+        italic="about the day."
+        lead={`${open} of the next ${availability.months.length} months still have dates. Have a look, then write to us: the more you tell us, the better our first reply.`}
+    />
+
+    <section class="page calendar" aria-labelledby="calendar-title">
+        <h2 id="calendar-title" class="rule-label">The calendar, month by month</h2>
+        <AvailabilityStrip availability={availability} />
+    </section>
+
+    <section class="band">
+        <div class="page layout">
+            <div class="form-column">
+                <p class="kicker"><span class="no">i.</span> The enquiry</p>
+                <h2 class="form-title">A letter, not a form</h2>
+                <EnquiryForm thanks="/enquire/thanks/" collections={packages.collections} />
+            </div>
+            <aside class="side" aria-label="What happens next">
+                <p class="rule-label">What happens next</p>
+                <ol class="next">
+                    <li><span><strong>Within two working days</strong> one of us writes back, personally, with whether your date is free.</span></li>
+                    <li><span><strong>A call or a coffee</strong> in Port Alder, to see whether we are the right people for your day.</span></li>
+                    <li><span><strong>We hold the date</strong> for a week while you decide. No pressure, and no hard sell.</span></li>
+                </ol>
+                <div class="direct">
+                    <p class="kicker">Or simply</p>
+                    <p><a href={`tel:${site.business.phoneE164}`}>{site.business.phone}</a></p>
+                    <p><a href={`mailto:${site.business.email}`}>{site.business.email}</a></p>
+                    <address>{addressLine}</address>
+                </div>
+            </aside>
+        </div>
+    </section>
+</Base>
+
+<style>
+    .calendar {
+        padding-bottom: var(--space-8);
+    }
+
+    .calendar h2 {
+        font-family: var(--font-sans);
+        color: var(--text);
+    }
+
+    .layout {
+        display: grid;
+        gap: var(--space-16) clamp(3rem, 2rem + 5vw, 8rem);
+        align-items: start;
+    }
+
+    .form-title {
+        margin-bottom: var(--space-12);
+    }
+
+    .next {
+        display: grid;
+        gap: var(--space-6);
+        margin: 0 0 var(--space-12);
+        padding: 0;
+        list-style: none;
+        counter-reset: next;
+    }
+
+    .next li {
+        display: grid;
+        grid-template-columns: 2.5rem 1fr;
+        color: var(--muted);
+        counter-increment: next;
+    }
+
+    .next li::before {
+        content: counter(next, lower-roman) '.';
+        color: var(--accent);
+        font-family: var(--font-display);
+        font-size: 1.2rem;
+        font-style: italic;
+    }
+
+    .next strong {
+        display: block;
+        color: var(--text);
+        font-family: var(--font-display);
+        font-size: 1.3rem;
+        font-weight: 400;
+    }
+
+    .direct {
+        padding: var(--space-8);
+        background: var(--paper-deep);
+    }
+
+    .direct p:not(.kicker) {
+        margin: 0 0 var(--space-2);
+        font-family: var(--font-display);
+        font-size: 1.4rem;
+    }
+
+    .direct address {
+        margin-top: var(--space-4);
+        color: var(--muted);
+        font-size: 0.9rem;
+        font-style: normal;
+    }
+
+    @media (min-width: 64rem) {
+        .layout {
+            grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+        }
+
+        .side {
+            position: sticky;
+            top: calc(var(--header-height) + var(--space-8));
+        }
+    }
+</style>

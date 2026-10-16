@@ -1,0 +1,36 @@
+---
+/**
+ * The privacy notice, in plain words. An example: a real studio has its
+ * own written for it, for where it works.
+ */
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import { site } from '../site';
+---
+
+<Base
+    title="Privacy"
+    description="What Juniper & Vale does with what you tell us: the enquiry form, your photographs, the online gallery, and who else ever sees any of it. In plain words."
+    breadcrumbs={[{ name: 'Privacy', href: '/privacy/' }]}
+>
+    <PageHead label="Privacy" heading="Privacy," italic="in plain words." lead="What happens to what you tell us, and to the photographs we take of you." />
+
+    <div class="measure prose page-body">
+        <h2>What we collect</h2>
+        <p>When you send an enquiry we receive what you type into the form: your names, email address, phone number if you give it, your date, venue, guest count, the package you are interested in and your message. We use it to reply to you, and if you book, to plan your day.</p>
+        <h2>Where it goes</h2>
+        <p>The form is received by our own booking system, which keeps your enquiry and our replies together. It is not sold, shared or used for advertising. This site sets no cookies and runs no analytics or tracking scripts.</p>
+        <h2>Your photographs</h2>
+        <p>Your photographs are delivered in a private online gallery that only people with the link can see. We share photographs from your day on this site or elsewhere only with your permission, asked for after the day, and you can withdraw it at any time.</p>
+        <h2>How long we keep things</h2>
+        <p>Enquiries that do not become bookings are deleted after a year. For couples who book, we keep the agreement and correspondence for seven years, as the law asks, and a back-up of your photographs for ten.</p>
+        <h2>Asking us</h2>
+        <p>To see what we hold about you, correct it or ask us to delete it, write to <a href={`mailto:${site.business.email}`}>{site.business.email}</a>. One of us will reply within a week.</p>
+    </div>
+</Base>
+
+<style>
+    .page-body {
+        padding-bottom: var(--section);
+    }
+</style>

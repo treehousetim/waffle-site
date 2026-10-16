@@ -1,0 +1,153 @@
+---
+/**
+ * The opening spread of an inner page. It holds the page's one <h1>
+ * (docs/seo.md, 5): a page that uses it puts no other <h1> anywhere.
+ *
+ * A kicker ("No. 04 — Packages"), the headline with an optional italic
+ * second line, the standfirst set to the right like a magazine opener, and
+ * optionally a full-bleed photograph under it, loaded first, drifting very
+ * slowly (motion.css, "Ken Burns"), with a caption.
+ *
+ * `morph` names the photograph for a view transition: a story's card
+ * photograph becomes this one when you open the story (motion.css).
+ */
+import Photo from './Photo.astro';
+import type { PhotoName } from '../data/photos';
+
+interface Props {
+    no?: string;
+    label: string;
+    heading: string;
+    italic?: string;
+    lead?: string;
+    photo?: PhotoName;
+    caption?: string;
+    /** A link on the photograph: a story's opens its viewer. */
+    photoHref?: string;
+    morph?: string;
+    /** Where the photograph's subject sits, for the crop: 'top', 'center', 'bottom'. */
+    focus?: 'top' | 'center' | 'bottom';
+}
+
+const { no, label, heading, italic, lead, photo, caption, photoHref, morph, focus = 'center' } = Astro.props;
+const Frame = photoHref ? 'a' : 'div';
+---
+
+<header class:list={['opener', { 'has-photo': photo }]}>
+    <div class="page grid">
+        <p class="kicker">
+            {no && <span class="no">No. {no}</span>}
+            <span>{label}</span>
+        </p>
+        <h1>
+            {heading}
+            {italic && <em>{italic}</em>}
+        </h1>
+        {
+            (lead || Astro.slots.has('default')) && (
+                <div class="aside">
+                    {lead && <p class="standfirst">{lead}</p>}
+                    <slot />
+                </div>
+            )
+        }
+    </div>
+    {
+        photo && (
+            <figure class="opener-figure">
+                <Frame class:list={['opener-frame', morph, `focus-${focus}`]} href={photoHref} aria-label={photoHref ? 'Open the photographs full screen' : undefined}>
+                    <Photo name={photo} sizes="100vw" priority class="opener-photo" />
+                </Frame>
+                {caption && (
+                    <figcaption class="caption page">
+                        <span class="fig">Above</span>
+                        <span>{caption}</span>
+                    </figcaption>
+                )}
+            </figure>
+        )
+    }
+</header>
+
+<style>
+    .opener {
+        padding-top: clamp(2.5rem, 1.5rem + 5vw, 7rem);
+        padding-bottom: clamp(3rem, 2rem + 4vw, 6rem);
+    }
+
+    .opener.has-photo {
+        padding-bottom: 0;
+    }
+
+    .grid {
+        display: grid;
+        gap: var(--space-6) var(--space-12);
+        align-items: end;
+    }
+
+    .kicker {
+        margin: 0;
+    }
+
+    h1 {
+        margin: 0;
+    }
+
+    h1 em {
+        display: block;
+        color: var(--accent);
+    }
+
+    .aside {
+        display: grid;
+        gap: var(--space-6);
+    }
+
+    .aside .standfirst {
+        margin: 0;
+    }
+
+    .opener-figure {
+        margin: clamp(2.5rem, 1.5rem + 4vw, 5rem) 0 0;
+    }
+
+    .opener-frame {
+        display: block;
+        height: min(82vh, 56rem);
+        min-height: 22rem;
+        overflow: hidden;
+        background: var(--paper-deep);
+    }
+
+    .opener-frame :global(.opener-photo) {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .focus-top :global(.opener-photo) {
+        object-position: 50% 22%;
+    }
+
+    .focus-bottom :global(.opener-photo) {
+        object-position: 50% 75%;
+    }
+
+    figcaption {
+        margin-top: var(--space-4);
+    }
+
+    @media (min-width: 64rem) {
+        .grid {
+            grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr);
+        }
+
+        .kicker {
+            grid-column: 1 / -1;
+        }
+
+        .aside {
+            padding-bottom: 0.6rem;
+        }
+    }
+</style>

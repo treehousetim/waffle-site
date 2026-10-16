@@ -1,0 +1,144 @@
+---
+/** /journal/, then /journal/2/ and on: every entry the build shows, newest first. */
+import type { GetStaticPaths, Page } from 'astro';
+import { getCollection, type CollectionEntry } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import PostCard from '../../components/PostCard.astro';
+import { site } from '../../site';
+import { buildTime, settings } from '@core/settings';
+import { tagIndex, visiblePosts } from '@core/lib/posts.js';
+
+export const getStaticPaths = (async ({ paginate }) => {
+    const posts = visiblePosts(await getCollection('journal'), { includeDrafts: !settings.production, now: buildTime });
+
+    return paginate(posts, { pageSize: 6, props: { tags: tagIndex(posts) } });
+}) satisfies GetStaticPaths;
+
+interface Props {
+    page: Page<CollectionEntry<'journal'>>;
+    tags: ReturnType<typeof tagIndex>;
+}
+
+const { page, tags } = Astro.props;
+const first = page.currentPage === 1;
+// Page 2 and on need their own title and description (docs/seo.md, 12).
+const title = first ? site.blog.title : `${site.blog.title}, page ${page.currentPage}`;
+const description = first ? site.blog.description : `${site.blog.description} Page ${page.currentPage} of ${page.lastPage}.`;
+const [lead, ...rest] = page.data;
+const offset = page.start;
+---
+
+<Base title={title} description={description} breadcrumbs={[{ name: site.blog.title, href: '/journal/' }]}>
+    <PageHead
+        no="08"
+        label={first ? 'The Journal · planning notes' : `The Journal · page ${page.currentPage} of ${page.lastPage}`}
+        heading="The Journal"
+        italic={first ? 'notes for the planning.' : `page ${page.currentPage}.`}
+        lead="What we would tell a friend getting married: timelines, light, venues, weather, elopements and portraits, from twenty weddings a year."
+    >
+        {
+            tags.length > 0 && (
+                <ul class="topics" aria-label="Topics">
+                    {tags.map((tag) => (
+                        <li>
+                            <a href={`/journal/tags/${tag.slug}/`}>
+                                {tag.tag} <span>{tag.count}</span>
+                            </a>
+                        </li>
+                    ))}
+                </ul>
+            )
+        }
+    </PageHead>
+
+    <div class="page list">
+        {page.data.length === 0 && <p>No entries yet.</p>}
+        {lead && <PostCard post={lead} index={offset + 1} form={first ? 'feature' : 'entry'} />}
+        <div class="entries">
+            {rest.map((post, index) => <PostCard post={post} index={offset + index + 2} />)}
+        </div>
+
+        {
+            page.lastPage > 1 && (
+                <nav class="pager" aria-label="More entries">
+                    {page.url.prev ? <a class="arrow-link back" href={page.url.prev}>Newer</a> : <span />}
+                    <span class="count">Page {page.currentPage} of {page.lastPage}</span>
+                    {page.url.next ? <a class="arrow-link" href={page.url.next}>Older</a> : <span />}
+                </nav>
+            )
+        }
+    </div>
+</Base>
+
+<style>
+    .topics {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2) var(--space-5);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .topics a {
+        font-family: var(--font-display);
+        font-size: 1.1rem;
+        font-style: italic;
+        text-decoration: none;
+    }
+
+    .topics a:hover {
+        text-decoration: underline;
+    }
+
+    .topics span {
+        color: var(--accent);
+        font-family: var(--font-sans);
+        font-size: 0.7rem;
+        font-style: normal;
+        vertical-align: super;
+    }
+
+    .list {
+        padding-bottom: var(--section);
+        border-top: 1px solid var(--rule-strong);
+        padding-top: var(--space-10);
+    }
+
+    .entries {
+        display: grid;
+        margin-top: var(--space-12);
+        border-top: 1px solid var(--rule);
+    }
+
+    .pager {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-4);
+        margin-top: var(--space-12);
+    }
+
+    .back::after {
+        content: none;
+    }
+
+    .back::before {
+        content: '⟵';
+        font-family: var(--font-display);
+        letter-spacing: 0;
+    }
+
+    .count {
+        color: var(--faint);
+        font-size: 0.9rem;
+    }
+
+    @media (min-width: 64rem) {
+        .entries {
+            grid-template-columns: 1fr 1fr;
+            column-gap: var(--space-16);
+        }
+    }
+</style>

@@ -1,0 +1,129 @@
+---
+/**
+ * One journal post in a list. Two forms: `entry`, a line in a table of
+ * contents (folio, topic, title, standfirst, date), and `feature`, the same
+ * with its photograph large beside it. The picture is the post's cover, or
+ * its topic's photo (src/data/photos.ts), so a feature always has one. A
+ * feature leads its page, so its photo loads first.
+ */
+import type { CollectionEntry } from 'astro:content';
+import FormattedDate from './FormattedDate.astro';
+import Photo from './Photo.astro';
+import { defaultPostPhoto, topicPhotos } from '../data/photos';
+import { readingMinutes, tagSlug } from '@core/lib/posts.js';
+
+interface Props {
+    post: CollectionEntry<'journal'>;
+    index: number;
+    /** h2 on a page of posts; h3 inside a section that has its own h2. */
+    level?: 'h2' | 'h3';
+    form?: 'entry' | 'feature';
+}
+
+const { post, index, level = 'h2', form = 'entry' } = Astro.props;
+const Heading = level;
+const firstTag = post.data.tags[0];
+const topicPhoto = (firstTag !== undefined ? topicPhotos[tagSlug(firstTag)] : undefined) ?? defaultPostPhoto;
+const href = `/journal/${post.id}/`;
+---
+
+<article class:list={['post', form]}>
+    {
+        form === 'feature' && (
+            <a class="photo" href={href} tabindex="-1" aria-hidden="true">
+                {post.data.cover && post.data.coverAlt ? (
+                    <Photo src={post.data.cover} alt="" sizes="(min-width: 64rem) 50vw, 100vw" maxWidth={1400} priority />
+                ) : (
+                    <Photo name={topicPhoto} alt="" sizes="(min-width: 64rem) 50vw, 100vw" maxWidth={1400} priority />
+                )}
+            </a>
+        )
+    }
+    <div class="text">
+        <p class="kicker">
+            <span class="no">{String(index).padStart(2, '0')}</span>
+            {firstTag && <span>{firstTag}</span>}
+            {post.data.draft && <span class="draft">Draft</span>}
+        </p>
+        <Heading class="title"><a href={href}>{post.data.title}</a></Heading>
+        <p class="description">{post.data.description}</p>
+        <p class="meta"><FormattedDate date={post.data.pubDate} /> · {readingMinutes(post.body ?? '')} min read</p>
+    </div>
+</article>
+
+<style>
+    .post {
+        display: grid;
+        gap: var(--space-6) var(--space-12);
+    }
+
+    .entry {
+        padding: var(--space-8) 0;
+        border-bottom: 1px solid var(--rule);
+    }
+
+    .photo {
+        display: block;
+        overflow: hidden;
+        aspect-ratio: 4 / 3;
+        background: var(--paper-deep);
+    }
+
+    .photo :global(img) {
+        transition: transform 1.2s var(--ease-out);
+    }
+
+    .post:hover .photo :global(img) {
+        transform: scale(1.04);
+    }
+
+    .kicker {
+        margin-bottom: var(--space-3);
+    }
+
+    .draft {
+        color: var(--accent);
+    }
+
+    .title {
+        margin: 0 0 var(--space-3);
+        font-size: clamp(1.6rem, 1.3rem + 1.1vw, 2.3rem);
+    }
+
+    .feature .title {
+        font-size: clamp(2rem, 1.5rem + 2vw, 3.25rem);
+    }
+
+    .title a {
+        text-decoration: none;
+        background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat;
+        transition: background-size 0.5s var(--ease-curtain), color 0.25s ease;
+    }
+
+    .title a:hover {
+        background-size: 100% 1px;
+    }
+
+    .description {
+        max-width: 38rem;
+        color: var(--muted);
+    }
+
+    .meta {
+        margin: 0;
+        color: var(--faint);
+        font-size: 0.85rem;
+        letter-spacing: 0.04em;
+    }
+
+    @media (min-width: 64rem) {
+        .feature {
+            grid-template-columns: 1.1fr 1fr;
+            align-items: center;
+        }
+
+        .entry {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>

@@ -1,0 +1,290 @@
+---
+/**
+ * The enquiry, received by the waffle app (docs/forms.md).
+ *
+ * It posts to /api/site/forms/enquiry on this site; Caddy forwards that to
+ * the waffle app with the site key (docs/waffle-api.md). It works without
+ * script: the browser checks the fields, posts the form, and the app answers
+ * with a redirect to `thanks`. With script (src/scripts/forms.ts) it sends
+ * JSON and shows the answer in place, field by field.
+ *
+ * The package choices come from the same waffle answer as the packages page,
+ * so the form never offers a collection the studio no longer sells.
+ */
+import { HONEYPOT } from '@core/lib/forms.js';
+import type { Collection } from '../lib/packages';
+import { buildTime } from '@core/settings';
+
+interface Props {
+    /** Where the app sends a browser without script after a good submission. */
+    thanks: string;
+    collections: readonly Collection[];
+}
+
+const { thanks, collections } = Astro.props;
+// No date before the day the site was built, and none past five years out.
+const today = buildTime.toISOString().slice(0, 10);
+const latest = `${buildTime.getUTCFullYear() + 5}-12-31`;
+---
+
+<form class="enquiry" method="post" action="/api/site/forms/enquiry" data-site-form>
+    <input type="hidden" name="redirect" value={thanks} />
+
+    <fieldset>
+        <legend><span class="no">i.</span> About you</legend>
+
+        <div class="field wide">
+            <label for="enquiry-names">Your names</label>
+            <input id="enquiry-names" name="names" type="text" autocomplete="name" required maxlength="120" placeholder="Ines Duarte & Callum Reid" />
+            <p class="error" data-error-for="names" hidden></p>
+        </div>
+
+        <div class="field">
+            <label for="enquiry-email">Email</label>
+            <input id="enquiry-email" name="email" type="email" autocomplete="email" required maxlength="254" />
+            <p class="error" data-error-for="email" hidden></p>
+        </div>
+
+        <div class="field">
+            <label for="enquiry-phone">Phone <span class="optional">optional</span></label>
+            <input id="enquiry-phone" name="phone" type="tel" autocomplete="tel" maxlength="30" />
+            <p class="error" data-error-for="phone" hidden></p>
+        </div>
+    </fieldset>
+
+    <fieldset>
+        <legend><span class="no">ii.</span> About the day</legend>
+
+        <div class="field">
+            <label for="enquiry-date">Date <span class="optional">if you have one</span></label>
+            <input id="enquiry-date" name="date" type="date" min={today} max={latest} />
+            <p class="error" data-error-for="date" hidden></p>
+        </div>
+
+        <div class="field">
+            <label for="enquiry-guests">Guests, roughly</label>
+            <input id="enquiry-guests" name="guests" type="number" inputmode="numeric" min="0" max="1000" step="1" required />
+            <p class="error" data-error-for="guests" hidden></p>
+        </div>
+
+        <div class="field wide">
+            <label for="enquiry-venue">Venue or place <span class="optional">or "still looking"</span></label>
+            <input id="enquiry-venue" name="venue" type="text" required maxlength="200" />
+            <p class="error" data-error-for="venue" hidden></p>
+        </div>
+
+        <div class="field wide">
+            <label for="enquiry-package">The package you are drawn to</label>
+            <select id="enquiry-package" name="package" required>
+                <option value="">Choose one</option>
+                {collections.map((item) => <option value={item.id}>{item.name}</option>)}
+                <option value="not-sure">Not sure yet</option>
+            </select>
+            <p class="error" data-error-for="package" hidden></p>
+        </div>
+    </fieldset>
+
+    <fieldset>
+        <legend><span class="no">iii.</span> In your words</legend>
+
+        <div class="field wide">
+            <label for="enquiry-message">Tell us about it: the people, the place, what matters</label>
+            <textarea id="enquiry-message" name="message" rows="6" required maxlength="5000"></textarea>
+            <p class="error" data-error-for="message" hidden></p>
+        </div>
+    </fieldset>
+
+    <div class="trap" aria-hidden="true">
+        <label for="enquiry-website">Leave this empty</label>
+        <input id="enquiry-website" name={HONEYPOT} type="text" tabindex="-1" autocomplete="off" />
+    </div>
+
+    <p class="status" role="status" aria-live="polite" data-status></p>
+
+    <div class="send">
+        <button class="button" type="submit">Send the enquiry</button>
+        <p>We reply within two working days, personally. Your details go to us and nowhere else (<a href="/privacy/">privacy</a>).</p>
+    </div>
+</form>
+
+<script>
+    import { enhanceForms } from '../scripts/forms';
+
+    enhanceForms(document);
+</script>
+
+<style>
+    .enquiry {
+        display: grid;
+        gap: var(--space-12);
+    }
+
+    fieldset {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+        gap: var(--space-8) var(--space-6);
+        margin: 0;
+        padding: 0;
+        border: 0;
+    }
+
+    legend {
+        display: flex;
+        align-items: baseline;
+        gap: var(--space-3);
+        width: 100%;
+        margin-bottom: var(--space-6);
+        padding-bottom: var(--space-3);
+        border-bottom: 1px solid var(--rule-strong);
+        font-family: var(--font-display);
+        font-size: 1.6rem;
+    }
+
+    legend .no {
+        color: var(--accent);
+        font-size: 1.1rem;
+        font-style: italic;
+    }
+
+    .field {
+        display: grid;
+        align-content: start;
+        gap: var(--space-2);
+    }
+
+    .field.wide {
+        grid-column: 1 / -1;
+    }
+
+    label {
+        font-size: 0.75rem;
+        font-weight: 500;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+    }
+
+    .optional {
+        color: var(--faint);
+        font-family: var(--font-display);
+        font-size: 0.95rem;
+        font-style: italic;
+        letter-spacing: 0;
+        text-transform: none;
+    }
+
+    /* Fields are a ruled line to write on, not a box. */
+    input,
+    select,
+    textarea {
+        width: 100%;
+        min-height: 3rem;
+        padding: 0.55rem 0;
+        border: 0;
+        border-bottom: 1px solid var(--ink);
+        border-radius: 0;
+        background: transparent;
+        color: var(--text);
+        font-family: var(--font-display);
+        font-size: 1.3rem;
+        transition: border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    input::placeholder {
+        color: var(--faint);
+        font-style: italic;
+        opacity: 1;
+    }
+
+    select {
+        appearance: none;
+        background-image: linear-gradient(45deg, transparent 50%, var(--ink) 50%), linear-gradient(135deg, var(--ink) 50%, transparent 50%);
+        background-position: calc(100% - 12px) 55%, calc(100% - 6px) 55%;
+        background-size: 6px 6px;
+        background-repeat: no-repeat;
+        cursor: pointer;
+    }
+
+    textarea {
+        min-height: 9rem;
+        padding: 0.75rem;
+        border: 1px solid var(--ink);
+        line-height: 1.5;
+        resize: vertical;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+        outline: none;
+        border-color: var(--accent);
+        box-shadow: 0 1px 0 0 var(--accent);
+    }
+
+    input:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible {
+        outline: 2px solid var(--focus);
+        outline-offset: 3px;
+    }
+
+    [aria-invalid='true'] {
+        border-color: var(--error);
+    }
+
+    .error {
+        margin: 0;
+        color: var(--error);
+        font-size: 0.9rem;
+    }
+
+    .status:empty {
+        display: none;
+    }
+
+    .status {
+        margin: 0;
+        padding: var(--space-4) var(--space-5);
+        border-left: 2px solid currentColor;
+        font-family: var(--font-display);
+        font-size: 1.2rem;
+        font-style: italic;
+    }
+
+    .status[data-kind='sent'] {
+        color: var(--success);
+    }
+
+    .status[data-kind='invalid'],
+    .status[data-kind='failed'] {
+        color: var(--error);
+    }
+
+    /* Off screen rather than display:none, which some bots check for. */
+    .trap {
+        position: absolute;
+        left: -10000px;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+    }
+
+    .send {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-4) var(--space-8);
+    }
+
+    .send p {
+        max-width: 28rem;
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.92rem;
+    }
+
+    @media (max-width: 40rem) {
+        .send .button {
+            width: 100%;
+        }
+    }
+</style>

@@ -1,0 +1,9 @@
+{
+  "name": "wedding-photographer",
+  "label": "Wedding and portrait photographer",
+  "description": "A two-person wedding, elopement and portrait studio: picture stories with full-screen galleries, a portfolio by kind of day, packages and a twelve-month availability calendar from the waffle app, an enquiry form and a planning journal.",
+  "kind": "Studio",
+  "schemaType": "ProfessionalService",
+  "look": "Editorial magazine: ivory paper and ink-black, Bodoni Moda with Jost, full-bleed photographs, film grain, captions like a print spread",
+  "waffleEndpoints": ["GET /api/site/packages", "GET /api/site/availability", "POST /api/site/forms/enquiry"]
+}

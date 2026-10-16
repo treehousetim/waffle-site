@@ -1,0 +1,91 @@
+---
+/**
+ * One story in a list: its first photograph, a folio, the names and the
+ * headline. The photograph carries the story's view-transition name
+ * (motion.css), so on opening the story it grows into the page's hero.
+ *
+ * The photograph's alt is empty: the link's text (names and headline) says
+ * where it goes, and the photo is described on the story's own page.
+ */
+import Photo from './Photo.astro';
+import { categories, longDate, storyUrl, type Story } from '../data/stories';
+
+interface Props {
+    story: Story;
+    /** Its number in the list, printed as a folio: "No. 02". */
+    index: number;
+    level?: 'h2' | 'h3';
+    /** Portrait (the default) or landscape crop. */
+    shape?: 'tall' | 'wide';
+    sizes?: string;
+}
+
+const { story, index, level = 'h3', shape = 'tall', sizes = '(min-width: 64rem) 30vw, 85vw' } = Astro.props;
+const Heading = level;
+const category = categories.find((item) => item.slug === story.category);
+const first = story.frames[0];
+const month = longDate(story.date).replace(/ \d+,/, '');
+---
+
+<article class:list={['story-card', shape]}>
+    <a href={storyUrl(story.slug)}>
+        <div class:list={['frame', `vt-story-${story.slug}`]}>
+            {first && <Photo name={first.photo} alt="" sizes={sizes} maxWidth={1200} />}
+        </div>
+        <p class="kicker">
+            <span class="no">No. {String(index).padStart(2, '0')}</span>
+            <span>{category?.name.replace(/s$/, '')} · {month}</span>
+        </p>
+        <Heading class="names">{story.names}</Heading>
+        <p class="title">{story.title}</p>
+    </a>
+</article>
+
+<style>
+    .story-card a {
+        display: block;
+        text-decoration: none;
+    }
+
+    .frame {
+        position: relative;
+        overflow: hidden;
+        aspect-ratio: 4 / 5;
+        background: var(--paper-deep);
+    }
+
+    .wide .frame {
+        aspect-ratio: 3 / 2;
+    }
+
+    .frame :global(img) {
+        transition: transform 1.2s var(--ease-out), filter 0.6s ease;
+    }
+
+    a:hover .frame :global(img),
+    a:focus-visible .frame :global(img) {
+        transform: scale(1.045);
+    }
+
+    .kicker {
+        margin: var(--space-5) 0 var(--space-3);
+    }
+
+    .names {
+        margin: 0;
+        font-size: clamp(1.6rem, 1.3rem + 1vw, 2.15rem);
+        transition: color 0.25s ease;
+    }
+
+    .title {
+        margin: var(--space-1) 0 0;
+        color: var(--muted);
+        font-family: var(--font-display);
+        font-size: 1.1rem;
+        font-style: italic;
+    }
+
+    a:hover .names {
+        color: var(--accent);
+    }
+</style>
