@@ -1,7 +1,7 @@
 // src/lib/posts.js — docs/blog.md.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { postsTagged, readingMinutes, tagIndex, tagSlug, visiblePosts } from '../../src/lib/posts.js';
+import { postsTagged, readingMinutes, relatedPosts, tagIndex, tagSlug, visiblePosts } from '../../src/lib/posts.js';
 
 const post = (id, date, { draft = false, tags = [] } = {}) => ({ id, data: { pubDate: new Date(date), draft, tags } });
 const now = new Date('2026-10-14T12:00:00Z');
@@ -68,4 +68,19 @@ test('reading time is words over 230, at least a minute', () => {
     assert.equal(readingMinutes(''), 1);
     assert.equal(readingMinutes('word '.repeat(100)), 1);
     assert.equal(readingMinutes('word '.repeat(690)), 3);
+});
+
+test('related posts share a topic first, then fill with the newest others, never the post itself', () => {
+    const list = [
+        post('a', '2026-05-01', { tags: ['Panels'] }),
+        post('b', '2026-04-01', { tags: ['Lighting'] }),
+        post('c', '2026-03-01', { tags: ['panels', 'Safety'] }),
+        post('d', '2026-02-01', { tags: ['Safety'] }),
+        post('e', '2026-01-01', { tags: [] }),
+    ];
+
+    assert.deepEqual(relatedPosts(list[0], list, 3).map((p) => p.id), ['c', 'b', 'd']);
+    assert.deepEqual(relatedPosts(list[2], list, 2).map((p) => p.id), ['a', 'd']);
+    assert.deepEqual(relatedPosts(list[4], list, 3).map((p) => p.id), ['a', 'b', 'c']);
+    assert.deepEqual(relatedPosts(list[0], [list[0]], 3), []);
 });

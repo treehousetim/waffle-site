@@ -1,38 +1,54 @@
 ---
-/** Linked cards: services, towns, anything that is a list of pages. */
+/**
+ * Linked cards: services, towns, any list of pages. With a photo each card
+ * leads with it; without, with an icon.
+ */
 import Icon, { type IconName } from './Icon.astro';
+import Photo from './Photo.astro';
+import type { PhotoName } from '../data/photos';
 
 export interface Card {
     href: string;
     title: string;
     text: string;
     icon?: IconName;
+    photo?: PhotoName;
     note?: string;
 }
 
 interface Props {
     cards: Card[];
     level?: 'h2' | 'h3';
+    columns?: 2 | 3 | 4;
 }
 
-const { cards, level = 'h3' } = Astro.props;
+const { cards, level = 'h3', columns = 4 } = Astro.props;
 const Heading = level;
 ---
 
-<ul class="cards">
+<ul class:list={['cards', `columns-${columns}`]}>
     {
         cards.map((card) => (
             <li>
-                <a href={card.href}>
-                    {card.icon && (
-                        <span class="icon">
-                            <Icon name={card.icon} />
+                <a href={card.href} class:list={{ 'has-photo': card.photo !== undefined }}>
+                    {card.photo && (
+                        <span class="photo">
+                            <Photo name={card.photo} sizes="(min-width: 64rem) 25vw, (min-width: 40rem) 50vw, 100vw" />
                         </span>
                     )}
-                    <Heading class="title">{card.title}</Heading>
-                    <p>{card.text}</p>
-                    {card.note && <p class="note">{card.note}</p>}
-                    <span class="more" aria-hidden="true">Learn more →</span>
+                    <span class="body">
+                        {card.icon && !card.photo && (
+                            <span class="icon">
+                                <Icon name={card.icon} />
+                            </span>
+                        )}
+                        <Heading class="title">{card.title}</Heading>
+                        <span class="text">{card.text}</span>
+                        {card.note && <span class="note">{card.note}</span>}
+                        <span class="more" aria-hidden="true">
+                            Learn more <span class="arrow">→</span>
+                        </span>
+                    </span>
                 </a>
             </li>
         ))
@@ -43,60 +59,116 @@ const Heading = level;
     .cards {
         display: grid;
         gap: var(--space-6);
-        grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 15.5rem), 1fr));
         margin: 0;
         padding: 0;
         list-style: none;
+    }
+
+    @media (min-width: 64rem) {
+        .columns-4 {
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        .columns-3 {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .columns-2 {
+            grid-template-columns: repeat(2, 1fr);
+        }
     }
 
     a {
         display: flex;
         flex-direction: column;
         height: 100%;
-        padding: var(--space-6);
+        overflow: hidden;
         border: 1px solid var(--color-border);
         border-radius: var(--radius);
         background: var(--color-bg);
         color: var(--color-text);
         text-decoration: none;
-        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        box-shadow: var(--shadow-small);
+        transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
     }
 
     a:hover {
-        border-color: var(--color-brand);
+        border-color: var(--color-border-strong);
         box-shadow: var(--shadow);
         color: var(--color-text);
+        transform: translateY(-3px);
+    }
+
+    .photo {
+        display: block;
+        overflow: hidden;
+        aspect-ratio: 16 / 10;
+        background: var(--color-surface);
+    }
+
+    .photo :global(img) {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+
+    a:hover .photo :global(img) {
+        transform: scale(1.04);
+    }
+
+    .body {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        padding: var(--space-6);
     }
 
     .icon {
-        display: inline-flex;
+        display: inline-grid;
+        place-items: center;
         align-self: flex-start;
-        margin-bottom: var(--space-4);
-        padding: var(--space-2);
-        border-radius: var(--radius-small);
+        width: 3rem;
+        height: 3rem;
+        margin-bottom: var(--space-5);
+        border-radius: var(--radius);
         background: var(--color-brand-soft);
-        color: var(--color-brand-strong);
+        color: var(--color-brand);
     }
 
     .title {
-        font-size: 1.15rem;
         margin-bottom: var(--space-2);
+        font-size: 1.15rem;
     }
 
-    p {
-        margin: 0 0 var(--space-3);
+    .text {
+        margin-bottom: var(--space-4);
         color: var(--color-muted);
+        font-size: 0.975rem;
+        line-height: 1.6;
     }
 
     .note {
-        font-size: 0.9rem;
-        font-weight: 650;
+        margin-bottom: var(--space-4);
         color: var(--color-brand-strong);
+        font-size: 0.875rem;
+        font-weight: 650;
     }
 
     .more {
         margin-top: auto;
-        color: var(--color-brand-strong);
+        color: var(--color-brand);
+        font-size: 0.95rem;
         font-weight: 650;
+    }
+
+    .arrow {
+        display: inline-block;
+        transition: transform 0.2s ease;
+    }
+
+    a:hover .arrow {
+        transform: translateX(3px);
     }
 </style>

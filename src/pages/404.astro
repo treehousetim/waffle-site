@@ -5,6 +5,9 @@
  */
 import Base from '../layouts/Base.astro';
 import Hero from '../components/Hero.astro';
+import Section from '../components/Section.astro';
+import CardGrid from '../components/CardGrid.astro';
+import { services, serviceUrl } from '../data/services';
 ---
 
 <Base title="Page not found" description="That page is not here. It may have moved, or the link may be mistyped. Try our services, the price guide or the advice articles instead.">
@@ -12,8 +15,11 @@ import Hero from '../components/Hero.astro';
         size="small"
         eyebrow="404"
         heading="That page is not here"
-        lead="It may have moved, or the link may have a typo in it."
-        primary={{ label: 'See our services', href: '/services/' }}
-        secondary={{ label: 'Go to the home page', href: '/' }}
+        lead="It may have moved, or the link may have a typo in it. These might be what you were after."
+        primary={{ label: 'Go to the home page', href: '/' }}
+        secondary={{ label: 'See prices', href: '/prices/' }}
     />
+    <Section heading="Our services" align="start">
+        <CardGrid cards={services.slice(0, 4).map((item) => ({ href: serviceUrl(item.slug), title: item.name, text: item.summary, icon: item.icon }))} />
+    </Section>
 </Base>

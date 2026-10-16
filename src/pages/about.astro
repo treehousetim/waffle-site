@@ -2,9 +2,13 @@
 import Base from '../layouts/Base.astro';
 import Hero from '../components/Hero.astro';
 import Section from '../components/Section.astro';
+import Split from '../components/Split.astro';
 import FeatureGrid from '../components/FeatureGrid.astro';
 import CallToAction from '../components/CallToAction.astro';
 import { site } from '../site';
+import { buildTime } from '../settings';
+
+const years = buildTime.getUTCFullYear() - site.business.founded;
 ---
 
 <Base
@@ -12,18 +16,23 @@ import { site } from '../site';
     description="Waffle Site is a family-run electrical contractor in Springfield since 2009: licensed electricians, straight prices and clean, permitted work."
     breadcrumbs={[{ name: 'About', href: '/about/' }]}
 >
-    <Hero size="small" eyebrow="About us" heading="A local electrical contractor, since 2009" />
+    <Hero
+        size="small"
+        eyebrow="About us"
+        heading={`A local electrical contractor, for ${years} years`}
+        lead={`${site.name} started with one van and one electrician who was tired of seeing rushed, unpermitted work in people's homes.`}
+        photo="electricianPortrait"
+        badge={{ title: `Since ${site.business.founded}`, text: 'Still run by the people who started it.' }}
+    />
 
-    <div class="prose">
-        <p class="lead">{site.name} started with one van and one electrician who was tired of seeing rushed, unpermitted work in people's homes.</p>
-        <p>Today we are a team of licensed electricians and apprentices working across Springfield and the towns around it. We are still run by the people who started it, and we still answer our own phone.</p>
+    <Split photo="electricianWithTools">
         <h2>How we work</h2>
+        <p class="lead">Today we are a team of licensed electricians and apprentices working across Springfield and the towns around it. We still answer our own phone.</p>
         <p>We give a written price before we start, pull the permits the work needs, and leave every job cleaner than we found it. If something is not right, we come back and make it right.</p>
-        <h2>Licensing</h2>
-        <p>{site.business.licence}. Insured for general liability and workers compensation; certificates on request.</p>
-    </div>
+        <p class="muted">{site.business.licence}. Insured for general liability and workers compensation; certificates on request.</p>
+    </Split>
 
-    <Section tone="surface" heading="What we promise">
+    <Section tone="surface" eyebrow="Our promise" heading="What you can expect from us">
         <FeatureGrid
             features={[
                 { icon: 'dollar', title: 'Prices in writing', text: 'The price we quote is the price you pay, unless you ask for more work.' },
@@ -34,5 +43,5 @@ import { site } from '../site';
         />
     </Section>
 
-    <CallToAction heading="Let's talk about your project" action={{ label: 'Get a free quote', href: '/contact/' }} />
+    <CallToAction heading="Let's talk about your project" text="Tell us what you need and we will give you a straight answer and a written price." action={{ label: 'Get a free quote', href: '/contact/' }} />
 </Base>

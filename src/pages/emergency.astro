@@ -2,7 +2,7 @@
 import Base from '../layouts/Base.astro';
 import Hero from '../components/Hero.astro';
 import Section from '../components/Section.astro';
-import PhoneLink from '../components/PhoneLink.astro';
+import Icon from '../components/Icon.astro';
 import { site } from '../site';
 import { areaNames } from '../data/areas';
 ---
@@ -13,62 +13,115 @@ import { areaNames } from '../data/areas';
     breadcrumbs={[{ name: 'Emergency', href: '/emergency/' }]}
 >
     <Hero
-        size="small"
+        tone="dark"
+        photo="lightningStorm"
         eyebrow="24/7 emergency service"
         heading="Electrical emergency? Call now."
         lead={`A licensed electrician answers day and night, and we aim to be with you within the hour in ${areaNames.join(', ')}.`}
+        primary={{ label: `Call ${site.business.phone}`, href: `tel:${site.business.phoneE164}` }}
     >
-        <div class="call">
-            <PhoneLink variant="button" label={`Call ${site.business.phone}`} />
-            <p class="muted">Please call rather than using the form: forms are read in office hours.</p>
-        </div>
+        <p class="note">Please call rather than using the form: forms are read in office hours.</p>
     </Hero>
 
-    <div class="prose">
-        <h2>If you smell burning or see smoke</h2>
-        <ol>
-            <li>If there are flames, leave the house and call 911.</li>
-            <li>If it is safe to reach, switch off the main breaker at the panel.</li>
-            <li>Do not touch anything that is sparking, wet or scorched.</li>
-            <li>Call us, and tell us what you saw and smelled.</li>
-        </ol>
-        <h2>What counts as an emergency</h2>
-        <ul>
-            <li>A burning smell, scorch marks or smoke from an outlet, switch or panel.</li>
-            <li>Sparking, buzzing or crackling from wiring or the panel.</li>
-            <li>No power in the house when your neighbors have it.</li>
-            <li>A service line pulled down by a storm or a fallen tree.</li>
-            <li>Water in the panel, outlets or light fixtures.</li>
-        </ul>
-        <h2>What it costs</h2>
-        <p>Emergency call-outs have a fixed call-out price, shown in our <a href="/prices/">price guide</a>. We make the situation safe first, then give you a written price for any repair before doing it.</p>
-    </div>
+    <Section>
+        <div class="grid">
+            <div class="card first">
+                <span class="badge"><Icon name="alert" size={22} /></span>
+                <h2>If you smell burning or see smoke</h2>
+                <ol>
+                    <li>If there are flames, leave the house and call 911.</li>
+                    <li>If it is safe to reach, switch off the main breaker at the panel.</li>
+                    <li>Do not touch anything that is sparking, wet or scorched.</li>
+                    <li>Call us, and tell us what you saw and smelled.</li>
+                </ol>
+            </div>
+            <div class="card">
+                <span class="badge soft"><Icon name="bolt" size={22} /></span>
+                <h2>What counts as an emergency</h2>
+                <ul>
+                    <li>A burning smell, scorch marks or smoke from an outlet, switch or panel.</li>
+                    <li>Sparking, buzzing or crackling from wiring or the panel.</li>
+                    <li>No power in the house when your neighbors have it.</li>
+                    <li>A service line pulled down by a storm or a fallen tree.</li>
+                    <li>Water in the panel, outlets or light fixtures.</li>
+                </ul>
+            </div>
+        </div>
+    </Section>
 
-    <Section tone="surface" heading="Not an emergency after all?">
-        <p class="center">If it can wait for office hours, a normal service call costs less. <a href="/contact/">Request a quote</a> and we will reply the same working day.</p>
+    <Section tone="surface" heading="What it costs" intro="Emergency call-outs have a fixed call-out price, shown in our price guide. We make the situation safe first, then give you a written price for any repair before doing it.">
+        <p class="center actions">
+            <a class="button" href="/prices/">See the price guide</a>
+            <a class="button button-secondary" href="/contact/">Not urgent? Request a quote</a>
+        </p>
     </Section>
 </Base>
 
 <style>
-    .call {
+    .note {
+        margin: 0;
+        color: var(--color-on-ink-muted);
+        font-size: 0.95rem;
+    }
+
+    .grid {
+        display: grid;
+        gap: var(--space-6);
+    }
+
+    @media (min-width: 64rem) {
+        .grid {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    .card {
+        padding: clamp(1.75rem, 1rem + 2vw, 2.75rem);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-large);
+        background: var(--color-bg);
+        box-shadow: var(--shadow-small);
+    }
+
+    .first {
+        border-color: #f3c97a;
+        background: linear-gradient(180deg, var(--color-accent-soft), var(--color-bg) 60%);
+    }
+
+    .badge {
+        display: inline-grid;
+        place-items: center;
+        width: 3rem;
+        height: 3rem;
+        margin-bottom: var(--space-5);
+        border-radius: 50%;
+        background: var(--color-accent);
+        color: var(--color-ink);
+    }
+
+    .badge.soft {
+        background: var(--color-brand-soft);
+        color: var(--color-brand);
+    }
+
+    h2 {
+        font-size: 1.6rem;
+    }
+
+    ol,
+    ul {
         display: grid;
         gap: var(--space-3);
-        padding: var(--space-8);
-        border-radius: var(--radius);
-        background: var(--color-bg);
-        box-shadow: var(--shadow);
-        justify-items: start;
-    }
-
-    .call p {
         margin: 0;
+        padding-left: 1.3em;
     }
 
-    .prose {
-        padding-top: var(--space-12);
+    li::marker {
+        color: var(--color-brand);
+        font-weight: 700;
     }
 
     .center {
-        text-align: center;
+        justify-content: center;
     }
 </style>

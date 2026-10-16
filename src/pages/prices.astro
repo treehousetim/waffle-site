@@ -11,10 +11,12 @@ import PriceGuide from '../components/PriceGuide.astro';
 import Faq from '../components/Faq.astro';
 import CallToAction from '../components/CallToAction.astro';
 import { waffle } from '../settings';
+import { site } from '../site';
 import { parsePriceGuide } from '../lib/prices.js';
 import { faqPage } from '../lib/jsonld.js';
 
 const guide = parsePriceGuide(await waffle.get('/api/site/prices'));
+const updated = new Date(guide.updated).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
 
 const questions = [
     { question: 'Are these the prices I will pay?', answer: 'They are starting prices for a straightforward job. Every job gets a written price before work starts, and that is the price you pay.' },
@@ -32,27 +34,21 @@ const questions = [
 >
     <Hero
         size="small"
-        eyebrow="Prices"
+        eyebrow={`Price guide · updated ${updated}`}
         heading="What electrical work costs"
-        lead={`Starting prices for our most common jobs, updated ${guide.updated}. You always get a written price before we start.`}
+        lead="Starting prices for our most common jobs. You always get a written price before we start, and permits are always included."
+        photo="clampMeterAndTools"
+        primary={{ label: site.cta.label, href: site.cta.href }}
+        secondary={{ label: `Call ${site.business.phone}`, href: `tel:${site.business.phoneE164}` }}
     />
 
     <Section>
-        <div class="wrap">
-            <PriceGuide guide={guide} />
-        </div>
+        <PriceGuide guide={guide} />
     </Section>
 
-    <Section tone="surface" heading="About our prices">
+    <Section tone="surface" eyebrow="FAQ" heading="About our prices">
         <Faq items={questions} />
     </Section>
 
     <CallToAction heading="Want an exact price?" text="Send a few photos and a description. Most quotes are back the same day." action={{ label: 'Request a free quote', href: '/contact/' }} />
 </Base>
-
-<style>
-    .wrap {
-        max-width: 48rem;
-        margin-inline: auto;
-    }
-</style>

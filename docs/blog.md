@@ -14,7 +14,7 @@ description: A tripping breaker is protecting your wiring. How to tell an overlo
 pubDate: 2026-10-08
 author: Marcus Bell
 tags: [Safety, Troubleshooting]
-cover: ../../assets/blog/breaker.png
+cover: ../../assets/photos/breaker-panel.jpg
 coverAlt: An open panel with one breaker in the tripped position.
 ---
 

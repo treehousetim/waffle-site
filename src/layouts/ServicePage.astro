@@ -1,9 +1,10 @@
 ---
 /**
  * The frame every service page shares (src/pages/services/<slug>.astro):
- * the hero with both ways to get in touch, the page's own copy, this
- * service's prices from the waffle app, its questions, the towns served,
- * and the structured data that says this business offers this service there.
+ * the hero with the service's photo, the page's own copy beside a quote
+ * card, this service's prices from the waffle app, its questions, the other
+ * services, the towns served, and the structured data that says this
+ * business offers this service there.
  *
  * The copy in the slot is the page: write it for this service, from what
  * customers actually ask (docs/pages.md, "Service pages").
@@ -13,14 +14,18 @@ import Hero from '../components/Hero.astro';
 import Section from '../components/Section.astro';
 import Faq, { type FaqItem } from '../components/Faq.astro';
 import PriceGuide from '../components/PriceGuide.astro';
-import PhoneLink from '../components/PhoneLink.astro';
+import QuoteCard from '../components/QuoteCard.astro';
+import CardGrid from '../components/CardGrid.astro';
 import CallToAction from '../components/CallToAction.astro';
 import { areas, areaNames, areaUrl } from '../data/areas';
-import { services } from '../data/services';
+import { services, serviceUrl } from '../data/services';
+import { site } from '../site';
 import { waffle, settings } from '../settings';
 import { faqPage, service as serviceNode } from '../lib/jsonld.js';
 import { parsePriceGuide } from '../lib/prices.js';
-import { canonicalUrl } from '../lib/seo.js';
+import { absoluteUrl, canonicalUrl } from '../lib/seo.js';
+import { getImage } from 'astro:assets';
+import { photos } from '../data/photos';
 
 interface Props {
     /** The slug in src/data/services.ts. */
@@ -42,44 +47,59 @@ if (entry === undefined) {
 const guide = parsePriceGuide(await waffle.get('/api/site/prices'));
 const hasPrices = guide.items.some((item) => item.service === slug);
 const url = canonicalUrl(Astro.url.pathname, settings.siteUrl);
+const others = services.filter((item) => item.slug !== slug).slice(0, 3);
+const preview = await getImage({ src: photos[entry.photo].src, width: 1200, height: 630, fit: 'cover', format: 'jpg' });
 ---
 
 <Base
     title={title}
     description={description}
+    image={{ src: absoluteUrl(preview.src, settings.siteUrl), alt: photos[entry.photo].alt }}
     breadcrumbs={[
         { name: 'Services', href: '/services/' },
         { name: entry.name, href: Astro.url.pathname },
     ]}
     jsonLd={[serviceNode({ url, name: entry.name, description, areas: areaNames }, settings.siteUrl), faqPage(faq)]}
 >
-    <Hero size="small" eyebrow={entry.name} heading={heading} lead={lead} primary={{ label: 'Get a free quote', href: '/contact/' }}>
-        <div class="call">
-            <p>Prefer to talk it through?</p>
-            <PhoneLink variant="button" />
-        </div>
-    </Hero>
+    <Hero
+        size="small"
+        eyebrow={entry.name}
+        heading={heading}
+        lead={lead}
+        photo={entry.photo}
+        primary={{ label: site.cta.label, href: site.cta.href }}
+        secondary={{ label: `Call ${site.business.phone}`, href: `tel:${site.business.phoneE164}` }}
+    />
 
-    <div class="prose body">
-        <slot />
+    <div class="container body">
+        <div class="prose-column">
+            <slot />
+        </div>
+        <div class="aside">
+            <QuoteCard />
+        </div>
     </div>
 
     {
         hasPrices && (
-            <Section tone="surface" heading="What it costs" intro={`Starting prices, updated ${guide.updated}. Every job gets a written quote before work starts.`}>
-                <div class="prose-wide">
+            <Section tone="surface" eyebrow="Prices" heading="What it costs" intro={`Starting prices, updated ${new Date(guide.updated).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' })}. Every job gets a written quote before work starts.`}>
+                <div class="narrow">
                     <PriceGuide guide={guide} service={slug} showCategories={false} />
-                    <p><a href="/prices/">See the full price guide</a></p>
+                    <p class="all-prices"><a href="/prices/">See the full price guide →</a></p>
                 </div>
             </Section>
         )
     }
 
-    <Section heading="Questions we hear a lot">
+    <Section eyebrow="FAQ" heading="Questions we hear a lot">
         <Faq items={faq} />
     </Section>
 
-    <Section tone="surface" heading={`${entry.name} near you`} intro="We work across these towns every week.">
+    <Section tone="surface" heading="Other services" align="start" more={{ label: 'All services', href: '/services/' }}>
+        <CardGrid columns={3} cards={others.map((item) => ({ href: serviceUrl(item.slug), title: item.name, text: item.summary, photo: item.photo }))} />
+    </Section>
+
+    <Section heading={`${entry.name} near you`} intro="We work across these towns every week.">
         <ul class="towns">
             {areas.map((area) => <li><a href={areaUrl(area.slug)}>{area.name}</a></li>)}
         </ul>
@@ -90,24 +110,60 @@ const url = canonicalUrl(Astro.url.pathname, settings.siteUrl);
 
 <style>
     .body {
-        padding-top: var(--space-12);
+        display: grid;
+        gap: var(--space-12);
+        padding: var(--section) 0;
     }
 
-    .prose-wide {
+    .prose-column {
+        max-width: var(--width-prose);
+    }
+
+    .prose-column :global(h2) {
+        font-size: clamp(1.5rem, 1.25rem + 1vw, 1.875rem);
+    }
+
+    .prose-column :global(* + h2) {
+        margin-top: var(--space-12);
+    }
+
+    .prose-column :global(ul) {
+        padding-left: 1.3em;
+    }
+
+    .prose-column :global(li + li) {
+        margin-top: var(--space-2);
+    }
+
+    .prose-column :global(li::marker) {
+        color: var(--color-brand);
+    }
+
+    @media (min-width: 64rem) {
+        .body {
+            grid-template-columns: minmax(0, 1fr) 22rem;
+            align-items: start;
+        }
+
+        .aside {
+            position: sticky;
+            top: calc(var(--header-height) + var(--space-6));
+        }
+    }
+
+    .narrow {
         max-width: 48rem;
         margin-inline: auto;
     }
 
-    .call {
-        padding: var(--space-8);
-        border-radius: var(--radius);
-        background: var(--color-bg);
-        box-shadow: var(--shadow);
+    .all-prices {
+        margin: var(--space-6) 0 0;
+        font-weight: 650;
+        text-align: right;
     }
 
-    .call p {
-        margin-bottom: var(--space-3);
-        font-weight: 650;
+    .all-prices a {
+        text-decoration: none;
     }
 
     .towns {
@@ -122,12 +178,18 @@ const url = canonicalUrl(Astro.url.pathname, settings.siteUrl);
 
     .towns a {
         display: inline-block;
-        padding: var(--space-2) var(--space-4);
+        padding: var(--space-2) var(--space-5);
+        border: 1px solid var(--color-border-strong);
         border-radius: 999px;
         background: var(--color-bg);
-        border: 1px solid var(--color-border);
         color: var(--color-text);
-        text-decoration: none;
         font-weight: 600;
+        text-decoration: none;
+        transition: border-color 0.15s ease, color 0.15s ease;
+    }
+
+    .towns a:hover {
+        border-color: var(--color-brand);
+        color: var(--color-brand-strong);
     }
 </style>

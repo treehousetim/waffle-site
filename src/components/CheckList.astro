@@ -1,0 +1,62 @@
+---
+/** A short list of promises, each with a tick. */
+import Icon from './Icon.astro';
+
+interface Props {
+    items: { title: string; text?: string }[];
+}
+
+const { items } = Astro.props;
+---
+
+<ul class="checks">
+    {
+        items.map((item) => (
+            <li>
+                <span class="tick">
+                    <Icon name="check" size={16} />
+                </span>
+                <span>
+                    <strong>{item.title}</strong>
+                    {item.text && <span class="text">{item.text}</span>}
+                </span>
+            </li>
+        ))
+    }
+</ul>
+
+<style>
+    .checks {
+        display: grid;
+        gap: var(--space-5);
+        margin: var(--space-8) 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    li {
+        display: flex;
+        gap: var(--space-4);
+        line-height: 1.5;
+    }
+
+    .tick {
+        display: inline-grid;
+        flex: none;
+        place-items: center;
+        width: 1.75rem;
+        height: 1.75rem;
+        margin-top: 0.1rem;
+        border-radius: 50%;
+        background: var(--color-brand);
+        color: #ffffff;
+    }
+
+    strong {
+        display: block;
+    }
+
+    .text {
+        color: var(--color-muted);
+    }
+</style>

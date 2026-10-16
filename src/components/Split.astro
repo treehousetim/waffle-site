@@ -1,0 +1,65 @@
+---
+/**
+ * A photograph beside a block of copy: the "why us", "about the area" kind
+ * of section. `reverse` puts the photo on the right.
+ */
+import Photo from './Photo.astro';
+import type { PhotoName } from '../data/photos';
+
+interface Props {
+    photo: PhotoName;
+    reverse?: boolean;
+    tone?: 'plain' | 'surface';
+}
+
+const { photo, reverse = false, tone = 'plain' } = Astro.props;
+---
+
+<section class:list={['split', tone, { reverse }]}>
+    <div class="container inner">
+        <div class="media">
+            <Photo name={photo} sizes="(min-width: 64rem) 45vw, 100vw" />
+        </div>
+        <div class="copy">
+            <slot />
+        </div>
+    </div>
+</section>
+
+<style>
+    .split {
+        padding: var(--section) 0;
+    }
+
+    .surface {
+        background: var(--color-surface);
+    }
+
+    .inner {
+        display: grid;
+        gap: clamp(2.5rem, 1.5rem + 4vw, 5rem);
+        align-items: center;
+    }
+
+    .media :global(img) {
+        width: 100%;
+        aspect-ratio: 5 / 4;
+        object-fit: cover;
+        border-radius: var(--radius-large);
+        box-shadow: var(--shadow);
+    }
+
+    .copy :global(.lead) {
+        margin-bottom: var(--space-6);
+    }
+
+    @media (min-width: 64rem) {
+        .inner {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .reverse .media {
+            order: 2;
+        }
+    }
+</style>

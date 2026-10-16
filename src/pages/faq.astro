@@ -26,15 +26,15 @@ const planning = [
     breadcrumbs={[{ name: 'FAQ', href: '/faq/' }]}
     jsonLd={[faqPage([...general, ...planning])]}
 >
-    <Hero size="small" eyebrow="FAQ" heading="Questions, answered" lead="Can't find yours? Call or send it through the quote form and a person will reply." />
+    <Hero size="small" eyebrow="FAQ" heading="Questions, answered" lead="Can't find yours? Call or send it through the quote form and a person will reply." photo="electricianDrilling" />
 
-    <Section heading="About us">
+    <Section eyebrow="About us" heading="Who we are and how we work">
         <Faq items={general} />
     </Section>
 
-    <Section tone="surface" heading="Planning a job">
+    <Section tone="surface" eyebrow="Planning" heading="Planning a job">
         <Faq items={planning} />
     </Section>
 
-    <CallToAction heading="Still have a question?" action={{ label: 'Ask us', href: '/contact/' }} />
+    <CallToAction heading="Still have a question?" text="Ask us anything. A licensed electrician will answer, usually the same day." action={{ label: 'Ask us', href: '/contact/' }} />
 </Base>

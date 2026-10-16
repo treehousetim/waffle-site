@@ -1,0 +1,37 @@
+---
+/**
+ * A photograph from src/data/photos.ts: resized to several widths, converted
+ * to WebP, with a width, a height, a srcset and its alt text. The one way a
+ * page shows a photo, so none ships at full size and none lacks alt text.
+ *
+ * `priority` is for the one image at the top of a page (the hero): loaded
+ * straight away instead of lazily, so it does not slow the first paint.
+ */
+import { Image } from 'astro:assets';
+import { photos, type PhotoName } from '../data/photos';
+
+interface Props {
+    name: PhotoName;
+    /** How wide it is drawn, for the browser to pick a size: a CSS sizes value. */
+    sizes?: string;
+    priority?: boolean;
+    class?: string;
+}
+
+const { name, sizes = '(min-width: 64rem) 50vw, 100vw', priority = false, class: className } = Astro.props;
+const photo = photos[name];
+const widths = [480, 800, 1200, 1600].filter((width) => width <= photo.src.width);
+---
+
+<Image
+    src={photo.src}
+    alt={photo.alt}
+    widths={widths}
+    sizes={sizes}
+    format="webp"
+    quality={72}
+    loading={priority ? 'eager' : 'lazy'}
+    fetchpriority={priority ? 'high' : 'auto'}
+    decoding={priority ? 'sync' : 'async'}
+    class={className}
+/>

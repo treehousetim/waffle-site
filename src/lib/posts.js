@@ -89,3 +89,21 @@ export function readingMinutes(text) {
 
     return Math.max(1, Math.round(words / 230));
 }
+
+/**
+ * More to read after a post: posts sharing one of its topics first, then the
+ * newest others, never the post itself. `posts` is already in display order.
+ *
+ * @template {{ id: string, data: { tags: readonly string[] } }} P
+ * @param {P} post
+ * @param {readonly P[]} posts
+ * @param {number} count
+ * @returns {P[]}
+ */
+export function relatedPosts(post, posts, count) {
+    const topics = new Set(post.data.tags.map(tagSlug));
+    const others = posts.filter((other) => other.id !== post.id);
+    const shared = others.filter((other) => other.data.tags.some((tag) => topics.has(tagSlug(tag))));
+
+    return [...shared, ...others.filter((other) => !shared.includes(other))].slice(0, count);
+}

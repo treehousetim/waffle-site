@@ -34,7 +34,7 @@ test('(5) renames every placeholder outside the lines that point at the template
 
     assert.match(file(dir, 'package.json'), /"name": "acme"/);
     assert.match(file(dir, 'src/site.ts'), /name: 'Acme Electric'/);
-    assert.match(file(dir, 'src/site.ts'), /hello@www\.acme\.com|hello@acme\.com/);
+    assert.match(file(dir, 'src/site.ts'), /legalName: 'Acme Electric LLC'/);
     assert.match(file(dir, 'docker-compose.prod.yml'), /SITE_ADDRESS: www\.acme\.com/);
     assert.match(file(dir, '.github/workflows/deploy.yml'), /\/opt\/acme\//);
 });

@@ -4,8 +4,8 @@ description: Flickering lights, no free breaker spaces and an old 100-amp servic
 pubDate: 2026-09-24
 author: Marcus Bell
 tags: [Panels, Home improvement]
-cover: ../../assets/blog/panel.png
-coverAlt: An open electrical panel with neatly labelled breakers in two columns.
+cover: ../../assets/photos/breaker-panel.jpg
+coverAlt: Rows of circuit breakers and neatly dressed wiring in an open panel.
 ---
 
 Your panel is where every circuit in the house begins. When it is too small or too old, the symptoms show up everywhere else.

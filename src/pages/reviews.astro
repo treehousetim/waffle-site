@@ -5,6 +5,7 @@ import Section from '../components/Section.astro';
 import Testimonials from '../components/Testimonials.astro';
 import CallToAction from '../components/CallToAction.astro';
 import { reviews } from '../data/reviews';
+import { site } from '../site';
 ---
 
 <Base
@@ -17,6 +18,8 @@ import { reviews } from '../data/reviews';
         eyebrow="Reviews"
         heading="What our customers say"
         lead="A selection of reviews from the last year, shared with permission. You will find more on our Google Business Profile."
+        photo="houseTrees"
+        primary={{ label: site.cta.label, href: site.cta.href }}
     />
 
     <Section>

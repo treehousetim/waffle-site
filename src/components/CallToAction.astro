@@ -1,4 +1,7 @@
 ---
+/** The closing band: one decision, two ways to make it. */
+import { site } from '../site';
+
 interface Props {
     heading: string;
     text?: string;
@@ -9,27 +12,65 @@ const { heading, text, action } = Astro.props;
 ---
 
 <section class="cta">
-    <div class="container box">
-        <h2>{heading}</h2>
-        {text && <p class="lead">{text}</p>}
-        <a class="button" href={action.href}>{action.label}</a>
+    <div class="container">
+        <div class="box">
+            <div class="copy">
+                <h2>{heading}</h2>
+                {text && <p>{text}</p>}
+            </div>
+            <p class="actions">
+                <a class="button button-light button-large" href={action.href}>{action.label}</a>
+                <a class="button button-outline-light button-large" href={`tel:${site.business.phoneE164}`}>Call {site.business.phone}</a>
+            </p>
+        </div>
     </div>
 </section>
 
 <style>
+    /* Follows a section, whose own padding is the space above. */
     .cta {
-        padding: var(--space-16) 0 0;
+        padding: 0 0 var(--section);
     }
 
     .box {
-        padding: var(--space-16) var(--space-8);
-        border-radius: calc(var(--radius) * 2);
-        background: var(--color-brand-soft);
-        text-align: center;
+        position: relative;
+        display: grid;
+        gap: var(--space-8);
+        align-items: center;
+        overflow: hidden;
+        padding: clamp(2.5rem, 1.5rem + 4vw, 4.5rem);
+        border-radius: var(--radius-large);
+        background:
+            radial-gradient(40rem 20rem at 100% 0%, rgb(139 92 246 / 0.55), transparent 70%),
+            radial-gradient(30rem 18rem at 0% 100%, rgb(245 165 36 / 0.18), transparent 70%),
+            var(--color-brand-deep);
+        color: var(--color-on-ink);
+        box-shadow: var(--shadow-large);
     }
 
-    .lead {
-        max-width: 36rem;
-        margin: 0 auto var(--space-8);
+    h2 {
+        color: #ffffff;
+    }
+
+    .copy p {
+        max-width: 34rem;
+        margin: 0;
+        color: var(--color-on-ink-muted);
+        font-size: 1.15rem;
+    }
+
+    .actions {
+        margin: 0;
+    }
+
+    @media (min-width: 64rem) {
+        .box {
+            grid-template-columns: 1fr auto;
+        }
+
+        .actions {
+            flex-direction: column;
+            align-items: stretch;
+        }
     }
 </style>

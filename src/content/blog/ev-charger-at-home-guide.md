@@ -4,8 +4,8 @@ description: "Level 1 or Level 2, hardwired or plug-in, 32 or 48 amps: what to d
 pubDate: 2026-09-10
 author: Priya Raman
 tags: [EV charging]
-cover: ../../assets/blog/ev.png
-coverAlt: An electric car charging in a tidy garage from a wall-mounted charger.
+cover: ../../assets/photos/ev-wall-charger.jpg
+coverAlt: A wall-mounted home EV charger connected to a parked car.
 ---
 
 Most electric cars are charged at home, overnight. Getting the setup right once saves years of small frustrations.

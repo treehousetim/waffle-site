@@ -39,7 +39,8 @@ Use exactly these majors, latest patch a week old or more at install time (docs/
 | Language | TypeScript for `.astro` and `.ts`; JavaScript with JSDoc types in `src/lib/` | `typescript` 6 (`@astrojs/check` does not yet support 7) |
 | Type check | `@astrojs/check` | 0.9 |
 | Sitemap, feed | `@astrojs/sitemap` 3, `@astrojs/rss` 4 | |
-| Images | `sharp`, through Astro's `<Image>` | 0.35 |
+| Images | `sharp`, through Astro's `<Image>` and `src/components/Photo.astro` | 0.35 |
+| Typeface | Inter, self-hosted in `public/fonts/` (SIL Open Font License) | 4 (fontsource 5.3); approved 2026-10-15: one consistent face on every device, 48 KB |
 | HTML parsing (the audit) | `node-html-parser` | 9, dev only |
 | Tests | Node's built-in `node:test` and its coverage, in `node:26` | |
 | Node | 26 LTS | run only through `tools/npm.sh` and `tools/test.sh`, in `node:26`; not needed on the host |
@@ -65,7 +66,7 @@ src/
   settings.ts                     # the build's settings and the waffle client, for pages
   content.config.ts               # the blog's front matter schema
   content/blog/*.md               # blog posts: the only Markdown on the site
-  data/                           # services, towns, reviews: lists several pages share
+  data/                           # services, towns, reviews, photos: lists several pages share
   pages/                          # one .astro file per page; the path is the URL
     services/<slug>.astro         # one per service, on layouts/ServicePage.astro
     areas/<slug>.astro            # one per town, on layouts/AreaPage.astro
@@ -77,7 +78,7 @@ src/
   lib/clients/                    # the network and the disk, and nothing else; outside coverage
   scripts/                        # browser scripts (bundled to files, never inline)
   styles/global.css               # design tokens and base styles
-  assets/                         # images the build optimises (blog covers)
+  assets/photos/                  # the photographs, resized and converted by the build (docs/design.md)
 public/                           # copied as is: favicon, logo, default link preview
 api-fixtures/api/site/*.json      # the waffle app's answers, for development builds and tests
 docker/caddy/Caddyfile            # the web server, local and production
@@ -111,6 +112,8 @@ README.md, CHANGELOG.md, OPEN-QUESTIONS.md, RESOLVED_QUESTIONS.md
 - **Town pages say something true about that town** and no other, or they are not written (docs/pages.md, "Town pages").
 - **Never invent facts about a real business**: phone numbers, addresses, licence numbers, prices, reviews or credentials. Ask. The example's 555-01xx numbers are reserved for fiction.
 - **No review markup.** Reviews are shown as text; a business marking up its own reviews breaks search engines' rules.
+- **Photos go through `Photo.astro`, by name from `src/data/photos.ts`**, never as a raw `<img>` or from `public/`, so every one is resized, converted to WebP, sized and described. The example photos are Unsplash stand-ins under the Unsplash License, not MIT; never add a photo whose licence you have not checked, and record its credit (docs/design.md).
+- **Design follows docs/design.md**: the tokens in `src/styles/global.css`, purple for actions, amber for emergencies only. Look at a changed page at 390px and 1440px wide before calling it done.
 - **The build is the check.** A page is done when `./tools/npm.sh run build` reports no errors and no warnings. docs/seo.md lists every rule.
 
 ---

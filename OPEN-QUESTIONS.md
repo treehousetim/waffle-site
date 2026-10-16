@@ -10,6 +10,9 @@ Sparse list. One line each where possible. When answered, move it to `RESOLVED_Q
 - **Light theme only, purple branding** (`src/styles/global.css`).
 - **Ten posts a page** on the blog index.
 
+## Planned
+- **Prebuilt templates** for other kinds of business, chosen at setup (docs/templates.md). Not started; its open decisions are listed there.
+
 ## Needs a decision before production
 - **The waffle side.** `GET /api/site/prices` and `POST /api/site/forms/quote` need building in the waffle app (docs/waffle-api.md). Build them as a slice, or as a Waffle Iron module other sites can reuse?
 - **Rate limiting for forms.** The app should limit per `X-Forwarded-For`; decide the limits, and whether Caddy should limit too (it needs a plugin, so a custom image).

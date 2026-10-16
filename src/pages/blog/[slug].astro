@@ -4,18 +4,18 @@ import type { GetStaticPaths } from 'astro';
 import { getCollection, render } from 'astro:content';
 import BlogPost from '../../layouts/BlogPost.astro';
 import { buildTime, settings } from '../../settings';
-import { visiblePosts } from '../../lib/posts.js';
+import { relatedPosts, visiblePosts } from '../../lib/posts.js';
 
 export const getStaticPaths = (async () => {
     const posts = visiblePosts(await getCollection('blog'), { includeDrafts: !settings.production, now: buildTime });
 
-    return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+    return posts.map((post) => ({ params: { slug: post.id }, props: { post, related: relatedPosts(post, posts, 3) } }));
 }) satisfies GetStaticPaths;
 
-const { post } = Astro.props;
+const { post, related } = Astro.props;
 const { Content } = await render(post);
 ---
 
-<BlogPost post={post}>
+<BlogPost post={post} related={related}>
     <Content />
 </BlogPost>

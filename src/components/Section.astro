@@ -1,7 +1,9 @@
 ---
 /**
  * A band of the page with an optional heading and intro. `tone="surface"`
- * gives it the alternate background so neighbouring sections read apart.
+ * gives it the alternate background so neighbouring sections read apart;
+ * `align="start"` puts the heading on the left, which reads better above
+ * anything that is not a symmetric grid.
  */
 interface Props {
     id?: string;
@@ -10,19 +12,28 @@ interface Props {
     intro?: string;
     tone?: 'plain' | 'surface';
     align?: 'start' | 'center';
+    /** A link at the heading's right on wide screens: "All articles". */
+    more?: { label: string; href: string };
 }
 
-const { id, eyebrow, heading, intro, tone = 'plain', align = 'center' } = Astro.props;
+const { id, eyebrow, heading, intro, tone = 'plain', align = 'center', more } = Astro.props;
 ---
 
 <section id={id} class:list={['section', tone, align]}>
     <div class="container">
         {
             (eyebrow || heading || intro) && (
-                <header>
-                    {eyebrow && <span class="eyebrow">{eyebrow}</span>}
-                    {heading && <h2>{heading}</h2>}
-                    {intro && <p class="lead">{intro}</p>}
+                <header class:list={{ 'with-more': more !== undefined }}>
+                    <div>
+                        {eyebrow && <p class="eyebrow">{eyebrow}</p>}
+                        {heading && <h2>{heading}</h2>}
+                        {intro && <p class="lead">{intro}</p>}
+                    </div>
+                    {more && (
+                        <a class="more" href={more.href}>
+                            {more.label} <span aria-hidden="true">→</span>
+                        </a>
+                    )}
                 </header>
             )
         }
@@ -32,7 +43,7 @@ const { id, eyebrow, heading, intro, tone = 'plain', align = 'center' } = Astro.
 
 <style>
     .section {
-        padding: var(--space-16) 0;
+        padding: var(--section) 0;
     }
 
     .surface {
@@ -40,12 +51,35 @@ const { id, eyebrow, heading, intro, tone = 'plain', align = 'center' } = Astro.
     }
 
     header {
-        max-width: 44rem;
-        margin-bottom: var(--space-12);
+        max-width: 46rem;
+        margin-bottom: clamp(2rem, 1.5rem + 2vw, 3.5rem);
+    }
+
+    header .lead {
+        margin-bottom: 0;
     }
 
     .center header {
         margin-inline: auto;
         text-align: center;
+    }
+
+    .with-more {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: var(--space-4);
+        max-width: none;
+    }
+
+    .with-more > div {
+        max-width: 46rem;
+    }
+
+    .more {
+        font-weight: 650;
+        text-decoration: none;
+        white-space: nowrap;
     }
 </style>

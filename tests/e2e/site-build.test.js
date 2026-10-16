@@ -176,7 +176,7 @@ test('production robots.txt invites robots and names the sitemap; the sitemap li
 test('the price guide shows the waffle app\'s prices, fetched once over HTTP', () => {
     const root = html(OUT.production, 'prices/index.html');
     const rows = root.querySelectorAll('.guide .item').map((item) => [
-        item.querySelector('dt').childNodes[0].text.trim(),
+        item.querySelector('.name').text.trim(),
         item.querySelector('dd strong').text.trim(),
     ]);
 
@@ -191,7 +191,7 @@ test('the price guide shows the waffle app\'s prices, fetched once over HTTP', (
 
 test('a service page shows only its own prices, and links back to the guide', () => {
     const root = html(OUT.production, 'services/panel-upgrades/index.html');
-    const names = root.querySelectorAll('.guide .item dt a').map((link) => link.text.trim());
+    const names = root.querySelectorAll('.guide .item .name').map((name) => name.text.trim());
 
     assert.deepEqual(names, ['200-amp panel upgrade', 'Subpanel installation']);
     assert.ok(root.querySelector('a[href="/prices/"]'));
@@ -216,6 +216,29 @@ test('every page names the business; services, FAQs and posts carry their own st
     artifact.fact('service structured data', graph('services/ev-chargers/index.html').map((node) => node['@type']));
 });
 
+test('every photo is resized, in WebP, with alt text and a size; only the hero loads eagerly', () => {
+    const imgs = html(OUT.production, 'index.html').querySelectorAll('img');
+    const photos = imgs.filter((img) => (img.getAttribute('src') ?? '').startsWith('/_astro/'));
+
+    assert.ok(photos.length >= 10, `only ${photos.length} photos on the home page`);
+    for (const img of photos) {
+        assert.match(img.getAttribute('src'), /\.webp$/);
+        assert.ok(img.getAttribute('srcset'), img.getAttribute('src'));
+        assert.ok(img.getAttribute('width') && img.getAttribute('height'), img.getAttribute('src'));
+        assert.notEqual(img.getAttribute('alt'), undefined);
+    }
+    assert.deepEqual(photos.filter((img) => img.getAttribute('loading') === 'eager').length, 1);
+    artifact.fact('home page photos', photos.length);
+});
+
+test('the photo credits page lists every photographer and stays out of search results', () => {
+    const root = html(OUT.production, 'credits/index.html');
+
+    assert.equal(meta(root, 'name', 'robots'), 'noindex, follow');
+    assert.ok(root.querySelectorAll('a[href^="https://unsplash.com/photos/"]').length >= 20);
+    assert.equal(text(OUT.production, 'sitemap-0.xml').includes('/credits/'), false);
+});
+
 test('the phone number is tappable everywhere', () => {
     for (const file of ['index.html', 'emergency/index.html', 'areas/oakdale/index.html', 'blog/afci-breakers/index.html']) {
         assert.ok(html(OUT.production, file).querySelector('a[href="tel:+12175550142"]'), file);
@@ -224,12 +247,13 @@ test('the phone number is tappable everywhere', () => {
 });
 
 test('the cover image is optimised, sized and described', () => {
-    const img = html(OUT.production, 'blog/signs-you-need-a-panel-upgrade/index.html').querySelector('img.cover');
+    const img = html(OUT.production, 'blog/signs-you-need-a-panel-upgrade/index.html').querySelector('figure.cover img');
 
     assert.ok(img, 'no cover image');
     assert.match(img.getAttribute('src'), /^\/_astro\/.+\.webp$/);
     assert.ok(img.getAttribute('width') && img.getAttribute('height'));
-    assert.match(img.getAttribute('alt'), /labelled breakers/);
+    assert.match(img.getAttribute('alt'), /circuit breakers/);
+    assert.match(img.getAttribute('srcset') ?? '', /800w/);
     artifact.check('cover image is webp with a size and alt text', true);
 });
 

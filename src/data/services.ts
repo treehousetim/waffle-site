@@ -5,6 +5,7 @@
  * build if a slug here has no page (its link would be broken).
  */
 import type { IconName } from '../components/Icon.astro';
+import type { PhotoName } from './photos';
 
 export interface Service {
     slug: string;
@@ -12,17 +13,18 @@ export interface Service {
     /** One sentence, for a card. */
     summary: string;
     icon: IconName;
+    photo: PhotoName;
 }
 
 export const services: Service[] = [
-    { slug: 'repairs', name: 'Repairs and troubleshooting', summary: 'Dead outlets, tripping breakers, flickering lights: found and fixed, usually in one visit.', icon: 'wrench' },
-    { slug: 'panel-upgrades', name: 'Panel upgrades', summary: 'A 200-amp panel with room for a heat pump, an EV charger and whatever comes next.', icon: 'panel' },
-    { slug: 'ev-chargers', name: 'EV charger installation', summary: 'Level 2 home charging, sized to your panel and permitted properly.', icon: 'car' },
-    { slug: 'rewiring', name: 'Home rewiring', summary: 'Knob-and-tube, aluminum and tired wiring replaced with as little disruption as we can manage.', icon: 'home' },
-    { slug: 'lighting', name: 'Lighting', summary: 'Recessed lights, fans, outdoor and landscape lighting, dimmers that do not buzz.', icon: 'bulb' },
-    { slug: 'generators', name: 'Standby generators', summary: 'Whole-home backup that starts by itself when the power goes out.', icon: 'battery' },
-    { slug: 'inspections', name: 'Electrical inspections', summary: 'For buyers, sellers, insurers and anyone who has never had one: a written report with photos.', icon: 'clipboard' },
-    { slug: 'smart-home', name: 'Smart home and data wiring', summary: 'Smart switches, doorbells, Wi-Fi access points and network cabling, neatly done.', icon: 'wifi' },
+    { slug: 'repairs', name: 'Repairs and troubleshooting', summary: 'Dead outlets, tripping breakers, flickering lights: found and fixed, usually in one visit.', icon: 'wrench', photo: 'clampMeterAndTools' },
+    { slug: 'panel-upgrades', name: 'Panel upgrades', summary: 'A 200-amp panel with room for a heat pump, an EV charger and whatever comes next.', icon: 'panel', photo: 'breakerPanel' },
+    { slug: 'ev-chargers', name: 'EV charger installation', summary: 'Level 2 home charging, sized to your panel and permitted properly.', icon: 'car', photo: 'evChargingGarage' },
+    { slug: 'rewiring', name: 'Home rewiring', summary: 'Knob-and-tube, aluminum and tired wiring replaced with as little disruption as we can manage.', icon: 'home', photo: 'oldWiring' },
+    { slug: 'lighting', name: 'Lighting', summary: 'Recessed lights, fans, outdoor and landscape lighting, dimmers that do not buzz.', icon: 'bulb', photo: 'kitchenLighting' },
+    { slug: 'generators', name: 'Standby generators', summary: 'Whole-home backup that starts by itself when the power goes out.', icon: 'battery', photo: 'houseSnowPowerLines' },
+    { slug: 'inspections', name: 'Electrical inspections', summary: 'For buyers, sellers, insurers and anyone who has never had one: a written report with photos.', icon: 'clipboard', photo: 'panelTesting' },
+    { slug: 'smart-home', name: 'Smart home and data wiring', summary: 'Smart switches, doorbells, Wi-Fi access points and network cabling, neatly done.', icon: 'wifi', photo: 'networkCabling' },
 ];
 
 export const serviceUrl = (slug: string) => `/services/${slug}/`;

@@ -5,6 +5,7 @@ import Section from '../../components/Section.astro';
 import CardGrid from '../../components/CardGrid.astro';
 import CallToAction from '../../components/CallToAction.astro';
 import { areas, areaUrl } from '../../data/areas';
+import { site } from '../../site';
 ---
 
 <Base
@@ -17,10 +18,13 @@ import { areas, areaUrl } from '../../data/areas';
         eyebrow="Areas we serve"
         heading="Local electricians, a short drive away"
         lead="We are based in Springfield and work in these towns every week. Outside them? Call anyway: we often can, especially for bigger jobs."
+        photo="suburbAerial"
+        primary={{ label: site.cta.label, href: site.cta.href }}
+        secondary={{ label: `Call ${site.business.phone}`, href: `tel:${site.business.phoneE164}` }}
     />
 
     <Section>
-        <CardGrid cards={areas.map((area) => ({ href: areaUrl(area.slug), title: area.name, text: `Repairs, upgrades and emergency call-outs in ${area.name}.`, note: area.drive, icon: 'pin' }))} level="h2" />
+        <CardGrid columns={3} cards={areas.map((area) => ({ href: areaUrl(area.slug), title: `Electricians in ${area.name}`, text: `Repairs, upgrades and emergency call-outs across ${area.name}.`, note: area.drive, photo: area.photo }))} level="h2" />
     </Section>
 
     <CallToAction heading="Not on the list?" text="Tell us where you are and what you need, and we will tell you straight away whether we can help." action={{ label: 'Ask us', href: '/contact/' }} />

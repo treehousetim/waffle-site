@@ -10,6 +10,7 @@ import '../styles/global.css';
 import Seo from '../components/Seo.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import MobileActions from '../components/MobileActions.astro';
 import { site } from '../site';
 import { settings } from '../settings';
 import { areaNames } from '../data/areas';
@@ -68,7 +69,9 @@ const nodes = [
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="preload" href="/fonts/inter-latin-wght.woff2" as="font" type="font/woff2" crossorigin />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <meta name="theme-color" content="#140f26" />
         <link rel="sitemap" href="/sitemap-index.xml" />
         <link rel="alternate" type="application/rss+xml" title={`${site.name} ${site.blog.title}`} href="/blog/rss.xml" />
         <Seo title={title} description={description} image={image} type={type} jsonLd={graph(nodes)} article={article} />
@@ -81,6 +84,7 @@ const nodes = [
             <slot />
         </main>
         <Footer />
+        <MobileActions />
     </body>
 </html>
 
@@ -101,10 +105,11 @@ const nodes = [
     }
 
     .build-banner {
-        padding: var(--space-1) var(--space-4);
-        background: var(--color-brand-soft);
-        color: var(--color-brand-strong);
-        font-size: 0.85rem;
+        padding: 0.2rem var(--space-4);
+        background: var(--color-accent);
+        color: var(--color-ink);
+        font-size: 0.8rem;
+        font-weight: 600;
         text-align: center;
     }
 

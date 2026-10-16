@@ -4,8 +4,8 @@ description: A portable generator costs less; a standby unit starts by itself an
 pubDate: 2026-07-16
 author: Priya Raman
 tags: [Generators, Storms]
-cover: ../../assets/blog/generator.png
-coverAlt: A standby generator on a concrete pad beside a house, next to the air conditioner.
+cover: ../../assets/photos/house-snow-power-lines.jpg
+coverAlt: A house at dusk after a snowstorm, with power lines overhead.
 ---
 
 Both keep the lights on. They differ in how much they power, who has to be home, and how much they cost.

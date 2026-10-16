@@ -1,8 +1,8 @@
 ---
 /**
  * The frame every town page shares (src/pages/areas/<slug>.astro): the
- * town's own copy in the slot, then the services, the reviews from that town
- * and the way to get in touch.
+ * town's own copy in the slot beside a quote card, then the services, the
+ * reviews from that town and the way to get in touch.
  *
  * A town page earns its place only with copy that is true of that town and no
  * other: the housing, the jobs done there, how long it takes to get there
@@ -14,10 +14,11 @@ import Hero from '../components/Hero.astro';
 import Section from '../components/Section.astro';
 import CardGrid from '../components/CardGrid.astro';
 import Testimonials, { type Testimonial } from '../components/Testimonials.astro';
-import PhoneLink from '../components/PhoneLink.astro';
+import QuoteCard from '../components/QuoteCard.astro';
 import CallToAction from '../components/CallToAction.astro';
 import { areas } from '../data/areas';
 import { services, serviceUrl } from '../data/services';
+import { site } from '../site';
 
 interface Props {
     /** The slug in src/data/areas.ts. */
@@ -45,18 +46,27 @@ if (area === undefined) {
         { name: area.name, href: Astro.url.pathname },
     ]}
 >
-    <Hero size="small" eyebrow={`Electricians in ${area.name}`} heading={heading} lead={lead} primary={{ label: 'Get a free quote', href: '/contact/' }}>
-        <div class="call">
-            <p>{area.drive} from the shop.</p>
-            <PhoneLink variant="button" />
-        </div>
-    </Hero>
+    <Hero
+        size="small"
+        eyebrow={`Electricians in ${area.name}`}
+        heading={heading}
+        lead={lead}
+        photo={area.photo}
+        badge={{ title: area.drive, text: 'from our Springfield shop' }}
+        primary={{ label: site.cta.label, href: site.cta.href }}
+        secondary={{ label: `Call ${site.business.phone}`, href: `tel:${site.business.phoneE164}` }}
+    />
 
-    <div class="prose body">
-        <slot />
+    <div class="container body">
+        <div class="prose-column">
+            <slot />
+        </div>
+        <div class="aside">
+            <QuoteCard heading={`Need an electrician in ${area.name}?`} />
+        </div>
     </div>
 
-    <Section tone="surface" heading={`What we do in ${area.name}`}>
+    <Section tone="surface" heading={`What we do in ${area.name}`} align="start" more={{ label: 'All services', href: '/services/' }}>
         <CardGrid cards={services.map((item) => ({ href: serviceUrl(item.slug), title: item.name, text: item.summary, icon: item.icon }))} />
     </Section>
 
@@ -73,18 +83,32 @@ if (area === undefined) {
 
 <style>
     .body {
-        padding-top: var(--space-12);
+        display: grid;
+        gap: var(--space-12);
+        padding: var(--section) 0;
     }
 
-    .call {
-        padding: var(--space-8);
-        border-radius: var(--radius);
-        background: var(--color-bg);
-        box-shadow: var(--shadow);
+    .prose-column {
+        max-width: var(--width-prose);
     }
 
-    .call p {
-        margin-bottom: var(--space-3);
-        font-weight: 650;
+    .prose-column :global(h2) {
+        font-size: clamp(1.5rem, 1.25rem + 1vw, 1.875rem);
+    }
+
+    .prose-column :global(* + h2) {
+        margin-top: var(--space-12);
+    }
+
+    @media (min-width: 64rem) {
+        .body {
+            grid-template-columns: minmax(0, 1fr) 22rem;
+            align-items: start;
+        }
+
+        .aside {
+            position: sticky;
+            top: calc(var(--header-height) + var(--space-6));
+        }
     }
 </style>

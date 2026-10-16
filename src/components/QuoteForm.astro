@@ -70,9 +70,11 @@ const { thanks, service } = Astro.props;
 
     <fieldset class="field">
         <legend>Best way to reach you</legend>
-        <label class="choice"><input type="radio" name="contact_by" value="phone" checked /> Phone call</label>
-        <label class="choice"><input type="radio" name="contact_by" value="text" /> Text message</label>
-        <label class="choice"><input type="radio" name="contact_by" value="email" /> Email</label>
+        <div class="choices">
+            <label class="choice"><input type="radio" name="contact_by" value="phone" checked /> <span>Phone call</span></label>
+            <label class="choice"><input type="radio" name="contact_by" value="text" /> <span>Text message</span></label>
+            <label class="choice"><input type="radio" name="contact_by" value="email" /> <span>Email</span></label>
+        </div>
     </fieldset>
 
     <div class="trap" aria-hidden="true">
@@ -82,7 +84,7 @@ const { thanks, service } = Astro.props;
 
     <p class="status" role="status" aria-live="polite" data-status></p>
 
-    <button class="button" type="submit">Request my free quote</button>
+    <button class="button button-large" type="submit">Request my free quote</button>
     <p class="muted small">Electrical emergency? Don't wait for a reply: <a href="/emergency/">call us now</a>.</p>
 </form>
 
@@ -96,9 +98,9 @@ const { thanks, service } = Astro.props;
     .form {
         display: grid;
         gap: var(--space-6);
-        padding: var(--space-8);
+        padding: clamp(1.5rem, 1rem + 2vw, 2.75rem);
         border: 1px solid var(--color-border);
-        border-radius: var(--radius);
+        border-radius: var(--radius-large);
         background: var(--color-bg);
         box-shadow: var(--shadow);
     }
@@ -122,23 +124,57 @@ const { thanks, service } = Astro.props;
         font-weight: 650;
     }
 
+    legend {
+        margin-bottom: var(--space-2);
+    }
+
+    .choices {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+    }
+
     .choice {
         display: inline-flex;
         align-items: center;
         gap: var(--space-2);
-        font-weight: 400;
+        padding: var(--space-2) var(--space-4);
+        border: 1px solid var(--color-border-strong);
+        border-radius: 999px;
+        font-weight: 550;
+        cursor: pointer;
+    }
+
+    .choice:has(input:checked) {
+        border-color: var(--color-brand);
+        background: var(--color-brand-soft);
+        color: var(--color-brand-strong);
+    }
+
+    .choice input {
+        accent-color: var(--color-brand);
     }
 
     input:not([type='radio']),
     select,
     textarea {
         width: 100%;
-        padding: 0.7rem 0.85rem;
-        border: 1px solid var(--color-border);
+        min-height: 3rem;
+        padding: 0.75rem 0.95rem;
+        border: 1px solid var(--color-border-strong);
         border-radius: var(--radius-small);
         background: var(--color-bg);
         color: var(--color-text);
         font: inherit;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    input:not([type='radio']):focus,
+    select:focus,
+    textarea:focus {
+        border-color: var(--color-brand);
+        outline: none;
+        box-shadow: 0 0 0 4px rgb(109 40 217 / 0.15);
     }
 
     [aria-invalid='true'] {

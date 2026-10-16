@@ -20,8 +20,8 @@ const { steps } = Astro.props;
 <style>
     .steps {
         display: grid;
-        gap: var(--space-8);
-        grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+        gap: var(--space-6);
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
         margin: 0;
         padding: 0;
         list-style: none;
@@ -29,23 +29,31 @@ const { steps } = Astro.props;
     }
 
     li {
+        position: relative;
+        padding: var(--space-8);
+        border-radius: var(--radius);
+        background: var(--color-bg);
+        box-shadow: var(--shadow-small);
         counter-increment: step;
     }
 
     li::before {
-        content: counter(step);
-        display: inline-grid;
-        place-items: center;
-        width: 2.25rem;
-        height: 2.25rem;
-        margin-bottom: var(--space-4);
-        border-radius: 50%;
-        background: var(--color-brand);
-        color: var(--color-on-brand);
-        font-weight: 750;
+        content: counter(step, decimal-leading-zero);
+        display: block;
+        margin-bottom: var(--space-5);
+        color: var(--color-brand);
+        font-size: 2.5rem;
+        font-weight: 800;
+        letter-spacing: -0.04em;
+        line-height: 1;
+    }
+
+    h3 {
+        margin-bottom: var(--space-2);
     }
 
     p {
+        margin: 0;
         color: var(--color-muted);
     }
 </style>

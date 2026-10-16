@@ -136,7 +136,7 @@ export const site = {
      * fails a page here that robots may index, and a page not here that
      * they may not (docs/seo.md, 6).
      */
-    noindex: ['/404', '/contact/thanks/'],
+    noindex: ['/404', '/contact/thanks/', '/credits/'],
 };
 
 /** The business's address on one line, as it should appear everywhere. */

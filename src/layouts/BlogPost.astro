@@ -1,26 +1,39 @@
 ---
 /**
- * The one template every blog post uses (docs/blog.md).
+ * The one template every blog post uses (docs/blog.md): the headline, the
+ * picture (the post's cover, or its topic's photo), the article, who wrote
+ * it, a way to get help with what it describes, and more to read.
  */
 import type { CollectionEntry } from 'astro:content';
-import { Image } from 'astro:assets';
+import { getImage, Image } from 'astro:assets';
 import Base from './Base.astro';
 import FormattedDate from '../components/FormattedDate.astro';
+import Photo from '../components/Photo.astro';
+import PostGrid from '../components/PostGrid.astro';
+import Icon from '../components/Icon.astro';
 import { site } from '../site';
 import { settings } from '../settings';
+import { defaultPostPhoto, photos, topicPhotos } from '../data/photos';
 import { blogPosting } from '../lib/jsonld.js';
 import { absoluteUrl, canonicalUrl } from '../lib/seo.js';
 import { readingMinutes, tagSlug } from '../lib/posts.js';
 
 interface Props {
     post: CollectionEntry<'blog'>;
+    related: CollectionEntry<'blog'>[];
 }
 
-const { post } = Astro.props;
+const { post, related } = Astro.props;
 const { title, description, pubDate, updatedDate, tags, cover, coverAlt, draft } = post.data;
 const author = post.data.author ?? site.blog.defaultAuthor;
 const url = canonicalUrl(Astro.url.pathname, settings.siteUrl);
-const image = cover !== undefined ? { src: cover.src, alt: coverAlt ?? '' } : site.defaultImage;
+const firstTag = tags[0];
+const topicPhoto = (firstTag !== undefined ? topicPhotos[tagSlug(firstTag)] : undefined) ?? defaultPostPhoto;
+
+// The link preview: the cover, or the topic photo, cropped to 1200x630.
+const preview = await getImage({ src: cover ?? photos[topicPhoto].src, width: 1200, height: 630, fit: 'cover', format: 'jpg' });
+const image = { src: absoluteUrl(preview.src, settings.siteUrl), alt: cover !== undefined ? (coverAlt ?? '') : photos[topicPhoto].alt };
+const initials = author.split(/\s+/).filter((word) => /^[A-Z]/.test(word)).slice(0, 2).map((word) => word[0]).join('');
 ---
 
 <Base
@@ -35,106 +48,248 @@ const image = cover !== undefined ? { src: cover.src, alt: coverAlt ?? '' } : si
     article={{ published: pubDate, updated: updatedDate, tags }}
     jsonLd={[
         blogPosting(
-            {
-                url,
-                title,
-                description,
-                image: absoluteUrl(image.src, settings.siteUrl),
-                published: pubDate,
-                updated: updatedDate,
-                author,
-                tags,
-            },
+            { url, title, description, image: image.src, published: pubDate, updated: updatedDate, author, tags },
             settings.siteUrl,
         ),
     ]}
 >
     <article class="post">
-        <header class="prose">
-            <p class="muted"><a href="/blog/">{site.blog.title}</a></p>
+        <header class="head">
+            <p class="crumbs">
+                <a href="/blog/">{site.blog.title}</a>
+                {firstTag && (
+                    <>
+                        <span aria-hidden="true">/</span>
+                        <a href={`/blog/tags/${tagSlug(firstTag)}/`}>{firstTag}</a>
+                    </>
+                )}
+            </p>
             {draft && <p class="draft">Draft: not published in production.</p>}
             <h1>{title}</h1>
-            <p class="meta muted">
-                By {author} · <FormattedDate date={pubDate} /> · {readingMinutes(post.body ?? '')} min read
-                {
-                    updatedDate && (
-                        <>
-                            {' '}
-                            · Updated <FormattedDate date={updatedDate} />
-                        </>
-                    )
-                }
+            <p class="lead">{description}</p>
+            <p class="meta">
+                <span class="avatar" aria-hidden="true">{initials || 'W'}</span>
+                <span>
+                    <strong>{author}</strong>
+                    <span class="muted">
+                        <FormattedDate date={pubDate} /> · {readingMinutes(post.body ?? '')} min read
+                        {updatedDate && (
+                            <>
+                                {' '}
+                                · Updated <FormattedDate date={updatedDate} />
+                            </>
+                        )}
+                    </span>
+                </span>
             </p>
         </header>
 
-        {cover && coverAlt && <Image class="cover" src={cover} alt={coverAlt} width={1200} loading="eager" />}
+        <figure class="cover">
+            {
+                cover && coverAlt ? (
+                    <Image src={cover} alt={coverAlt} widths={[800, 1200, 1600]} sizes="(min-width: 64rem) 64rem, 100vw" format="webp" quality={72} loading="eager" fetchpriority="high" />
+                ) : (
+                    <Photo name={topicPhoto} sizes="(min-width: 64rem) 64rem, 100vw" priority />
+                )
+            }
+        </figure>
 
         <div class="prose body">
             <slot />
         </div>
 
-        {
-            tags.length > 0 && (
-                <footer class="prose tags">
-                    <h2 class="visually-hidden">Tags</h2>
-                    <ul>
+        <footer class="prose foot">
+            {
+                tags.length > 0 && (
+                    <ul class="tags" aria-label="Topics">
                         {tags.map((tag) => (
                             <li>
                                 <a href={`/blog/tags/${tagSlug(tag)}/`}>{tag}</a>
                             </li>
                         ))}
                     </ul>
-                </footer>
-            )
-        }
+                )
+            }
+
+            <div class="help">
+                <span class="help-icon"><Icon name="bolt" size={22} /></span>
+                <div>
+                    <p class="help-title">Want a licensed electrician to take a look?</p>
+                    <p class="muted">Tell us what you are seeing. We reply the same working day, and emergencies get a call straight back.</p>
+                    <p class="actions">
+                        <a class="button" href={site.cta.href}>{site.cta.label}</a>
+                        <a class="button button-secondary" href={`tel:${site.business.phoneE164}`}>Call {site.business.phone}</a>
+                    </p>
+                </div>
+            </div>
+        </footer>
     </article>
+
+    {
+        related.length > 0 && (
+            <section class="related">
+                <div class="container">
+                    <h2>Keep reading</h2>
+                    <PostGrid posts={related} level="h3" />
+                </div>
+            </section>
+        )
+    }
 </Base>
 
 <style>
     .post {
-        padding-top: var(--space-16);
+        padding-top: clamp(2.5rem, 2rem + 3vw, 4.5rem);
     }
 
-    .meta {
-        font-size: 0.95rem;
+    .head {
+        width: min(100% - 2 * var(--gutter), 52rem);
+        margin-inline: auto;
+    }
+
+    .crumbs {
+        display: flex;
+        gap: var(--space-2);
+        margin-bottom: var(--space-5);
+        color: var(--color-subtle);
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    .crumbs a {
+        text-decoration: none;
     }
 
     .draft {
         display: inline-block;
-        padding: 0 var(--space-2);
-        border-radius: var(--radius-small);
-        background: var(--color-brand-soft);
-        color: var(--color-brand-strong);
+        padding: 0.15rem 0.6rem;
+        border-radius: 999px;
+        background: var(--color-accent-soft);
+        color: var(--color-accent-ink);
         font-weight: 700;
     }
 
+    h1 {
+        font-size: clamp(2.25rem, 1.6rem + 2.6vw, 3.5rem);
+    }
+
+    .meta {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        margin: var(--space-8) 0 0;
+        line-height: 1.35;
+        font-size: 0.95rem;
+    }
+
+    .meta strong {
+        display: block;
+    }
+
+    .avatar {
+        display: inline-grid;
+        flex: none;
+        place-items: center;
+        width: 2.75rem;
+        height: 2.75rem;
+        border-radius: 50%;
+        background: var(--color-brand);
+        color: #ffffff;
+        font-size: 0.9rem;
+        font-weight: 750;
+    }
+
     .cover {
-        width: min(100% - 2 * var(--space-6), 60rem);
-        height: auto;
-        margin: var(--space-8) auto;
-        border-radius: var(--radius);
+        width: min(100% - 2 * var(--gutter), 64rem);
+        margin: var(--space-10) auto 0;
+    }
+
+    .cover :global(img) {
+        width: 100%;
+        aspect-ratio: 16 / 8;
+        object-fit: cover;
+        border-radius: var(--radius-large);
+        box-shadow: var(--shadow);
     }
 
     .body {
-        margin-top: var(--space-8);
+        margin-top: var(--space-12);
+        font-size: 1.125rem;
+        line-height: 1.75;
     }
 
-    .tags ul {
+    .foot {
+        margin-top: var(--space-12);
+    }
+
+    .tags {
         display: flex;
         flex-wrap: wrap;
         gap: var(--space-2);
-        margin: var(--space-12) 0 0;
+        margin: 0 0 var(--space-10);
         padding: 0;
         list-style: none;
     }
 
     .tags a {
         display: inline-block;
-        padding: var(--space-1) var(--space-3);
+        padding: var(--space-1) var(--space-4);
         border-radius: 999px;
         background: var(--color-surface);
         color: var(--color-text);
         font-size: 0.9rem;
+        font-weight: 550;
         text-decoration: none;
+    }
+
+    .tags a:hover {
+        background: var(--color-brand-soft);
+        color: var(--color-brand-strong);
+    }
+
+    .help {
+        display: flex;
+        gap: var(--space-5);
+        padding: var(--space-8);
+        border-radius: var(--radius-large);
+        background: var(--color-surface);
+    }
+
+    .help-icon {
+        display: inline-grid;
+        flex: none;
+        place-items: center;
+        width: 3rem;
+        height: 3rem;
+        border-radius: 50%;
+        background: var(--color-brand);
+        color: var(--color-accent);
+    }
+
+    .help-title {
+        margin-bottom: var(--space-2);
+        font-size: 1.25rem;
+        font-weight: 750;
+        letter-spacing: -0.02em;
+    }
+
+    .help .actions {
+        margin: var(--space-5) 0 0;
+    }
+
+    .related {
+        margin-top: var(--section);
+        padding: var(--section) 0;
+        border-top: 1px solid var(--color-border);
+    }
+
+    .related h2 {
+        margin-bottom: var(--space-10);
+    }
+
+    @media (max-width: 40rem) {
+        .help {
+            flex-direction: column;
+        }
     }
 </style>

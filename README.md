@@ -21,7 +21,7 @@ It is built the way Waffle is, for people with some engineering skill who work w
 
 The stack: Astro 7 building static pages, Markdown for the blog only, Caddy 2.11 serving files and forwarding `/api/site/*` to the waffle app, Docker Compose, Doppler for the one secret, one server deployed by GitHub Actions. There is no application server, database or PHP in production.
 
-The example site is a local electrician, with service pages, town pages, a price guide read from the waffle app, reviews, an emergency page, an FAQ, a quote form and a 24-article blog.
+The example site is a local electrician, with service pages, town pages, a price guide read from the waffle app, reviews, an emergency page, an FAQ, a quote form and a 24-article blog, illustrated with free Unsplash photos you replace with your own ([docs/design.md](docs/design.md)).
 
 ## Documentation
 
@@ -29,6 +29,7 @@ The example site is a local electrician, with service pages, town pages, a price
 | --- | --- | --- |
 | [AGENTS.md](AGENTS.md) | Before changing anything | The rulebook: stack, layout, content rules, layering, testing, secrets, the release flow. |
 | [docs/create-project.md](docs/create-project.md) | Starting a site from the template | `tools/setup.sh`: the four names it asks for, what the rename touches, its failure list. |
+| [docs/design.md](docs/design.md) | Changing how anything looks, or replacing the photos | The design principles, the tokens, the photo pipeline and its licence, and the audit the design came from. |
 | [docs/pages.md](docs/pages.md) | Adding or changing a page | Pages as `.astro` files, the components, service and town pages, removing a page. |
 | [docs/blog.md](docs/blog.md) | Writing a post | The front matter, its rules, writing posts that get found, what the blog builds. |
 | [docs/seo.md](docs/seo.md) | A build fails the audit, or before launch | What every page gets, local business details, preview builds, the audit's rules. |
@@ -38,6 +39,7 @@ The example site is a local electrician, with service pages, town pages, a price
 | [docs/https.md](docs/https.md) | Launching on your hostname, or HTTPS is not coming up | The Caddyfile, DNS, the certificate store, and their failure lists. |
 | [docs/fresh-install.md](docs/fresh-install.md) | Putting it on a server for the first time | From nothing to production: Doppler, the droplet, GitHub, the waffle app, the first release. |
 | [docs/releasing.md](docs/releasing.md) | Cutting a release, or rolling one back | `./tools/release.sh`, the pipeline, `deploy.sh`, rollback, their failure lists. |
+| [docs/templates.md](docs/templates.md) | Thinking about other kinds of business | **Planned, not built:** a set of prebuilt example sites (electrician, photographer, dentist, restaurant and more) chosen at setup. |
 | [docs/supply-chain.md](docs/supply-chain.md) | Adding or updating a package | npm in a container, no install scripts, the week-long cooldown, signature checks. |
 | [docs/README.md](docs/README.md) | Adding a document | Where documents go and how they are indexed. |
 | [CHANGELOG.md](CHANGELOG.md) | Cutting a release, or catching up | What changed, and what is waiting under `[Unreleased]`. |
@@ -106,4 +108,4 @@ Optional: a heartbeat monitor such as [healthchecks.io](https://healthchecks.io)
 
 ## License
 
-[MIT](LICENSE). A site started from [Waffle Site](https://github.com/treehousetim/waffle-site) is yours to license however you like; keep the `LICENSE` file's notice with any substantial part of treehousetim/waffle-site you redistribute.
+[MIT](LICENSE), for the code and the text. The example photographs in `src/assets/photos/` are from [Unsplash](https://unsplash.com/), under the [Unsplash License](https://unsplash.com/license), and credited on the site's `/credits/` page; the Inter typeface in `public/fonts/` is under the [SIL Open Font License](public/fonts/OFL.txt). Neither is covered by the MIT licence. A site started from [Waffle Site](https://github.com/treehousetim/waffle-site) is yours to license however you like; keep the `LICENSE` file's notice with any substantial part of treehousetim/waffle-site you redistribute.

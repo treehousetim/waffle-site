@@ -2,73 +2,210 @@
 /**
  * The top of a page. It holds the page's one <h1> (docs/seo.md, 5): a page
  * that uses a Hero puts no other <h1> anywhere.
+ *
+ * With `photo`, the photograph sits beside the copy (or behind it, with
+ * `tone="dark"`), loaded first because it is the first thing anyone sees.
+ * The default slot goes under the actions: trust points, a note.
  */
+import Photo from './Photo.astro';
+import type { PhotoName } from '../data/photos';
+
 interface Link {
     label: string;
     href: string;
 }
 
 interface Props {
-    eyebrow?: string;
+    eyebrow?: string | undefined;
     heading: string;
     lead?: string;
     primary?: Link;
     secondary?: Link;
+    photo?: PhotoName;
+    /** A small card over the photo's corner: a fact worth seeing first. */
+    badge?: { title: string; text: string };
     size?: 'large' | 'small';
+    tone?: 'light' | 'dark';
 }
 
-const { eyebrow, heading, lead, primary, secondary, size = 'large' } = Astro.props;
+const { eyebrow, heading, lead, primary, secondary, photo, badge, size = 'large', tone = 'light' } = Astro.props;
+const split = photo !== undefined && tone === 'light';
 ---
 
-<section class:list={['hero', size]}>
+<section class:list={['hero', size, tone, { split }]}>
+    {
+        photo && tone === 'dark' && (
+            <div class="backdrop" aria-hidden="true">
+                <Photo name={photo} sizes="100vw" priority class="backdrop-image" />
+            </div>
+        )
+    }
     <div class="container inner">
         <div class="copy">
-            {eyebrow && <span class="eyebrow">{eyebrow}</span>}
+            {eyebrow && <p class="eyebrow">{eyebrow}</p>}
             <h1>{heading}</h1>
             {lead && <p class="lead">{lead}</p>}
             {
                 (primary || secondary) && (
                     <p class="actions">
-                        {primary && <a class="button" href={primary.href}>{primary.label}</a>}
-                        {secondary && <a class="button button-secondary" href={secondary.href}>{secondary.label}</a>}
+                        {primary && <a class:list={['button', 'button-large', { 'button-accent': tone === 'dark' }]} href={primary.href}>{primary.label}</a>}
+                        {secondary && (
+                            <a class:list={['button', 'button-large', tone === 'dark' ? 'button-outline-light' : 'button-secondary']} href={secondary.href}>
+                                {secondary.label}
+                            </a>
+                        )}
                     </p>
                 )
             }
+            {Astro.slots.has('default') && <div class="extra"><slot /></div>}
         </div>
-        {Astro.slots.has('default') && <div class="media"><slot /></div>}
+        {
+            split && photo && (
+                <div class="media">
+                    <Photo name={photo} sizes="(min-width: 64rem) 40vw, 100vw" priority class="media-image" />
+                    {badge && (
+                        <div class="badge">
+                            <strong>{badge.title}</strong>
+                            <span>{badge.text}</span>
+                        </div>
+                    )}
+                </div>
+            )
+        }
     </div>
 </section>
 
 <style>
     .hero {
-        padding: var(--space-24) 0 var(--space-16);
-        background: radial-gradient(60rem 30rem at 85% -10%, var(--color-brand-soft), transparent 70%);
+        position: relative;
+        padding: clamp(3rem, 2rem + 4vw, 6rem) 0 clamp(3rem, 2rem + 4vw, 5.5rem);
+        background:
+            radial-gradient(48rem 28rem at 92% -8%, var(--color-brand-soft), transparent 70%),
+            radial-gradient(30rem 20rem at -10% 110%, #fbf7ff, transparent 70%);
+        overflow: hidden;
     }
 
     .small {
-        padding: var(--space-16) 0 var(--space-8);
+        padding: clamp(2.5rem, 2rem + 3vw, 4.5rem) 0;
+    }
+
+    .small h1 {
+        font-size: clamp(2.25rem, 1.6rem + 2.6vw, 3.5rem);
     }
 
     .inner {
+        position: relative;
         display: grid;
-        gap: var(--space-12);
+        gap: clamp(2.5rem, 1.5rem + 3vw, 4.5rem);
         align-items: center;
     }
 
     .copy {
-        max-width: 44rem;
+        max-width: 40rem;
+    }
+
+    .lead {
+        max-width: 36rem;
+        margin-bottom: 0;
     }
 
     .actions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: var(--space-3);
+        margin: var(--space-8) 0 0;
+    }
+
+    .extra {
         margin-top: var(--space-8);
     }
 
-    @media (min-width: 60rem) {
-        .inner:has(.media) {
-            grid-template-columns: 1.1fr 1fr;
+    .media {
+        position: relative;
+    }
+
+    .media :global(.media-image) {
+        width: 100%;
+        aspect-ratio: 4 / 3.4;
+        object-fit: cover;
+        border-radius: var(--radius-large);
+        box-shadow: var(--shadow-large);
+    }
+
+    .badge {
+        position: absolute;
+        left: clamp(-1.5rem, -2vw, -0.5rem);
+        bottom: var(--space-8);
+        display: grid;
+        gap: var(--space-1);
+        max-width: 15rem;
+        padding: var(--space-4) var(--space-5);
+        border-radius: var(--radius);
+        background: var(--color-bg);
+        box-shadow: var(--shadow-large);
+        line-height: 1.35;
+    }
+
+    .badge strong {
+        font-size: 1.05rem;
+    }
+
+    .badge span {
+        color: var(--color-muted);
+        font-size: 0.9rem;
+    }
+
+    /* Dark: the photo fills the band and the copy sits over it. */
+    .dark {
+        background: var(--color-ink);
+        color: var(--color-on-ink);
+    }
+
+    .dark h1 {
+        color: #ffffff;
+    }
+
+    .dark .lead {
+        color: var(--color-on-ink-muted);
+    }
+
+    .dark .eyebrow {
+        background: rgb(245 165 36 / 0.16);
+        color: var(--color-accent);
+    }
+
+    .backdrop {
+        position: absolute;
+        inset: 0;
+    }
+
+    .backdrop::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, rgb(20 15 38 / 0.94) 20%, rgb(20 15 38 / 0.6) 70%, rgb(20 15 38 / 0.35));
+    }
+
+    .backdrop :global(.backdrop-image) {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    @media (min-width: 64rem) {
+        .split .inner {
+            grid-template-columns: 1.05fr 0.95fr;
+        }
+
+        .small.split .media :global(.media-image) {
+            aspect-ratio: 4 / 3;
+        }
+    }
+
+    @media (max-width: 40rem) {
+        .badge {
+            position: relative;
+            left: auto;
+            bottom: auto;
+            max-width: none;
+            margin: calc(-1 * var(--space-8)) var(--space-4) 0;
         }
     }
 </style>

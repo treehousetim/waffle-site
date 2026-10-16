@@ -4,7 +4,7 @@ import type { GetStaticPaths, Page } from 'astro';
 import { getCollection, type CollectionEntry } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import Hero from '../../components/Hero.astro';
-import PostCard from '../../components/PostCard.astro';
+import PostGrid from '../../components/PostGrid.astro';
 import { site } from '../../site';
 import { buildTime, settings } from '../../settings';
 import { tagIndex, visiblePosts } from '../../lib/posts.js';
@@ -28,56 +28,40 @@ const description = first ? site.blog.description : `${site.blog.description} Pa
 ---
 
 <Base title={title} description={description} breadcrumbs={[{ name: site.blog.title, href: '/blog/' }]}>
-    <Hero size="small" eyebrow={first ? undefined : `Page ${page.currentPage}`} heading={first ? site.blog.title : title} lead={site.blog.description} />
-
-    <div class="prose">
-        {page.data.length === 0 && <p>No posts yet.</p>}
-        {page.data.map((post) => <PostCard post={post} />)}
-
-        {
-            (page.url.prev || page.url.next) && (
-                <nav class="pager" aria-label="More posts">
-                    {page.url.prev && <a href={page.url.prev}>Newer posts</a>}
-                    {page.url.next && <a href={page.url.next}>Older posts</a>}
-                </nav>
-            )
-        }
-
+    <Hero size="small" eyebrow={first ? 'Advice from licensed electricians' : `Page ${page.currentPage} of ${page.lastPage}`} heading={first ? site.blog.title : title} lead={site.blog.description}>
         {
             tags.length > 0 && (
-                <aside class="tags">
-                    <h2>Topics</h2>
-                    <ul>
-                        {tags.map((tag) => (
-                            <li>
-                                <a href={`/blog/tags/${tag.slug}/`}>
-                                    {tag.tag} <span class="muted">({tag.count})</span>
-                                </a>
-                            </li>
-                        ))}
-                    </ul>
-                </aside>
+                <ul class="topics" aria-label="Topics">
+                    {tags.map((tag) => (
+                        <li>
+                            <a href={`/blog/tags/${tag.slug}/`}>
+                                {tag.tag} <span>{tag.count}</span>
+                            </a>
+                        </li>
+                    ))}
+                </ul>
+            )
+        }
+    </Hero>
+
+    <div class="container list">
+        {page.data.length === 0 && <p>No posts yet.</p>}
+        <PostGrid posts={page.data} feature={first} />
+
+        {
+            page.lastPage > 1 && (
+                <nav class="pager" aria-label="More posts">
+                    {page.url.prev ? <a class="button button-secondary" href={page.url.prev}>← Newer</a> : <span />}
+                    <span class="count">Page {page.currentPage} of {page.lastPage}</span>
+                    {page.url.next ? <a class="button button-secondary" href={page.url.next}>Older →</a> : <span />}
+                </nav>
             )
         }
     </div>
 </Base>
 
 <style>
-    .pager {
-        display: flex;
-        justify-content: space-between;
-        margin-top: var(--space-8);
-    }
-
-    .tags {
-        margin-top: var(--space-12);
-    }
-
-    .tags h2 {
-        font-size: 1.1rem;
-    }
-
-    .tags ul {
+    .topics {
         display: flex;
         flex-wrap: wrap;
         gap: var(--space-2);
@@ -86,12 +70,49 @@ const description = first ? site.blog.description : `${site.blog.description} Pa
         list-style: none;
     }
 
-    .tags a {
-        display: inline-block;
-        padding: var(--space-1) var(--space-3);
+    .topics a {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        padding: var(--space-1) var(--space-2) var(--space-1) var(--space-4);
+        border: 1px solid var(--color-border-strong);
+        border-radius: 999px;
+        background: var(--color-bg);
+        color: var(--color-text);
+        font-size: 0.9rem;
+        font-weight: 550;
+        text-decoration: none;
+    }
+
+    .topics a:hover {
+        border-color: var(--color-brand);
+        color: var(--color-brand-strong);
+    }
+
+    .topics span {
+        padding: 0 0.5rem;
         border-radius: 999px;
         background: var(--color-surface);
-        color: var(--color-text);
-        text-decoration: none;
+        color: var(--color-muted);
+        font-size: 0.8rem;
+    }
+
+    .list {
+        padding: var(--space-12) 0 var(--section);
+    }
+
+    .pager {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-4);
+        margin-top: var(--space-12);
+        padding-top: var(--space-8);
+        border-top: 1px solid var(--color-border);
+    }
+
+    .count {
+        color: var(--color-muted);
+        font-size: 0.95rem;
     }
 </style>

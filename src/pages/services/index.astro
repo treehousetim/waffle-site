@@ -3,8 +3,10 @@ import Base from '../../layouts/Base.astro';
 import Hero from '../../components/Hero.astro';
 import Section from '../../components/Section.astro';
 import CardGrid from '../../components/CardGrid.astro';
+import Steps from '../../components/Steps.astro';
 import CallToAction from '../../components/CallToAction.astro';
 import { services, serviceUrl } from '../../data/services';
+import { site } from '../../site';
 ---
 
 <Base
@@ -17,10 +19,23 @@ import { services, serviceUrl } from '../../data/services';
         eyebrow="Services"
         heading="Electrical services for homes and small businesses"
         lead="Every job is done by a licensed electrician, permitted where the code requires it, and priced in writing before we start."
+        photo="electricianWithTools"
+        primary={{ label: site.cta.label, href: site.cta.href }}
+        secondary={{ label: 'See prices', href: '/prices/' }}
     />
 
     <Section>
-        <CardGrid cards={services.map((item) => ({ href: serviceUrl(item.slug), title: item.name, text: item.summary, icon: item.icon }))} level="h2" />
+        <CardGrid columns={4} cards={services.map((item) => ({ href: serviceUrl(item.slug), title: item.name, text: item.summary, photo: item.photo }))} level="h2" />
+    </Section>
+
+    <Section tone="surface" eyebrow="How it works" heading="Three steps, no surprises">
+        <Steps
+            steps={[
+                { title: 'Tell us what is wrong', text: 'Call, text or send the quote form. Photos help, and we reply the same working day.' },
+                { title: 'Get a written price', text: 'Small jobs are priced on the phone. Bigger ones get a free visit and a fixed quote.' },
+                { title: 'We do the work and clean up', text: 'Permit and inspection handled, and nothing left behind but working power.' },
+            ]}
+        />
     </Section>
 
     <CallToAction heading="Not sure what you need?" text="Describe the problem and we will tell you, free, whether it is a five-minute fix or a bigger job." action={{ label: 'Ask us', href: '/contact/' }} />
