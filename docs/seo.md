@@ -3,7 +3,7 @@
 Pages are written by hand or by an agent, so nothing about how they are
 written can promise they are right. The built HTML can be checked, so it is:
 `tools/audit.mjs` reads every file in `dist/` after every build, and
-`src/lib/audit.js` holds the rules (tested at 100%). An **error** fails the
+`src/core/lib/audit.js` holds the rules (tested at 100%). An **error** fails the
 build, which fails the test gate, the release and the deploy. A **warning** is
 printed and the build goes on.
 
@@ -15,7 +15,7 @@ printed and the build goes on.
 ## What every page gets from Base.astro
 
 You do not write any of this by hand; `src/layouts/Base.astro` and
-`src/components/Seo.astro` do, from the page's `title` and `description`:
+`src/core/components/Seo.astro` do, from the page's `title` and `description`:
 
 - `<title>`: the page's title, then the site name ("Panel upgrades — Waffle
   Site"), unless the title already names the site.
@@ -59,7 +59,7 @@ off the list that they may not, so the list is the one place this is decided.
 ## The audit's rules
 
 Each has a test in `tests/unit/audit.test.js`; the comments in
-`src/lib/audit.js` cite the numbers.
+`src/core/lib/audit.js` cite the numbers.
 
 1. **The build has pages.** An empty build is a broken build, not a clean one.
 2. **`<html lang>` and a viewport** on every page.

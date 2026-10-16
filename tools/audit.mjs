@@ -3,19 +3,20 @@
  *
  *   node tools/audit.mjs dist        # `npm run build` runs it for you
  *
- * Reads every file in the build, hands them to src/lib/audit.js (where every
+ * Reads every file in the build, hands them to src/core/lib/audit.js (where every
  * rule lives, and is tested), prints what it found, and exits 1 on any error
  * so the build, the test gate and the deploy all stop. docs/seo.md has the
  * rules. This file only reads the disk; it is outside coverage for that.
  */
 import { readdir, readFile } from 'node:fs/promises';
 import { join, relative, sep } from 'node:path';
-import { auditSite, servedPath, sitemapLocs } from '../src/lib/audit.js';
-import { buildSettings } from '../src/lib/settings.js';
-import { site } from '../src/site.ts';
+import { pathToFileURL } from 'node:url';
+import { auditSite, servedPath, sitemapLocs } from '../src/core/lib/audit.js';
+import { loadProject } from '../src/core/lib/clients/project.js';
 
 const dir = process.argv[2] ?? 'dist';
-const settings = buildSettings(process.env);
+const { settings, layout } = loadProject(process.env);
+const { site } = await import(pathToFileURL(join(process.cwd(), layout.srcDir, 'site.ts')).href);
 
 /** @param {string} root @returns {Promise<string[]>} */
 async function walk(root) {
@@ -80,7 +81,8 @@ for (const error of result.errors) {
     console.error(`  error    ${error}`);
 }
 
-const mode = settings.indexable ? `production, ${settings.siteUrl}` : `${settings.env}, not indexable`;
+const example = layout.example === null ? '' : `example ${layout.example}, `;
+const mode = `${example}${settings.indexable ? `production, ${settings.siteUrl}` : `${settings.env}, not indexable`}`;
 console.log(`audit: ${pages.length} pages (${mode}): ${result.errors.length} errors, ${result.warnings.length} warnings.`);
 
 process.exit(result.errors.length > 0 ? 1 : 0);

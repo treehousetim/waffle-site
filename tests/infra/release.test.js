@@ -65,7 +65,7 @@ test('DOPPLER_TOKEN is the only secret, and it is loaded after npm has run', () 
 test('the build is a production build from the lockfile, verified, then audited', () => {
     assert.match(workflow, /SITE_ENV: production/);
     assert.match(workflow, /npm ci\n\s+npm audit signatures\n\s+npm run build/);
-    assert.match(read('package.json'), /"build": "astro check && astro build && node tools\/audit\.mjs dist"/);
+    assert.match(read('package.json'), /"build": "node tools\/check\.mjs && astro build && node tools\/audit\.mjs dist"/);
 });
 
 test('the build reads its hostnames from docker-compose.prod.yml, the one place they are written', () => {

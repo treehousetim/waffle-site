@@ -1,0 +1,319 @@
+---
+/**
+ * The site header. A slim strip for the emergency line, then a bar that
+ * stays at the top as you scroll: the logo, the navigation, and both ways to
+ * get in touch.
+ *
+ * Two navigations, one shown at a time: a plain one on wide screens, and on
+ * phones a <details> menu that opens without any script (the content
+ * security policy allows no inline handlers, and a menu should not depend on
+ * JavaScript anyway). A browser hides a closed <details>'s contents whatever
+ * the CSS says, so the wide-screen navigation cannot live inside it.
+ */
+import Logo from './Logo.astro';
+import Icon from './Icon.astro';
+import { site } from '../site';
+
+const current = Astro.url.pathname;
+const isCurrent = (href: string) => current === href || (href !== '/' && current.startsWith(href));
+---
+
+<div class="strip">
+    <div class="container strip-inner">
+        <a class="emergency" href="/emergency/">
+            <span class="pulse" aria-hidden="true"></span>
+            <span class="question">Power out or a burning smell?</span> <strong>24/7 emergency service</strong>
+            <span class="arrow" aria-hidden="true">→</span>
+        </a>
+        <p class="hours">Licensed and insured · Since {site.business.founded}</p>
+    </div>
+</div>
+
+<header class="site-header">
+    <div class="container bar">
+        <Logo />
+
+        <nav class="nav-wide" aria-label="Main">
+            <ul>
+                {
+                    site.nav.map((link) => (
+                        <li>
+                            <a href={link.href} aria-current={isCurrent(link.href) ? 'page' : undefined}>
+                                {link.label}
+                            </a>
+                        </li>
+                    ))
+                }
+            </ul>
+        </nav>
+
+        <div class="contact-wide">
+            <a class="phone" href={`tel:${site.business.phoneE164}`}>
+                <span class="phone-icon"><Icon name="phone" size={18} /></span>
+                <span>
+                    <span class="phone-label">Call us</span>
+                    {site.business.phone}
+                </span>
+            </a>
+            <a class="button" href={site.cta.href}>{site.cta.label}</a>
+        </div>
+
+        <details class="menu">
+            <summary aria-label="Menu">
+                <span class="open-icon"><Icon name="menu" size={26} /></span>
+                <span class="close-icon"><Icon name="close" size={26} /></span>
+            </summary>
+            <nav class="nav-narrow" aria-label="Main, on small screens">
+                <ul>
+                    {
+                        site.nav.map((link) => (
+                            <li>
+                                <a href={link.href} aria-current={isCurrent(link.href) ? 'page' : undefined}>
+                                    {link.label}
+                                </a>
+                            </li>
+                        ))
+                    }
+                    <li><a href="/emergency/">24/7 emergency</a></li>
+                </ul>
+                <div class="actions">
+                    <a class="button" href={site.cta.href}>{site.cta.label}</a>
+                    <a class="button button-secondary" href={`tel:${site.business.phoneE164}`}>Call {site.business.phone}</a>
+                </div>
+            </nav>
+        </details>
+    </div>
+</header>
+
+<style>
+    .strip {
+        background: var(--color-ink);
+        color: var(--color-on-ink-muted);
+        font-size: 0.875rem;
+    }
+
+    .strip-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-4);
+        min-height: 2.5rem;
+    }
+
+    .emergency {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        color: var(--color-on-ink);
+        text-decoration: none;
+    }
+
+    .emergency strong {
+        color: var(--color-accent);
+    }
+
+    .emergency:hover {
+        color: #ffffff;
+    }
+
+    .pulse {
+        width: 0.5rem;
+        height: 0.5rem;
+        border-radius: 50%;
+        background: var(--color-accent);
+        box-shadow: 0 0 0 0 rgb(245 165 36 / 0.6);
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        70% {
+            box-shadow: 0 0 0 0.5rem rgb(245 165 36 / 0);
+        }
+
+        100% {
+            box-shadow: 0 0 0 0 rgb(245 165 36 / 0);
+        }
+    }
+
+    .hours {
+        margin: 0;
+    }
+
+    .site-header {
+        position: sticky;
+        top: 0;
+        z-index: 15;
+        background: rgb(255 255 255 / 0.92);
+        border-bottom: 1px solid var(--color-border);
+        backdrop-filter: saturate(1.6) blur(14px);
+        -webkit-backdrop-filter: saturate(1.6) blur(14px);
+    }
+
+    .bar {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-6);
+        min-height: var(--header-height);
+    }
+
+    ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .nav-wide,
+    .contact-wide {
+        display: none;
+    }
+
+    .nav-wide ul {
+        display: flex;
+        gap: var(--space-1);
+    }
+
+    .nav-wide a {
+        display: block;
+        padding: var(--space-2) var(--space-3);
+        border-radius: var(--radius-small);
+        color: var(--color-text);
+        font-size: 0.95rem;
+        font-weight: 550;
+        text-decoration: none;
+    }
+
+    .nav-wide a:hover {
+        background: var(--color-surface);
+        color: var(--color-brand-strong);
+    }
+
+    .nav-wide a[aria-current='page'] {
+        color: var(--color-brand);
+    }
+
+    .contact-wide {
+        align-items: center;
+        gap: var(--space-5);
+    }
+
+    .phone {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-3);
+        color: var(--color-text);
+        font-weight: 700;
+        line-height: 1.2;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    .phone-label {
+        display: block;
+        color: var(--color-muted);
+        font-size: 0.75rem;
+        font-weight: 550;
+    }
+
+    .phone-icon {
+        display: inline-grid;
+        place-items: center;
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 50%;
+        background: var(--color-brand-soft);
+        color: var(--color-brand);
+    }
+
+    .contact-wide .button {
+        min-height: 2.75rem;
+        padding: 0.65rem 1.25rem;
+    }
+
+    summary {
+        display: inline-grid;
+        place-items: center;
+        width: 2.75rem;
+        height: 2.75rem;
+        border-radius: var(--radius-small);
+        list-style: none;
+        cursor: pointer;
+    }
+
+    summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .close-icon,
+    .menu[open] .open-icon {
+        display: none;
+    }
+
+    .menu[open] .close-icon {
+        display: inline-flex;
+    }
+
+    .nav-narrow {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 100%;
+        padding: var(--space-4) var(--gutter) var(--space-8);
+        background: var(--color-bg);
+        border-bottom: 1px solid var(--color-border);
+        box-shadow: var(--shadow);
+    }
+
+    .nav-narrow ul {
+        margin-bottom: var(--space-6);
+    }
+
+    .nav-narrow li + li {
+        border-top: 1px solid var(--color-border);
+    }
+
+    .nav-narrow li a {
+        display: block;
+        padding: var(--space-4) 0;
+        color: var(--color-text);
+        font-size: 1.1rem;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .nav-narrow li a[aria-current='page'] {
+        color: var(--color-brand);
+    }
+
+    .arrow {
+        color: var(--color-accent);
+    }
+
+    @media (max-width: 40rem) {
+        .question {
+            display: none;
+        }
+    }
+
+    @media (max-width: 48rem) {
+        .hours {
+            display: none;
+        }
+
+        .strip-inner {
+            justify-content: center;
+        }
+    }
+
+    @media (min-width: 66rem) {
+        .nav-wide,
+        .contact-wide {
+            display: flex;
+        }
+
+        .menu {
+            display: none;
+        }
+    }
+</style>

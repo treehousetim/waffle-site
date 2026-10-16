@@ -14,7 +14,7 @@ checking the real thing.
 
 ## Build settings
 
-Read from the environment once, by `src/lib/settings.js`, which refuses a
+Read from the environment once, by `src/core/lib/settings.js`, which refuses a
 combination that would publish something wrong before Astro starts.
 `tools/npm.sh` passes them into its container when they are set.
 

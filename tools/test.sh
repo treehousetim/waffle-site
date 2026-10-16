@@ -3,7 +3,7 @@
 # tools/test.sh — the only supported way to run the test suite.
 #
 #   ./tools/test.sh                          # everything
-#   ./tools/test.sh --coverage               # everything, src/lib held to 100% — the gate
+#   ./tools/test.sh --coverage               # everything, src/core/lib held to 100% — the gate
 #   ./tools/test.sh --group=unit             # one group: unit, infra or e2e
 #   ./tools/test.sh --changed                # only the groups your edits touch
 #   ./tools/test.sh tests/unit/seo.test.js   # one file
@@ -14,7 +14,7 @@
 # lockfile first when it has changed. Then, for a whole run or the infra
 # group, Caddy itself validates docker/caddy/Caddyfile.
 #
-# Groups are directories: tests/unit (src/lib, at 100% coverage), tests/infra
+# Groups are directories: tests/unit (src/core/lib, at 100% coverage), tests/infra
 # (the scripts, the Caddyfile, the workflow, the rules about the repository)
 # and tests/e2e (the whole site built twice and audited, leaving an artifact
 # under coverage/e2e/). tests/infra/structure.test.js fails on a test file
@@ -120,15 +120,15 @@ fi
 
 # ---------------------------------------------------------------------------
 # The suite. With --coverage on a whole run, the unit tests run alone first,
-# instrumented, with src/lib held to 100% of lines, branches and functions
-# (src/lib/clients only reaches the network and the disk, and is outside it).
+# instrumented, with src/core/lib held to 100% of lines, branches and functions
+# (src/core/lib/clients only reaches the network and the disk, and is outside it).
 # The other groups then run without instrumentation: they build the site in
 # child processes, whose coverage would mean nothing.
 # ---------------------------------------------------------------------------
 STATUS=0
 COVERAGE_ARGS=(--experimental-test-coverage
-               "--test-coverage-include=src/lib/**"
-               "--test-coverage-exclude=src/lib/clients/**"
+               "--test-coverage-include=src/core/lib/**"
+               "--test-coverage-exclude=src/core/lib/clients/**"
                --test-reporter=spec --test-reporter-destination=stdout
                --test-reporter=lcov --test-reporter-destination=coverage/lcov.info)
 

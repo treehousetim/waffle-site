@@ -25,18 +25,19 @@
 #
 # HSTS pins browsers to HTTPS (ignored over plain HTTP, so harmless locally).
 # nosniff: a file is only ever what its type says.
-# The content security policy allows scripts, styles, fonts and connections
-# from this site only, and nothing inline: the build emits no inline script or
-# style (astro.config.mjs) and the audit fails a page that has one, so a
-# script injected into a page through content cannot run. JSON-LD is data, not
-# script, and is unaffected. Nothing may frame the site.
+# The content security policy is in two halves (docs/https.md). Astro writes
+# the main one into every page (astro.config.mjs, security.csp): scripts,
+# styles, images, fonts and connections from this site only, plus a hash for
+# each script and style it inlines. This header adds what a policy in a page
+# cannot say: nothing may frame the site, and forms post only to it. A browser
+# enforces both.
 # The referrer policy sends only the origin to other sites.
 (security_headers) {
 	header {
 		defer
 		Strict-Transport-Security "max-age=31536000"
 		X-Content-Type-Options "nosniff"
-		Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+		Content-Security-Policy "frame-ancestors 'none'; form-action 'self'; object-src 'none'; base-uri 'self'"
 		Referrer-Policy "strict-origin-when-cross-origin"
 		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
 		-Server

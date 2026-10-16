@@ -8,13 +8,15 @@
 #
 # Mapping is by directory, so a path belongs to a group by construction:
 #
-#   unit   src/lib/ and its tests
-#   e2e    anything that changes what the site builds: pages, components,
-#          layouts, content, styles, settings, astro.config.mjs, the audit
+#   unit   src/core/lib/ and its tests
+#   e2e    anything that changes what a site builds: an example, the core,
+#          pages, components, layouts, content, styles, astro.config.mjs,
+#          the audit
 #   infra  the scripts, the server config, the workflow, the documents the
 #          infra tests read
 #
-# A change to src/lib also selects e2e: pages are built from it.
+# A change to src/core/lib also selects e2e: pages are built from it. A
+# change to an example also selects infra: the structure test checks it.
 #
 set -euo pipefail
 
@@ -27,9 +29,10 @@ changed="$(git diff --name-only HEAD 2>/dev/null || true
 
 for file in $changed; do
     case "$file" in
-        src/lib/*|tests/unit/*)                  groups="$groups unit e2e" ;;
+        src/core/lib/*|tests/unit/*)             groups="$groups unit e2e" ;;
         tests/e2e/*|tests/support/*)            groups="$groups e2e" ;;
-        src/*|public/*|api-fixtures/*|astro.config.mjs|tsconfig.json|tools/audit.mjs)
+        examples/*)                              groups="$groups e2e infra" ;;
+        src/*|public/*|api-fixtures/*|astro.config.mjs|tsconfig.json|tools/audit.mjs|tools/check.mjs)
                                                  groups="$groups e2e" ;;
         tests/infra/*|tools/*|deploy/*|docker/*|docker-compose*.yml|.github/*|package.json|package-lock.json|.npmrc|VERSION|CHANGELOG.md|*.md)
                                                  groups="$groups infra" ;;

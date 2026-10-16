@@ -1,0 +1,67 @@
+---
+/**
+ * A small set of line icons, decorative only (aria-hidden): the text next to
+ * an icon always says what it means. Each is an SVG file in src/icons/,
+ * imported as an Astro SVG component; add one by adding its file and a line
+ * below.
+ */
+import Bolt from '../icons/bolt.svg';
+import Wrench from '../icons/wrench.svg';
+import Panel from '../icons/panel.svg';
+import Car from '../icons/car.svg';
+import Home from '../icons/home.svg';
+import Bulb from '../icons/bulb.svg';
+import Battery from '../icons/battery.svg';
+import Clipboard from '../icons/clipboard.svg';
+import Wifi from '../icons/wifi.svg';
+import Phone from '../icons/phone.svg';
+import Clock from '../icons/clock.svg';
+import Shield from '../icons/shield.svg';
+import Pin from '../icons/pin.svg';
+import Star from '../icons/star.svg';
+import Check from '../icons/check.svg';
+import Alert from '../icons/alert.svg';
+import Calendar from '../icons/calendar.svg';
+import Mail from '../icons/mail.svg';
+import Arrow from '../icons/arrow.svg';
+import Dollar from '../icons/dollar.svg';
+import Menu from '../icons/menu.svg';
+import Close from '../icons/close.svg';
+
+const icons = {
+    bolt: Bolt,
+    wrench: Wrench,
+    panel: Panel,
+    car: Car,
+    home: Home,
+    bulb: Bulb,
+    battery: Battery,
+    clipboard: Clipboard,
+    wifi: Wifi,
+    phone: Phone,
+    clock: Clock,
+    shield: Shield,
+    pin: Pin,
+    star: Star,
+    check: Check,
+    alert: Alert,
+    calendar: Calendar,
+    mail: Mail,
+    arrow: Arrow,
+    dollar: Dollar,
+    menu: Menu,
+    close: Close,
+} as const;
+
+export type IconName = keyof typeof icons;
+
+interface Props {
+    name: IconName;
+    size?: number;
+}
+
+const { name, size = 24 } = Astro.props;
+const Svg = icons[name];
+---
+
+<Svg width={size} height={size} aria-hidden="true" focusable="false" />

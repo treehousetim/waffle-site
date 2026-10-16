@@ -1,16 +1,22 @@
 /**
  * Rules about the repository itself, enforced rather than documented
- * (AGENTS.md §5 and §7).
+ * (AGENTS.md §5 and §7, docs/examples.md).
+ *
+ * In the template every example under examples/ is held to them; in a site,
+ * its one src/ (the core, src/core/, apart).
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readdirSync, readFileSync } from 'node:fs';
-import { join, relative } from 'node:path';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { dirname, join, relative, resolve } from 'node:path';
+import { listExamples } from '../../src/core/lib/clients/project.js';
 import { read, ROOT } from '../support/shell.js';
 
-const walk = (dir) => readdirSync(join(ROOT, dir), { recursive: true, withFileTypes: true })
-    .filter((entry) => entry.isFile())
-    .map((entry) => relative(ROOT, join(entry.parentPath, entry.name)));
+const walk = (dir) => (existsSync(join(ROOT, dir))
+    ? readdirSync(join(ROOT, dir), { recursive: true, withFileTypes: true })
+        .filter((entry) => entry.isFile())
+        .map((entry) => relative(ROOT, join(entry.parentPath, entry.name)))
+    : []);
 
 /** The code, without its comments: a rule is about what runs, not what is explained. */
 const code = (file) => readFileSync(join(ROOT, file), 'utf8')
@@ -18,8 +24,14 @@ const code = (file) => readFileSync(join(ROOT, file), 'utf8')
     .filter((line) => !/^\s*(\/\/|\/?\*)/.test(line))
     .join('\n');
 
-const lib = walk('src/lib').filter((file) => file.endsWith('.js'));
-const pure = lib.filter((file) => !file.startsWith('src/lib/clients/'));
+const lib = walk('src/core/lib').filter((file) => file.endsWith('.js'));
+const pure = lib.filter((file) => !file.startsWith('src/core/lib/clients/'));
+const examples = listExamples(ROOT);
+
+/** Each site in the repository: its root (where example.json would be) and its src/. */
+const sites = examples === null
+    ? [{ name: 'site', root: '.', src: 'src', files: walk('src').filter((file) => !file.startsWith('src/core/')) }]
+    : examples.map((name) => ({ name, root: `examples/${name}`, src: `examples/${name}/src`, files: walk(`examples/${name}`) }));
 
 test('every test file is in a group: tests/unit, tests/infra or tests/e2e', () => {
     const stray = walk('tests').filter((file) => file.endsWith('.test.js') && !/^tests\/(unit|infra|e2e)\/[^/]+\.test\.js$/.test(file));
@@ -27,20 +39,20 @@ test('every test file is in a group: tests/unit, tests/infra or tests/e2e', () =
     assert.deepEqual(stray, [], 'a test outside the group directories is never reached by --group or --changed');
 });
 
-test('every module in src/lib has its unit test', () => {
+test('every module in src/core/lib has its unit test', () => {
     const missing = pure
-        .map((file) => file.replace(/^src\/lib\/(.+)\.js$/, 'tests/unit/$1.test.js'))
+        .map((file) => file.replace(/^src\/core\/lib\/(.+)\.js$/, 'tests/unit/$1.test.js'))
         .filter((test) => !walk('tests/unit').includes(test));
 
     assert.deepEqual(missing, []);
 });
 
-test('src/lib is pure: no network, disk, environment, Astro or console', () => {
+test('src/core/lib is pure: no network, disk, environment, Astro or console', () => {
     const forbidden = [
         [/from 'node:(fs|fs\/promises|http|https|net|child_process|os)'/, 'touches the system'],
-        [/\bprocess\.env\b/, 'reads the environment (only src/lib/settings.js interprets it, and it is handed env)'],
+        [/\bprocess\.env\b/, 'reads the environment (only src/core/lib/settings.js interprets it, and it is handed env)'],
         [/from 'astro:/, 'imports Astro, so it cannot be unit tested'],
-        [/\bfetch\(/, 'reaches the network (src/lib/clients/ does that)'],
+        [/\bfetch\(/, 'reaches the network (src/core/lib/clients/ does that)'],
         [/\bconsole\./, 'prints'],
     ];
     const offenders = [];
@@ -58,40 +70,108 @@ test('src/lib is pure: no network, disk, environment, Astro or console', () => {
     assert.deepEqual(offenders, []);
 });
 
-test('only astro.config.mjs, src/settings.ts and tools/audit.mjs read the environment', () => {
-    const readers = [...walk('src'), 'astro.config.mjs', ...walk('tools').filter((file) => file.endsWith('.mjs'))]
+test('only astro.config.mjs and the build tools read the environment; pages get it through astro:env', () => {
+    const readers = [...walk('src'), ...walk('examples'), 'astro.config.mjs', ...walk('tools').filter((file) => file.endsWith('.mjs'))]
         .filter((file) => /\.(js|mjs|ts|astro)$/.test(file))
         .filter((file) => /process\.env/.test(code(file)))
         .sort();
 
-    assert.deepEqual(readers, ['astro.config.mjs', 'src/settings.ts', 'tools/audit.mjs']);
+    assert.deepEqual(readers, ['astro.config.mjs', 'tools/audit.mjs', 'tools/check.mjs']);
 });
 
-test('every page is built on Base (directly, or through a layout that is)', () => {
-    const pages = walk('src/pages').filter((file) => file.endsWith('.astro'));
-    const layouts = walk('src/layouts').filter((file) => file.endsWith('.astro'));
-    const usesBase = (text) => /from '(\.\.\/)+layouts\/(Base|BlogPost|ServicePage|AreaPage)\.astro'/.test(text) || /from '\.\/Base\.astro'/.test(text);
-    const orphans = [...pages, ...layouts.filter((file) => !file.endsWith('/Base.astro'))]
-        .filter((file) => !usesBase(readFileSync(join(ROOT, file), 'utf8')));
+test('the core reaches nothing outside itself', () => {
+    const imports = /(?:from|import)\s*\(?\s*'(\.[^']+)'/g;
+    const escapes = walk('src/core')
+        .filter((file) => /\.(js|ts|astro)$/.test(file))
+        .flatMap((file) => [...code(file).matchAll(imports)].map((match) => [file, match[1]]))
+        .filter(([file, path]) => !resolve(ROOT, dirname(file), path).startsWith(join(ROOT, 'src/core')))
+        .map(([file, path]) => `${file} imports ${path}`);
 
-    assert.deepEqual(orphans, [], 'a page outside Base has no SEO head, no header and no footer');
+    assert.deepEqual(escapes, [], 'the core is shared by every example; it may not depend on one');
 });
 
-test('every service and town listed in src/data has its own page', () => {
-    const slugs = (file) => [...read(file).matchAll(/slug: '([a-z0-9-]+)'/g)].map((match) => match[1]);
+for (const site of sites) {
+    const pages = site.files.filter((file) => file.startsWith(`${site.src}/pages/`) && file.endsWith('.astro'));
+    const layouts = site.files.filter((file) => file.startsWith(`${site.src}/layouts/`) && file.endsWith('.astro'));
 
-    for (const slug of slugs('src/data/services.ts')) {
-        assert.ok(walk('src/pages/services').includes(`src/pages/services/${slug}.astro`), `no page for service ${slug}`);
+    test(`${site.name}: has every part a site needs`, () => {
+        const required = examples === null
+            ? ['src/site.ts', 'src/fonts.ts', 'src/content.config.ts', 'src/pages/index.astro', 'src/pages/404.astro', 'src/layouts/Base.astro',
+                'src/data/photos.ts', 'tests/e2e/site.checks.js', 'public/favicon.svg']
+            : ['example.json', 'PLAYBOOK.md', 'checks.js', 'tsconfig.json', 'src/site.ts', 'src/fonts.ts', 'src/content.config.ts',
+                'src/pages/index.astro', 'src/pages/404.astro', 'src/pages/credits.astro', 'src/layouts/Base.astro', 'src/data/photos.ts',
+                'public/favicon.svg', 'public/logo.png', 'public/og-default.png'].map((path) => `${site.root}/${path}`);
+
+        assert.deepEqual(required.filter((path) => !existsSync(join(ROOT, path))), []);
+        assert.equal(existsSync(join(ROOT, site.src, 'core')) && examples !== null, false, 'an example may not carry its own core');
+    });
+
+    if (examples !== null) {
+        test(`${site.name}: example.json says what docs/examples.md asks`, () => {
+            const info = JSON.parse(read(`${site.root}/example.json`));
+
+            assert.equal(info.name, site.name);
+            for (const field of ['label', 'description', 'kind', 'schemaType', 'look']) {
+                assert.equal(typeof info[field], 'string', field);
+                assert.ok(info[field].length > 0, field);
+            }
+            assert.ok(Array.isArray(info.waffleEndpoints));
+            for (const endpoint of info.waffleEndpoints) {
+                assert.match(endpoint, /^(GET|POST) \/api\/site\/[a-z0-9-]+(\/[a-z0-9-]+)*$/);
+
+                if (endpoint.startsWith('GET ')) {
+                    const fixture = `${site.root}/api-fixtures${endpoint.slice(4)}.json`;
+                    assert.ok(existsSync(join(ROOT, fixture)), `${endpoint} has no fixture at ${fixture}`);
+                }
+            }
+            assert.ok(read('docs/examples.md').includes(`| \`${site.name}\` |`), 'listed in docs/examples.md');
+        });
+
+        test(`${site.name}: imports nothing from another example, and the core only as @core`, () => {
+            const imports = /(?:from|import)\s*\(?\s*'(\.[^']+)'/g;
+            const escapes = site.files
+                .filter((file) => /\.(js|ts|astro|css)$/.test(file))
+                .flatMap((file) => [...code(file).matchAll(imports)].map((match) => [file, match[1]]))
+                .filter(([file, path]) => !resolve(ROOT, dirname(file), path).startsWith(join(ROOT, site.root) + '/'))
+                .map(([file, path]) => `${file} imports ${path}`);
+
+            assert.deepEqual(escapes, [], 'an installed example is the site\'s own code; it cannot reach outside itself');
+        });
     }
 
-    for (const slug of slugs('src/data/areas.ts')) {
-        assert.ok(walk('src/pages/areas').includes(`src/pages/areas/${slug}.astro`), `no page for area ${slug}`);
-    }
-});
+    test(`${site.name}: every page is built on Base (directly, or through a layout that is)`, () => {
+        const orphans = [
+            ...pages.filter((file) => !/from '(\.\.\/)+layouts\/[A-Za-z]+\.astro'/.test(code(file))),
+            ...layouts.filter((file) => !file.endsWith('/Base.astro') && !/from '\.\/[A-Za-z]+\.astro'/.test(code(file))),
+        ];
+
+        assert.deepEqual(orphans, [], 'a page outside Base has no SEO head, no header and no footer');
+    });
+
+    test(`${site.name}: everything listed in src/data with a page directory has its page`, () => {
+        const missing = [];
+
+        for (const data of site.files.filter((file) => new RegExp(`^${site.src}/data/[a-z-]+\\.ts$`).test(file))) {
+            const dir = `${site.src}/pages/${data.split('/').pop().replace(/\.ts$/, '')}`;
+
+            if (!existsSync(join(ROOT, dir)) || site.files.some((file) => file.startsWith(`${dir}/[`))) {
+                continue;
+            }
+
+            for (const [, slug] of read(data).matchAll(/^\s+slug: '([a-z0-9-]+)'/gm)) {
+                if (!existsSync(join(ROOT, dir, `${slug}.astro`))) {
+                    missing.push(`${dir}/${slug}.astro`);
+                }
+            }
+        }
+
+        assert.deepEqual(missing, []);
+    });
+}
 
 test('every document is listed in the README\'s documentation table', () => {
     const readme = read('README.md');
-    const missing = readdirSync(join(ROOT, 'docs')).filter((name) => name.endsWith('.md') && !readme.includes(`(docs/${name})`));
+    const missing = readdirSync(join(ROOT, 'docs')).filter((name) => name.endsWith('.md') && name !== 'playbook.md' && !readme.includes(`(docs/${name})`));
 
     assert.deepEqual(missing, []);
 });

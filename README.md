@@ -39,7 +39,7 @@ The example site is a local electrician, with service pages, town pages, a price
 | [docs/https.md](docs/https.md) | Launching on your hostname, or HTTPS is not coming up | The Caddyfile, DNS, the certificate store, and their failure lists. |
 | [docs/fresh-install.md](docs/fresh-install.md) | Putting it on a server for the first time | From nothing to production: Doppler, the droplet, GitHub, the waffle app, the first release. |
 | [docs/releasing.md](docs/releasing.md) | Cutting a release, or rolling one back | `./tools/release.sh`, the pipeline, `deploy.sh`, rollback, their failure lists. |
-| [docs/templates.md](docs/templates.md) | Thinking about other kinds of business | **Planned, not built:** a set of prebuilt example sites (electrician, photographer, dentist, restaurant and more) chosen at setup. |
+| [docs/examples.md](docs/examples.md) | Choosing a starting point, or adding one | The example sites, one per kind of business, each its own design: what is shared, the contract every example meets, motion, how to add one. |
 | [docs/supply-chain.md](docs/supply-chain.md) | Adding or updating a package | npm in a container, no install scripts, the week-long cooldown, signature checks. |
 | [docs/README.md](docs/README.md) | Adding a document | Where documents go and how they are indexed. |
 | [CHANGELOG.md](CHANGELOG.md) | Cutting a release, or catching up | What changed, and what is waiting under `[Unreleased]`. |
@@ -80,7 +80,7 @@ docker compose up -d         # http://localhost:8090, behind the real Caddyfile
 
 ```bash
 ./tools/test.sh                  # everything
-./tools/test.sh --coverage       # everything, src/lib held to 100% — the gate
+./tools/test.sh --coverage       # everything, src/core/lib held to 100% — the gate
 ./tools/test.sh --changed        # only the groups your edits touch
 ./tools/test.sh --group=e2e      # one group: unit, infra or e2e
 ```
@@ -108,4 +108,4 @@ Optional: a heartbeat monitor such as [healthchecks.io](https://healthchecks.io)
 
 ## License
 
-[MIT](LICENSE), for the code and the text. The example photographs in `src/assets/photos/` are from [Unsplash](https://unsplash.com/), under the [Unsplash License](https://unsplash.com/license), and credited on the site's `/credits/` page; the Inter typeface in `public/fonts/` is under the [SIL Open Font License](public/fonts/OFL.txt). Neither is covered by the MIT licence. A site started from [Waffle Site](https://github.com/treehousetim/waffle-site) is yours to license however you like; keep the `LICENSE` file's notice with any substantial part of treehousetim/waffle-site you redistribute.
+[MIT](LICENSE), for the code and the text. The example photographs in each example's `src/assets/photos/` are from [Unsplash](https://unsplash.com/), under the [Unsplash License](https://unsplash.com/license), and credited on each example's `/credits/` page; the typefaces in each example's `src/assets/fonts/` are under the SIL Open Font License, with the licence beside them. Neither is covered by the MIT licence. A site started from [Waffle Site](https://github.com/treehousetim/waffle-site) is yours to license however you like; keep the `LICENSE` file's notice with any substantial part of treehousetim/waffle-site you redistribute.

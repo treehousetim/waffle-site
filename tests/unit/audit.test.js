@@ -1,7 +1,13 @@
 // src/lib/audit.js — docs/seo.md, the audit's numbered rules.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { auditSite, internalPath, servedPath, sitemapLocs } from '../../src/lib/audit.js';
+import { createHash } from 'node:crypto';
+import { auditSite, internalPath, servedPath, sitemapLocs } from '../../src/core/lib/audit.js';
+
+const hash = (content) => `'sha256-${createHash('sha256').update(content).digest('base64')}'`;
+const INLINE_SCRIPT = 'console.log(1)';
+const INLINE_STYLE = ':root{--x:1}';
+const policy = (extra = '') => `<meta http-equiv="content-security-policy" content="default-src 'self'; script-src 'self' ${hash(INLINE_SCRIPT)}; style-src 'self' ${hash(INLINE_STYLE)}${extra}">`;
 
 const SITE = 'https://www.acme.com';
 
@@ -14,6 +20,7 @@ function page(path, { title, description, head = '', body, drop = [], robots = '
     const canonical = SITE + path;
     const lines = [
         '<meta charset="utf-8">',
+        policy(),
         '<meta name="viewport" content="width=device-width,initial-scale=1">',
         `<title>${title ?? `${name} — Acme`}</title>`,
         `<meta name="description" content="${description ?? `All about ${name}, written long enough to be a real description for it.`}">`,
@@ -92,10 +99,10 @@ test('(5) exactly one h1, with words', () => {
 test('(6) robots: present, and never indexing what should not be indexed', () => {
     assert.deepEqual(errorsFor([page('/', { drop: ['name="robots"'] })]), ['/: no <meta name="robots">.']);
     assert.deepEqual(errorsFor([page('/', { robots: 'noindex, follow' })]), [
-        '/: robots are told not to index this page ("noindex, follow"); add it to noindex in src/site.ts if that is meant.',
+        '/: robots are told not to index this page ("noindex, follow"); add it to noindex in site.ts if that is meant.',
     ]);
     assert.deepEqual(errorsFor([page('/'), page('/404.html', { robots: 'index, follow', drop: ['canonical'] })], { sitemap: [`${SITE}/`] }), [
-        '/404.html: this page is listed as noindex in src/site.ts, but robots may index it.',
+        '/404.html: this page is listed as noindex in site.ts, but robots may index it.',
     ]);
 });
 
@@ -158,14 +165,33 @@ test('(10) links and assets on the site must be in the build; others are not che
     ]);
 });
 
-test('(11) nothing inline that the content security policy blocks', () => {
-    const body = '<h1 style="color:red" onclick="go()">x</h1><script>alert(1)</script><style>h1{}</style>';
+test('(11) inline scripts and styles run only when the policy hashes them', () => {
+    assert.deepEqual(errorsFor([page('/', { head: `<script>${INLINE_SCRIPT}</script><style>${INLINE_STYLE}</style>` })]), []);
+    assert.deepEqual(errorsFor([page('/', { body: '<h1>x</h1><script>alert(1)</script><style>h1{}</style>' })]), [
+        '/: has an inline <script> the content security policy does not hash, so browsers will not run it.',
+        '/: has an inline <style> the content security policy does not hash, so browsers will ignore it.',
+    ]);
+});
 
-    assert.deepEqual(errorsFor([page('/', { body })]), [
-        '/: has an inline <script>, which the content security policy blocks; move it into a file.',
-        '/: has a <style> element, which the content security policy blocks; Astro should emit stylesheets (build.inlineStylesheets: never).',
+test('(11) every page has a policy with a default, and nothing unsafe in it', () => {
+    assert.deepEqual(errorsFor([page('/', { drop: ['content-security-policy'] })]), [
+        '/: has no content security policy <meta>; is security.csp on in astro.config.mjs?',
+    ]);
+    assert.deepEqual(errorsFor([page('/', { drop: ['content-security-policy'], head: `<meta http-equiv="Content-Security-Policy" content="img-src 'self'; ;script-src 'self' 'unsafe-inline'; style-src 'unsafe-eval'">` })]), [
+        '/: the content security policy has no default-src.',
+        "/: the content security policy's script-src allows 'unsafe-inline'.",
+        "/: the content security policy's style-src allows 'unsafe-eval'.",
+    ]);
+    assert.deepEqual(errorsFor([page('/', { drop: ['content-security-policy'], head: '<meta http-equiv="content-security-policy">', body: '<h1>x</h1><script>1</script>' })]), [
+        '/: the content security policy has no default-src.',
+        '/: has an inline <script> the content security policy does not hash, so browsers will not run it.',
+    ]);
+});
+
+test('(11) attributes a hash cannot cover are refused', () => {
+    assert.deepEqual(errorsFor([page('/', { body: '<h1 style="color:red" onclick="go()">x</h1>' })]), [
         '/: <h1 style="..."> is blocked by the content security policy; use a class.',
-        '/: <h1 onclick="..."> is blocked by the content security policy; use a script file.',
+        '/: <h1 onclick="..."> is blocked by the content security policy; use a script.',
     ]);
 });
 

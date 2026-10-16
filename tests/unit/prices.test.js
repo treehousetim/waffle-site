@@ -1,8 +1,8 @@
 // src/lib/prices.js — docs/waffle-api.md, "GET /api/site/prices".
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { byCategory, formatPrice, parsePriceGuide, UNITS } from '../../src/lib/prices.js';
-import { WaffleApiError } from '../../src/lib/waffle-api.js';
+import { byCategory, formatPrice, parsePriceGuide, UNITS } from '../../src/core/lib/prices.js';
+import { WaffleApiError } from '../../src/core/lib/waffle-api.js';
 
 const item = (overrides = {}) => ({
     id: 'ev-charger',

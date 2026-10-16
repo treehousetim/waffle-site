@@ -1,0 +1,152 @@
+/*
+ * Motion: what moves, and when. All CSS; no script, so nothing here touches
+ * the content security policy, and a page that never loads this file still
+ * reads perfectly.
+ *
+ *   - Page changes cross-fade with the browser's own view transitions
+ *     (@view-transition): no router, no script; the header stays put.
+ *   - The hero rises in on load, its photo eases in behind it.
+ *   - Bands, cards and steps rise into place as they scroll into view, and
+ *     the header gains its shadow as the page leaves the top: scroll-driven
+ *     animations, so the browser runs them off the main thread.
+ *   - A thin bar tracks reading progress on articles.
+ *
+ * Every rule is inside prefers-reduced-motion: no-preference, and the
+ * scroll-driven ones inside @supports as well: where either is missing the
+ * page is simply still, with nothing hidden. Content is never invisible
+ * before an animation runs unless the browser can run it.
+ */
+
+@view-transition {
+    navigation: auto;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    ::view-transition-old(root) {
+        animation: 160ms ease-in both fade-out;
+    }
+
+    ::view-transition-new(root) {
+        animation: 320ms cubic-bezier(0.2, 0.7, 0.2, 1) both rise-in;
+    }
+
+    .site-header {
+        view-transition-name: site-header;
+    }
+
+    /* The hero, on load: copy rises line by line, the photo settles. */
+    .hero .copy > * {
+        animation: 700ms cubic-bezier(0.2, 0.7, 0.2, 1) both rise-in;
+    }
+
+    .hero .copy > :nth-child(2) { animation-delay: 80ms; }
+    .hero .copy > :nth-child(3) { animation-delay: 160ms; }
+    .hero .copy > :nth-child(4) { animation-delay: 240ms; }
+    .hero .copy > :nth-child(5) { animation-delay: 320ms; }
+
+    .hero .media {
+        animation: 900ms cubic-bezier(0.2, 0.7, 0.2, 1) 120ms both settle-in;
+    }
+
+    .hero .badge {
+        animation: 700ms cubic-bezier(0.3, 1.4, 0.5, 1) 600ms both pop-in;
+    }
+
+    .hero .backdrop-image {
+        animation: 1600ms cubic-bezier(0.2, 0.7, 0.2, 1) both drift-in;
+    }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+        /* Each band's heading, then its items, rise as they come into view. */
+        .section header,
+        .split .copy,
+        .split .media,
+        .cta .box,
+        .faq,
+        .guide,
+        :is(.cards, .posts, .steps, .testimonials, .features, .trust, .checks) > li,
+        .feature {
+            animation: rise-in linear both;
+            animation-timeline: view();
+            animation-range: entry 0% entry 70%;
+        }
+
+        /* A grid's items arrive a beat apart, left to right. */
+        :is(.cards, .posts, .steps, .testimonials, .features) > li:nth-child(3n + 2) {
+            animation-range: entry 8% entry 78%;
+        }
+
+        :is(.cards, .posts, .steps, .testimonials, .features) > li:nth-child(3n + 3) {
+            animation-range: entry 16% entry 86%;
+        }
+
+        .split .media {
+            animation-name: settle-in;
+        }
+
+        /* The dark hero's photo drifts slower than the page: parallax. */
+        .hero.dark .backdrop-image {
+            animation: parallax linear both;
+            animation-timeline: scroll(root);
+            animation-range: 0 100vh;
+        }
+
+        /* The header lifts off the page once it is scrolled. */
+        .site-header {
+            animation: lift linear both;
+            animation-timeline: scroll(root);
+            animation-range: 0 8rem;
+        }
+
+        /* Reading progress, on an article. */
+        .reading-progress {
+            position: fixed;
+            inset: 0 0 auto;
+            z-index: 60;
+            height: 3px;
+            background: linear-gradient(90deg, var(--color-brand), var(--color-accent));
+            transform-origin: 0 50%;
+            animation: grow linear both;
+            animation-timeline: scroll(root);
+        }
+    }
+}
+
+@keyframes fade-out {
+    to { opacity: 0; }
+}
+
+@keyframes rise-in {
+    from { opacity: 0; transform: translateY(1.5rem); }
+    to { opacity: 1; transform: none; }
+}
+
+@keyframes settle-in {
+    from { opacity: 0; transform: scale(0.94) translateY(1rem); }
+    to { opacity: 1; transform: none; }
+}
+
+@keyframes pop-in {
+    from { opacity: 0; transform: scale(0.6) rotate(-6deg); }
+    to { opacity: 1; transform: none; }
+}
+
+@keyframes drift-in {
+    from { transform: scale(1.12); }
+    to { transform: scale(1); }
+}
+
+@keyframes parallax {
+    to { transform: translateY(18%) scale(1.06); }
+}
+
+@keyframes lift {
+    to { box-shadow: 0 10px 30px -12px rgb(46 16 101 / 0.28); }
+}
+
+@keyframes grow {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+}

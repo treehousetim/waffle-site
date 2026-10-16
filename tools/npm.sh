@@ -108,7 +108,7 @@ fi
 
 # Build settings pass through when set (docs/building.md). Unset, a build is a
 # development build: noindex everywhere, and waffle data from api-fixtures/.
-for name in SITE_ENV SITE_URL WAFFLE_DATA; do
+for name in SITE_ENV SITE_URL WAFFLE_DATA SITE_EXAMPLE; do
     if [ -n "${!name:-}" ]; then
         RUN+=(-e "${name}=${!name}")
     fi

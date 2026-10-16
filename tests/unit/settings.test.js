@@ -1,7 +1,7 @@
 // src/lib/settings.js — docs/building.md, "Build settings" failure list.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildSettings, DEV_SITE_URL, SettingsError } from '../../src/lib/settings.js';
+import { buildSettings, DEV_SITE_URL, SettingsError } from '../../src/core/lib/settings.js';
 
 const production = {
     SITE_ENV: 'production',
@@ -17,6 +17,7 @@ test('an empty environment is a development build that is never indexed', () => 
         siteUrl: DEV_SITE_URL,
         waffleAppUrl: null,
         dataMode: 'fixtures',
+        example: null,
     });
 });
 
@@ -32,6 +33,7 @@ test('a production build is indexable and reads live data', () => {
         siteUrl: 'https://www.acme.com',
         waffleAppUrl: 'https://app.acme.com',
         dataMode: 'live',
+        example: null,
     });
 });
 
@@ -87,4 +89,13 @@ test('refuses what is not an http(s) URL, or carries credentials', () => {
 
 test('errors are SettingsErrors', () => {
     assert.throws(() => buildSettings({ SITE_ENV: 'x' }), (error) => error instanceof SettingsError && error.name === 'SettingsError');
+});
+
+test('SITE_EXAMPLE names an example, and nothing that could leave examples/', () => {
+    assert.equal(buildSettings({ SITE_EXAMPLE: 'photographer' }).example, 'photographer');
+    assert.equal(buildSettings({ SITE_EXAMPLE: ' dental-clinic ' }).example, 'dental-clinic');
+
+    for (const bad of ['../etc', 'Photographer', 'a/b', '-x', 'x'.repeat(42)]) {
+        assert.throws(() => buildSettings({ SITE_EXAMPLE: bad }), /SITE_EXAMPLE must be an example's name/, bad);
+    }
 });

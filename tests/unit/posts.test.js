@@ -1,7 +1,7 @@
 // src/lib/posts.js — docs/blog.md.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { postsTagged, readingMinutes, relatedPosts, tagIndex, tagSlug, visiblePosts } from '../../src/lib/posts.js';
+import { postsTagged, readingMinutes, relatedPosts, tagIndex, tagSlug, visiblePosts } from '../../src/core/lib/posts.js';
 
 const post = (id, date, { draft = false, tags = [] } = {}) => ({ id, data: { pubDate: new Date(date), draft, tags } });
 const now = new Date('2026-10-14T12:00:00Z');

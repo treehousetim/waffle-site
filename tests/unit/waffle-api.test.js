@@ -1,7 +1,7 @@
 // src/lib/waffle-api.js — docs/waffle-api.md, build-time reads, failure list.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { API_PREFIX, assertSitePath, createWaffleApi, fixturePath, unwrap, WaffleApiError } from '../../src/lib/waffle-api.js';
+import { API_PREFIX, assertSitePath, createWaffleApi, fixturePath, unwrap, WaffleApiError } from '../../src/core/lib/waffle-api.js';
 
 const ok = (data) => JSON.stringify({ success: true, data });
 
@@ -81,13 +81,21 @@ test('fixture mode reads api-fixtures and never the network', async () => {
     });
 
     assert.deepEqual(await api.get('/api/site/plans'), { plans: true });
-    assert.deepEqual(read, ['api-fixtures/api/site/plans.json']);
+    assert.deepEqual(read, ['api/site/plans.json']);
 });
 
-test('(6) a missing fixture says which file to create', async () => {
+test('(6) a missing fixture says which file to create, in the right directory', async () => {
     const api = createWaffleApi({ mode: 'fixtures', baseUrl: null, fetchText: noDisk, readFixture: async () => null });
+    const example = createWaffleApi({ mode: 'fixtures', baseUrl: null, fetchText: noDisk, readFixture: async () => null, fixturesDir: 'examples/dentist/api-fixtures' });
 
     await assert.rejects(api.get('/api/site/team-members'), /no fixture for \/api\/site\/team-members: create api-fixtures\/api\/site\/team-members\.json/);
+    await assert.rejects(example.get('/api/site/team'), /create examples\/dentist\/api-fixtures\/api\/site\/team\.json/);
+});
+
+test('a broken fixture is named by its path', async () => {
+    const api = createWaffleApi({ mode: 'fixtures', baseUrl: null, fetchText: noDisk, readFixture: async () => '[1]' });
+
+    await assert.rejects(api.get('/api/site/plans'), /api-fixtures\/api\/site\/plans\.json did not answer with/);
 });
 
 test('(1) only site endpoints may be read', () => {
@@ -109,7 +117,7 @@ test('(1) get refuses a bad path before any request', async () => {
 });
 
 test('fixture paths mirror the endpoint', () => {
-    assert.equal(fixturePath('/api/site/plans'), 'api-fixtures/api/site/plans.json');
+    assert.equal(fixturePath('/api/site/plans'), 'api/site/plans.json');
     assert.throws(() => fixturePath('/etc/passwd'), WaffleApiError);
 });
 

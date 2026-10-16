@@ -74,7 +74,7 @@ fi
 
 KEEP='treehousetim/waffle'
 # Files that describe the rename, and must keep the placeholders to do so.
-EXCLUDED='^(\./)?(tools/rename-project\.sh|tools/setup\.sh|docs/create-project\.md|LICENSE|tests/infra/setup\.test\.js)$'
+EXCLUDED='^(\./)?(tools/rename-project\.sh|tools/setup\.sh|tools/use-example\.sh|docs/create-project\.md|LICENSE|tests/infra/setup\.test\.js)$'
 
 FILES=""
 for file in $(grep -rIl --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=dist \
@@ -136,6 +136,6 @@ echo "  started VERSION at 0 and a fresh CHANGELOG.md"
 
 echo
 echo "Done: slug ${SLUG}, name \"${NAME}\", site ${HOST}, waffle app ${APP}."
-echo "  - replace public/og-default.png and public/logo.png: they still say Waffle Site"
+echo "  - replace the example's logo, link-preview image and photos (docs/playbook.md)"
 echo "  - create the Doppler project '${SLUG}' with configs prod-serve and prod-deploy (docs/fresh-install.md)"
 echo "  - fill in section 1 of AGENTS.md with what the site is for"

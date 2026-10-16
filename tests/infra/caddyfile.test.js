@@ -43,11 +43,14 @@ test('(1) the headers are on the site and on every error page', () => {
     assert.equal(imports.length, 3);
 });
 
-test('(2) the content security policy runs nothing inline and loads nothing from elsewhere', () => {
+test('(2) the header carries the policy a page cannot: framing, form targets, plugins, base', () => {
     const policy = caddyfile.match(/Content-Security-Policy "([^"]+)"/)[1];
 
-    assert.doesNotMatch(policy, /unsafe-inline|unsafe-eval|\*/);
-    for (const rule of ["default-src 'self'", "script-src 'self'", "style-src 'self'", "connect-src 'self'", "frame-ancestors 'none'", "form-action 'self'", "object-src 'none'"]) {
+    // Scripts, styles and the rest are in each page's own policy, which Astro
+    // hashes at build time (astro.config.mjs, security.csp); a header with a
+    // script-src would override those hashes and break every page.
+    assert.doesNotMatch(policy, /unsafe-inline|unsafe-eval|\*|script-src|style-src|default-src/);
+    for (const rule of ["frame-ancestors 'none'", "form-action 'self'", "object-src 'none'", "base-uri 'self'"]) {
         assert.ok(policy.includes(rule), rule);
     }
 });

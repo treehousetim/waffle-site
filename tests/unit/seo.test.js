@@ -1,7 +1,7 @@
 // src/lib/seo.js — docs/seo.md.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { absoluteUrl, canonicalUrl, isNoindex, pageTitle, robotsMeta } from '../../src/lib/seo.js';
+import { absoluteUrl, canonicalUrl, isNoindex, pageTitle, robotsMeta } from '../../src/core/lib/seo.js';
 
 const site = 'https://www.acme.com';
 

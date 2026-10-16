@@ -23,7 +23,7 @@ const guide = parsePriceGuide(await waffle.get('/api/site/prices'));
   `api-fixtures/api/site/<name>.json`, so nobody needs the app running to work
   on a page. `WAFFLE_DATA=live` makes a development build use the app instead.
 - Each path is fetched once per build, however many pages use it.
-- Every answer is checked before a page renders it (`src/lib/prices.js` for the
+- Every answer is checked before a page renders it (`src/core/lib/prices.js` for the
   prices). An answer in the wrong shape fails the build with the field named.
 
 The data is as fresh as the last build. When the office changes prices, cut a
@@ -33,7 +33,7 @@ release (or re-run the workflow for the current tag) to publish them.
 
 1. Add `api-fixtures/api/site/<name>.json` holding
    `{"success": true, "data": ...}`, shaped like the app's real answer.
-2. Add a parser in `src/lib/` that checks every field and refuses anything
+2. Add a parser in `src/core/lib/` that checks every field and refuses anything
    else, with its unit test (100% coverage is enforced).
 3. Use it from the page: `parseThing(await waffle.get('/api/site/<name>'))`.
 4. Build the endpoint in the waffle app (below).
@@ -94,5 +94,5 @@ builds against a stand-in app over real HTTP).
 6. A development build has no fixture for an endpoint, and the message does
    not say which file to create.
 7. A production build quietly uses fixture data (refused in
-   `src/lib/settings.js`; docs/building.md).
+   `src/core/lib/settings.js`; docs/building.md).
 8. A path used by several pages is fetched once per page.

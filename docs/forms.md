@@ -25,7 +25,7 @@ one (a bot learns nothing) and keep nothing.
 
 ## What the app sends back
 
-`src/lib/forms.js` reads the answer; it is tested in `tests/unit/forms.test.js`.
+`src/core/lib/forms.js` reads the answer; it is tested in `tests/unit/forms.test.js`.
 
 | The app answers | The visitor sees |
 | --- | --- |

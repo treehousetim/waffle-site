@@ -1,7 +1,7 @@
 // src/lib/robots.js — docs/seo.md.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { robotsTxt } from '../../src/lib/robots.js';
+import { robotsTxt } from '../../src/core/lib/robots.js';
 
 test('production lets robots in and names the sitemap', () => {
     assert.equal(

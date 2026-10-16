@@ -10,13 +10,15 @@
 #
 # What it does, in order, each step skipped if already done:
 #   1. checks the platform and the tools the project needs
-#   2. asks for the slug, display name, the site's hostname and the waffle
+#   2. asks which example site to start from, and installs it with
+#      tools/use-example.sh (docs/examples.md)
+#   3. asks for the slug, display name, the site's hostname and the waffle
 #      app's, and renames the project with tools/rename-project.sh (which
 #      validates them)
-#   3. offers to create the git repository and make the first commit, unless
+#   4. offers to create the git repository and make the first commit, unless
 #      the copy already has its own history (a repository made from the
 #      GitHub template does)
-#   4. says what to do next
+#   5. says what to do next
 #
 # docs/create-project.md has the details and the failure list.
 #
@@ -52,8 +54,11 @@ Options:
   --name <name>      the name people read, e.g. "Acme"
   --host <hostname>  the site's hostname, e.g. www.acme.com
   --app <hostname>   the waffle app's hostname (default: app.<domain>)
+  --example <name>   the example site to start from (default: electrician);
+                     --list-examples shows them
   --yes              accept the suggestions and confirmations without asking
   --no-git           do not create a git repository or commit
+  --list-examples    print the examples, name and label, and exit
   --suggest <dir>    print the suggested slug, name, host and app host for a
                      directory name, one per line, and exit
   -h, --help         this help
@@ -92,7 +97,7 @@ suggest_app() {
 # ---------------------------------------------------------------------------
 # Arguments.
 # ---------------------------------------------------------------------------
-SLUG=""; NAME=""; HOST=""; APP=""; YES=0; NO_GIT=0
+SLUG=""; NAME=""; HOST=""; APP=""; EXAMPLE=""; YES=0; NO_GIT=0
 
 while [ "$#" -gt 0 ]; do
     case "$1" in
@@ -100,6 +105,8 @@ while [ "$#" -gt 0 ]; do
         --name) NAME="${2:-}"; shift 2 ;;
         --host) HOST="${2:-}"; shift 2 ;;
         --app) APP="${2:-}"; shift 2 ;;
+        --example) EXAMPLE="${2:-}"; shift 2 ;;
+        --list-examples) bash "$ROOT/tools/use-example.sh" --list; exit 0 ;;
         --yes|-y) YES=1; shift ;;
         --no-git) NO_GIT=1; shift ;;
         --suggest)
@@ -207,18 +214,49 @@ if has gh; then ok "GitHub CLI $(gh --version 2>/dev/null | head -n 1 | sed 's/^
     install_hint "brew install gh" "https://github.com/cli/cli#installation"
 fi
 
+# Without a terminal every answer must be given, or --yes take the
+# suggestions: refused here, before the example or the names change anything.
+if [ "$INTERACTIVE" -eq 0 ] && [ "$YES" -eq 0 ] && grep -q '"name": "waffle_site"' package.json 2>/dev/null \
+        && { [ -z "$SLUG" ] || [ -z "$NAME" ] || [ -z "$HOST" ]; }; then
+    die "no terminal to ask on. Pass --slug, --name and --host (or --yes to take the suggestions)." 2
+fi
+
 # ---------------------------------------------------------------------------
-# 2. Names.
+# 2. The example to start from.
+# ---------------------------------------------------------------------------
+step "Choosing an example site"
+
+if [ ! -d examples ]; then
+    ok "already a site; skipping"
+else
+    if [ -z "$EXAMPLE" ]; then
+        if [ "$INTERACTIVE" -eq 1 ]; then
+            hint "Each is a complete site; the agent then makes it yours (docs/examples.md)."
+            bash "$ROOT/tools/use-example.sh" --list | awk -F '\t' '{ printf "    %-22s %s\n", $1, $2 }'
+            EXAMPLE="$(ask "Example" "electrician")"
+        else
+            EXAMPLE="electrician"
+        fi
+    fi
+
+    code=0
+    output="$(bash "$ROOT/tools/use-example.sh" "$EXAMPLE" 2>&1)" || code=$?
+
+    if [ "$code" -ne 0 ]; then
+        printf '%s\n' "$output" >&2
+        die "the example was not installed." "$code"
+    fi
+    ok "started from the ${EXAMPLE} example (its playbook is docs/playbook.md)"
+fi
+
+# ---------------------------------------------------------------------------
+# 3. Names.
 # ---------------------------------------------------------------------------
 step "Naming the site"
 
 if ! grep -q '"name": "waffle_site"' package.json 2>/dev/null; then
     ok "already named ($(sed -n 's/^  "name": "\([^"]*\)".*/\1/p' package.json | head -n 1)); skipping"
 else
-    if [ "$INTERACTIVE" -eq 0 ] && [ "$YES" -eq 0 ] && { [ -z "$SLUG" ] || [ -z "$NAME" ] || [ -z "$HOST" ]; }; then
-        die "no terminal to ask on. Pass --slug, --name and --host (or --yes to take the suggestions)." 2
-    fi
-
     if [ "$INTERACTIVE" -eq 1 ]; then
         hint "The slug names the Doppler project and /opt/<slug> on the server."
         hint "The hostnames can be placeholders until you have them; change them before the first release."
@@ -262,7 +300,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# 3. Git.
+# 4. Git.
 # ---------------------------------------------------------------------------
 step "Git"
 
@@ -296,12 +334,12 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# 4. What next.
+# 5. What next.
 # ---------------------------------------------------------------------------
 step "Done. Next:"
 cat <<EOF
-  1. Fill in section 1 of AGENTS.md with what the site is for, and replace
-     public/og-default.png and public/logo.png.
+  1. Ask your agent to read docs/playbook.md and make the example yours:
+     it interviews you, replaces the example business, photos and copy.
   2. See it:
        ./tools/npm.sh ci
        ./tools/npm.sh run dev        # http://localhost:4321, rebuilds as you edit

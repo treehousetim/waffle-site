@@ -1,0 +1,118 @@
+---
+/** /blog/, then /blog/2/ and on: every post the build shows, newest first. */
+import type { GetStaticPaths, Page } from 'astro';
+import { getCollection, type CollectionEntry } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Hero from '../../components/Hero.astro';
+import PostGrid from '../../components/PostGrid.astro';
+import { site } from '../../site';
+import { buildTime, settings } from '@core/settings';
+import { tagIndex, visiblePosts } from '@core/lib/posts.js';
+
+export const getStaticPaths = (async ({ paginate }) => {
+    const posts = visiblePosts(await getCollection('blog'), { includeDrafts: !settings.production, now: buildTime });
+
+    return paginate(posts, { pageSize: 10, props: { tags: tagIndex(posts) } });
+}) satisfies GetStaticPaths;
+
+interface Props {
+    page: Page<CollectionEntry<'blog'>>;
+    tags: ReturnType<typeof tagIndex>;
+}
+
+const { page, tags } = Astro.props;
+const first = page.currentPage === 1;
+// Page 2 and on need their own title and description (docs/seo.md, 12).
+const title = first ? site.blog.title : `${site.blog.title}, page ${page.currentPage}`;
+const description = first ? site.blog.description : `${site.blog.description} Page ${page.currentPage} of ${page.lastPage}.`;
+---
+
+<Base title={title} description={description} breadcrumbs={[{ name: site.blog.title, href: '/blog/' }]}>
+    <Hero size="small" eyebrow={first ? 'Advice from licensed electricians' : `Page ${page.currentPage} of ${page.lastPage}`} heading={first ? site.blog.title : title} lead={site.blog.description}>
+        {
+            tags.length > 0 && (
+                <ul class="topics" aria-label="Topics">
+                    {tags.map((tag) => (
+                        <li>
+                            <a href={`/blog/tags/${tag.slug}/`}>
+                                {tag.tag} <span>{tag.count}</span>
+                            </a>
+                        </li>
+                    ))}
+                </ul>
+            )
+        }
+    </Hero>
+
+    <div class="container list">
+        {page.data.length === 0 && <p>No posts yet.</p>}
+        <PostGrid posts={page.data} feature={first} />
+
+        {
+            page.lastPage > 1 && (
+                <nav class="pager" aria-label="More posts">
+                    {page.url.prev ? <a class="button button-secondary" href={page.url.prev}>← Newer</a> : <span />}
+                    <span class="count">Page {page.currentPage} of {page.lastPage}</span>
+                    {page.url.next ? <a class="button button-secondary" href={page.url.next}>Older →</a> : <span />}
+                </nav>
+            )
+        }
+    </div>
+</Base>
+
+<style>
+    .topics {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .topics a {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        padding: var(--space-1) var(--space-2) var(--space-1) var(--space-4);
+        border: 1px solid var(--color-border-strong);
+        border-radius: 999px;
+        background: var(--color-bg);
+        color: var(--color-text);
+        font-size: 0.9rem;
+        font-weight: 550;
+        text-decoration: none;
+    }
+
+    .topics a:hover {
+        border-color: var(--color-brand);
+        color: var(--color-brand-strong);
+    }
+
+    .topics span {
+        padding: 0 0.5rem;
+        border-radius: 999px;
+        background: var(--color-surface);
+        color: var(--color-muted);
+        font-size: 0.8rem;
+    }
+
+    .list {
+        padding: var(--space-12) 0 var(--section);
+    }
+
+    .pager {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-4);
+        margin-top: var(--space-12);
+        padding-top: var(--space-8);
+        border-top: 1px solid var(--color-border);
+    }
+
+    .count {
+        color: var(--color-muted);
+        font-size: 0.95rem;
+    }
+</style>

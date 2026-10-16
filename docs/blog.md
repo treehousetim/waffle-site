@@ -62,5 +62,5 @@ ignored. Values containing `: ` must be quoted.
 - `/blog/tags/<tag>/` for every tag in use.
 - `/blog/rss.xml`, the feed, linked from every page's `<head>`.
 
-The rules for which posts show and in what order are in `src/lib/posts.js`,
+The rules for which posts show and in what order are in `src/core/lib/posts.js`,
 tested in `tests/unit/posts.test.js`.

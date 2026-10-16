@@ -1,7 +1,7 @@
 // src/lib/forms.js — docs/forms.md.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { formPayload, HONEYPOT, submissionOutcome } from '../../src/lib/forms.js';
+import { formPayload, HONEYPOT, submissionOutcome } from '../../src/core/lib/forms.js';
 
 test('text fields are trimmed and files are dropped', () => {
     assert.deepEqual(formPayload([['name', '  Sam '], ['upload', new Blob(['x'])], ['email', 'sam@acme.com']]), {

@@ -1,6 +1,6 @@
 /**
- * tools/rename-project.sh and tools/setup.sh (docs/create-project.md,
- * failure list). Each test works on a copy of the files the rename touches,
+ * tools/rename-project.sh, tools/use-example.sh and tools/setup.sh
+ * (docs/create-project.md, failure list). Each test works on a copy of the files the rename touches,
  * in a scratch directory; the repository itself is never renamed.
  *
  * This file is excluded from the rename, so the placeholders below stay
@@ -8,25 +8,33 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { copyRepo, fakeBin, run } from '../support/shell.js';
 
-const TREE = ['tools/rename-project.sh', 'tools/setup.sh', 'package.json', 'package-lock.json', 'VERSION', 'CHANGELOG.md',
-    'docker-compose.prod.yml', '.github/workflows/deploy.yml', 'src/site.ts', 'README.md', 'AGENTS.md', 'LICENSE'];
+const TREE = ['tools/rename-project.sh', 'tools/setup.sh', 'tools/use-example.sh', 'package.json', 'package-lock.json', 'VERSION', 'CHANGELOG.md',
+    'docker-compose.prod.yml', '.github/workflows/deploy.yml', 'README.md', 'AGENTS.md', 'LICENSE', 'docs/README.md', 'tests/e2e/site-build.test.js'];
+const EXAMPLE = 'examples/electrician';
 
-const project = () => copyRepo(TREE);
+/** The rename's files, and the one example a site is made from. */
+const project = () => copyRepo([...TREE, EXAMPLE, 'src/core/lib/settings.js']);
+/** A site: the template with its example installed. */
+const site = () => {
+    const dir = project();
+    run('bash', ['tools/use-example.sh', 'electrician'], { cwd: dir });
+    return dir;
+};
 const rename = (dir, ...args) => run('bash', ['tools/rename-project.sh', ...args], { cwd: dir });
 const file = (dir, name) => readFileSync(join(dir, name), 'utf8');
 const placeholders = /waffle_site|Waffle Site|waffle-site\.example\.com/;
 
 test('(5) renames every placeholder outside the lines that point at the template', () => {
-    const dir = project();
+    const dir = site();
     const result = rename(dir, 'acme', 'Acme Electric', 'www.acme.com');
 
     assert.equal(result.status, 0, result.output);
 
-    for (const name of TREE.filter((path) => !['tools/rename-project.sh', 'tools/setup.sh', 'LICENSE'].includes(path))) {
+    for (const name of [...TREE, 'src/site.ts'].filter((path) => !['tools/rename-project.sh', 'tools/setup.sh', 'tools/use-example.sh', 'LICENSE'].includes(path))) {
         const leftover = file(dir, name).split('\n').filter((line) => placeholders.test(line) && !line.includes('treehousetim/waffle'));
 
         assert.deepEqual(leftover, [], name);
@@ -156,6 +164,74 @@ test('(16) stops on a native Windows shell and points at WSL2', () => {
 
     assert.equal(result.status, 1);
     assert.match(result.stdout, /WSL2/);
+});
+
+test('(11) installs the example it is given, and the default without one', () => {
+    const dir = project();
+    const result = setup(dir, ['--slug', 'acme', '--name', 'Acme', '--host', 'www.acme.com', '--example', 'electrician', '--yes', '--no-git']);
+
+    assert.equal(result.status, 0, result.output);
+    assert.match(result.stdout, /started from the electrician example/);
+    assert.equal(existsSync(join(dir, 'examples')), false);
+    assert.match(file(dir, 'src/site.ts'), /name: 'Acme'/);
+    assert.equal(existsSync(join(dir, 'docs/playbook.md')), true);
+});
+
+test('(18) refuses an example that does not exist, before naming anything', () => {
+    const dir = project();
+    const result = setup(dir, ['--slug', 'acme', '--name', 'Acme', '--host', 'www.acme.com', '--example', 'astronaut', '--yes', '--no-git']);
+
+    assert.equal(result.status, 2);
+    assert.match(result.stderr, /there is no example 'astronaut'/);
+    assert.match(file(dir, 'package.json'), /"name": "waffle_site"/);
+    assert.equal(existsSync(join(dir, EXAMPLE)), true);
+});
+
+test('lists the examples', () => {
+    assert.match(setup(project(), ['--list-examples']).stdout, /^electrician\tElectrician$/m);
+});
+
+// --------------------------------------------------------- use-example.sh
+
+const useExample = (dir, ...args) => run('bash', ['tools/use-example.sh', ...args], { cwd: dir });
+
+test('(17-20) installs one example as the site\'s own code, and refuses what it cannot install', () => {
+    const dir = project();
+    writeFileSync(join(dir, 'src/core/marker'), 'core\n');
+
+    assert.equal(useExample(dir).status, 2, 'no argument');
+    assert.equal(useExample(dir, '../etc').status, 2, '(18) a path is not a name');
+    assert.equal(useExample(dir, 'astronaut').status, 2, '(18) not an example');
+
+    const result = useExample(dir, 'electrician');
+
+    assert.equal(result.status, 0, result.output);
+    for (const path of ['src/site.ts', 'src/pages/index.astro', 'public/favicon.svg', 'api-fixtures/api/site/prices.json', 'docs/playbook.md', 'tests/e2e/site.checks.js']) {
+        assert.equal(existsSync(join(dir, path)), true, path);
+    }
+    assert.equal(file(dir, 'src/core/marker'), 'core\n', '(20) the core is kept');
+    assert.equal(existsSync(join(dir, 'examples')), false);
+
+    assert.equal(useExample(dir, 'electrician').status, 1, '(17) a site has no examples left to install');
+});
+
+test('(19) refuses an incomplete example, and moves nothing', () => {
+    const dir = project();
+    rmSync(join(dir, EXAMPLE, 'PLAYBOOK.md'));
+
+    const result = useExample(dir, 'electrician');
+
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /has no PLAYBOOK\.md/);
+    assert.equal(existsSync(join(dir, 'src/site.ts')), false);
+});
+
+test('(20) refuses an example that carries its own core', () => {
+    const dir = project();
+    mkdirSync(join(dir, EXAMPLE, 'src/core'));
+
+    assert.match(useExample(dir, 'electrician').stderr, /may not replace the core/);
+    assert.equal(existsSync(join(dir, 'src/site.ts')), false);
 });
 
 test('an unknown option is refused', () => {

@@ -1,0 +1,9 @@
+{
+  "name": "electrician",
+  "label": "Electrician",
+  "description": "A local trades business: services, the towns it covers, a price guide, emergency call-outs, a quote form and a blog of practical advice.",
+  "kind": "Local trade",
+  "schemaType": "Electrician",
+  "look": "Light, purple and amber, photo-led, heavy headings",
+  "waffleEndpoints": ["GET /api/site/prices", "POST /api/site/forms/quote"]
+}

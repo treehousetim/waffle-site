@@ -12,7 +12,7 @@ import {
     service,
     webPage,
     website,
-} from '../../src/lib/jsonld.js';
+} from '../../src/core/lib/jsonld.js';
 
 const site = 'https://www.acme.com';
 

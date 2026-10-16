@@ -14,7 +14,15 @@ cd acme-site && rm -rf .git && ./tools/setup.sh
 
 ## What setup asks
 
-Four names, each suggested from the directory name (press enter to take it):
+First, which example site to start from (`./tools/setup.sh --list-examples`
+shows them; docs/examples.md describes each). `tools/use-example.sh` installs
+it: the example's `src/` goes in beside the shared core in `src/core/`, its
+`public/` and `api-fixtures/` to the top level, its playbook to
+`docs/playbook.md` and its own end-to-end checks to `tests/e2e/site.checks.js`.
+Then `examples/` is removed: from here on the code is the site's, to change as
+it likes.
+
+Then four names, each suggested from the directory name (press enter to take it):
 
 | Placeholder | Example answer | Where it ends up |
 | --- | --- | --- |
@@ -32,18 +40,19 @@ that records which template version the site came from.
 Every answer is also a flag, for scripts and agents:
 
 ```bash
-./tools/setup.sh --slug acme --name "Acme Electric" --host www.acme.com --app app.acme.com --yes
+./tools/setup.sh --example electrician --slug acme --name "Acme Electric" --host www.acme.com --app app.acme.com --yes
 ```
 
 It is safe to run again: a site that is already named is not renamed.
 
 ## After setup
 
-1. Replace `public/og-default.png` and `public/logo.png`: they still say
-   Waffle Site.
-2. Replace the example business in `src/site.ts`: phone, address, hours,
-   licence. The 555-01xx numbers are reserved for fiction.
-3. Fill in AGENTS.md §1, then rewrite the example pages and posts
+Ask your agent to follow `docs/playbook.md`. It interviews you, then:
+
+1. replaces the example business in `src/site.ts`: phone, address, hours,
+   licence (the 555-01xx numbers are reserved for fiction);
+2. replaces the logo, `public/og-default.png` and the photographs;
+3. fills in AGENTS.md §1, then rewrites the example pages and posts
    (docs/pages.md, docs/blog.md).
 
 ## Failure list
@@ -71,3 +80,7 @@ Each has a test in `tests/infra/setup.test.js`, which works on a copy.
 15. A clone of the template's own repository carries its history into the
     site.
 16. Setup runs in a native Windows shell, where nothing behaves as expected.
+17. An example is installed into a site that already has one, mixing two.
+18. A name that is not an example, or is a path, installs something else.
+19. An incomplete example is half installed, leaving a site that cannot build.
+20. An example overwrites the shared core.

@@ -1,0 +1,49 @@
+---
+/** The mark and the name. Decorative mark, so the name is the link's text. */
+import { site } from '../site';
+import Mark from '../icons/logo.svg';
+
+interface Props {
+    tone?: 'dark' | 'light';
+}
+
+const { tone = 'dark' } = Astro.props;
+---
+
+<a class:list={['logo', tone]} href="/">
+    <Mark width={34} height={34} aria-hidden="true" focusable="false" />
+    <span>{site.name}</span>
+</a>
+
+<style>
+    .logo {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-3);
+        font-weight: 800;
+        font-size: 1.2rem;
+        letter-spacing: -0.02em;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    .dark {
+        color: var(--color-text);
+    }
+
+    .dark svg {
+        color: var(--color-brand);
+    }
+
+    .light {
+        color: #ffffff;
+    }
+
+    .light svg {
+        color: var(--color-brand);
+    }
+
+    .logo:hover {
+        color: inherit;
+    }
+</style>

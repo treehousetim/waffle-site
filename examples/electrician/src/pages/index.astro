@@ -1,0 +1,296 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+import Section from '../components/Section.astro';
+import CardGrid from '../components/CardGrid.astro';
+import TrustBar from '../components/TrustBar.astro';
+import Steps from '../components/Steps.astro';
+import Split from '../components/Split.astro';
+import CheckList from '../components/CheckList.astro';
+import Testimonials from '../components/Testimonials.astro';
+import PostGrid from '../components/PostGrid.astro';
+import Photo from '../components/Photo.astro';
+import Icon from '../components/Icon.astro';
+import CallToAction from '../components/CallToAction.astro';
+import { site } from '../site';
+import { services, serviceUrl } from '../data/services';
+import { areas, areaUrl } from '../data/areas';
+import { reviews } from '../data/reviews';
+import { buildTime } from '@core/settings';
+import { visiblePosts } from '@core/lib/posts.js';
+
+// Published posts only, even in development: the home page shows no drafts.
+const latest = visiblePosts(await getCollection('blog'), { includeDrafts: false, now: buildTime }).slice(0, 3);
+---
+
+<Base title={`${site.name}: licensed electricians in Springfield and nearby`} description={site.description}>
+    <Hero
+        eyebrow="Licensed electricians in Springfield"
+        heading="Electrical work done right, the first time."
+        lead="Repairs, panel upgrades, EV chargers and rewiring for homes and small businesses. A written price before we start, tidy work, and a real person on the phone, day or night."
+        photo="electricianAtWork"
+        badge={{ title: '24/7 emergency line', text: `Call ${site.business.phone}: a licensed electrician answers.` }}
+        primary={{ label: site.cta.label, href: site.cta.href }}
+        secondary={{ label: `Call ${site.business.phone}`, href: `tel:${site.business.phoneE164}` }}
+    >
+        <p class="hero-note">
+            <span class="stars" aria-hidden="true">★★★★★</span>
+            Trusted by homeowners across six towns since {site.business.founded}
+        </p>
+    </Hero>
+
+    <div class="trust-band">
+        <div class="container">
+            <TrustBar />
+        </div>
+    </div>
+
+    <Section eyebrow="Services" heading="Everything electrical, under one licence" intro="From a dead outlet to a whole-home rewire, by electricians who pull the permit and stand behind the work." align="start" more={{ label: 'All services', href: '/services/' }}>
+        <CardGrid cards={services.map((item) => ({ href: serviceUrl(item.slug), title: item.name, text: item.summary, photo: item.photo }))} />
+    </Section>
+
+    <Split photo="electricianPortrait" tone="surface">
+        <p class="eyebrow">Why {site.name}</p>
+        <h2>The electrician you will call again</h2>
+        <p class="lead">We are a local team, not a call centre. The person who quotes your job is the person who does it, and the price they quote is the price you pay.</p>
+        <CheckList
+            items={[
+                { title: 'A written price before we start', text: 'Small jobs priced on the phone; bigger ones after a free visit.' },
+                { title: 'Permitted and inspected', text: 'Done to code, with the paperwork your insurer and buyer will ask for.' },
+                { title: 'Tidy, on time, guaranteed', text: 'Two-hour arrival windows, drop cloths down, and two years on our workmanship.' },
+            ]}
+        />
+        <p class="actions">
+            <a class="button" href="/about/">About us</a>
+            <a class="button button-secondary" href="/reviews/">Read reviews</a>
+        </p>
+    </Split>
+
+    <Section eyebrow="How it works" heading="Three steps, no surprises">
+        <Steps
+            steps={[
+                { title: 'Tell us what is wrong', text: 'Call, text or send the quote form. Photos help, and we reply the same working day.' },
+                { title: 'Get a written price', text: 'Small jobs are priced on the phone. Bigger ones get a free visit and a fixed quote.' },
+                { title: 'We do the work and clean up', text: 'On the day we said, permit and inspection handled, and nothing left behind but working power.' },
+            ]}
+        />
+    </Section>
+
+    <section class="emergency">
+        <div class="emergency-photo" aria-hidden="true">
+            <Photo name="lightningStorm" sizes="100vw" />
+        </div>
+        <div class="container emergency-inner">
+            <div>
+                <p class="eyebrow">24/7 emergency service</p>
+                <h2>No power? Sparks or a burning smell?</h2>
+                <p>Switch off the main breaker if it is safe to reach, then call. A licensed electrician answers day and night, and we aim to be with you within the hour.</p>
+            </div>
+            <p class="actions">
+                <a class="button button-accent button-large" href={`tel:${site.business.phoneE164}`}>
+                    <Icon name="phone" size={20} /> Call {site.business.phone}
+                </a>
+                <a class="button button-outline-light button-large" href="/emergency/">What counts as an emergency</a>
+            </p>
+        </div>
+    </section>
+
+    <Section eyebrow="Reviews" heading="What customers say" align="start" more={{ label: 'All reviews', href: '/reviews/' }}>
+        <Testimonials items={reviews.slice(0, 3)} />
+    </Section>
+
+    <Section tone="surface" eyebrow="Service area" heading="Local to Springfield, and the towns around it" align="start" more={{ label: 'All areas', href: '/areas/' }}>
+        <div class="areas">
+            <div class="areas-photo">
+                <Photo name="suburbAerial" sizes="(min-width: 64rem) 45vw, 100vw" />
+            </div>
+            <ul class="towns">
+                {
+                    areas.map((area) => (
+                        <li>
+                            <a href={areaUrl(area.slug)}>
+                                <span class="pin"><Icon name="pin" size={18} /></span>
+                                <span class="town">
+                                    <strong>{area.name}</strong>
+                                    <span>{area.drive}</span>
+                                </span>
+                                <span class="go" aria-hidden="true">→</span>
+                            </a>
+                        </li>
+                    ))
+                }
+            </ul>
+        </div>
+    </Section>
+
+    {
+        latest.length > 0 && (
+            <Section eyebrow="Advice" heading="Straight answers from licensed electricians" align="start" more={{ label: 'All articles', href: '/blog/' }}>
+                <PostGrid posts={latest} level="h3" />
+            </Section>
+        )
+    }
+
+    <CallToAction heading="Get a straight answer and a written price" text="Free estimates for any job over $500, and no call-out fee for quotes." action={{ label: 'Request a free quote', href: '/contact/' }} />
+</Base>
+
+<style>
+    .hero-note {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-2);
+        margin: 0;
+        color: var(--color-muted);
+        font-size: 0.95rem;
+    }
+
+    .stars {
+        color: var(--color-accent);
+        letter-spacing: 0.12em;
+    }
+
+    .trust-band {
+        padding: var(--space-8) 0;
+        background: var(--color-surface);
+        border-block: 1px solid var(--color-border);
+    }
+
+    .emergency {
+        position: relative;
+        overflow: hidden;
+        padding: var(--section) 0;
+        background: var(--color-ink);
+        color: var(--color-on-ink-muted);
+    }
+
+    .emergency-photo {
+        position: absolute;
+        inset: 0;
+    }
+
+    .emergency-photo :global(img) {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .emergency-photo::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, rgb(20 15 38 / 0.95) 25%, rgb(20 15 38 / 0.7) 60%, rgb(20 15 38 / 0.45));
+    }
+
+    .emergency-inner {
+        position: relative;
+        display: grid;
+        gap: var(--space-8);
+        align-items: center;
+    }
+
+    .emergency h2 {
+        color: #ffffff;
+    }
+
+    .emergency .eyebrow {
+        background: rgb(245 165 36 / 0.16);
+        color: var(--color-accent);
+    }
+
+    .emergency p {
+        max-width: 36rem;
+        font-size: 1.1rem;
+    }
+
+    .emergency .actions {
+        margin: 0;
+    }
+
+    @media (min-width: 64rem) {
+        .emergency-inner {
+            grid-template-columns: 1fr auto;
+        }
+
+        .emergency .actions {
+            flex-direction: column;
+        }
+    }
+
+    .areas {
+        display: grid;
+        gap: var(--space-8);
+        align-items: center;
+    }
+
+    .areas-photo :global(img) {
+        width: 100%;
+        aspect-ratio: 4 / 3;
+        object-fit: cover;
+        border-radius: var(--radius-large);
+        box-shadow: var(--shadow);
+    }
+
+    .towns {
+        display: grid;
+        gap: var(--space-3);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .towns a {
+        display: flex;
+        align-items: center;
+        gap: var(--space-4);
+        padding: var(--space-4) var(--space-5);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius);
+        background: var(--color-bg);
+        color: var(--color-text);
+        text-decoration: none;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .towns a:hover {
+        border-color: var(--color-brand);
+        box-shadow: var(--shadow-small);
+    }
+
+    .pin {
+        display: inline-grid;
+        place-items: center;
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 50%;
+        background: var(--color-brand-soft);
+        color: var(--color-brand);
+    }
+
+    .town {
+        display: grid;
+        flex: 1;
+        line-height: 1.3;
+    }
+
+    .town span {
+        color: var(--color-muted);
+        font-size: 0.9rem;
+    }
+
+    .go {
+        color: var(--color-brand);
+        font-weight: 700;
+    }
+
+    @media (min-width: 64rem) {
+        .areas {
+            grid-template-columns: 1.1fr 1fr;
+        }
+
+        .towns {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+</style>
