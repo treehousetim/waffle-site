@@ -1,0 +1,48 @@
+---
+/** /insights/tags/<tag>/ for every tag in use. */
+import type { GetStaticPaths } from 'astro';
+import { getCollection, type CollectionEntry } from 'astro:content';
+import Base from '../../../layouts/Base.astro';
+import PageHead from '../../../components/PageHead.astro';
+import Docket from '../../../components/Docket.astro';
+import { site } from '../../../site';
+import { buildTime, settings } from '@core/settings';
+import { postsTagged, tagIndex, visiblePosts } from '@core/lib/posts.js';
+
+export const getStaticPaths = (async () => {
+    const posts = visiblePosts(await getCollection('blog'), { includeDrafts: !settings.production, now: buildTime });
+
+    return tagIndex(posts).map((tag) => ({
+        params: { tag: tag.slug },
+        props: { name: tag.tag, posts: postsTagged(posts, tag.slug) },
+    }));
+}) satisfies GetStaticPaths;
+
+interface Props {
+    name: string;
+    posts: CollectionEntry<'blog'>[];
+}
+
+const { name, posts } = Astro.props;
+const count = posts.length === 1 ? 'one explainer' : `${posts.length} explainers`;
+---
+
+<Base
+    title={`Insights on ${name.toLowerCase()}`}
+    description={`Every ${site.name} Insight on ${name.toLowerCase()}: ${count}, newest first. Plain-language explainers; general information, not legal advice.`}
+    breadcrumbs={[
+        { name: site.blog.title, href: '/insights/' },
+        { name, href: Astro.url.pathname },
+    ]}
+>
+    <PageHead label={`Insights · topic · ${count}`} lines={['Insights on', `*${name.toLowerCase()}.*`]} secondary={{ label: 'All Insights', href: '/insights/' }} />
+    <div class="container list">
+        <Docket posts={posts} />
+    </div>
+</Base>
+
+<style>
+    .list {
+        padding: var(--space-12) 0 var(--section);
+    }
+</style>

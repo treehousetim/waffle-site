@@ -1,0 +1,124 @@
+---
+/**
+ * Every page's last word before the footer: a navy band with the monogram
+ * set large behind it (its ring turning very slowly), an invitation to
+ * request a consultation or call, and the notice that contacting the firm
+ * does not make it your lawyer.
+ */
+import Unmask from './Unmask.astro';
+import Monogram from '../icons/monogram.svg';
+import { site } from '../site';
+
+interface Props {
+    lines?: string[];
+    text?: string;
+}
+
+const {
+    lines = ['Begin with', '*a conversation.*'],
+    text = 'A first consultation is thirty minutes with an attorney, by telephone or at Court Square. We will tell you plainly whether we can help, what it is likely to involve and what it will cost.',
+} = Astro.props;
+---
+
+<section class="closing">
+    <div class="seal" aria-hidden="true"><Monogram focusable="false" /></div>
+    <div class="container inner">
+        <div class="copy">
+            <p class="label">Consultation</p>
+            <Unmask lines={lines} />
+            <p class="text">{text}</p>
+        </div>
+        <div class="act">
+            <p class="actions">
+                <a class="button button-light" href={site.cta.href}>{site.cta.label}</a>
+                <a class="button button-outline-light" href={`tel:${site.business.phoneE164}`}>Call {site.business.phone}</a>
+            </p>
+            <p class="notice">{site.notices.noRelationship}</p>
+        </div>
+    </div>
+</section>
+
+<style>
+    .closing {
+        position: relative;
+        overflow: hidden;
+        padding: var(--section) 0;
+        background: var(--color-navy);
+        color: var(--color-on-navy);
+    }
+
+    .seal {
+        position: absolute;
+        right: -8rem;
+        top: 50%;
+        width: clamp(22rem, 15rem + 30vw, 42rem);
+        aspect-ratio: 1;
+        margin-top: calc(clamp(22rem, 15rem + 30vw, 42rem) / -2);
+        color: var(--color-brass);
+        opacity: 0.08;
+    }
+
+    .seal :global(svg) {
+        width: 100%;
+        height: 100%;
+    }
+
+    .inner {
+        position: relative;
+        display: grid;
+        gap: var(--space-10) var(--space-16);
+    }
+
+    @media (min-width: 62rem) {
+        .inner {
+            grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+            align-items: end;
+        }
+    }
+
+    .label {
+        color: var(--color-brass-bright);
+    }
+
+    .copy :global(h2) {
+        color: var(--color-on-navy);
+        font-size: clamp(2.5rem, 1.5rem + 4vw, 4.75rem);
+        line-height: 1;
+    }
+
+    .copy :global(h2 em) {
+        color: var(--color-brass-bright);
+    }
+
+    .text {
+        max-width: 34rem;
+        margin: var(--space-6) 0 0;
+        color: var(--color-on-navy-muted);
+        font-size: 1.25rem;
+    }
+
+    .actions {
+        margin: 0 0 var(--space-6);
+    }
+
+    .notice {
+        max-width: 30rem;
+        margin: 0;
+        padding-top: var(--space-5);
+        border-top: 1px solid var(--color-navy-rule);
+        color: var(--color-on-navy-muted);
+        font-family: var(--font-sans);
+        font-size: 0.8125rem;
+        line-height: 1.6;
+    }
+
+    .closing :global(:focus-visible) {
+        outline-color: var(--color-brass-bright);
+    }
+
+    @media (max-width: 40rem) {
+        .actions .button {
+            width: 100%;
+        }
+    }
+</style>

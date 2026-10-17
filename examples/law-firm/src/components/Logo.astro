@@ -1,0 +1,122 @@
+---
+/**
+ * The mark and the name: the HM monogram in its double ring, and the firm's
+ * name set in small capitals with an italic ampersand. The mark is
+ * decorative, so the name is the link's text.
+ *
+ * A slow brass shimmer passes over the monogram every few seconds: a
+ * gradient masked by the same drawing (src/icons/monogram.svg), in
+ * motion.css's terms only when motion is welcome.
+ */
+import Monogram from '../icons/monogram.svg';
+
+interface Props {
+    tone?: 'dark' | 'light';
+    /** Show the "Attorneys at law" line under the name. */
+    descriptor?: boolean;
+}
+
+const { tone = 'dark', descriptor = true } = Astro.props;
+---
+
+<a class:list={['logo', tone]} href="/">
+    <span class="mark" aria-hidden="true">
+        <Monogram width={44} height={44} focusable="false" />
+        <span class="shine"></span>
+    </span>
+    <span class="words">
+        <span class="name">Hale <span class="amp">&amp;</span> Morrow</span>
+        {descriptor && <span class="descriptor">Attorneys at law</span>}
+    </span>
+</a>
+
+<style>
+    .logo {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.8rem;
+        color: var(--color-navy);
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    .mark {
+        position: relative;
+        display: block;
+        flex: none;
+        width: 2.75rem;
+        height: 2.75rem;
+        color: var(--color-navy);
+    }
+
+    .mark :global(svg) {
+        width: 100%;
+        height: 100%;
+    }
+
+    /* The shimmer: brass light, cut to the monogram's shape. */
+    .shine {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(105deg, transparent 38%, var(--color-brass-bright) 48%, #fff4d6 50%, var(--color-brass-bright) 52%, transparent 62%) 150% 0 / 300% 100% no-repeat;
+        -webkit-mask: url('../icons/monogram.svg') center / contain no-repeat;
+        mask: url('../icons/monogram.svg') center / contain no-repeat;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .words {
+        display: grid;
+        line-height: 1;
+    }
+
+    .name {
+        font-family: var(--font-serif);
+        font-size: 1.45rem;
+        font-variant-caps: small-caps;
+        font-weight: 500;
+        letter-spacing: 0.06em;
+    }
+
+    .amp {
+        color: var(--color-brass-ink);
+        font-style: italic;
+        font-variant-caps: normal;
+        letter-spacing: 0;
+    }
+
+    .descriptor {
+        margin-top: 0.3rem;
+        color: var(--color-muted);
+        font-family: var(--font-sans);
+        font-size: 0.625rem;
+        font-weight: 500;
+        letter-spacing: 0.32em;
+        text-transform: uppercase;
+    }
+
+    .light,
+    .light .mark {
+        color: var(--color-on-navy);
+    }
+
+    .light .amp {
+        color: var(--color-brass-bright);
+    }
+
+    .light .descriptor {
+        color: var(--color-on-navy-muted);
+    }
+
+    .logo:hover {
+        color: inherit;
+    }
+
+    .dark:hover .mark {
+        color: var(--color-brass-ink);
+    }
+
+    .mark {
+        transition: color 0.4s ease;
+    }
+</style>

@@ -1,0 +1,206 @@
+---
+/** /insights/, then /insights/2/ and on: every post the build shows, newest first. */
+import type { GetStaticPaths, Page } from 'astro';
+import { getCollection, type CollectionEntry } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import Docket from '../../components/Docket.astro';
+import Plate from '../../components/Plate.astro';
+import FormattedDate from '../../components/FormattedDate.astro';
+import { site } from '../../site';
+import { defaultPostPhoto, topicPhotos } from '../../data/photos';
+import { buildTime, settings } from '@core/settings';
+import { tagIndex, tagSlug, visiblePosts } from '@core/lib/posts.js';
+
+export const getStaticPaths = (async ({ paginate }) => {
+    const posts = visiblePosts(await getCollection('blog'), { includeDrafts: !settings.production, now: buildTime });
+
+    return paginate(posts, { pageSize: 6, props: { tags: tagIndex(posts) } });
+}) satisfies GetStaticPaths;
+
+interface Props {
+    page: Page<CollectionEntry<'blog'>>;
+    tags: ReturnType<typeof tagIndex>;
+}
+
+const { page, tags } = Astro.props;
+const first = page.currentPage === 1;
+// Page 2 and on need their own title and description (docs/seo.md, 12).
+const title = first ? site.blog.title : `${site.blog.title}, page ${page.currentPage}`;
+const description = first ? site.blog.description : `${site.blog.description} Page ${page.currentPage} of ${page.lastPage}.`;
+const [lead, ...rest] = first ? page.data : [undefined, ...page.data];
+const leadTag = lead?.data.tags[0];
+const leadPhoto = (leadTag !== undefined ? topicPhotos[tagSlug(leadTag)] : undefined) ?? defaultPostPhoto;
+---
+
+<Base title={title} description={description} breadcrumbs={[{ name: site.blog.title, href: '/insights/' }]}>
+    <PageHead
+        label={first ? 'Insights · plain-language explainers' : `Insights · page ${page.currentPage} of ${page.lastPage}`}
+        lines={first ? ['The law,', '*in plain language.*'] : ['Insights,', `*page ${page.currentPage}.*`]}
+        lead="Short explainers on the questions our clients ask most. General information to help you ask better questions: not legal advice about your matter."
+    >
+        {
+            tags.length > 0 && (
+                <nav class="topics" aria-label="Topics">
+                    <p class="topics-label">Topics</p>
+                    <ul>
+                        {tags.map((tag) => (
+                            <li>
+                                <a href={`/insights/tags/${tag.slug}/`}>
+                                    {tag.tag} <span>{tag.count}</span>
+                                </a>
+                            </li>
+                        ))}
+                    </ul>
+                </nav>
+            )
+        }
+    </PageHead>
+
+    <div class="container list">
+        {page.data.length === 0 && <p>No Insights yet.</p>}
+        {
+            lead && (
+                <article class="feature">
+                    <a class="feature-photo" href={`/insights/${lead.id}/`} tabindex="-1" aria-hidden="true">
+                        <Plate photo={leadPhoto} shape="landscape" sizes="(min-width: 64rem) 45vw, 100vw" />
+                    </a>
+                    <div class="feature-copy">
+                        <p class="feature-meta">
+                            Latest · <FormattedDate date={lead.data.pubDate} />
+                        </p>
+                        <h2><a href={`/insights/${lead.id}/`}>{lead.data.title}</a></h2>
+                        <p class="feature-description">{lead.data.description}</p>
+                    </div>
+                </article>
+            )
+        }
+        <Docket posts={rest.filter((post) => post !== undefined)} />
+
+        {
+            page.lastPage > 1 && (
+                <nav class="pager" aria-label="More Insights">
+                    {page.url.prev ? <a class="more back" href={page.url.prev}>Newer</a> : <span />}
+                    <span class="count">Page {page.currentPage} of {page.lastPage}</span>
+                    {page.url.next ? <a class="more" href={page.url.next}>Older</a> : <span />}
+                </nav>
+            )
+        }
+    </div>
+</Base>
+
+<style>
+    .topics-label {
+        margin: 0 0 var(--space-3);
+        color: var(--color-brass-ink);
+        font-variant-caps: all-small-caps;
+        letter-spacing: 0.12em;
+    }
+
+    .topics ul {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .topics a {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        min-height: 2.5rem;
+        padding: 0 var(--space-3);
+        border: 1px solid var(--color-rule);
+        background: var(--color-paper);
+        color: var(--color-navy);
+        font-family: var(--font-sans);
+        font-size: 0.8125rem;
+        text-decoration: none;
+        transition: border-color 0.3s ease, color 0.3s ease;
+    }
+
+    .topics a:hover {
+        border-color: var(--color-brass);
+        color: var(--color-brass-ink);
+    }
+
+    .topics span {
+        color: var(--color-muted);
+        font-variant-numeric: lining-nums;
+    }
+
+    .list {
+        padding: var(--space-16) 0 var(--section);
+    }
+
+    .feature {
+        position: relative;
+        display: grid;
+        gap: var(--space-8) var(--space-12);
+        margin-bottom: var(--space-16);
+    }
+
+    @media (min-width: 64rem) {
+        .feature {
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            align-items: center;
+        }
+    }
+
+    .feature-photo {
+        display: block;
+        margin-right: 0.85rem;
+    }
+
+    .feature-meta {
+        margin: 0 0 var(--space-3);
+        color: var(--color-brass-ink);
+        font-variant-caps: all-small-caps;
+        font-variant-numeric: lining-nums;
+        letter-spacing: 0.12em;
+    }
+
+    .feature h2 {
+        font-size: clamp(2rem, 1.4rem + 2vw, 3rem);
+    }
+
+    .feature h2 a {
+        color: var(--color-navy);
+        text-decoration: none;
+    }
+
+    .feature h2 a:hover {
+        color: var(--color-brass-ink);
+    }
+
+    .feature-description {
+        color: var(--color-prose);
+        font-size: 1.25rem;
+    }
+
+    .pager {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-4);
+        margin-top: var(--space-12);
+    }
+
+    .back::after {
+        content: none;
+    }
+
+    .back::before {
+        content: '←';
+        letter-spacing: 0;
+    }
+
+    .count {
+        color: var(--color-muted);
+        font-family: var(--font-sans);
+        font-size: 0.8125rem;
+        font-variant-numeric: lining-nums;
+    }
+</style>

@@ -1,0 +1,59 @@
+---
+/**
+ * Who took the photographs, and whose typefaces these are. The example
+ * photos are from Unsplash, free under the Unsplash License; credit is not
+ * required, but given. Kept out of search results (src/site.ts, noindex).
+ */
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import { photos } from '../data/photos';
+
+const credits = Object.values(photos);
+---
+
+<Base
+    title="Credits"
+    description="The photographers whose work appears on this example site, with links to the originals on Unsplash, and the open-license typefaces it is set in."
+    breadcrumbs={[{ name: 'Credits', href: '/credits/' }]}
+>
+    <PageHead label="Credits" lines={['Credits']} lead="With thanks to the photographers and type designers whose work this example is set in." />
+
+    <div class="prose page">
+        <h2>Photographs</h2>
+        <p>From <a href="https://unsplash.com/">Unsplash</a>, used under the <a href="https://unsplash.com/license">Unsplash License</a>. They are stand-ins: none shows the fictional firm, its office or its people.</p>
+        <ol class="credits">
+            {credits.map((photo) => (
+                <li>
+                    <span>{photo.alt.replace(/\.$/, '')}</span>
+                    <a href={photo.credit.url}>{photo.credit.name}</a>
+                </li>
+            ))}
+        </ol>
+        <h2>Typefaces</h2>
+        <p><a href="https://github.com/octaviopardo/EBGaramond12">EB Garamond</a>, by Georg Duffner and Octavio Pardo, and <a href="https://github.com/IBM/plex">IBM Plex Sans</a>, by Mike Abbink and Bold Monday for IBM, both under the <a href="https://openfontlicense.org/">SIL Open Font License</a>.</p>
+    </div>
+</Base>
+
+<style>
+    .page {
+        padding: var(--space-16) 0 var(--section);
+    }
+
+    .credits {
+        padding-left: 1.6em;
+    }
+
+    .credits li {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 0 var(--space-4);
+        padding-bottom: var(--space-2);
+        border-bottom: 1px solid var(--color-rule);
+    }
+
+    .credits a {
+        font-family: var(--font-sans);
+        font-size: 0.875rem;
+    }
+</style>

@@ -1,0 +1,86 @@
+---
+/**
+ * Numbered articles, as in an agreement: "Article 1", a title, and the
+ * clause. Used for the firm's commitments and its process. Each rises into
+ * place as it scrolls into view, its hairline drawing across first.
+ */
+interface Props {
+    items: { title: string; text: string }[];
+    /** "Article", "Step", "§". */
+    term?: string;
+    columns?: 1 | 2;
+    tone?: 'paper' | 'navy';
+}
+
+const { items, term = 'Article', columns = 2, tone = 'paper' } = Astro.props;
+---
+
+<ol class:list={['articles', `columns-${columns}`, tone]}>
+    {
+        items.map((item, index) => (
+            <li class="article">
+                <hr class="rule" />
+                <p class="term">
+                    {term} <span class="n">{index + 1}</span>
+                </p>
+                <h3>{item.title}</h3>
+                <p class="text">{item.text}</p>
+            </li>
+        ))
+    }
+</ol>
+
+<style>
+    .articles {
+        display: grid;
+        gap: var(--space-10) var(--space-12);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    @media (min-width: 52rem) {
+        .columns-2 {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    .article .rule {
+        margin-bottom: var(--space-5);
+        background: var(--color-navy);
+    }
+
+    .term {
+        margin: 0 0 var(--space-3);
+        color: var(--color-brass-ink);
+        font-variant-caps: all-small-caps;
+        font-variant-numeric: lining-nums;
+        letter-spacing: 0.12em;
+    }
+
+    h3 {
+        margin-bottom: var(--space-3);
+    }
+
+    .text {
+        max-width: 34rem;
+        margin: 0;
+        color: var(--color-prose);
+    }
+
+    .navy .article .rule {
+        background: var(--color-brass);
+    }
+
+    .navy .term {
+        color: var(--color-brass-bright);
+    }
+
+    .navy h3 {
+        color: var(--color-on-navy);
+    }
+
+    .navy .text {
+        color: var(--color-on-navy-muted);
+    }
+</style>

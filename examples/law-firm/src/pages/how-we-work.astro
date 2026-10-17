@@ -1,0 +1,159 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import SectionHead from '../components/SectionHead.astro';
+import Articles from '../components/Articles.astro';
+import Plate from '../components/Plate.astro';
+import Faq from '../components/Faq.astro';
+import Closing from '../components/Closing.astro';
+import { faqPage } from '@core/lib/jsonld.js';
+
+const steps = [
+    { title: 'A first conversation', text: 'Thirty minutes with an attorney, by telephone or at Court Square, at no charge. We listen, ask questions and tell you plainly whether we can help.' },
+    { title: 'A conflict check', text: 'Before we hear the details, we check the names of everyone involved against our records, so we never act on both sides of a matter.' },
+    { title: 'An engagement letter', text: 'A short letter saying what we will do, what we will not, who will do it and what it will cost. We represent you once you have signed it.' },
+    { title: 'The work, in the open', text: 'Drafts arrive with a cover letter in plain language. You hear from us at every step that matters, and you can always reach the attorney doing the work.' },
+    { title: 'Closing the file', text: 'When the matter is done, a closing letter lists what was signed, where the originals are, and anything you should revisit and when.' },
+];
+
+const fees = [
+    { kind: 'Flat fee', when: 'Most planning and drafting', detail: 'A single price for a defined piece of work, quoted in writing. If the work takes longer than we expected, that is our problem, not yours.', examples: [['A will, powers of attorney and health care directive, for one person', '$1,450'], ['The same plan for a couple', '$2,100'], ['LLC formation with an operating agreement', '$1,800'], ['Review of a commercial lease up to five years', '$950']] },
+    { kind: 'Hourly', when: 'Negotiations, disputes, probate', detail: 'Billed in tenths of an hour, at a rate set out in the engagement letter, with a written estimate. We call before we pass the estimate, never after.', examples: [['Partner rate', '$290 an hour'], ['Paralegal rate', '$120 an hour']] },
+    { kind: 'Retainer', when: 'Employers who call often', detail: 'A modest fixed monthly fee for routine employment questions, so a quick call never waits on a budget. Larger projects are quoted separately.', examples: [['Up to 12 employees', '$350 a month'], ['13 to 50 employees', '$600 a month']] },
+];
+
+const questions = [
+    { question: 'Is the first consultation free?', answer: 'Yes. The first thirty-minute conversation costs nothing and commits you to nothing. If we need longer, we will say so and agree the fee before we continue.' },
+    { question: 'Do you ask for a deposit?', answer: 'For hourly matters, usually, held in a client trust account and drawn against our invoices. Flat-fee work is billed half at engagement and half on completion.' },
+    { question: 'What does a flat fee include?', answer: 'Everything in the engagement letter: meetings, drafts, revisions and the signing. Filing fees and recording costs charged by the state or county are passed on at cost, and listed in advance.' },
+    { question: 'Can we pay in installments?', answer: 'For larger estate plans and formations, yes. Ask at the first meeting and we will set out a schedule in the engagement letter.' },
+];
+---
+
+<Base
+    title="How we work & fees"
+    description="How Hale & Morrow works with clients, from the first free conversation to the closing letter, and how we charge: flat fees, hourly rates and retainers."
+    breadcrumbs={[{ name: 'How we work & fees', href: '/how-we-work/' }]}
+    jsonLd={[faqPage(questions)]}
+>
+    <PageHead
+        label="How we work & fees"
+        lines={['No surprises,', '*least of all*', '*on the invoice.*']}
+        lead="Five steps from the first call to the closing letter, and three ways of charging, each agreed in writing before the work begins."
+    >
+        <Plate photo="handsWriting" shape="landscape" sizes="(min-width: 70rem) 28vw, 100vw" priority />
+    </PageHead>
+
+    <section class="band">
+        <div class="container">
+            <SectionHead number="§ 1" label="The process" lines={['From first call', '*to closing letter.*']} />
+            <Articles items={steps} term="Step" />
+        </div>
+    </section>
+
+    <section class="band vellum">
+        <div class="container">
+            <SectionHead number="§ 2" label="Fees" lines={['Three ways', '*of charging.*']} intro="Example figures for this fictional firm. Every engagement letter sets out the fee for that matter; nothing is billed that it does not describe." />
+            <div class="fees">
+                {
+                    fees.map((fee) => (
+                        <article class="fee">
+                            <p class="when">{fee.when}</p>
+                            <h3>{fee.kind}</h3>
+                            <p class="detail">{fee.detail}</p>
+                            <dl>
+                                {fee.examples.map(([item, price]) => (
+                                    <div>
+                                        <dt>{item}</dt>
+                                        <dd>{price}</dd>
+                                    </div>
+                                ))}
+                            </dl>
+                        </article>
+                    ))
+                }
+            </div>
+        </div>
+    </section>
+
+    <section class="band">
+        <div class="container narrow">
+            <SectionHead number="§ 3" label="Questions about fees" lines={['Money,', '*plainly.*']} />
+            <Faq items={questions} />
+        </div>
+    </section>
+
+    <Closing />
+</Base>
+
+<style>
+    .band {
+        padding: var(--section) 0;
+    }
+
+    .vellum {
+        background: var(--color-vellum);
+    }
+
+    .narrow :global(.faq) {
+        max-width: 56rem;
+    }
+
+    .fees {
+        display: grid;
+        gap: var(--space-6);
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+    }
+
+    .fee {
+        display: flex;
+        flex-direction: column;
+        padding: var(--space-8);
+        border-top: 2px solid var(--color-navy);
+        background: var(--color-paper);
+    }
+
+    .when {
+        margin: 0 0 var(--space-2);
+        color: var(--color-brass-ink);
+        font-variant-caps: all-small-caps;
+        letter-spacing: 0.12em;
+    }
+
+    .fee h3 {
+        font-size: 2rem;
+    }
+
+    .detail {
+        color: var(--color-prose);
+    }
+
+    dl {
+        margin: auto 0 0;
+        border-top: 1px solid var(--color-rule);
+    }
+
+    dl div {
+        display: flex;
+        justify-content: space-between;
+        gap: var(--space-4);
+        padding: var(--space-3) 0;
+        border-bottom: 1px solid var(--color-rule);
+        font-family: var(--font-sans);
+        font-size: 0.875rem;
+        line-height: 1.45;
+    }
+
+    dt {
+        color: var(--color-prose);
+    }
+
+    dd {
+        flex: none;
+        margin: 0;
+        color: var(--color-navy);
+        font-variant-numeric: lining-nums tabular-nums;
+        font-weight: 500;
+        text-align: right;
+    }
+</style>

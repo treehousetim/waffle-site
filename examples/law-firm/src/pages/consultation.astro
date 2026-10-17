@@ -1,0 +1,152 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import ConsultationForm from '../components/ConsultationForm.astro';
+import Plate from '../components/Plate.astro';
+import { addressLine, site } from '../site';
+
+const next = [
+    { title: 'A conflict check', text: 'We check every name you give us against our records, before an attorney reads the rest.' },
+    { title: 'A reply within one working day', text: 'By telephone or email, as you prefer, to arrange a first conversation.' },
+    { title: 'Thirty minutes with an attorney', text: 'Free, by telephone or at Court Square. You leave knowing whether we can help, and what it will cost.' },
+];
+---
+
+<Base
+    title="Request a consultation"
+    description="Request a free thirty-minute consultation with an attorney at Hale & Morrow. Tell us the outline of your matter; we reply within one working day."
+    breadcrumbs={[{ name: 'Consultation', href: '/consultation/' }]}
+>
+    <PageHead
+        label="Consultation"
+        lines={['Request', '*a consultation.*']}
+        lead="Tell us the outline of your matter and who else is involved. We will check for conflicts, then reply within one working day to arrange a first conversation."
+    >
+        <Plate photo="signingContract" shape="landscape" sizes="(min-width: 70rem) 28vw, 100vw" priority />
+    </PageHead>
+
+    <div class="container layout">
+        <ConsultationForm thanks="/consultation/thanks/" />
+
+        <aside class="side">
+            <section class="panel">
+                <h2>What happens next</h2>
+                <ol class="next">
+                    {next.map((step) => (
+                        <li>
+                            <strong>{step.title}</strong>
+                            <span>{step.text}</span>
+                        </li>
+                    ))}
+                </ol>
+            </section>
+
+            <section class="panel">
+                <h2>The office</h2>
+                <address>
+                    {site.business.legalName}<br />
+                    {addressLine}<br />
+                    <a href={`tel:${site.business.phoneE164}`}>{site.business.phone}</a><br />
+                    <a href={`mailto:${site.business.email}`}>{site.business.email}</a>
+                </address>
+                <p class="note">Monday to Friday, 8:30 am to 5:30 pm. {site.business.appointments}</p>
+            </section>
+
+            <section class="panel urgent">
+                <h2>A deadline this week?</h2>
+                <p>Court dates, signing deadlines and notices with a response date do not wait for a form. Please call us instead.</p>
+            </section>
+        </aside>
+    </div>
+</Base>
+
+<style>
+    .layout {
+        display: grid;
+        gap: var(--space-16);
+        padding: var(--space-16) 0 var(--section);
+    }
+
+    @media (min-width: 64rem) {
+        .layout {
+            grid-template-columns: minmax(0, 1.55fr) minmax(17rem, 1fr);
+            align-items: start;
+        }
+
+        .side {
+            position: sticky;
+            top: calc(var(--header-height) + var(--space-8));
+        }
+    }
+
+    .side {
+        display: grid;
+        gap: var(--space-6);
+    }
+
+    .panel {
+        padding: var(--space-6) var(--space-6) var(--space-8);
+        border-top: 2px solid var(--color-navy);
+        background: var(--color-paper);
+    }
+
+    .panel h2 {
+        margin-bottom: var(--space-4);
+        font-size: 1.5rem;
+    }
+
+    .next {
+        display: grid;
+        gap: var(--space-5);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        counter-reset: next;
+    }
+
+    .next li {
+        display: grid;
+        grid-template-columns: 2rem 1fr;
+        column-gap: var(--space-3);
+        counter-increment: next;
+        line-height: 1.4;
+    }
+
+    .next li::before {
+        content: counter(next, lower-roman) '.';
+        grid-row: span 2;
+        color: var(--color-brass-ink);
+        font-style: italic;
+    }
+
+    .next strong {
+        color: var(--color-navy);
+        font-weight: 500;
+    }
+
+    .next span {
+        color: var(--color-muted);
+        font-size: 1.05rem;
+    }
+
+    address {
+        margin-bottom: var(--space-4);
+        color: var(--color-prose);
+        font-style: normal;
+        font-variant-numeric: lining-nums;
+        line-height: 1.6;
+    }
+
+    .note {
+        margin: 0;
+    }
+
+    .urgent {
+        border-top-color: var(--color-brass);
+    }
+
+    .urgent p {
+        margin: 0;
+        color: var(--color-prose);
+    }
+</style>

@@ -1,0 +1,121 @@
+---
+/**
+ * The top of an inner page, set like the first page of a brief: a numbered
+ * margin down the left (decorative, on wide screens), the section label in
+ * brass small capitals, the page's one <h1> (docs/seo.md, 5), and a lead.
+ * The default slot goes beside the heading on wide screens: facts, a
+ * monogram, a note.
+ */
+import Unmask from './Unmask.astro';
+
+interface Link {
+    label: string;
+    href: string;
+}
+
+interface Props {
+    label: string;
+    /** The heading, as the lines it should break into on a wide screen. */
+    lines: string[];
+    lead?: string;
+    primary?: Link;
+    secondary?: Link;
+    /** A large brass numeral set in the margin: "II". */
+    numeral?: string;
+    /** A class naming the heading for a view transition (motion.css). */
+    transition?: string;
+}
+
+const { label, lines, lead, primary, secondary, numeral, transition } = Astro.props;
+const aside = Astro.slots.has('default');
+---
+
+<section class:list={['page-head', { 'with-aside': aside }]}>
+    <div class="container inner">
+        <ol class="pleading" aria-hidden="true">
+            {Array.from({ length: 16 }, (_, index) => <li>{index + 1}</li>)}
+        </ol>
+        <div class="copy">
+            <p class="label">{numeral && <span class="num">{numeral}</span>}{label}</p>
+            <Unmask as="h1" lines={lines} class={transition} />
+            {lead && <p class="lead">{lead}</p>}
+            {
+                (primary || secondary) && (
+                    <p class="actions">
+                        {primary && <a class="button" href={primary.href}>{primary.label}</a>}
+                        {secondary && <a class="more" href={secondary.href}>{secondary.label}</a>}
+                    </p>
+                )
+            }
+        </div>
+        {aside && <div class="aside"><slot /></div>}
+    </div>
+    <div class="container"><hr class="rule head-rule" /></div>
+</section>
+
+<style>
+    .page-head {
+        padding: clamp(3rem, 1.5rem + 5vw, 6.5rem) 0 0;
+    }
+
+    .inner {
+        position: relative;
+        display: grid;
+        gap: var(--space-10) var(--space-16);
+        padding-bottom: clamp(3rem, 2rem + 3vw, 5rem);
+    }
+
+    .copy {
+        max-width: 50rem;
+    }
+
+    .lead {
+        max-width: 38rem;
+        margin: var(--space-6) 0 0;
+    }
+
+    .actions {
+        margin: var(--space-8) 0 0;
+    }
+
+    /* Pleading-paper line numbers in the margin, behind a double rule. */
+    .pleading {
+        display: none;
+    }
+
+    @media (min-width: 70rem) {
+        .inner {
+            padding-left: 5.5rem;
+        }
+
+        .pleading {
+            position: absolute;
+            top: 0.4rem;
+            bottom: clamp(3rem, 2rem + 3vw, 5rem);
+            left: 0;
+            display: grid;
+            grid-auto-rows: 1.9rem;
+            align-content: start;
+            width: 3.5rem;
+            margin: 0;
+            padding: 0 0.9rem 0 0;
+            overflow: hidden;
+            border-right: 3px double var(--color-brass);
+            color: var(--color-brass-ink);
+            font-family: var(--font-sans);
+            font-size: 0.6875rem;
+            font-variant-numeric: tabular-nums;
+            line-height: 1.9rem;
+            list-style: none;
+            text-align: right;
+            opacity: 0.85;
+            -webkit-mask-image: linear-gradient(#000 70%, transparent);
+            mask-image: linear-gradient(#000 70%, transparent);
+        }
+
+        .with-aside .inner {
+            grid-template-columns: minmax(0, 1.65fr) minmax(16rem, 1fr);
+            align-items: end;
+        }
+    }
+</style>

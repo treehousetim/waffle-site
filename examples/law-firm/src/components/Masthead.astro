@@ -1,0 +1,122 @@
+---
+/**
+ * The attorneys, listed as on a letterhead: each one's initials in the
+ * firm's ring, name in small capitals, role and focus, linked to their page.
+ * The roundel morphs into the attorney page's large one (motion.css).
+ */
+import Roundel from './Roundel.astro';
+import { attorneys, attorneyUrl, type Attorney } from '../data/attorneys';
+
+interface Props {
+    /** Only these, by slug; every attorney otherwise. */
+    only?: string[];
+    level?: 'h2' | 'h3';
+}
+
+const { only, level = 'h3' } = Astro.props;
+const list: Attorney[] = only === undefined ? attorneys : attorneys.filter((attorney) => only.includes(attorney.slug));
+const Heading = level;
+---
+
+<ul class:list={['masthead', { compact: list.length < 3 }]}>
+    {
+        list.map((attorney) => (
+            <li class="person">
+                <Roundel initials={attorney.initials} transition={`vt-attorney-${attorney.slug}`} />
+                <div class="who">
+                    <Heading class="name">
+                        <a href={attorneyUrl(attorney.slug)}>{attorney.name}</a>
+                    </Heading>
+                    <p class="role">{attorney.role} · since {attorney.joined}</p>
+                    <p class="focus">{attorney.focus}</p>
+                </div>
+            </li>
+        ))
+    }
+</ul>
+
+<style>
+    .masthead {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+        gap: 0;
+        margin: 0;
+        padding: 0;
+        border-top: 1px solid var(--color-navy);
+        list-style: none;
+    }
+
+    .person {
+        position: relative;
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        gap: var(--space-5);
+        align-items: start;
+        padding: var(--space-8) var(--space-5) var(--space-8) 0;
+        border-bottom: 1px solid var(--color-rule);
+        transition: background-color 0.4s ease;
+    }
+
+    @media (min-width: 60rem) {
+        .masthead:not(.compact) .person {
+            grid-template-columns: 1fr;
+            padding: var(--space-10) var(--space-6) var(--space-10) var(--space-6);
+            border-bottom: 0;
+        }
+
+        .masthead:not(.compact) .person + .person {
+            border-left: 1px solid var(--color-rule);
+        }
+    }
+
+    .person:hover {
+        background: var(--color-paper);
+    }
+
+    .person :global(.roundel) {
+        width: 4.5rem;
+        transition: color 0.4s ease, transform 0.6s var(--ease-out);
+    }
+
+    .person:hover :global(.roundel) {
+        color: var(--color-brass-ink);
+        transform: rotate(-8deg);
+    }
+
+    .name {
+        margin: 0 0 var(--space-2);
+        font-size: 1.55rem;
+        font-variant-caps: small-caps;
+        letter-spacing: 0.03em;
+    }
+
+    .name a {
+        color: var(--color-navy);
+        text-decoration: none;
+    }
+
+    /* The whole entry is the link's target. */
+    .name a::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+    }
+
+    .role {
+        margin: 0 0 var(--space-2);
+        color: var(--color-brass-ink);
+        font-family: var(--font-sans);
+        font-size: 0.75rem;
+        font-variant-numeric: lining-nums;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+    }
+
+    .focus {
+        margin: 0;
+        color: var(--color-muted);
+        font-size: 1.05rem;
+        font-style: italic;
+        line-height: 1.45;
+    }
+</style>

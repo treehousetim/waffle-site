@@ -1,0 +1,132 @@
+---
+/**
+ * The page every page is. A page passes its title and description (both
+ * required: astro check fails without them) and its content; the <head>,
+ * letterhead, footer and structured data are the same everywhere.
+ *
+ * docs/pages.md says how to add a page; docs/seo.md what is checked.
+ */
+import '../styles/global.css';
+import '../styles/motion.css';
+import { Font } from 'astro:assets';
+import Seo from '@core/components/Seo.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { site } from '../site';
+import { settings } from '@core/settings';
+import { breadcrumbList, graph, localBusiness, webPage, website } from '@core/lib/jsonld.js';
+import { canonicalUrl } from '@core/lib/seo.js';
+
+export interface Crumb {
+    name: string;
+    href: string;
+}
+
+interface Props {
+    /** The page's own title; the site name is added after it. Aim for under 50 characters. */
+    title: string;
+    /** One or two sentences for search results, 50-160 characters, unique to this page. */
+    description: string;
+    /** The link preview image (1200x630); the site default otherwise. */
+    image?: { src: string; alt: string };
+    type?: 'website' | 'article';
+    /** The trail to this page, home excluded, for breadcrumbs in results. */
+    breadcrumbs?: Crumb[];
+    /** More schema.org nodes for this page (an FAQ, a service, an article). */
+    jsonLd?: Record<string, unknown>[];
+    article?: { published: Date; updated?: Date; tags: readonly string[] };
+}
+
+const {
+    title,
+    description,
+    image = site.defaultImage,
+    type = 'website',
+    breadcrumbs = [],
+    jsonLd = [],
+    article,
+} = Astro.props;
+
+const url = canonicalUrl(Astro.url.pathname, settings.siteUrl);
+const nodes = [
+    localBusiness(site.business, site.areas, settings.siteUrl),
+    website(site, settings.siteUrl),
+    webPage({ url, title, description }, settings.siteUrl),
+    ...(breadcrumbs.length > 0
+        ? [
+              breadcrumbList([
+                  { name: 'Home', url: `${settings.siteUrl}/` },
+                  ...breadcrumbs.map((crumb) => ({ name: crumb.name, url: canonicalUrl(crumb.href, settings.siteUrl) })),
+              ]),
+          ]
+        : []),
+    ...jsonLd,
+];
+---
+
+<!doctype html>
+<html lang={site.lang}>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <Font cssVariable="--font-serif" preload />
+        <Font cssVariable="--font-sans" preload />
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <meta name="theme-color" content="#13213a" />
+        <link rel="sitemap" href="/sitemap-index.xml" />
+        <link rel="alternate" type="application/rss+xml" title={`${site.name} ${site.blog.title}`} href="/insights/rss.xml" />
+        <Seo
+            title={title}
+            description={description}
+            siteName={site.name}
+            locale={site.locale}
+            noindexPaths={site.noindex}
+            image={image}
+            type={type}
+            jsonLd={graph(nodes)}
+            article={article}
+        />
+    </head>
+    <body>
+        <a class="skip-link" href="#main">Skip to content</a>
+        {!settings.production && <div class="build-banner" role="note">Preview build: hidden from search engines.</div>}
+        <Header />
+        <main id="main">
+            <slot />
+        </main>
+        <Footer />
+    </body>
+</html>
+
+<style>
+    .skip-link {
+        position: absolute;
+        left: var(--space-4);
+        top: -4rem;
+        z-index: 40;
+        padding: var(--space-2) var(--space-4);
+        background: var(--color-navy);
+        color: var(--color-on-navy);
+        font-family: var(--font-sans);
+        font-size: 0.875rem;
+    }
+
+    .skip-link:focus {
+        top: var(--space-4);
+    }
+
+    .build-banner {
+        padding: 0.25rem var(--space-4);
+        background: var(--color-navy);
+        color: var(--color-brass-pale);
+        font-family: var(--font-sans);
+        font-size: 0.75rem;
+        letter-spacing: 0.08em;
+        text-align: center;
+    }
+
+    main {
+        display: block;
+        min-height: 60vh;
+    }
+</style>

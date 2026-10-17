@@ -1,0 +1,68 @@
+---
+/**
+ * A section's heading: its number and label in brass small capitals, the
+ * heading itself (raised line by line as it scrolls into view), an
+ * introduction, and an optional link to more.
+ */
+import Unmask from './Unmask.astro';
+
+interface Props {
+    /** "§ 2" or "II": the section's number. */
+    number?: string;
+    label: string;
+    lines: string[];
+    intro?: string;
+    more?: { label: string; href: string };
+    tone?: 'paper' | 'navy';
+    level?: 'h2' | 'h3';
+}
+
+const { number, label, lines, intro, more, tone = 'paper', level = 'h2' } = Astro.props;
+---
+
+<header class:list={['section-head', tone]}>
+    <p class="label">{number && <span class="num">{number}</span>}{label}</p>
+    <Unmask as={level} lines={lines} />
+    {intro && <p class="intro">{intro}</p>}
+    {more && <p class="more-line"><a class="more" href={more.href}>{more.label}</a></p>}
+</header>
+
+<style>
+    .section-head {
+        max-width: 46rem;
+        margin-bottom: clamp(2.5rem, 1.5rem + 3vw, 4.5rem);
+    }
+
+    .intro {
+        max-width: 36rem;
+        margin: var(--space-6) 0 0;
+        color: var(--color-prose);
+        font-size: 1.25rem;
+        line-height: 1.55;
+    }
+
+    .more-line {
+        margin: var(--space-6) 0 0;
+    }
+
+    .navy :global(h2),
+    .navy :global(h3) {
+        color: var(--color-on-navy);
+    }
+
+    .navy :global(em) {
+        color: var(--color-brass-bright);
+    }
+
+    .navy .label {
+        color: var(--color-brass-bright);
+    }
+
+    .navy .intro {
+        color: var(--color-on-navy-muted);
+    }
+
+    .navy .more {
+        color: var(--color-on-navy);
+    }
+</style>

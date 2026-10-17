@@ -1,0 +1,311 @@
+---
+/**
+ * One practice area's page, from its entry in src/data/practice.ts: the
+ * heading (which the table of contents' title glides into), the matters it
+ * covers as numbered clauses, a sticky note of fees and attorneys, its
+ * questions (with FAQPage markup), its Insights, and the closing band.
+ * The page file passes the slug and, in the default slot, its own prose.
+ */
+import { getCollection } from 'astro:content';
+import Base from './Base.astro';
+import PageHead from '../components/PageHead.astro';
+import Plate from '../components/Plate.astro';
+import SectionHead from '../components/SectionHead.astro';
+import Masthead from '../components/Masthead.astro';
+import Faq from '../components/Faq.astro';
+import Docket from '../components/Docket.astro';
+import Closing from '../components/Closing.astro';
+import { practiceBySlug, practices, practiceUrl } from '../data/practice';
+import { attorneyBySlug, attorneyUrl } from '../data/attorneys';
+import { site } from '../site';
+import { settings, buildTime } from '@core/settings';
+import { faqPage, service } from '@core/lib/jsonld.js';
+import { canonicalUrl } from '@core/lib/seo.js';
+import { postsTagged, tagSlug, visiblePosts } from '@core/lib/posts.js';
+
+interface Props {
+    slug: string;
+    title: string;
+    description: string;
+    /** The heading, as lines. */
+    lines: string[];
+}
+
+const { slug, title, description, lines } = Astro.props;
+const practice = practiceBySlug(slug);
+const url = canonicalUrl(practiceUrl(slug), settings.siteUrl);
+const posts = postsTagged(visiblePosts(await getCollection('blog'), { includeDrafts: false, now: buildTime }), tagSlug(practice.tag)).slice(0, 3);
+const others = practices.filter((item) => item.slug !== slug);
+const leads = practice.attorneys.map(attorneyBySlug);
+---
+
+<Base
+    title={title}
+    description={description}
+    breadcrumbs={[
+        { name: 'Practice', href: '/practice/' },
+        { name: practice.name, href: practiceUrl(slug) },
+    ]}
+    jsonLd={[service({ url, name: practice.name, description: practice.summary, areas: site.areas }, settings.siteUrl), faqPage(practice.faq)]}
+>
+    <PageHead label="Practice" numeral={practice.numeral} lines={lines} lead={practice.summary} transition={`vt-practice-${slug}`}>
+        <Plate photo={practice.photo} shape="landscape" sizes="(min-width: 70rem) 28vw, 100vw" priority />
+    </PageHead>
+
+    <div class="container body">
+        <div class="main">
+            <div class="intro prose-like">
+                <slot />
+            </div>
+
+            <h2 class="matters-heading">What the practice covers</h2>
+            <ol class="clauses">
+                {
+                    practice.matters.map((matter, index) => (
+                        <li>
+                            <span class="clause-n" aria-hidden="true">{practice.numeral}.{index + 1}</span>
+                            <div>
+                                <h3>{matter.title}</h3>
+                                <p>{matter.text}</p>
+                            </div>
+                        </li>
+                    ))
+                }
+            </ol>
+        </div>
+
+        <aside class="facts" aria-label="At a glance">
+            <p class="facts-label">At a glance</p>
+            <dl>
+                <div>
+                    <dt>Fees</dt>
+                    <dd>{practice.fees} <a href="/how-we-work/">How we charge</a></dd>
+                </div>
+                <div>
+                    <dt>Led by</dt>
+                    <dd>
+                        {leads.map((attorney, index) => (
+                            <>
+                                <a href={attorneyUrl(attorney.slug)}>{attorney.name}</a>{index < leads.length - 1 ? ', ' : ''}
+                            </>
+                        ))}
+                    </dd>
+                </div>
+                <div>
+                    <dt>Clients from</dt>
+                    <dd>{site.areas.join(', ')} and across {site.business.county}</dd>
+                </div>
+            </dl>
+            <a class="button" href={site.cta.href}>{site.cta.label}</a>
+            <p class="note">Or call <a href={`tel:${site.business.phoneE164}`}>{site.business.phone}</a>.</p>
+        </aside>
+    </div>
+
+    <section class="band">
+        <div class="container">
+            <SectionHead number="§" label="Who leads it" lines={['The attorneys', '*on this work.*']} />
+            <Masthead only={practice.attorneys} />
+        </div>
+    </section>
+
+    <section class="band">
+        <div class="container narrow">
+            <SectionHead number="§" label="Questions" lines={[`${practice.name}:`, '*what clients ask.*']} more={{ label: 'More questions', href: '/faq/' }} />
+            <Faq items={practice.faq} />
+        </div>
+    </section>
+
+    {
+        posts.length > 0 && (
+            <section class="band">
+                <div class="container">
+                    <SectionHead number="§" label="Insights" lines={['Further reading']} more={{ label: `Everything on ${practice.tag.toLowerCase()}`, href: `/insights/tags/${tagSlug(practice.tag)}/` }} />
+                    <Docket posts={posts} level="h3" />
+                </div>
+            </section>
+        )
+    }
+
+    <nav class="container others" aria-label="Other practice areas">
+        <p class="label">The other practices</p>
+        <ul>
+            {
+                others.map((item) => (
+                    <li>
+                        <a href={practiceUrl(item.slug)}>
+                            <span class="n">{item.numeral}</span>
+                            <span class:list={['t', `vt-practice-${item.slug}`]}>{item.name}</span>
+                        </a>
+                    </li>
+                ))
+            }
+        </ul>
+    </nav>
+
+    <Closing />
+</Base>
+
+<style>
+    .body {
+        display: grid;
+        gap: var(--space-16);
+        padding: var(--space-16) 0 var(--section);
+    }
+
+    @media (min-width: 64rem) {
+        .body {
+            grid-template-columns: minmax(0, 1.6fr) minmax(17rem, 1fr);
+            align-items: start;
+        }
+
+        .facts {
+            position: sticky;
+            top: calc(var(--header-height) + var(--space-8));
+        }
+    }
+
+    .intro {
+        max-width: 40rem;
+    }
+
+    .intro :global(p) {
+        color: var(--color-prose);
+    }
+
+    .intro :global(p:first-child::first-line) {
+        font-variant-caps: small-caps;
+        letter-spacing: 0.03em;
+    }
+
+    .matters-heading {
+        margin-top: var(--space-16);
+        font-size: clamp(1.75rem, 1.3rem + 1.5vw, 2.5rem);
+    }
+
+    .clauses {
+        margin: var(--space-8) 0 0;
+        padding: 0;
+        border-top: 1px solid var(--color-navy);
+        list-style: none;
+    }
+
+    .clauses li {
+        display: grid;
+        grid-template-columns: 3.5rem minmax(0, 1fr);
+        gap: var(--space-4);
+        padding: var(--space-6) 0;
+        border-bottom: 1px solid var(--color-rule);
+    }
+
+    .clause-n {
+        padding-top: 0.35rem;
+        color: var(--color-brass-ink);
+        font-family: var(--font-sans);
+        font-size: 0.8125rem;
+        font-variant-numeric: lining-nums tabular-nums;
+        letter-spacing: 0.06em;
+    }
+
+    .clauses h3 {
+        margin-bottom: var(--space-2);
+        font-size: 1.45rem;
+    }
+
+    .clauses p {
+        margin: 0;
+        color: var(--color-prose);
+    }
+
+    .facts {
+        padding: var(--space-8);
+        border-top: 2px solid var(--color-navy);
+        background: var(--color-paper);
+        box-shadow: inset 0 -1px 0 var(--color-rule);
+    }
+
+    .facts-label {
+        margin: 0 0 var(--space-4);
+        color: var(--color-brass-ink);
+        font-variant-caps: all-small-caps;
+        letter-spacing: 0.12em;
+    }
+
+    dl {
+        display: grid;
+        gap: var(--space-5);
+        margin: 0 0 var(--space-8);
+    }
+
+    dt {
+        margin-bottom: var(--space-1);
+        color: var(--color-navy);
+        font-family: var(--font-sans);
+        font-size: 0.6875rem;
+        font-weight: 500;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+    }
+
+    dd {
+        margin: 0;
+        color: var(--color-prose);
+        font-size: 1.05rem;
+        line-height: 1.5;
+    }
+
+    .facts .button {
+        width: 100%;
+        white-space: normal;
+        text-align: center;
+    }
+
+    .facts .note {
+        margin: var(--space-3) 0 0;
+        text-align: center;
+    }
+
+    .band {
+        padding: 0 0 var(--section);
+    }
+
+    .narrow :global(.faq) {
+        max-width: 56rem;
+    }
+
+    .others {
+        padding-bottom: var(--section);
+    }
+
+    .others ul {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+        margin: 0;
+        padding: 0;
+        border-top: 1px solid var(--color-navy);
+        list-style: none;
+    }
+
+    .others a {
+        display: flex;
+        gap: var(--space-4);
+        align-items: baseline;
+        height: 100%;
+        padding: var(--space-6) var(--space-4) var(--space-6) 0;
+        border-bottom: 1px solid var(--color-rule);
+        color: var(--color-navy);
+        font-size: 1.35rem;
+        line-height: 1.25;
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+
+    .others a:hover {
+        color: var(--color-brass-ink);
+    }
+
+    .others .n {
+        color: var(--color-brass-ink);
+        font-variant-caps: all-small-caps;
+        letter-spacing: 0.08em;
+    }
+</style>

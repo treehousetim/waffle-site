@@ -1,0 +1,32 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import { site } from '../site';
+---
+
+<Base
+    title="Privacy notice"
+    description="What Hale & Morrow collects through this website, why, how long it is kept, and how to ask us to correct or delete it. No tracking cookies, no analytics."
+    breadcrumbs={[{ name: 'Privacy', href: '/privacy/' }]}
+>
+    <PageHead label="Privacy" lines={['Privacy notice']} lead="Example text for a fictional firm. A real firm replaces it with its own notice, reviewed against the rules that apply to it." />
+
+    <div class="prose page">
+        <h2>What this website collects</h2>
+        <p>This website sets no tracking cookies and runs no third-party analytics, advertising or embedded content. When you send the consultation form, we receive what you typed into it: your name, contact details, the outline of your matter, the names of others involved, and how you heard of us.</p>
+        <h2>Why we collect it</h2>
+        <p>To check for conflicts of interest, and to reply to you. We do not sell it, share it for marketing or add you to a mailing list.</p>
+        <h2>Confidentiality before you are a client</h2>
+        <p>Until you have signed an engagement letter, what you send us is not protected as a confidential communication with your lawyer. We treat it carefully all the same, but please send only an outline until we have confirmed we can represent you.</p>
+        <h2>How long we keep it</h2>
+        <p>Consultation requests that do not become matters are kept for three years, so our conflict records stay accurate, then deleted. Client files are kept for as long as the rules of professional conduct require.</p>
+        <h2>Your choices</h2>
+        <p>Ask us to see, correct or delete anything we hold about you at <a href={`mailto:${site.business.email}`}>{site.business.email}</a>, or write to us at Court Square. We will answer within thirty days.</p>
+    </div>
+</Base>
+
+<style>
+    .page {
+        padding: var(--space-16) 0 var(--section);
+    }
+</style>

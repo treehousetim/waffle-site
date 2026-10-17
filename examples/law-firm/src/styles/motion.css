@@ -1,0 +1,452 @@
+/*
+ * Motion: precise and quiet, like turning the pages of a well-set brief.
+ * Nothing bounces; everything eases out and settles. All CSS: no script, so
+ * nothing here touches the content security policy, and a page that never
+ * loads this file still reads perfectly.
+ *
+ *   - Pages cross-fade with the browser's own view transitions; the
+ *     letterhead stays put, a practice area's title glides from the table
+ *     of contents into its page's heading, and an attorney's monogram from
+ *     the masthead into theirs.
+ *   - Headings unmask upward, line by line: on load for the page's <h1>, as
+ *     they scroll into view for the rest.
+ *   - Hairline rules draw across as their section enters.
+ *   - Figures count up from nought (a registered integer, @property).
+ *   - Practice rows and questions open with a measured slide.
+ *   - A slow brass shimmer passes over the monogram in the letterhead; the
+ *     great seal behind the closing band turns, very slowly.
+ *   - Plates drift a little inside their frames as the page scrolls; a
+ *     brass hairline tracks reading progress on an article.
+ *
+ * Every rule is inside prefers-reduced-motion: no-preference, and the
+ * scroll-driven ones inside @supports as well: where either is missing the
+ * page is simply still, with nothing hidden.
+ */
+
+@view-transition {
+    navigation: auto;
+}
+
+@property --n {
+    syntax: '<integer>';
+    inherits: true;
+    initial-value: 0;
+}
+
+@property --to {
+    syntax: '<integer>';
+    inherits: true;
+    initial-value: 0;
+}
+
+@property --reveal {
+    syntax: '<percentage>';
+    inherits: false;
+    initial-value: 100%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    /* ---- Between pages: an unhurried cross-fade. ---- */
+
+    ::view-transition-old(root) {
+        animation: 380ms var(--ease) both fade-out;
+    }
+
+    ::view-transition-new(root) {
+        animation: 560ms var(--ease) 80ms both fade-in;
+    }
+
+    ::view-transition-group(*) {
+        animation-duration: 640ms;
+        animation-timing-function: var(--ease-out);
+    }
+
+    .site-header {
+        view-transition-name: letterhead;
+    }
+
+    .vt-practice-business-formation-contracts { view-transition-name: practice-business-formation-contracts; }
+    .vt-practice-estate-planning-probate { view-transition-name: practice-estate-planning-probate; }
+    .vt-practice-employment-law { view-transition-name: practice-employment-law; }
+    .vt-practice-commercial-real-estate { view-transition-name: practice-commercial-real-estate; }
+
+    .vt-attorney-eleanor-hale { view-transition-name: attorney-eleanor-hale; }
+    .vt-attorney-daniel-morrow { view-transition-name: attorney-daniel-morrow; }
+    .vt-attorney-margaret-okafor { view-transition-name: attorney-margaret-okafor; }
+    .vt-attorney-samuel-whitcomb { view-transition-name: attorney-samuel-whitcomb; }
+
+    /* A practice title is a different size on each page: let it scale
+       rather than stretch. */
+    ::view-transition-old(*),
+    ::view-transition-new(*) {
+        height: 100%;
+        object-fit: contain;
+    }
+
+    /* ---- On load: the page's heading, line by line. ---- */
+
+    h1.unmask .line-inner {
+        animation: 1000ms var(--ease-out) both unmask;
+    }
+
+    h1.unmask .line:nth-child(2) .line-inner { animation-delay: 110ms; }
+    h1.unmask .line:nth-child(3) .line-inner { animation-delay: 220ms; }
+    h1.unmask .line:nth-child(4) .line-inner { animation-delay: 330ms; }
+    h1.unmask .line:nth-child(5) .line-inner { animation-delay: 440ms; }
+
+    :is(.page-head, .masthead-hero) .label {
+        animation: 900ms var(--ease-out) both settle;
+    }
+
+    :is(.page-head, .masthead-hero) :is(.lead, .actions, .aside, .hero-note) {
+        animation: 900ms var(--ease-out) 450ms both rise;
+    }
+
+    :is(.page-head, .masthead-hero) .actions {
+        animation-delay: 560ms;
+    }
+
+    /* The pleading margin's numbers appear top to bottom, like a page
+       being fed through. */
+    .pleading {
+        animation: 1600ms var(--ease) 200ms both feed;
+        -webkit-mask-image: linear-gradient(#000 var(--reveal), transparent calc(var(--reveal) + 30%));
+        mask-image: linear-gradient(#000 var(--reveal), transparent calc(var(--reveal) + 30%));
+    }
+
+    /* The hero's plate: a curtain rises off the photograph, the brass frame
+       slides into register behind it. */
+    .masthead-hero .plate .frame {
+        animation: 1400ms var(--ease-out) 250ms both curtain;
+    }
+
+    .masthead-hero .plate::before {
+        animation: 1200ms var(--ease-out) 900ms both register;
+    }
+
+    .masthead-hero .plate .frame img {
+        animation: 2400ms var(--ease-out) 250ms both develop;
+    }
+
+    /* The great monogram on the home page draws its rings. */
+    .seal-draw circle {
+        stroke-dasharray: 200;
+        animation: 2200ms var(--ease) 300ms both draw-ring;
+    }
+
+    .seal-draw circle + circle {
+        animation-delay: 600ms;
+    }
+
+    /* The letterhead's monogram: a slow brass shimmer, every few seconds. */
+    .logo .shine {
+        animation: shimmer 11s var(--ease) 2.5s infinite;
+    }
+
+    /* The seal behind the closing band turns, slowly enough to wonder
+       whether it does. */
+    .closing .seal svg {
+        animation: turn 180s linear infinite;
+    }
+
+    /* ---- Interaction. ---- */
+
+    .plate .frame img {
+        transition: transform 1.2s var(--ease-out), filter 0.8s ease;
+    }
+
+    a:hover .plate .frame img,
+    .plate:hover .frame img {
+        filter: saturate(1) contrast(1.04);
+    }
+}
+
+/* ---- Measured slides for <details>: practice rows, questions. ---- */
+@media (prefers-reduced-motion: no-preference) {
+    @supports (interpolate-size: allow-keywords) {
+        :root {
+            interpolate-size: allow-keywords;
+        }
+
+        :is(.contents, .faq) details::details-content {
+            block-size: 0;
+            overflow: clip;
+            transition: block-size 650ms var(--ease), content-visibility 650ms allow-discrete;
+        }
+
+        :is(.contents, .faq) details[open]::details-content {
+            block-size: auto;
+        }
+
+        :is(.contents .body, .faq .answer) {
+            opacity: 0;
+            transform: translateY(-0.6rem);
+            transition: opacity 500ms ease 120ms, transform 650ms var(--ease-out) 80ms;
+        }
+
+        :is(.contents, .faq) details[open] :is(.body, .answer) {
+            opacity: 1;
+            transform: none;
+        }
+    }
+}
+
+/* ---- As things scroll into view. ---- */
+@media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+        /* Hairlines draw across, left to right. */
+        :is(.rule, .rule-double:not(.letterhead-rule)) {
+            animation-name: draw;
+            animation-duration: auto;
+            animation-timing-function: linear;
+            animation-fill-mode: both;
+            animation-timeline: view();
+            animation-range: entry 0% cover 28%;
+        }
+
+        /* The lists whose top border is the rule: draw the border only, by
+           drawing a pseudo-element, so their content is not stretched. */
+        :is(.figures, .contents, .docket, .masthead, .faq) {
+            position: relative;
+            border-top-color: transparent !important;
+        }
+
+        :is(.figures, .contents, .docket, .masthead, .faq)::before {
+            content: '';
+            position: absolute;
+            inset: -1px 0 auto;
+            height: 1px;
+            background: var(--color-navy);
+            transform-origin: 0 50%;
+            animation-name: draw;
+            animation-duration: auto;
+            animation-timing-function: linear;
+            animation-fill-mode: both;
+            animation-timeline: view();
+            animation-range: entry 0% cover 25%;
+        }
+
+        .figures.navy::before {
+            background: var(--color-brass);
+        }
+
+        /* Section headings unmask line by line as they arrive. */
+        .unmask:not(h1) .line-inner {
+            animation-name: unmask;
+            animation-duration: auto;
+            animation-timing-function: linear;
+            animation-fill-mode: both;
+            animation-timeline: view();
+            animation-range: entry 15% cover 32%;
+        }
+
+        .unmask:not(h1) .line:nth-child(2) .line-inner { animation-range: entry 25% cover 38%; }
+        .unmask:not(h1) .line:nth-child(3) .line-inner { animation-range: entry 35% cover 44%; }
+
+        .section-head .label,
+        .section-head .intro,
+        .section-head .more-line,
+        .closing .text,
+        .closing .act {
+            animation-name: rise;
+            animation-duration: auto;
+            animation-timing-function: linear;
+            animation-fill-mode: both;
+            animation-timeline: view();
+            animation-range: entry 10% cover 30%;
+        }
+
+        /* Rows and entries rise a beat apart. */
+        :is(.contents .row, .docket .entry, .masthead .person, .articles .article, .faq details, .remark, .timeline li, .fee) {
+            animation-name: rise;
+            animation-duration: auto;
+            animation-timing-function: linear;
+            animation-fill-mode: both;
+            animation-timeline: view();
+            animation-range: entry 5% cover 25%;
+        }
+
+        :is(.masthead .person, .articles .article, .fee):nth-child(2n) {
+            animation-range: entry 12% cover 30%;
+        }
+
+        :is(.masthead .person):nth-child(4n + 3) {
+            animation-range: entry 18% cover 34%;
+        }
+
+        :is(.masthead .person):nth-child(4n + 4) {
+            animation-range: entry 24% cover 38%;
+        }
+
+        /* Plates: the photograph drifts inside its frame. */
+        .plate .frame img {
+            animation-name: drift;
+            animation-duration: auto;
+            animation-timing-function: linear;
+            animation-fill-mode: both;
+            animation-timeline: view();
+            animation-range: cover 0% cover 100%;
+        }
+
+        .masthead-hero .plate .frame img {
+            animation: 2400ms var(--ease-out) 250ms both develop;
+        }
+
+        .plate:not(.hero-plate)::before {
+            animation-name: register;
+            animation-duration: auto;
+            animation-timing-function: linear;
+            animation-fill-mode: both;
+            animation-timeline: view();
+            animation-range: entry 10% cover 35%;
+        }
+
+        /* The letterhead tightens once the page has moved. */
+        .site-header .bar {
+            animation-name: tighten;
+            animation-duration: auto;
+            animation-timing-function: linear;
+            animation-fill-mode: both;
+            animation-timeline: scroll(root);
+            animation-range: 0 140px;
+        }
+
+        .site-header .descriptor {
+            animation-name: fade-away;
+            animation-duration: auto;
+            animation-timing-function: linear;
+            animation-fill-mode: both;
+            animation-timeline: scroll(root);
+            animation-range: 0 90px;
+        }
+
+        /* Reading progress: a brass hairline under the letterhead. */
+        .reading-progress {
+            position: fixed;
+            inset: 0 0 auto;
+            z-index: 30;
+            height: 2px;
+            background: var(--color-brass);
+            transform-origin: 0 50%;
+            animation-name: grow;
+            animation-duration: auto;
+            animation-timing-function: linear;
+            animation-fill-mode: both;
+            animation-timeline: scroll(root);
+        }
+    }
+
+    /* Figures count up where the browser can read the target from the
+       markup (typed attr()) and animate an integer. Elsewhere the number is
+       simply there. */
+    @supports (animation-timeline: view()) and (width: attr(data-to type(<length>), 0px)) {
+        .count {
+            --to: attr(data-to type(<integer>), 0);
+            animation-name: count;
+            animation-duration: auto;
+            animation-timing-function: linear;
+            animation-fill-mode: both;
+            animation-timeline: view();
+            animation-range: entry 20% cover 45%;
+        }
+
+        .count .digits {
+            color: transparent;
+        }
+
+        .count::after {
+            content: counter(n) / '';
+            position: absolute;
+            inset: 0;
+            counter-reset: n var(--n);
+        }
+    }
+}
+
+@keyframes fade-out {
+    to { opacity: 0; }
+}
+
+@keyframes fade-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: none; }
+}
+
+@keyframes unmask {
+    from { transform: translateY(105%); }
+    to { transform: none; }
+}
+
+@keyframes rise {
+    from { opacity: 0; transform: translateY(1.25rem); }
+    to { opacity: 1; transform: none; }
+}
+
+@keyframes settle {
+    from { opacity: 0; letter-spacing: 0.3em; }
+    to { opacity: 1; }
+}
+
+@keyframes feed {
+    from { --reveal: -30%; }
+    to { --reveal: 70%; }
+}
+
+@keyframes curtain {
+    from { clip-path: inset(100% 0 0 0); }
+    to { clip-path: inset(0 0 0 0); }
+}
+
+@keyframes develop {
+    from { transform: scale(1.12); filter: saturate(0) contrast(1.1); }
+    to { transform: scale(1); }
+}
+
+@keyframes register {
+    from { opacity: 0; transform: translate(-0.85rem, -0.85rem); }
+    to { opacity: 1; transform: none; }
+}
+
+@keyframes draw-ring {
+    from { stroke-dashoffset: 200; }
+    to { stroke-dashoffset: 0; }
+}
+
+@keyframes shimmer {
+    0% { opacity: 1; background-position: 150% 0; }
+    18% { opacity: 1; background-position: -50% 0; }
+    19%,
+    100% { opacity: 0; background-position: -50% 0; }
+}
+
+@keyframes turn {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes draw {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+}
+
+@keyframes drift {
+    from { transform: translateY(-3%) scale(1.08); }
+    to { transform: translateY(3%) scale(1.08); }
+}
+
+@keyframes tighten {
+    to { min-height: 3.75rem; }
+}
+
+@keyframes fade-away {
+    to { opacity: 0; }
+}
+
+@keyframes grow {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+}
+
+@keyframes count {
+    from { --n: 0; }
+    to { --n: var(--to); }
+}

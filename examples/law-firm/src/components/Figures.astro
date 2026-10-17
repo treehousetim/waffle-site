@@ -1,0 +1,120 @@
+---
+/**
+ * A row of figures, set large in old-style numerals between hairlines. Each
+ * number counts up from nought as it scrolls into view (a registered
+ * custom property, @property, animated by motion.css; the target is read
+ * from data-to). The number itself is always in the page: the counting copy
+ * is drawn over it only where the browser can animate it.
+ */
+interface Props {
+    items: { value: number; suffix?: string; label: string }[];
+    tone?: 'paper' | 'navy';
+}
+
+const { items, tone = 'paper' } = Astro.props;
+---
+
+<dl class:list={['figures', tone]}>
+    {
+        items.map((item) => (
+            <div class="figure">
+                <dt class="label-text">{item.label}</dt>
+                <dd class="value">
+                    <span class="count" data-to={item.value}>
+                        <span class="digits">{item.value}</span>
+                    </span>
+                    {item.suffix && <span class="suffix">{item.suffix}</span>}
+                </dd>
+            </div>
+        ))
+    }
+</dl>
+
+<style>
+    .figures {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        margin: 0;
+        border-top: 1px solid var(--color-navy);
+    }
+
+    @media (min-width: 56rem) {
+        .figures {
+            grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+        }
+    }
+
+    .figure {
+        display: flex;
+        flex-direction: column-reverse;
+        justify-content: flex-end;
+        gap: var(--space-2);
+        padding: var(--space-8) var(--space-4) var(--space-8) 0;
+        border-bottom: 1px solid var(--color-rule);
+    }
+
+    .figure:nth-child(even) {
+        padding-left: var(--space-5);
+        border-left: 1px solid var(--color-rule);
+    }
+
+    @media (min-width: 56rem) {
+        .figure + .figure {
+            padding-left: var(--space-6);
+            border-left: 1px solid var(--color-rule);
+        }
+    }
+
+    .value {
+        display: flex;
+        align-items: baseline;
+        gap: 0.15em;
+        margin: 0;
+        color: var(--color-navy);
+        font-size: clamp(3rem, 2.2rem + 3.5vw, 5.75rem);
+        font-variant-numeric: oldstyle-nums tabular-nums;
+        font-weight: 400;
+        line-height: 0.95;
+    }
+
+    .count {
+        position: relative;
+        display: inline-block;
+    }
+
+    .suffix {
+        color: var(--color-brass-ink);
+        font-size: 0.55em;
+        font-style: italic;
+    }
+
+    .label-text {
+        max-width: 15rem;
+        color: var(--color-muted);
+        font-family: var(--font-sans);
+        font-size: 0.8125rem;
+        letter-spacing: 0.04em;
+        line-height: 1.5;
+    }
+
+    .navy {
+        border-top-color: var(--color-brass);
+        border-bottom-color: var(--color-navy-rule);
+    }
+
+    .navy .figure {
+        border-color: var(--color-navy-rule);
+    }
+
+    .navy .value {
+        color: var(--color-on-navy);
+    }
+
+    .navy .suffix {
+        color: var(--color-brass-bright);
+    }
+
+    .navy .label-text {
+        color: var(--color-on-navy-muted);
+    }
+</style>

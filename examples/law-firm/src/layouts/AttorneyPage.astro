@@ -1,0 +1,266 @@
+---
+/**
+ * One attorney's page, from their entry in src/data/attorneys.ts: the large
+ * monogram (which the masthead's small one morphs into), their biography,
+ * a quote in their own words, and a sidebar of practices, admissions and
+ * education, each admission plainly marked as fiction on this example.
+ */
+import Base from './Base.astro';
+import PageHead from '../components/PageHead.astro';
+import Roundel from '../components/Roundel.astro';
+import Remark from '../components/Remark.astro';
+import Masthead from '../components/Masthead.astro';
+import SectionHead from '../components/SectionHead.astro';
+import Closing from '../components/Closing.astro';
+import { attorneyBySlug, attorneys, attorneyUrl } from '../data/attorneys';
+import { practiceBySlug, practiceUrl } from '../data/practice';
+import { site } from '../site';
+import { settings } from '@core/settings';
+import { canonicalUrl } from '@core/lib/seo.js';
+
+interface Props {
+    slug: string;
+    title: string;
+    description: string;
+}
+
+const { slug, title, description } = Astro.props;
+const attorney = attorneyBySlug(slug);
+const url = canonicalUrl(attorneyUrl(slug), settings.siteUrl);
+const areas = attorney.practices.map(practiceBySlug);
+const colleagues = attorneys.filter((other) => other.slug !== slug).map((other) => other.slug);
+
+const person = {
+    '@type': 'Person',
+    '@id': `${url}#person`,
+    name: attorney.name,
+    jobTitle: attorney.role,
+    url,
+    email: attorney.email,
+    worksFor: { '@id': `${settings.siteUrl}/#organization` },
+    knowsAbout: areas.map((area) => area.name),
+};
+---
+
+<Base
+    title={title}
+    description={description}
+    breadcrumbs={[
+        { name: 'Attorneys', href: '/attorneys/' },
+        { name: attorney.name, href: attorneyUrl(slug) },
+    ]}
+    jsonLd={[person]}
+>
+    <PageHead label={`${attorney.role} · since ${attorney.joined}`} lines={[attorney.name]} lead={attorney.focus}>
+        <div class="seal">
+            <Roundel initials={attorney.initials} size="large" transition={`vt-attorney-${slug}`} />
+        </div>
+    </PageHead>
+
+    <div class="container body">
+        <div class="bio">
+            {attorney.bio.map((paragraph) => <p>{paragraph}</p>)}
+            <div class="quote">
+                <Remark text={attorney.quote} who={attorney.name} context={attorney.role} />
+            </div>
+            <h2>Outside the office</h2>
+            <ul class="community">
+                {attorney.community.map((item) => <li>{item}</li>)}
+            </ul>
+        </div>
+
+        <aside class="record" aria-label={`${attorney.name}: practice and credentials`}>
+            <section>
+                <h2>Practice</h2>
+                <ul>
+                    {areas.map((area) => (
+                        <li>
+                            <span class="n">{area.numeral}</span>
+                            <a href={practiceUrl(area.slug)}>{area.name}</a>
+                        </li>
+                    ))}
+                </ul>
+            </section>
+            <section>
+                <h2>Bar admissions <span class="fiction">Fictional</span></h2>
+                <ul>
+                    {attorney.admissions.map((admission) => (
+                        <li>
+                            <span class="n">{admission.year}</span>
+                            <span>{admission.court}</span>
+                        </li>
+                    ))}
+                </ul>
+                <p class="note">Invented for this example site. A real attorney’s admissions can be checked in the state bar’s public directory.</p>
+            </section>
+            <section>
+                <h2>Education <span class="fiction">Fictional</span></h2>
+                <ul class="plain">
+                    {attorney.education.map((item) => <li>{item}</li>)}
+                </ul>
+            </section>
+            <section>
+                <h2>Contact</h2>
+                <p class="contact">
+                    <a href={`mailto:${attorney.email}`}>{attorney.email}</a><br />
+                    <a href={`tel:${site.business.phoneE164}`}>{site.business.phone}</a>
+                </p>
+                <a class="button" href={site.cta.href}>{site.cta.label}</a>
+            </section>
+        </aside>
+    </div>
+
+    <section class="band">
+        <div class="container">
+            <SectionHead number="§" label="Colleagues" lines={['The rest', '*of the firm.*']} />
+            <Masthead only={colleagues} />
+        </div>
+    </section>
+
+    <Closing />
+</Base>
+
+<style>
+    .seal {
+        display: flex;
+        justify-content: flex-start;
+    }
+
+    @media (min-width: 70rem) {
+        .seal {
+            justify-content: flex-end;
+        }
+    }
+
+    .body {
+        display: grid;
+        gap: var(--space-16);
+        padding: var(--space-16) 0 var(--section);
+    }
+
+    @media (min-width: 64rem) {
+        .body {
+            grid-template-columns: minmax(0, 1.55fr) minmax(18rem, 1fr);
+            align-items: start;
+        }
+
+        .record {
+            position: sticky;
+            top: calc(var(--header-height) + var(--space-8));
+        }
+    }
+
+    .bio {
+        max-width: 40rem;
+    }
+
+    .bio p {
+        color: var(--color-prose);
+    }
+
+    .bio > p:first-child::first-letter {
+        float: left;
+        margin: 0.08em 0.1em 0 0;
+        color: var(--color-brass-ink);
+        font-size: 4.1em;
+        line-height: 0.8;
+    }
+
+    .quote {
+        margin: var(--space-12) 0;
+        padding: var(--space-10) 0;
+        border-top: 1px solid var(--color-rule);
+        border-bottom: 1px solid var(--color-rule);
+    }
+
+    .bio h2 {
+        font-size: 1.75rem;
+    }
+
+    .community {
+        margin: 0;
+        padding-left: 1.2em;
+        color: var(--color-prose);
+    }
+
+    .community li::marker {
+        color: var(--color-brass-ink);
+    }
+
+    .record {
+        display: grid;
+        gap: var(--space-8);
+        padding: var(--space-8);
+        border-top: 2px solid var(--color-navy);
+        background: var(--color-paper);
+    }
+
+    .record h2 {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-3);
+        margin: 0 0 var(--space-3);
+        padding-bottom: var(--space-2);
+        border-bottom: 1px solid var(--color-rule);
+        color: var(--color-brass-ink);
+        font-size: 1.1rem;
+        font-variant-caps: all-small-caps;
+        letter-spacing: 0.12em;
+    }
+
+    .fiction {
+        padding: 0.1rem 0.5rem;
+        border: 1px solid var(--color-error);
+        color: var(--color-error);
+        font-family: var(--font-sans);
+        font-size: 0.625rem;
+        font-variant-caps: normal;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+    }
+
+    .record ul {
+        display: grid;
+        gap: var(--space-2);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .record li {
+        display: grid;
+        grid-template-columns: 3.25rem minmax(0, 1fr);
+        gap: var(--space-2);
+        color: var(--color-prose);
+        font-size: 1.05rem;
+        line-height: 1.4;
+    }
+
+    .record .plain li {
+        display: block;
+    }
+
+    .record .n {
+        color: var(--color-brass-ink);
+        font-variant-numeric: lining-nums;
+    }
+
+    .record .note {
+        margin: var(--space-3) 0 0;
+        font-size: 0.8125rem;
+    }
+
+    .contact {
+        margin: 0 0 var(--space-5);
+        font-variant-numeric: lining-nums;
+    }
+
+    .record .button {
+        width: 100%;
+    }
+
+    .band {
+        padding: 0 0 var(--section);
+    }
+</style>

@@ -1,0 +1,9 @@
+{
+  "name": "law-firm",
+  "label": "Boutique law firm",
+  "description": "A four-attorney firm for small businesses and families in a county seat: four practice areas, an attorney page each, fees explained, plain-language Insights with a not-legal-advice note, and a consultation request with a conflict check.",
+  "kind": "Professional",
+  "schemaType": "LegalService",
+  "look": "Ivory paper, deep navy and brass; EB Garamond with small capitals and IBM Plex Sans; hairline rules, a monogram and numbered sections, like a well-set legal brief",
+  "waffleEndpoints": ["POST /api/site/forms/consultation"]
+}

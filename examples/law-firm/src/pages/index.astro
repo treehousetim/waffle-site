@@ -1,0 +1,292 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import Unmask from '../components/Unmask.astro';
+import Plate from '../components/Plate.astro';
+import Figures from '../components/Figures.astro';
+import SectionHead from '../components/SectionHead.astro';
+import Contents from '../components/Contents.astro';
+import Articles from '../components/Articles.astro';
+import Masthead from '../components/Masthead.astro';
+import Remark from '../components/Remark.astro';
+import Docket from '../components/Docket.astro';
+import Closing from '../components/Closing.astro';
+import { site } from '../site';
+import { attorneys } from '../data/attorneys';
+import { remarks } from '../data/remarks';
+import { buildTime } from '@core/settings';
+import { visiblePosts } from '@core/lib/posts.js';
+
+// Published posts only, even in development: the home page shows no drafts.
+const latest = visiblePosts(await getCollection('blog'), { includeDrafts: false, now: buildTime }).slice(0, 3);
+const years = buildTime.getUTCFullYear() - site.business.founded;
+const [first, ...others] = remarks;
+
+const commitments = [
+    { title: 'You will know the fee first', text: 'Most of our work is done for a flat fee, quoted in writing before we begin. Where it has to be hourly, you get an estimate and a call before we pass it.' },
+    { title: 'You will hear from your attorney', text: 'The attorney you meet is the attorney who does the work and returns your calls, within one working day.' },
+    { title: 'You will understand the documents', text: 'Every document comes with a plain-language letter saying what it does, and what you need to do next.' },
+    { title: 'We will tell you when you do not need us', text: 'If a matter is simple enough to do yourself, or better suited to another firm, we say so at the first meeting.' },
+];
+---
+
+<Base title={`${site.name}: attorneys for businesses and families`} description={site.description}>
+    <section class="masthead-hero">
+        <div class="container inner">
+            <ol class="pleading" aria-hidden="true">
+                {Array.from({ length: 22 }, (_, index) => <li>{index + 1}</li>)}
+            </ol>
+            <div class="copy">
+                <p class="label"><span class="num">Est. {site.business.founded}</span>Attorneys at law · Court Square, {site.business.address.city}</p>
+                <Unmask as="h1" lines={['*Careful counsel*', 'for the businesses', 'and families of', `${site.business.county}.`]} />
+                <p class="lead">
+                    Four attorneys, one office on Court Square, and four practices: forming and running a business, planning and settling an estate, employing people, and the property a business stands on.
+                </p>
+                <p class="actions">
+                    <a class="button" href={site.cta.href}>{site.cta.label}</a>
+                    <a class="more" href="/practice/">The practice</a>
+                </p>
+                <p class="hero-note note">
+                    {site.business.phone} · Monday to Friday, 8:30 am to 5:30 pm · {site.business.appointments}
+                </p>
+            </div>
+            <Plate
+                photo="colonnadeShadows"
+                number="Plate I"
+                caption="Stone, shadow and patience."
+                priority
+                class="hero-plate"
+                sizes="(min-width: 64rem) 34vw, 100vw"
+            />
+        </div>
+    </section>
+
+    <section class="band figures-band" aria-label="The firm in figures">
+        <div class="container">
+            <Figures
+                items={[
+                    { value: years, label: `Years on Court Square, since ${site.business.founded}` },
+                    { value: attorneys.length, label: 'Attorneys, every one of whom you can call by name' },
+                    { value: 640, suffix: '+', label: 'Businesses formed and estates planned (an example figure)' },
+                    { value: 24, label: 'Hours, at most, to return your call on a working day' },
+                ]}
+            />
+        </div>
+    </section>
+
+    <section class="band">
+        <div class="container">
+            <SectionHead
+                number="§ I"
+                label="The practice"
+                lines={['Four practices,', '*one table of contents.*']}
+                intro="Open a row to see what it covers. Every practice has its own page, its own questions answered, and an attorney who leads it."
+                more={{ label: 'All practice areas', href: '/practice/' }}
+            />
+            <Contents openFirst />
+        </div>
+    </section>
+
+    <section class="band vellum">
+        <div class="container split">
+            <Plate photo="libraryLadder" number="Plate II" caption="The library is older than the firm." sizes="(min-width: 64rem) 30vw, 100vw" />
+            <div>
+                <SectionHead number="§ II" label="How we practice" lines={['Four commitments,', '*in writing.*']} more={{ label: 'How we work & fees', href: '/how-we-work/' }} />
+                <Articles items={commitments} columns={1} />
+            </div>
+        </div>
+    </section>
+
+    <section class="band">
+        <div class="container">
+            <SectionHead
+                number="§ III"
+                label="The attorneys"
+                lines={['A small firm,', '*on purpose.*']}
+                intro="Four attorneys who know each other’s clients, cover each other’s calls and meet every Monday to talk through the week’s work."
+                more={{ label: 'Meet the attorneys', href: '/attorneys/' }}
+            />
+            <Masthead />
+        </div>
+    </section>
+
+    <section class="band remarks-band">
+        <div class="container remarks">
+            {first && <Remark text={first.text} who={first.who} context={first.context} />}
+            <div class="others">
+                {others.map((remark) => <Remark text={remark.text} who={remark.who} context={remark.context} />)}
+            </div>
+            <p class="note disclaimer">Fictional remarks, written for this example site. A real firm quotes real clients only with their permission, under its state’s rules on testimonials. Every matter is different; no remark is a promise about yours.</p>
+        </div>
+    </section>
+
+    <section class="band">
+        <div class="container">
+            <SectionHead
+                number="§ IV"
+                label="Insights"
+                lines={['The law, explained', '*in plain language.*']}
+                intro="Short explainers on the questions clients ask us most. General information, not legal advice."
+                more={{ label: 'All Insights', href: '/insights/' }}
+            />
+            <Docket posts={latest} level="h3" />
+        </div>
+    </section>
+
+    <Closing />
+</Base>
+
+<style>
+    .masthead-hero {
+        padding: clamp(2.5rem, 1rem + 5vw, 6rem) 0 var(--section);
+    }
+
+    .masthead-hero .inner {
+        position: relative;
+        display: grid;
+        gap: var(--space-12) var(--space-16);
+        align-items: center;
+    }
+
+    .masthead-hero :global(h1) {
+        margin-top: var(--space-2);
+        font-size: clamp(3rem, 1.6rem + 4.4vw, 5.6rem);
+        line-height: 0.98;
+        letter-spacing: -0.02em;
+    }
+
+    .masthead-hero .lead {
+        max-width: 34rem;
+        margin: var(--space-8) 0 0;
+    }
+
+    .masthead-hero .actions {
+        margin: var(--space-8) 0 0;
+    }
+
+    .hero-note {
+        margin: var(--space-8) 0 0;
+        padding-top: var(--space-4);
+        max-width: 34rem;
+        border-top: 1px solid var(--color-rule);
+        font-variant-numeric: lining-nums;
+    }
+
+    .pleading {
+        display: none;
+    }
+
+    @media (min-width: 64rem) {
+        .masthead-hero .inner {
+            grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr);
+            align-items: end;
+        }
+    }
+
+    @media (min-width: 76rem) {
+        .masthead-hero .inner {
+            padding-left: 5.5rem;
+        }
+
+        .pleading {
+            position: absolute;
+            top: 0.3rem;
+            bottom: 0;
+            left: 0;
+            display: grid;
+            grid-auto-rows: 1.9rem;
+            align-content: start;
+            width: 3.5rem;
+            margin: 0;
+            padding: 0 0.9rem 0 0;
+            overflow: hidden;
+            border-right: 3px double var(--color-brass);
+            color: var(--color-brass-ink);
+            font-family: var(--font-sans);
+            font-size: 0.6875rem;
+            font-variant-numeric: tabular-nums;
+            line-height: 1.9rem;
+            list-style: none;
+            text-align: right;
+            opacity: 0.85;
+            -webkit-mask-image: linear-gradient(#000 70%, transparent);
+            mask-image: linear-gradient(#000 70%, transparent);
+        }
+    }
+
+    @media (max-width: 63.99rem) {
+        .masthead-hero :global(.hero-plate) {
+            max-width: 26rem;
+            margin-right: 0.85rem;
+        }
+    }
+
+    .band {
+        padding: var(--section) 0;
+    }
+
+    .figures-band {
+        padding-top: 0;
+    }
+
+    .band:not(.vellum, .remarks-band) + .band:not(.vellum, .remarks-band) {
+        padding-top: 0;
+    }
+
+    .vellum {
+        background: var(--color-vellum);
+    }
+
+    .split {
+        display: grid;
+        gap: var(--space-16);
+    }
+
+    @media (min-width: 64rem) {
+        .split {
+            grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+            align-items: start;
+        }
+
+        .split :global(.plate) {
+            position: sticky;
+            top: calc(var(--header-height) + var(--space-8));
+        }
+    }
+
+    .remarks-band {
+        border-top: 1px solid var(--color-rule);
+        border-bottom: 1px solid var(--color-rule);
+        background: var(--color-paper);
+    }
+
+    .remarks {
+        display: grid;
+        gap: var(--space-16);
+    }
+
+    .others {
+        display: grid;
+        gap: var(--space-12);
+    }
+
+    @media (min-width: 56rem) {
+        .remarks > :global(.remark) :global(p) {
+            font-size: clamp(2rem, 1.2rem + 2.2vw, 3.1rem);
+        }
+
+        .others {
+            grid-template-columns: 1fr 1fr;
+            padding-left: 12%;
+        }
+
+        .others :global(.remark p) {
+            font-size: 1.5rem;
+        }
+    }
+
+    .disclaimer {
+        max-width: 40rem;
+        margin: 0;
+    }
+</style>

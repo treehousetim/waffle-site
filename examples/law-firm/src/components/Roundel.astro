@@ -1,0 +1,77 @@
+---
+/**
+ * An attorney's initials in the firm's double ring: the stand-in for a
+ * portrait (the example deliberately shows no stock faces). `transition`
+ * names it so it morphs into the attorney's page and back (motion.css).
+ */
+interface Props {
+    initials: string;
+    size?: 'small' | 'large';
+    transition?: string;
+}
+
+const { initials, size = 'small', transition } = Astro.props;
+---
+
+<span class:list={['roundel', size, transition]} aria-hidden="true">
+    <svg viewBox="0 0 100 100" focusable="false">
+        <circle class="outer" cx="50" cy="50" r="48" />
+        <circle class="inner" cx="50" cy="50" r="43" />
+        <path class="tick" d="M50 8.5l1.6 2.6-1.6 2.6-1.6-2.6zM50 86.3l1.6 2.6-1.6 2.6-1.6-2.6z" />
+    </svg>
+    <span class="initials">{initials}</span>
+</span>
+
+<style>
+    .roundel {
+        position: relative;
+        display: inline-grid;
+        place-items: center;
+        flex: none;
+        width: 5.5rem;
+        aspect-ratio: 1;
+        color: var(--color-navy);
+    }
+
+    .large {
+        width: clamp(9rem, 6rem + 10vw, 14rem);
+    }
+
+    svg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        overflow: visible;
+    }
+
+    circle {
+        fill: none;
+        stroke: currentColor;
+    }
+
+    .outer {
+        stroke-width: 1.6;
+    }
+
+    .inner {
+        stroke-width: 0.6;
+    }
+
+    .tick {
+        fill: var(--color-brass);
+    }
+
+    .initials {
+        position: relative;
+        font-family: var(--font-serif);
+        font-size: 1.75rem;
+        font-weight: 450;
+        letter-spacing: 0.04em;
+        line-height: 1;
+    }
+
+    .large .initials {
+        font-size: clamp(3rem, 2rem + 3vw, 4.5rem);
+    }
+</style>

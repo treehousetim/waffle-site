@@ -1,0 +1,66 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import SectionHead from '../components/SectionHead.astro';
+import Faq from '../components/Faq.astro';
+import Closing from '../components/Closing.astro';
+import { faqPage } from '@core/lib/jsonld.js';
+
+const working = [
+    { question: 'How do I become a client?', answer: 'Request a consultation by the form or by telephone. After a conflict check and a first conversation, we send an engagement letter; you are our client once you have signed it.' },
+    { question: 'Does sending the consultation form make you my lawyer?', answer: 'No. Submitting the form, emailing or calling the firm does not create an attorney-client relationship, and what you send before we are engaged is not protected as a confidential communication with your lawyer. Send only an outline until we confirm we can act for you.' },
+    { question: 'Why do you need the names of the other people involved?', answer: 'To check for conflicts of interest. A firm cannot act against a current or former client in a related matter, so we check every name before we hear the details of anyone’s problem.' },
+    { question: 'Will I always deal with the same attorney?', answer: 'Yes. One attorney is responsible for your matter from start to finish, and the others know it well enough to help if they are away.' },
+];
+
+const practical = [
+    { question: 'Where are you, and is there parking?', answer: 'On the second floor of 9 Court Square, across from the county courthouse. There is free two-hour parking around the square and a lift from the side entrance on Mill Street.' },
+    { question: 'Can we meet outside office hours?', answer: 'Yes. Evening and Saturday morning meetings are available by appointment, and we can come to you if traveling is difficult.' },
+    { question: 'Do you work with clients outside Ostrey County?', answer: 'Often, as long as the matter is governed by the law of our state. Much of our work can be done by telephone and video, with a single visit to sign.' },
+    { question: 'Are your Insights articles legal advice?', answer: 'No. They are general information, written to help you ask better questions. The law changes and every situation is different; please do not act on an article without talking to a lawyer about your own matter.' },
+];
+---
+
+<Base
+    title="Questions, answered"
+    description="Answers to the questions people ask Hale & Morrow most: becoming a client, conflict checks, confidentiality, meetings and finding the office."
+    breadcrumbs={[{ name: 'Questions', href: '/faq/' }]}
+    jsonLd={[faqPage([...working, ...practical])]}
+>
+    <PageHead label="Questions" lines={['Questions,', '*answered plainly.*']} lead="If yours is not here, ask it on the consultation form or call; an attorney or our office manager will answer." />
+
+    <section class="band">
+        <div class="container narrow">
+            <SectionHead number="§ 1" label="Working with the firm" lines={['Becoming a client']} />
+            <Faq items={working} />
+        </div>
+    </section>
+
+    <section class="band">
+        <div class="container narrow">
+            <SectionHead number="§ 2" label="Practical matters" lines={['Visiting, meeting', '*and reading.*']} />
+            <Faq items={practical} />
+            <p class="note more-q">Questions about a particular practice are answered on its page, and questions about money on <a href="/how-we-work/">How we work & fees</a>.</p>
+        </div>
+    </section>
+
+    <Closing />
+</Base>
+
+<style>
+    .band {
+        padding: var(--space-16) 0 var(--section);
+    }
+
+    .band + .band {
+        padding-top: 0;
+    }
+
+    .narrow :global(.faq) {
+        max-width: 56rem;
+    }
+
+    .more-q {
+        margin: var(--space-8) 0 0;
+    }
+</style>

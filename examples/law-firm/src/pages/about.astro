@@ -1,0 +1,186 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import SectionHead from '../components/SectionHead.astro';
+import Plate from '../components/Plate.astro';
+import Figures from '../components/Figures.astro';
+import Articles from '../components/Articles.astro';
+import Closing from '../components/Closing.astro';
+import Monogram from '../icons/monogram.svg';
+import { site } from '../site';
+import { buildTime } from '@core/settings';
+
+const history = [
+    { year: 1998, text: 'Eleanor Hale and Daniel Morrow open the firm in two rooms above the Court Square pharmacy, with one shared secretary and a borrowed library.' },
+    { year: 2004, text: 'The firm takes the whole second floor of 9 Court Square, and the pharmacy’s old dispensary becomes the conference room.' },
+    { year: 2009, text: 'Margaret Okafor joins and starts the employment practice, for the county’s growing number of small employers.' },
+    { year: 2014, text: 'Samuel Whitcomb joins to lead commercial real estate. The firm begins publishing plain-language explainers for clients.' },
+    { year: 2021, text: 'Samuel Whitcomb becomes a partner. The four partners agree to keep the firm at four attorneys.' },
+];
+
+const beliefs = [
+    { title: 'Small, by choice', text: 'Four attorneys can know every file in the office. We have turned down growth more than once to keep it that way.' },
+    { title: 'Plain language', text: 'If a client cannot explain their own documents back to us, we have not finished writing them.' },
+    { title: 'Prices before work', text: 'A client who knows the fee can decide whether the work is worth it. That decision is theirs, not ours.' },
+    { title: 'Of the county', text: 'We live here. Our clients are our neighbors, and we expect to see them at the hardware store.' },
+];
+---
+
+<Base
+    title="About the firm"
+    description="Hale & Morrow has practiced on Court Square in Harrowmere since 1998: a small firm by choice, writing in plain language and quoting its fees before it works."
+    breadcrumbs={[{ name: 'About', href: '/about/' }]}
+>
+    <PageHead
+        label={`About · since ${site.business.founded}`}
+        lines={['A small firm', '*on Court Square.*']}
+        lead={`Since ${site.business.founded}, two rooms became a floor, two attorneys became four, and the promise stayed the same: careful work, in plain language, at a price agreed first.`}
+    >
+        <div class="seal seal-draw" aria-hidden="true"><Monogram focusable="false" /></div>
+    </PageHead>
+
+    <section class="band">
+        <div class="container split">
+            <div>
+                <SectionHead number="§ 1" label="History" lines={['Two rooms,', '*then a floor.*']} />
+                <ol class="timeline">
+                    {history.map((entry) => (
+                        <li>
+                            <span class="year">{entry.year}</span>
+                            <p>{entry.text}</p>
+                        </li>
+                    ))}
+                </ol>
+            </div>
+            <Plate photo="courthouseClockTower" number="Plate III" caption="A county courthouse: our stand-in for the view across Court Square." sizes="(min-width: 64rem) 34vw, 100vw" />
+        </div>
+    </section>
+
+    <section class="band navy">
+        <div class="container">
+            <SectionHead number="§ 2" label="What we believe" lines={['Four convictions,', '*held for decades.*']} tone="navy" />
+            <Articles items={beliefs} term="Conviction" tone="navy" />
+        </div>
+    </section>
+
+    <section class="band">
+        <div class="container">
+            <SectionHead number="§ 3" label="In figures" lines={['The firm,', '*counted.*']} />
+            <Figures
+                items={[
+                    { value: buildTime.getUTCFullYear() - site.business.founded, label: 'Years in practice' },
+                    { value: 4, label: 'Partners, and no plans for a fifth' },
+                    { value: site.areas.length, label: `Towns of ${site.business.county} our clients come from` },
+                ]}
+            />
+        </div>
+    </section>
+
+    <section class="band">
+        <div class="container split reverse">
+            <Plate photo="readingRoom" number="Plate IV" caption="Where the research gets done, more or less." shape="landscape" sizes="(min-width: 64rem) 40vw, 100vw" />
+            <div class="community">
+                <SectionHead number="§ 4" label="In the county" lines={['Of the county,', '*not only in it.*']} />
+                <p>The attorneys teach evening courses for small business owners, volunteer at the senior center’s legal clinic, coach the high school’s mock trial team and sit on the planning commission’s citizens’ panel. None of it is a marketing plan; it is what living in a county seat asks of you.</p>
+                <p class="note">Hale & Morrow, Harrowmere and {site.business.county} are fictional; the photographs are stand-ins.</p>
+            </div>
+        </div>
+    </section>
+
+    <Closing />
+</Base>
+
+<style>
+    .band {
+        padding: var(--section) 0;
+    }
+
+    .band:first-of-type {
+        padding-top: var(--space-16);
+    }
+
+    .navy {
+        background: var(--color-navy);
+    }
+
+    .band:not(.navy) + .band:not(.navy) {
+        padding-top: 0;
+    }
+
+    .seal {
+        width: clamp(10rem, 6rem + 12vw, 16rem);
+        aspect-ratio: 1;
+        color: var(--color-brass);
+    }
+
+    .seal :global(svg) {
+        width: 100%;
+        height: 100%;
+    }
+
+    @media (min-width: 70rem) {
+        .seal {
+            justify-self: end;
+        }
+    }
+
+    .split {
+        display: grid;
+        gap: var(--space-16);
+    }
+
+    @media (min-width: 64rem) {
+        .split {
+            grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+            align-items: start;
+        }
+
+        .reverse {
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            align-items: center;
+        }
+    }
+
+    .timeline {
+        margin: 0;
+        padding: 0;
+        border-left: 1px solid var(--color-brass);
+        list-style: none;
+    }
+
+    .timeline li {
+        position: relative;
+        display: grid;
+        gap: var(--space-1);
+        padding: 0 0 var(--space-8) var(--space-8);
+    }
+
+    .timeline li::before {
+        content: '';
+        position: absolute;
+        left: -0.3rem;
+        top: 0.55rem;
+        width: 0.6rem;
+        height: 0.6rem;
+        background: var(--color-brass);
+        transform: rotate(45deg);
+    }
+
+    .year {
+        color: var(--color-navy);
+        font-size: 1.6rem;
+        font-variant-numeric: lining-nums;
+        line-height: 1.2;
+    }
+
+    .timeline p {
+        max-width: 34rem;
+        margin: 0;
+        color: var(--color-prose);
+    }
+
+    .community p {
+        max-width: 36rem;
+        color: var(--color-prose);
+    }
+</style>

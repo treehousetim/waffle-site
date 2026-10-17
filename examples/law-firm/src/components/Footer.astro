@@ -1,0 +1,213 @@
+---
+/**
+ * The footer: the firm's name, address, telephone and hours on every page,
+ * written exactly as in src/site.ts, the links, and the notices a law
+ * firm's site carries: attorney advertising, no attorney-client
+ * relationship, and (on this example) that the firm is fiction.
+ */
+import Logo from './Logo.astro';
+import { addressLine, site } from '../site';
+import { buildTime } from '@core/settings';
+
+const dayRange = (days: readonly string[]) =>
+    days.length === 1 ? days[0] : `${days[0] ?? ''} to ${days[days.length - 1] ?? ''}`;
+const time = (value: string) => {
+    const [hour = 0, minute = 0] = value.split(':').map(Number);
+    const suffix = hour >= 12 ? 'pm' : 'am';
+    const twelve = hour % 12 === 0 ? 12 : hour % 12;
+
+    return minute === 0 ? `${twelve} ${suffix}` : `${twelve}:${String(minute).padStart(2, '0')} ${suffix}`;
+};
+---
+
+<footer class="site-footer">
+    <div class="container top">
+        <div class="brand">
+            <Logo tone="light" />
+            <address>
+                <span>{addressLine}</span>
+                <a href={`tel:${site.business.phoneE164}`}>{site.business.phone}</a>
+                <a href={`mailto:${site.business.email}`}>{site.business.email}</a>
+            </address>
+            <p class="hours">
+                {
+                    site.business.hours.map((hours) => (
+                        <span>
+                            {dayRange(hours.days)}, {time(hours.opens)} to {time(hours.closes)}.
+                        </span>
+                    ))
+                }
+                {' '}{site.business.appointments}
+            </p>
+        </div>
+        {
+            site.footer.map((column) => (
+                <nav aria-label={column.heading}>
+                    <h2>{column.heading}</h2>
+                    <ul>
+                        {column.links.map((link) => (
+                            <li>
+                                <a href={link.href}>{link.label}</a>
+                            </li>
+                        ))}
+                    </ul>
+                </nav>
+            ))
+        }
+    </div>
+
+    <div class="container notices">
+        <p><strong>{site.notices.advertising.split('.')[0]}.</strong>{site.notices.advertising.slice(site.notices.advertising.indexOf('.') + 1)} <a href="/disclaimer/">Read the full notice</a>.</p>
+        <p>{site.notices.noRelationship}</p>
+        <p class="fiction">{site.notices.fiction}</p>
+    </div>
+
+    <div class="container legal">
+        <p>© {buildTime.getUTCFullYear()} {site.business.legalName} · Serving {site.business.county} since {site.business.founded}</p>
+        <p><a href="/credits/">Credits</a> · <a href="/insights/rss.xml">RSS</a> · <a href="/privacy/">Privacy</a></p>
+    </div>
+</footer>
+
+<style>
+    .site-footer {
+        position: relative;
+        padding: var(--space-20) 0 var(--space-8);
+        background: var(--color-navy-deep);
+        color: var(--color-on-navy-muted);
+        font-family: var(--font-sans);
+        font-size: 0.875rem;
+        line-height: 1.6;
+    }
+
+    /* A brass hairline across the top, then the navy. */
+    .site-footer::before {
+        content: '';
+        position: absolute;
+        inset: 0 0 auto;
+        height: 1px;
+        background: var(--color-brass);
+        opacity: 0.6;
+    }
+
+    .top {
+        display: grid;
+        gap: var(--space-10) var(--space-8);
+        grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    }
+
+    .brand {
+        grid-column: 1 / -1;
+    }
+
+    @media (min-width: 64rem) {
+        .top {
+            grid-template-columns: 1.7fr 1fr 1fr 1fr;
+        }
+
+        .brand {
+            grid-column: auto;
+        }
+    }
+
+    address {
+        display: grid;
+        gap: var(--space-1);
+        margin: var(--space-6) 0 var(--space-4);
+        color: var(--color-on-navy);
+        font-style: normal;
+        font-variant-numeric: lining-nums;
+    }
+
+    a {
+        color: var(--color-on-navy);
+        text-decoration: none;
+    }
+
+    a:hover {
+        color: var(--color-brass-bright);
+    }
+
+    .hours {
+        max-width: 22rem;
+        margin: 0;
+        font-variant-numeric: lining-nums;
+    }
+
+    h2 {
+        margin-bottom: var(--space-4);
+        color: var(--color-brass-bright);
+        font-family: var(--font-serif);
+        font-size: 1.05rem;
+        font-variant-caps: all-small-caps;
+        font-weight: 500;
+        letter-spacing: 0.14em;
+    }
+
+    ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    li + li {
+        margin-top: var(--space-2);
+    }
+
+    nav a {
+        color: var(--color-on-navy-muted);
+    }
+
+    .notices {
+        display: grid;
+        gap: var(--space-3);
+        margin-top: var(--space-16);
+        padding-top: var(--space-6);
+        border-top: 1px solid var(--color-navy-rule);
+        font-size: 0.8125rem;
+    }
+
+    .notices p {
+        max-width: 60rem;
+        margin: 0;
+    }
+
+    .notices strong {
+        color: var(--color-on-navy);
+        font-weight: 500;
+        letter-spacing: 0.04em;
+    }
+
+    .notices a {
+        text-decoration: underline;
+        text-decoration-color: var(--color-brass);
+        text-underline-offset: 0.2em;
+    }
+
+    .fiction {
+        color: var(--color-brass-bright);
+    }
+
+    .legal {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: var(--space-3) var(--space-6);
+        margin-top: var(--space-8);
+        padding-top: var(--space-5);
+        border-top: 1px solid var(--color-navy-rule);
+        font-size: 0.8125rem;
+        font-variant-numeric: lining-nums;
+    }
+
+    .legal p {
+        margin: 0;
+    }
+
+    .legal a {
+        color: var(--color-on-navy-muted);
+    }
+
+    :focus-visible {
+        outline-color: var(--color-brass-bright);
+    }
+</style>

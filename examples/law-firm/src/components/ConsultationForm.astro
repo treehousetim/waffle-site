@@ -1,0 +1,383 @@
+---
+/**
+ * The consultation request, received by the waffle app (docs/forms.md).
+ *
+ * It posts to /api/site/forms/consultation on this site; Caddy forwards that
+ * to the waffle app with the site key (docs/waffle-api.md). It works without
+ * script: the browser checks the fields, posts the form, and the app answers
+ * with a redirect to `thanks`. With script (src/scripts/forms.ts) it sends
+ * JSON and shows the answer in place, field by field.
+ *
+ * A law firm's intake form is different from a shop's in two ways, both
+ * here: it asks for the other people involved, so the firm can check for a
+ * conflict of interest before anyone reads the details; and it says, before
+ * the button and in a box the visitor must tick, that sending it does not
+ * make the firm their lawyer.
+ */
+import { HONEYPOT } from '@core/lib/forms.js';
+import { practices } from '../data/practice';
+import { site } from '../site';
+
+interface Props {
+    /** Where the app sends a browser without script after a good submission. */
+    thanks: string;
+    /** A practice area to have chosen already. */
+    practice?: string;
+}
+
+const { thanks, practice } = Astro.props;
+
+const sources = [
+    { value: 'client', label: 'A client of the firm' },
+    { value: 'attorney', label: 'Another attorney or an accountant' },
+    { value: 'search', label: 'A search engine' },
+    { value: 'insights', label: 'An Insights article' },
+    { value: 'event', label: 'A talk or community event' },
+    { value: 'other', label: 'Somewhere else' },
+];
+---
+
+<form class="form" method="post" action="/api/site/forms/consultation" data-site-form>
+    <input type="hidden" name="redirect" value={thanks} />
+
+    <fieldset class="part">
+        <legend><span class="n">i.</span> The matter</legend>
+
+        <div class="field">
+            <label for="consult-practice">Which area of law is it?</label>
+            <select id="consult-practice" name="practice_area" required>
+                <option value="">Choose one</option>
+                {practices.map((item) => <option value={item.slug} selected={item.slug === practice}>{item.name}</option>)}
+                <option value="not-sure">Not sure</option>
+            </select>
+            <p class="error" data-error-for="practice_area" hidden></p>
+        </div>
+
+        <div class="field">
+            <label for="consult-summary">In a few sentences, what is it about?</label>
+            <p class="hint" id="consult-summary-hint">The outline only, please: dates, the kind of matter, what you hope for. Keep confidential details for the consultation.</p>
+            <textarea id="consult-summary" name="matter_summary" rows="5" required maxlength="2000" aria-describedby="consult-summary-hint"></textarea>
+            <p class="error" data-error-for="matter_summary" hidden></p>
+        </div>
+
+        <div class="field">
+            <label for="consult-conflicts">Who else is involved?</label>
+            <p class="hint" id="consult-conflicts-hint">The names of every other person, business or family member on any side of the matter. We check them against our records first, so we never hear from both sides.</p>
+            <textarea id="consult-conflicts" name="conflict_names" rows="3" required maxlength="1000" aria-describedby="consult-conflicts-hint"></textarea>
+            <p class="error" data-error-for="conflict_names" hidden></p>
+        </div>
+
+        <div class="field">
+            <label for="consult-source">How did you hear about us?</label>
+            <select id="consult-source" name="heard_about">
+                <option value="">Choose one (optional)</option>
+                {sources.map((source) => <option value={source.value}>{source.label}</option>)}
+            </select>
+            <p class="error" data-error-for="heard_about" hidden></p>
+        </div>
+    </fieldset>
+
+    <fieldset class="part">
+        <legend><span class="n">ii.</span> You</legend>
+
+        <div class="row">
+            <div class="field">
+                <label for="consult-name">Your name</label>
+                <input id="consult-name" name="name" type="text" autocomplete="name" required maxlength="100" />
+                <p class="error" data-error-for="name" hidden></p>
+            </div>
+
+            <div class="field">
+                <label for="consult-organization">Business or organization <span class="optional">(optional)</span></label>
+                <input id="consult-organization" name="organization" type="text" autocomplete="organization" maxlength="150" />
+                <p class="error" data-error-for="organization" hidden></p>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="field">
+                <label for="consult-email">Email</label>
+                <input id="consult-email" name="email" type="email" autocomplete="email" required maxlength="254" />
+                <p class="error" data-error-for="email" hidden></p>
+            </div>
+
+            <div class="field">
+                <label for="consult-phone">Telephone</label>
+                <input id="consult-phone" name="phone" type="tel" autocomplete="tel" required maxlength="30" />
+                <p class="error" data-error-for="phone" hidden></p>
+            </div>
+        </div>
+
+        <fieldset class="field choices-field">
+            <legend class="sub">How should we reply?</legend>
+            <div class="choices">
+                <label class="choice"><input type="radio" name="contact_method" value="phone" checked /> <span>Telephone</span></label>
+                <label class="choice"><input type="radio" name="contact_method" value="email" /> <span>Email</span></label>
+                <label class="choice"><input type="radio" name="contact_method" value="either" /> <span>Either</span></label>
+            </div>
+            <p class="error" data-error-for="contact_method" hidden></p>
+        </fieldset>
+    </fieldset>
+
+    <div class="trap" aria-hidden="true">
+        <label for="consult-website">Leave this empty</label>
+        <input id="consult-website" name={HONEYPOT} type="text" tabindex="-1" autocomplete="off" />
+    </div>
+
+    <div class="notice" id="consult-notice">
+        <p class="notice-title">Before you send this</p>
+        <p>Submitting this form does not create an attorney-client relationship. Hale &amp; Morrow does not represent you until we have checked for conflicts and you have signed an engagement letter, and until then nothing you send is protected as a confidential communication with your lawyer. Time limits may apply to your matter: do not wait for our reply to act on a deadline.</p>
+    </div>
+
+    <label class="acknowledge">
+        <input type="checkbox" name="acknowledge_no_relationship" value="yes" required aria-describedby="consult-notice" />
+        <span>I understand that sending this form does not make Hale &amp; Morrow my lawyer.</span>
+    </label>
+    <p class="error" data-error-for="acknowledge_no_relationship" hidden></p>
+
+    <p class="status" role="status" aria-live="polite" data-status></p>
+
+    <div class="submit">
+        <button class="button" type="submit">Request a consultation</button>
+        <p class="note">We reply within one working day. Rather talk? <a href={`tel:${site.business.phoneE164}`}>{site.business.phone}</a></p>
+    </div>
+</form>
+
+<script>
+    import { enhanceForms } from '../scripts/forms';
+
+    enhanceForms(document);
+</script>
+
+<style>
+    .form {
+        display: grid;
+        gap: var(--space-10);
+        font-family: var(--font-sans);
+        font-size: 1rem;
+    }
+
+    .part {
+        display: grid;
+        gap: var(--space-6);
+        margin: 0;
+        padding: 0;
+        border: 0;
+    }
+
+    .part > legend {
+        display: flex;
+        align-items: baseline;
+        gap: var(--space-3);
+        width: 100%;
+        margin-bottom: var(--space-6);
+        padding-bottom: var(--space-3);
+        border-bottom: 1px solid var(--color-navy);
+        color: var(--color-navy);
+        font-family: var(--font-serif);
+        font-size: 1.6rem;
+    }
+
+    .n {
+        color: var(--color-brass-ink);
+        font-style: italic;
+    }
+
+    .row {
+        display: grid;
+        gap: var(--space-6);
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+    }
+
+    .field {
+        display: grid;
+        gap: var(--space-2);
+        margin: 0;
+        padding: 0;
+        border: 0;
+        min-width: 0;
+    }
+
+    label,
+    .sub {
+        color: var(--color-navy);
+        font-size: 0.9375rem;
+        font-weight: 500;
+    }
+
+    .sub {
+        margin-bottom: var(--space-2);
+        padding: 0;
+    }
+
+    .optional {
+        color: var(--color-muted);
+        font-weight: 400;
+    }
+
+    .hint {
+        margin: 0;
+        color: var(--color-muted);
+        font-size: 0.875rem;
+        line-height: 1.5;
+    }
+
+    input:not([type='radio'], [type='checkbox']),
+    select,
+    textarea {
+        width: 100%;
+        min-height: 3rem;
+        padding: 0.7rem 0.85rem;
+        border: 1px solid #a9a08c;
+        border-radius: 0;
+        background: var(--color-paper);
+        color: var(--color-text);
+        font: inherit;
+        transition: border-color 0.2s ease, box-shadow 0.3s ease, background-color 0.2s ease;
+    }
+
+    textarea {
+        resize: vertical;
+        line-height: 1.55;
+    }
+
+    /* Focus: the navy border and a brass hairline outside it. */
+    input:not([type='radio'], [type='checkbox']):focus,
+    select:focus,
+    textarea:focus {
+        border-color: var(--color-navy);
+        outline: none;
+        background: #ffffff;
+        box-shadow: 0 0 0 3px var(--color-bg), 0 0 0 4px var(--color-brass);
+    }
+
+    [aria-invalid='true'] {
+        border-color: var(--color-error) !important;
+    }
+
+    .choices {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+    }
+
+    .choice {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        min-height: 2.75rem;
+        padding: 0 var(--space-4);
+        border: 1px solid #a9a08c;
+        background: var(--color-paper);
+        font-weight: 400;
+        cursor: pointer;
+        transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+    }
+
+    .choice:has(input:checked) {
+        border-color: var(--color-navy);
+        background: var(--color-navy);
+        color: var(--color-on-navy);
+    }
+
+    .choice:has(input:focus-visible) {
+        outline: 2px solid var(--color-focus);
+        outline-offset: 2px;
+    }
+
+    .choice input {
+        accent-color: var(--color-brass);
+    }
+
+    .notice {
+        padding: var(--space-6);
+        border: 1px solid var(--color-brass);
+        background: var(--color-paper);
+        box-shadow: inset 0 0 0 4px var(--color-paper), inset 0 0 0 5px var(--color-rule);
+    }
+
+    .notice p {
+        margin: 0;
+        color: var(--color-prose);
+        font-size: 0.9375rem;
+        line-height: 1.6;
+    }
+
+    .notice .notice-title {
+        margin-bottom: var(--space-2);
+        color: var(--color-navy);
+        font-family: var(--font-serif);
+        font-size: 1.2rem;
+        font-variant-caps: all-small-caps;
+        letter-spacing: 0.1em;
+    }
+
+    .acknowledge {
+        display: flex;
+        gap: var(--space-3);
+        align-items: flex-start;
+        margin-top: calc(-1 * var(--space-4));
+        font-weight: 500;
+        cursor: pointer;
+    }
+
+    .acknowledge input {
+        flex: none;
+        width: 1.25rem;
+        height: 1.25rem;
+        margin: 0.1rem 0 0;
+        accent-color: var(--color-navy);
+    }
+
+    .error {
+        margin: 0;
+        color: var(--color-error);
+        font-size: 0.875rem;
+    }
+
+    .status:empty {
+        display: none;
+    }
+
+    .status {
+        margin: 0;
+        padding: var(--space-4) var(--space-5);
+        border-left: 2px solid currentColor;
+        background: var(--color-paper);
+    }
+
+    .status[data-kind='sent'] {
+        color: var(--color-success);
+    }
+
+    .status[data-kind='invalid'],
+    .status[data-kind='failed'] {
+        color: var(--color-error);
+    }
+
+    /* Off screen rather than display:none, which some bots check for. */
+    .trap {
+        position: absolute;
+        left: -10000px;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+    }
+
+    .submit {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-4) var(--space-6);
+    }
+
+    .submit .note {
+        margin: 0;
+    }
+
+    @media (max-width: 40rem) {
+        .submit .button {
+            width: 100%;
+        }
+    }
+</style>

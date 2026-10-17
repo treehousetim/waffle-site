@@ -1,0 +1,39 @@
+---
+/**
+ * Where the waffle app sends a browser without script after a good
+ * submission. Kept out of search results (src/site.ts, noindex).
+ */
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import { site } from '../../site';
+---
+
+<Base title="Thank you: your request has arrived" description="We have your consultation request. We will check for conflicts and reply within one working day. Sending it did not make Hale & Morrow your lawyer.">
+    <PageHead
+        label="Request received"
+        lines={['Thank you.', '*We have it.*']}
+        lead="We will check the names you gave us for conflicts, then reply within one working day, by the method you chose."
+        primary={{ label: 'Back to the home page', href: '/' }}
+        secondary={{ label: 'Read the Insights', href: '/insights/' }}
+    >
+        <p class="notice">{site.notices.noRelationship} If your matter has a deadline in the next few days, please call <a href={`tel:${site.business.phoneE164}`}>{site.business.phone}</a>.</p>
+    </PageHead>
+    <div class="space"></div>
+</Base>
+
+<style>
+    .notice {
+        margin: 0;
+        padding: var(--space-6);
+        border: 1px solid var(--color-brass);
+        background: var(--color-paper);
+        color: var(--color-prose);
+        font-family: var(--font-sans);
+        font-size: 0.9375rem;
+        line-height: 1.6;
+    }
+
+    .space {
+        height: var(--section);
+    }
+</style>

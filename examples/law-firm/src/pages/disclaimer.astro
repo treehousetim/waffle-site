@@ -1,0 +1,36 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import { site } from '../site';
+---
+
+<Base
+    title="Attorney advertising notice"
+    description="The legal notices for this website: attorney advertising, no attorney-client relationship, no legal advice, prior results, jurisdiction and links."
+    breadcrumbs={[{ name: 'Attorney advertising', href: '/disclaimer/' }]}
+>
+    <PageHead label="Notices" lines={['Attorney advertising', '*and other notices.*']} lead="What this website is, and what it is not. Example wording for a fictional firm: a real firm’s notice depends on its state’s rules of professional conduct." />
+
+    <div class="prose page">
+        <h2>Attorney advertising</h2>
+        <p>This website may be considered attorney advertising under the rules of professional conduct of some states. {site.business.legalName} is responsible for its content. Its principal office is at {site.business.address.street}, {site.business.address.city}.</p>
+        <h2>No attorney-client relationship</h2>
+        <p>{site.notices.noRelationship} An attorney-client relationship with the firm begins only when you and the firm have both signed an engagement letter.</p>
+        <h2>Not legal advice</h2>
+        <p>The pages and Insights on this site are general information about the law, written in plain language. They are not legal advice, may not reflect the most recent changes in the law, and cannot take account of your circumstances. Do not act, or decline to act, on anything here without talking to a lawyer about your own matter.</p>
+        <h2>Prior results</h2>
+        <p>Any description of past matters or client remarks is not a promise or prediction of the result in yours. Every matter turns on its own facts and law.</p>
+        <h2>Where we practice</h2>
+        <p>The firm’s attorneys are admitted to practice only where their pages say. We do not seek to represent anyone, or to give advice, in a jurisdiction where we are not authorized to practice.</p>
+        <h2>Links</h2>
+        <p>Links to other sites are offered for convenience. We are not responsible for their content.</p>
+        <hr />
+        <p class="note">{site.notices.fiction}</p>
+    </div>
+</Base>
+
+<style>
+    .page {
+        padding: var(--space-16) 0 var(--section);
+    }
+</style>

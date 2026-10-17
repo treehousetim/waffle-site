@@ -1,0 +1,28 @@
+---
+/**
+ * Served by Caddy, with status 404, for any path that is not in the build
+ * (docker/caddy/Caddyfile). Kept out of search results (src/site.ts).
+ */
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import Contents from '../components/Contents.astro';
+---
+
+<Base title="Page not found" description="That page is not here. It may have moved, or the link may be mistyped. The practice areas, the attorneys and the Insights are a good place to start.">
+    <PageHead
+        label="Error 404"
+        lines={['No such page', '*is on file.*']}
+        lead="It may have moved, or the link may have a typo in it. The table of contents below may be what you were after."
+        primary={{ label: 'Go to the home page', href: '/' }}
+        secondary={{ label: 'Read the Insights', href: '/insights/' }}
+    />
+    <div class="container list">
+        <Contents level="h2" />
+    </div>
+</Base>
+
+<style>
+    .list {
+        padding: var(--space-12) 0 var(--section);
+    }
+</style>

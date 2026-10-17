@@ -1,0 +1,56 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import Contents from '../../components/Contents.astro';
+import Plate from '../../components/Plate.astro';
+import Articles from '../../components/Articles.astro';
+import SectionHead from '../../components/SectionHead.astro';
+import Closing from '../../components/Closing.astro';
+
+const outside = [
+    { title: 'Criminal defense', text: 'We do not take criminal matters, including traffic offences. We will give you the names of local defense attorneys.' },
+    { title: 'Personal injury', text: 'Injury claims need a firm that does nothing else. We refer them on, and take no fee for the referral.' },
+    { title: 'Divorce and custody', text: 'Family law is outside our practice, though we will gladly update an estate plan once a divorce is final.' },
+    { title: 'Representing employees', text: 'Our employment practice advises employers, so we cannot act for an employee against one.' },
+];
+---
+
+<Base
+    title="Practice areas"
+    description="The four practice areas of Hale & Morrow: business formation and contracts, estate planning and probate, employment law, and commercial real estate."
+    breadcrumbs={[{ name: 'Practice', href: '/practice/' }]}
+>
+    <PageHead
+        label="The practice"
+        lines={['Four practices,', '*and what we leave*', '*to others.*']}
+        lead="We practice in four areas and decline work outside them. A small firm that tries to do everything does most of it less well; we would rather send you to someone better suited than learn on your matter."
+    >
+        <Plate photo="stoneStairs" shape="square" sizes="(min-width: 70rem) 26vw, 100vw" priority />
+    </PageHead>
+
+    <section class="band">
+        <div class="container">
+            <Contents level="h2" />
+        </div>
+    </section>
+
+    <section class="band vellum">
+        <div class="container">
+            <SectionHead number="§" label="Outside our practice" lines={['What we do not do,', '*and who does.*']} intro="Some of the calls we receive are for work we do not take on. We will always try to point you somewhere useful." />
+            <Articles items={outside} term="Not" />
+        </div>
+    </section>
+
+    <Closing />
+</Base>
+
+<style>
+    .band {
+        padding: var(--space-16) 0 var(--section);
+    }
+
+    .vellum {
+        padding-top: var(--section);
+        background: var(--color-vellum);
+    }
+</style>

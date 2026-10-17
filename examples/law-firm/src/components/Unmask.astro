@@ -1,0 +1,51 @@
+---
+/**
+ * A heading set line by line, each line in its own mask, so motion.css can
+ * raise the lines into view one after another (on load for the page's <h1>,
+ * as it scrolls into view for the rest). Where motion is off or unsupported
+ * it is simply a heading. The lines are joined by spaces, so it reads as one
+ * sentence to a screen reader and a search engine.
+ *
+ * A line wrapped in *asterisks* is set in italic brass.
+ */
+interface Props {
+    as?: 'h1' | 'h2' | 'h3';
+    lines: string[];
+    class?: string;
+}
+
+const { as = 'h2', lines, class: className } = Astro.props;
+const Tag = as;
+const parts = lines.map((line) => {
+    const italic = /^\*(.+)\*$/.exec(line);
+
+    return italic ? { text: italic[1] ?? '', italic: true } : { text: line, italic: false };
+});
+---
+
+<Tag class:list={['unmask', className]}>
+    {
+        parts.map((part, index) => (
+            <>
+                <span class="line">
+                    <span class="line-inner">{part.italic ? <em>{part.text}</em> : part.text}</span>
+                </span>
+                {index < parts.length - 1 ? ' ' : ''}
+            </>
+        ))
+    }
+</Tag>
+
+<style>
+    .line {
+        display: block;
+        /* Room for descenders and the italic's overhang inside the mask. */
+        padding: 0 0.08em 0.1em 0;
+        margin-bottom: -0.1em;
+        overflow: clip;
+    }
+
+    .line-inner {
+        display: inline-block;
+    }
+</style>

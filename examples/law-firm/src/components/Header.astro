@@ -1,0 +1,287 @@
+---
+/**
+ * The letterhead: the monogram and name, the navigation set in spaced
+ * capitals, the telephone and the consultation request, over a heavy rule
+ * and a hairline. It stays at the top as you scroll and tightens slightly
+ * once the page has moved (motion.css).
+ *
+ * Two navigations, one shown at a time: a plain one on wide screens, and on
+ * phones a <details> menu that opens without any script. A browser hides a
+ * closed <details>'s contents whatever the CSS says, so the wide-screen
+ * navigation cannot live inside it.
+ */
+import Logo from './Logo.astro';
+import { site } from '../site';
+
+const current = Astro.url.pathname;
+const isCurrent = (href: string) => current === href || (href !== '/' && current.startsWith(href));
+---
+
+<header class="site-header">
+    <div class="container bar">
+        <Logo />
+
+        <nav class="nav-wide" aria-label="Main">
+            <ul>
+                {
+                    site.nav.map((link) => (
+                        <li>
+                            <a href={link.href} aria-current={isCurrent(link.href) ? 'page' : undefined}>
+                                {link.label}
+                            </a>
+                        </li>
+                    ))
+                }
+            </ul>
+        </nav>
+
+        <div class="contact-wide">
+            <a class="phone" href={`tel:${site.business.phoneE164}`}>{site.business.phone}</a>
+            <a class="button" href={site.cta.href}>{site.cta.label}</a>
+        </div>
+
+        <details class="menu">
+            <summary>
+                <span class="menu-label">Menu</span>
+                <span class="bars" aria-hidden="true"><span></span><span></span></span>
+            </summary>
+            <nav class="nav-narrow" aria-label="Main, on small screens">
+                <ol>
+                    {
+                        site.nav.map((link, index) => (
+                            <li>
+                                <a href={link.href} aria-current={isCurrent(link.href) ? 'page' : undefined}>
+                                    <span class="index" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
+                                    {link.label}
+                                </a>
+                            </li>
+                        ))
+                    }
+                    <li>
+                        <a href="/faq/" aria-current={isCurrent('/faq/') ? 'page' : undefined}>
+                            <span class="index" aria-hidden="true">{String(site.nav.length + 1).padStart(2, '0')}</span>
+                            Questions
+                        </a>
+                    </li>
+                </ol>
+                <div class="narrow-actions">
+                    <a class="button" href={site.cta.href}>{site.cta.label}</a>
+                    <a class="button button-ghost" href={`tel:${site.business.phoneE164}`}>Call {site.business.phone}</a>
+                </div>
+            </nav>
+        </details>
+    </div>
+    <div class="container"><hr class="rule-double letterhead-rule" /></div>
+</header>
+
+<style>
+    .site-header {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        background: rgb(245 239 226 / 0.985);
+        backdrop-filter: blur(10px) saturate(1.2);
+        -webkit-backdrop-filter: blur(10px) saturate(1.2);
+    }
+
+    .bar {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-6);
+        min-height: var(--header-height);
+    }
+
+    ul,
+    ol {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .nav-wide,
+    .contact-wide {
+        display: none;
+    }
+
+    .nav-wide ul {
+        display: flex;
+        gap: clamp(1rem, 0.2rem + 1.4vw, 2.1rem);
+    }
+
+    .nav-wide a {
+        position: relative;
+        display: block;
+        padding: var(--space-2) 0;
+        color: var(--color-text);
+        font-family: var(--font-sans);
+        font-size: 0.75rem;
+        font-weight: 500;
+        letter-spacing: 0.18em;
+        text-decoration: none;
+        text-transform: uppercase;
+    }
+
+    /* A brass hairline draws under a link from its centre on hover; the
+       current page keeps it. */
+    .nav-wide a::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0.18em;
+        bottom: 0.15rem;
+        height: 1px;
+        background: var(--color-brass);
+        transform: scaleX(0);
+        transition: transform 0.45s var(--ease-out);
+    }
+
+    .nav-wide a:hover::after,
+    .nav-wide a[aria-current='page']::after {
+        transform: scaleX(1);
+    }
+
+    .nav-wide a[aria-current='page'] {
+        color: var(--color-brass-ink);
+    }
+
+    .contact-wide {
+        align-items: center;
+        gap: var(--space-6);
+    }
+
+    .phone {
+        color: var(--color-navy);
+        font-family: var(--font-sans);
+        font-size: 0.875rem;
+        font-variant-numeric: lining-nums tabular-nums;
+        font-weight: 500;
+        letter-spacing: 0.04em;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    .phone:hover {
+        color: var(--color-brass-ink);
+    }
+
+    .contact-wide .button {
+        min-height: 2.75rem;
+        padding: 0.6rem 1.15rem;
+        font-size: 0.6875rem;
+    }
+
+    .letterhead-rule {
+        border-top-width: 1.5px;
+    }
+
+    summary {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-3);
+        min-height: 2.75rem;
+        padding: 0 var(--space-1);
+        color: var(--color-navy);
+        font-family: var(--font-sans);
+        font-size: 0.75rem;
+        font-weight: 500;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        list-style: none;
+        cursor: pointer;
+    }
+
+    summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .bars {
+        position: relative;
+        display: grid;
+        gap: 6px;
+        width: 1.5rem;
+    }
+
+    .bars span {
+        display: block;
+        height: 1px;
+        background: currentColor;
+        transition: transform 0.35s var(--ease-out);
+    }
+
+    .menu[open] .bars span:first-child {
+        transform: translateY(3.5px) rotate(45deg);
+    }
+
+    .menu[open] .bars span:last-child {
+        transform: translateY(-3.5px) rotate(-45deg);
+    }
+
+    .nav-narrow {
+        position: absolute;
+        left: calc(-1 * var(--gutter));
+        right: calc(-1 * var(--gutter));
+        top: calc(100% + 6px);
+        max-height: calc(100dvh - var(--header-height) - 6px);
+        overflow-y: auto;
+        padding: var(--space-4) var(--gutter) var(--space-10);
+        background: var(--color-bg);
+        border-bottom: 1px solid var(--color-navy);
+        box-shadow: 0 30px 40px -30px rgb(11 21 38 / 0.35);
+    }
+
+    .nav-narrow li {
+        border-bottom: 1px solid var(--color-rule);
+    }
+
+    .nav-narrow li a {
+        display: flex;
+        align-items: baseline;
+        gap: var(--space-4);
+        padding: var(--space-4) 0;
+        color: var(--color-navy);
+        font-size: 1.6rem;
+        line-height: 1.2;
+        text-decoration: none;
+    }
+
+    .nav-narrow .index {
+        color: var(--color-brass-ink);
+        font-family: var(--font-sans);
+        font-size: 0.75rem;
+        font-variant-numeric: lining-nums tabular-nums;
+        letter-spacing: 0.1em;
+    }
+
+    .nav-narrow li a[aria-current='page'] {
+        color: var(--color-brass-ink);
+    }
+
+    .narrow-actions {
+        display: grid;
+        gap: var(--space-3);
+        margin-top: var(--space-8);
+    }
+
+    .narrow-actions .button {
+        width: 100%;
+    }
+
+    @media (min-width: 70rem) {
+        .nav-wide,
+        .contact-wide {
+            display: flex;
+        }
+
+        .menu {
+            display: none;
+        }
+    }
+
+    @media (max-width: 26rem) {
+        .menu-label {
+            display: none;
+        }
+    }
+</style>

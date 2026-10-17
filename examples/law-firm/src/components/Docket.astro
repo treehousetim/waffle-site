@@ -1,0 +1,141 @@
+---
+/**
+ * Insights listed like a docket: the date in the margin, the title and its
+ * summary, the topic. Used on the home page, the Insights index, tag pages
+ * and under practice pages. A row's hairline draws across and its title
+ * shifts a touch on hover.
+ */
+import type { CollectionEntry } from 'astro:content';
+import FormattedDate from './FormattedDate.astro';
+import { readingMinutes, tagSlug } from '@core/lib/posts.js';
+
+interface Props {
+    posts: CollectionEntry<'blog'>[];
+    level?: 'h2' | 'h3';
+}
+
+const { posts, level = 'h2' } = Astro.props;
+const Heading = level;
+---
+
+<ol class="docket">
+    {
+        posts.map((post) => {
+            const tag = post.data.tags[0];
+
+            return (
+                <li class="entry">
+                    <p class="date">
+                        <FormattedDate date={post.data.pubDate} />
+                    </p>
+                    <div class="main">
+                        <Heading class="title">
+                            <a href={`/insights/${post.id}/`}>{post.data.title}</a>
+                        </Heading>
+                        <p class="description">{post.data.description}</p>
+                    </div>
+                    <p class="meta">
+                        {post.data.draft && <span class="draft">Draft</span>}
+                        {tag && <a class="tag" href={`/insights/tags/${tagSlug(tag)}/`}>{tag}</a>}
+                        <span>{readingMinutes(post.body ?? '')} min read</span>
+                    </p>
+                </li>
+            );
+        })
+    }
+</ol>
+
+<style>
+    .docket {
+        margin: 0;
+        padding: 0;
+        border-top: 1px solid var(--color-navy);
+        list-style: none;
+    }
+
+    .entry {
+        position: relative;
+        display: grid;
+        gap: var(--space-2) var(--space-8);
+        padding: var(--space-8) 0;
+        border-bottom: 1px solid var(--color-rule);
+    }
+
+    @media (min-width: 56rem) {
+        .entry {
+            grid-template-columns: 9.5rem minmax(0, 1fr) 11rem;
+            align-items: baseline;
+        }
+    }
+
+    .date {
+        margin: 0;
+        color: var(--color-brass-ink);
+        font-variant-caps: all-small-caps;
+        font-variant-numeric: lining-nums;
+        letter-spacing: 0.1em;
+    }
+
+    .title {
+        margin: 0 0 var(--space-3);
+        font-size: clamp(1.45rem, 1.2rem + 0.9vw, 1.95rem);
+        line-height: 1.2;
+    }
+
+    .title a {
+        display: inline-block;
+        color: var(--color-navy);
+        text-decoration: none;
+        transition: transform 0.5s var(--ease-out), color 0.3s ease;
+    }
+
+    .entry:hover .title a {
+        color: var(--color-brass-ink);
+        transform: translateX(0.35rem);
+    }
+
+    .description {
+        max-width: 40rem;
+        margin: 0;
+        color: var(--color-muted);
+        font-size: 1.1rem;
+        line-height: 1.5;
+    }
+
+    .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2) var(--space-4);
+        margin: var(--space-2) 0 0;
+        color: var(--color-muted);
+        font-family: var(--font-sans);
+        font-size: 0.75rem;
+        font-variant-numeric: lining-nums;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    @media (min-width: 56rem) {
+        .meta {
+            flex-direction: column;
+            align-items: flex-end;
+            margin: 0;
+            text-align: right;
+        }
+    }
+
+    .tag {
+        position: relative;
+        z-index: 1;
+        color: var(--color-navy);
+        text-decoration: none;
+    }
+
+    .tag:hover {
+        color: var(--color-brass-ink);
+    }
+
+    .draft {
+        color: var(--color-error);
+    }
+</style>

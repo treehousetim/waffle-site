@@ -1,0 +1,72 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import Masthead from '../../components/Masthead.astro';
+import Figures from '../../components/Figures.astro';
+import Articles from '../../components/Articles.astro';
+import SectionHead from '../../components/SectionHead.astro';
+import Closing from '../../components/Closing.astro';
+import { attorneys } from '../../data/attorneys';
+import { buildTime } from '@core/settings';
+
+const combined = attorneys.reduce((sum, attorney) => sum + (buildTime.getUTCFullYear() - (attorney.admissions[0]?.year ?? attorney.joined)), 0);
+
+const habits = [
+    { title: 'Monday file review', text: 'Every open matter is read aloud at Monday’s meeting, so any of us can answer when your attorney is in court or away.' },
+    { title: 'A second reader', text: 'No estate plan, contract or lease leaves the office until a second attorney has read it end to end.' },
+];
+---
+
+<Base
+    title="The attorneys"
+    description="Meet the four attorneys of Hale & Morrow in Harrowmere: two founding partners and two partners, each leading one of the firm's practice areas."
+    breadcrumbs={[{ name: 'Attorneys', href: '/attorneys/' }]}
+>
+    <PageHead
+        label="The attorneys"
+        lines={['Four names', '*on the door.*']}
+        lead="Every client of the firm has one attorney responsible for their matter, and three more who know it. These are the people you will meet."
+    />
+
+    <section class="band">
+        <div class="container">
+            <Masthead level="h2" />
+        </div>
+    </section>
+
+    <section class="band">
+        <div class="container">
+            <Figures
+                items={[
+                    { value: attorneys.length, label: 'Attorneys, all partners' },
+                    { value: combined, label: 'Combined years in practice' },
+                    { value: 2, label: 'Attorneys read every document before it leaves' },
+                ]}
+            />
+        </div>
+    </section>
+
+    <section class="band">
+        <div class="container">
+            <SectionHead number="§" label="How we work together" lines={['Small enough', '*to know every file.*']} />
+            <Articles items={habits} term="Habit" />
+            <p class="note fiction">The attorneys on this example site are fictional, and so are their admissions and schools.</p>
+        </div>
+    </section>
+
+    <Closing />
+</Base>
+
+<style>
+    .band {
+        padding: var(--space-12) 0 var(--section);
+    }
+
+    .band + .band {
+        padding-top: 0;
+    }
+
+    .fiction {
+        margin: var(--space-12) 0 0;
+    }
+</style>

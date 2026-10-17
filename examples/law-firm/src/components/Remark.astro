@@ -1,0 +1,76 @@
+---
+/**
+ * A client's words, set as a pull quote in italic with hanging brass
+ * quotation marks. Text only: no review markup (AGENTS.md §4). On this
+ * example the remarks are fictional, and say so.
+ */
+interface Props {
+    text: string;
+    who: string;
+    context?: string;
+}
+
+const { text, who, context } = Astro.props;
+---
+
+<figure class="remark">
+    <blockquote>
+        <p>{text}</p>
+    </blockquote>
+    <figcaption>
+        <span class="who">{who}</span>
+        {context && <span class="context">{context}</span>}
+    </figcaption>
+</figure>
+
+<style>
+    .remark {
+        position: relative;
+        margin: 0;
+        padding-left: clamp(1.75rem, 1rem + 2vw, 3.5rem);
+    }
+
+    blockquote {
+        margin: 0;
+    }
+
+    blockquote p {
+        margin: 0;
+        color: var(--color-navy);
+        font-size: clamp(1.6rem, 1.2rem + 1.6vw, 2.6rem);
+        font-style: italic;
+        line-height: 1.25;
+        text-wrap: balance;
+    }
+
+    blockquote p::before {
+        content: '“';
+        position: absolute;
+        left: 0;
+        margin-top: -0.12em;
+        color: var(--color-brass);
+        font-size: 1.9em;
+        font-style: normal;
+        line-height: 1;
+    }
+
+    figcaption {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-1) var(--space-4);
+        margin-top: var(--space-6);
+        font-family: var(--font-sans);
+        font-size: 0.8125rem;
+        letter-spacing: 0.08em;
+    }
+
+    .who {
+        color: var(--color-navy);
+        font-weight: 500;
+        text-transform: uppercase;
+    }
+
+    .context {
+        color: var(--color-muted);
+    }
+</style>

@@ -1,0 +1,519 @@
+/*
+ * Hale & Morrow's design system: tokens, type, layout helpers, buttons and
+ * the long-form prose of the Insights. Components carry their own scoped
+ * <style>; this file is what they share.
+ *
+ * The look is a well-set legal brief: ivory paper, deep navy ink, brass
+ * used sparingly for rules, numerals and the monogram; EB Garamond for
+ * reading and its small capitals for labels; IBM Plex Sans for anything
+ * that is operated rather than read (navigation, forms, notes).
+ */
+
+:root {
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+    /* Paper. */
+    --color-bg: #f5efe2;
+    --color-paper: #fbf8f1;
+    --color-vellum: #ebe3d1;
+
+    /* Ink. */
+    --color-text: #18202e;
+    --color-prose: #2c3443;
+    --color-muted: #555c6b;
+    --color-rule: #cdc3ae;
+    --color-rule-soft: #ddd4c1;
+
+    /* The navy of the masthead, the closing band and the footer. */
+    --color-navy: #13213a;
+    --color-navy-deep: #0b1526;
+    --color-navy-raised: #1d2e4c;
+    --color-on-navy: #efe8d9;
+    --color-on-navy-muted: #b4b8c4;
+    --color-navy-rule: rgb(239 232 217 / 0.16);
+
+    /* Brass: rules, numerals, the monogram. Never body text on paper. */
+    --color-brass: #b08d48;
+    --color-brass-bright: #d4b46f;
+    --color-brass-pale: #e9d9b0;
+    /* Brass dark enough to read on paper (5:1 on --color-bg). */
+    --color-brass-ink: #7a5a20;
+
+    --color-focus: #1f5fbf;
+    --color-error: #9b2216;
+    --color-success: #1d6440;
+
+    --space-1: 0.25rem;
+    --space-2: 0.5rem;
+    --space-3: 0.75rem;
+    --space-4: 1rem;
+    --space-5: 1.25rem;
+    --space-6: 1.5rem;
+    --space-8: 2rem;
+    --space-10: 2.5rem;
+    --space-12: 3rem;
+    --space-16: 4rem;
+    --space-20: 5rem;
+    --space-24: 6rem;
+
+    /* Generous margins, like a brief: the page breathes. */
+    --section: clamp(4.5rem, 2.5rem + 7vw, 9rem);
+    --width-content: 76rem;
+    --width-prose: 40rem;
+    --gutter: clamp(1rem, 0.25rem + 3.6vw, 3rem);
+    --header-height: 4.75rem;
+
+    --ease: cubic-bezier(0.22, 0.61, 0.24, 1);
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+    color-scheme: light;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    scroll-padding-top: calc(var(--header-height) + 1.5rem);
+}
+
+body {
+    margin: 0;
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-serif);
+    font-size: 1.1875rem;
+    line-height: 1.6;
+    font-variant-numeric: oldstyle-nums proportional-nums;
+    font-kerning: normal;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
+img,
+svg {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
+/* Type. Headings are book-weight and large; nothing is bold for the sake of it. */
+
+h1,
+h2,
+h3,
+h4 {
+    margin: 0 0 var(--space-5);
+    color: var(--color-navy);
+    font-family: var(--font-serif);
+    font-weight: 450;
+    line-height: 1.08;
+    letter-spacing: -0.012em;
+    text-wrap: balance;
+}
+
+h1 {
+    font-size: clamp(2.6rem, 1.5rem + 4.6vw, 5.5rem);
+    line-height: 1.02;
+}
+
+h2 {
+    font-size: clamp(2rem, 1.35rem + 2.4vw, 3.35rem);
+}
+
+h3 {
+    font-size: clamp(1.4rem, 1.2rem + 0.6vw, 1.7rem);
+    line-height: 1.2;
+}
+
+h1 em,
+h2 em,
+h3 em {
+    font-style: italic;
+    color: var(--color-brass-ink);
+}
+
+p {
+    margin: 0 0 var(--space-5);
+    text-wrap: pretty;
+}
+
+a {
+    color: var(--color-navy);
+    text-decoration-line: underline;
+    text-decoration-color: var(--color-brass);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.22em;
+    transition: color 0.2s ease, text-decoration-color 0.2s ease;
+}
+
+a:hover {
+    color: var(--color-brass-ink);
+    text-decoration-color: currentColor;
+}
+
+strong {
+    font-weight: 600;
+}
+
+:focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 3px;
+}
+
+::selection {
+    background: var(--color-brass-pale);
+    color: var(--color-navy-deep);
+}
+
+/* Small capitals: labels, section numbers, names. */
+.smcp {
+    font-variant-caps: all-small-caps;
+    font-variant-numeric: lining-nums;
+    letter-spacing: 0.09em;
+}
+
+/* A section's label: "§ 2 · The practice", in brass small capitals. */
+.label {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-3);
+    margin: 0 0 var(--space-5);
+    color: var(--color-brass-ink);
+    font-family: var(--font-serif);
+    font-size: 1.05rem;
+    font-variant-caps: all-small-caps;
+    font-variant-numeric: lining-nums;
+    letter-spacing: 0.12em;
+    line-height: 1.3;
+}
+
+.label .num {
+    flex: none;
+    white-space: nowrap;
+    font-variant-caps: normal;
+    letter-spacing: 0;
+}
+
+.label::after {
+    content: '';
+    flex: 1;
+    max-width: 6rem;
+    height: 1px;
+    background: currentColor;
+    opacity: 0.45;
+    transform: translateY(-0.3em);
+}
+
+.lead {
+    color: var(--color-prose);
+    font-size: clamp(1.25rem, 1.1rem + 0.5vw, 1.5rem);
+    line-height: 1.5;
+}
+
+.muted {
+    color: var(--color-muted);
+}
+
+/* Sans for the precise things: notes, figures, forms. */
+.note {
+    color: var(--color-muted);
+    font-family: var(--font-sans);
+    font-size: 0.875rem;
+    line-height: 1.55;
+}
+
+/* Layout. */
+
+.container {
+    width: min(100% - 2 * var(--gutter), var(--width-content));
+    margin-inline: auto;
+}
+
+.prose {
+    width: min(100% - 2 * var(--gutter), var(--width-prose));
+    margin-inline: auto;
+}
+
+/* A hairline rule; motion.css draws it across as it enters. */
+.rule {
+    height: 1px;
+    margin: 0;
+    border: 0;
+    background: var(--color-rule);
+    transform-origin: 0 50%;
+}
+
+/* The letterhead's rule: a heavy line over a hairline. */
+.rule-double {
+    height: 5px;
+    margin: 0;
+    border: 0;
+    border-top: 2px solid var(--color-navy);
+    border-bottom: 1px solid var(--color-navy);
+    transform-origin: 0 50%;
+}
+
+/* Buttons: links or buttons with a class, never a div. Square, like a seal. */
+
+.button {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-3);
+    min-height: 3.25rem;
+    padding: 0.85rem 1.6rem;
+    border: 1px solid var(--color-navy);
+    border-radius: 0;
+    background: var(--color-navy);
+    color: var(--color-on-navy);
+    font-family: var(--font-sans);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    line-height: 1.2;
+    text-decoration: none;
+    text-transform: uppercase;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+}
+
+/* A brass hairline inset appears inside the button on hover and focus. */
+.button::after {
+    content: '';
+    position: absolute;
+    inset: 4px;
+    border: 1px solid var(--color-brass-bright);
+    opacity: 0;
+    transform: scale(1.04);
+    transition: opacity 0.3s ease, transform 0.4s var(--ease-out);
+    pointer-events: none;
+}
+
+.button:hover,
+.button:focus-visible {
+    background: var(--color-navy-deep);
+    color: #ffffff;
+}
+
+.button:hover::after,
+.button:focus-visible::after {
+    opacity: 1;
+    transform: none;
+}
+
+.button-ghost {
+    background: transparent;
+    color: var(--color-navy);
+}
+
+.button-ghost::after {
+    border-color: var(--color-brass);
+}
+
+.button-ghost:hover,
+.button-ghost:focus-visible {
+    background: var(--color-paper);
+    color: var(--color-navy);
+}
+
+.button-light {
+    border-color: var(--color-on-navy);
+    background: var(--color-on-navy);
+    color: var(--color-navy);
+}
+
+.button-light:hover,
+.button-light:focus-visible {
+    background: #ffffff;
+    color: var(--color-navy-deep);
+}
+
+.button-light::after {
+    border-color: var(--color-brass);
+}
+
+.button-outline-light {
+    border-color: rgb(239 232 217 / 0.45);
+    background: transparent;
+    color: var(--color-on-navy);
+}
+
+.button-outline-light:hover,
+.button-outline-light:focus-visible {
+    background: rgb(239 232 217 / 0.06);
+    color: #ffffff;
+}
+
+.button[disabled] {
+    opacity: 0.6;
+    cursor: progress;
+}
+
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3) var(--space-6);
+}
+
+/* A text link with an arrow, its brass underline drawn under it on hover. */
+.more {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding-bottom: 0.2rem;
+    background: linear-gradient(var(--color-brass), var(--color-brass)) 0 100% / 100% 1px no-repeat;
+    color: var(--color-navy);
+    font-family: var(--font-sans);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-decoration: none;
+    text-transform: uppercase;
+    transition: background-size 0.45s var(--ease-out), color 0.2s ease;
+}
+
+.more::after {
+    content: '→';
+    letter-spacing: 0;
+    transition: transform 0.35s var(--ease-out);
+}
+
+.more:hover {
+    color: var(--color-brass-ink);
+}
+
+.more:hover::after {
+    transform: translateX(4px);
+}
+
+/* Long-form text: the Insights and the legal pages. */
+
+.prose > * + h2 {
+    margin-top: var(--space-12);
+}
+
+.prose h2 {
+    font-size: clamp(1.6rem, 1.35rem + 1vw, 2.1rem);
+}
+
+.prose h3 {
+    margin-top: var(--space-8);
+    font-size: 1.35rem;
+}
+
+.prose p,
+.prose li {
+    color: var(--color-prose);
+}
+
+.prose ul,
+.prose ol {
+    margin: 0 0 var(--space-6);
+    padding-left: 1.4em;
+}
+
+.prose li + li {
+    margin-top: var(--space-2);
+}
+
+.prose li::marker {
+    color: var(--color-brass-ink);
+}
+
+.prose ol li::marker {
+    font-variant-numeric: lining-nums;
+}
+
+.prose blockquote {
+    margin: var(--space-10) 0;
+    padding: 0 0 0 var(--space-6);
+    border-left: 1px solid var(--color-brass);
+    color: var(--color-navy);
+    font-size: 1.35rem;
+    font-style: italic;
+    line-height: 1.45;
+}
+
+.prose blockquote p:last-child {
+    margin-bottom: 0;
+}
+
+.prose strong {
+    color: var(--color-text);
+}
+
+.prose a {
+    text-decoration-color: var(--color-brass);
+}
+
+.prose code {
+    padding: 0.05em 0.35em;
+    background: var(--color-vellum);
+    font-family: var(--font-mono);
+    font-size: 0.8em;
+}
+
+.prose hr {
+    width: 4rem;
+    height: 1px;
+    margin: var(--space-12) auto;
+    border: 0;
+    background: var(--color-brass);
+}
+
+.prose table {
+    width: 100%;
+    margin: 0 0 var(--space-8);
+    border-collapse: collapse;
+    font-family: var(--font-sans);
+    font-size: 0.9375rem;
+    font-variant-numeric: lining-nums tabular-nums;
+}
+
+.prose th,
+.prose td {
+    padding: var(--space-3) var(--space-3) var(--space-3) 0;
+    border-bottom: 1px solid var(--color-rule);
+    text-align: left;
+    vertical-align: top;
+}
+
+.prose th {
+    color: var(--color-navy);
+    font-weight: 600;
+}
+
+/* For screen readers only. */
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Reduced motion: everything still, nothing hidden. motion.css keeps all of
+   its rules behind no-preference; this catches anything else. */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}

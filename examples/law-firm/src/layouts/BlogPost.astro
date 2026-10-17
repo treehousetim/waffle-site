@@ -1,0 +1,344 @@
+---
+/**
+ * The one template every Insight uses (docs/blog.md), set like a short
+ * memorandum: the topic and title, a margin of particulars (date, author,
+ * length, topics), the plate, the text with numbered headings and a brass
+ * initial, the not-legal-advice note, and more to read.
+ */
+import type { CollectionEntry } from 'astro:content';
+import { getImage } from 'astro:assets';
+import Base from './Base.astro';
+import Unmask from '../components/Unmask.astro';
+import FormattedDate from '../components/FormattedDate.astro';
+import Plate from '../components/Plate.astro';
+import Photo from '../components/Photo.astro';
+import Docket from '../components/Docket.astro';
+import Closing from '../components/Closing.astro';
+import { site } from '../site';
+import { settings } from '@core/settings';
+import { defaultPostPhoto, photos, topicPhotos } from '../data/photos';
+import { blogPosting } from '@core/lib/jsonld.js';
+import { absoluteUrl, canonicalUrl } from '@core/lib/seo.js';
+import { readingMinutes, tagSlug } from '@core/lib/posts.js';
+
+interface Props {
+    post: CollectionEntry<'blog'>;
+    related: CollectionEntry<'blog'>[];
+}
+
+const { post, related } = Astro.props;
+const { title, description, pubDate, updatedDate, tags, cover, coverAlt, draft } = post.data;
+const author = post.data.author ?? site.blog.defaultAuthor;
+const url = canonicalUrl(Astro.url.pathname, settings.siteUrl);
+const firstTag = tags[0];
+const topicPhoto = (firstTag !== undefined ? topicPhotos[tagSlug(firstTag)] : undefined) ?? defaultPostPhoto;
+
+// The link preview: the cover, or the topic photo, cropped to 1200x630.
+const preview = await getImage({ src: cover ?? photos[topicPhoto].src, width: 1200, height: 630, fit: 'cover', format: 'jpg' });
+const image = { src: absoluteUrl(preview.src, settings.siteUrl), alt: cover !== undefined ? (coverAlt ?? '') : photos[topicPhoto].alt };
+---
+
+<Base
+    title={title}
+    description={description}
+    type="article"
+    image={image}
+    breadcrumbs={[
+        { name: site.blog.title, href: '/insights/' },
+        { name: title, href: Astro.url.pathname },
+    ]}
+    article={{ published: pubDate, updated: updatedDate, tags }}
+    jsonLd={[
+        blogPosting(
+            { url, title, description, image: image.src, published: pubDate, updated: updatedDate, author, tags },
+            settings.siteUrl,
+        ),
+    ]}
+>
+    <div class="reading-progress" aria-hidden="true"></div>
+    <article class="memo">
+        <header class="container head">
+            <p class="label">
+                <a href="/insights/">{site.blog.title}</a>
+                {firstTag && (
+                    <>
+                        <span aria-hidden="true">·</span>
+                        <a href={`/insights/tags/${tagSlug(firstTag)}/`}>{firstTag}</a>
+                    </>
+                )}
+            </p>
+            {draft && <p class="draft">Draft: not published in production.</p>}
+            <Unmask as="h1" lines={[title]} />
+            <p class="lead">{description}</p>
+        </header>
+
+        <div class="container sheet">
+            <aside class="margin" aria-label="Particulars">
+                <dl>
+                    <div>
+                        <dt>Published</dt>
+                        <dd><FormattedDate date={pubDate} /></dd>
+                    </div>
+                    {updatedDate && (
+                        <div>
+                            <dt>Updated</dt>
+                            <dd><FormattedDate date={updatedDate} /></dd>
+                        </div>
+                    )}
+                    <div>
+                        <dt>By</dt>
+                        <dd>{author}</dd>
+                    </div>
+                    <div>
+                        <dt>Reading</dt>
+                        <dd>{readingMinutes(post.body ?? '')} minutes</dd>
+                    </div>
+                    {tags.length > 0 && (
+                        <div>
+                            <dt>Topics</dt>
+                            <dd>
+                                <ul class="tags">
+                                    {tags.map((tag) => (
+                                        <li>
+                                            <a href={`/insights/tags/${tagSlug(tag)}/`}>{tag}</a>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </dd>
+                        </div>
+                    )}
+                </dl>
+                <p class="advice">General information, not legal advice.</p>
+            </aside>
+
+            <div class="text">
+                {
+                    cover && coverAlt ? (
+                        <figure class="cover">
+                            <Photo src={cover} alt={coverAlt} sizes="(min-width: 64rem) 44rem, 100vw" priority />
+                        </figure>
+                    ) : (
+                        <Plate photo={topicPhoto} shape="wide" sizes="(min-width: 64rem) 44rem, 100vw" priority />
+                    )
+                }
+
+                <div class="prose body">
+                    <slot />
+                </div>
+
+                <aside class="notice" aria-label="Not legal advice">
+                    <p class="notice-title">A note on this article</p>
+                    <p>
+                        This is general information about the law, written in plain language for clients and neighbors. It is not legal advice about your situation, the law differs from state to state and changes over time, and reading it does not make {site.name} your lawyer. Before you act on anything here, talk to a lawyer about your own matter.
+                    </p>
+                    <p class="actions">
+                        <a class="button" href={site.cta.href}>{site.cta.label}</a>
+                        <a class="more" href={`tel:${site.business.phoneE164}`}>Call {site.business.phone}</a>
+                    </p>
+                </aside>
+            </div>
+        </div>
+    </article>
+
+    {
+        related.length > 0 && (
+            <section class="related">
+                <div class="container">
+                    <p class="label">Further reading</p>
+                    <h2>Related Insights</h2>
+                    <Docket posts={related} level="h3" />
+                </div>
+            </section>
+        )
+    }
+
+    <Closing />
+</Base>
+
+<style>
+    .memo {
+        padding: clamp(2.5rem, 1.5rem + 4vw, 5.5rem) 0 var(--section);
+    }
+
+    .head {
+        max-width: 58rem;
+        margin-inline: auto;
+        padding-bottom: var(--space-10);
+    }
+
+    .head .label a {
+        color: inherit;
+        text-decoration: none;
+    }
+
+    .head .label a:hover {
+        text-decoration: underline;
+    }
+
+    .head :global(h1) {
+        font-size: clamp(2.3rem, 1.5rem + 3.2vw, 4.25rem);
+    }
+
+    .lead {
+        max-width: 42rem;
+        margin: var(--space-6) 0 0;
+    }
+
+    .draft {
+        display: inline-block;
+        padding: 0.15rem 0.6rem;
+        border: 1px solid var(--color-error);
+        color: var(--color-error);
+        font-family: var(--font-sans);
+        font-size: 0.8125rem;
+    }
+
+    .sheet {
+        display: grid;
+        gap: var(--space-10);
+        max-width: 58rem;
+        padding-top: var(--space-8);
+        border-top: 1px solid var(--color-navy);
+    }
+
+    @media (min-width: 64rem) {
+        .sheet {
+            grid-template-columns: 11rem minmax(0, 1fr);
+            gap: var(--space-12);
+        }
+
+        .margin {
+            position: sticky;
+            top: calc(var(--header-height) + var(--space-8));
+            align-self: start;
+        }
+    }
+
+    .margin dl {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+        gap: var(--space-4);
+        margin: 0;
+    }
+
+    dt {
+        color: var(--color-brass-ink);
+        font-variant-caps: all-small-caps;
+        letter-spacing: 0.12em;
+    }
+
+    dd {
+        margin: 0;
+        color: var(--color-navy);
+        font-family: var(--font-sans);
+        font-size: 0.875rem;
+        font-variant-numeric: lining-nums;
+        line-height: 1.5;
+    }
+
+    .tags {
+        display: grid;
+        gap: var(--space-1);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .tags a {
+        color: var(--color-navy);
+    }
+
+    .advice {
+        margin: var(--space-6) 0 0;
+        padding-top: var(--space-4);
+        border-top: 1px solid var(--color-rule);
+        color: var(--color-muted);
+        font-size: 1rem;
+        font-style: italic;
+        line-height: 1.4;
+    }
+
+    .text {
+        min-width: 0;
+    }
+
+    .cover :global(img) {
+        width: 100%;
+        aspect-ratio: 21 / 9;
+        object-fit: cover;
+    }
+
+    .body {
+        width: auto;
+        max-width: var(--width-prose);
+        margin: var(--space-12) 0 0;
+        counter-reset: section;
+    }
+
+    /* Numbered headings, like the sections of a memorandum. */
+    .body :global(h2) {
+        counter-increment: section;
+    }
+
+    .body :global(h2)::before {
+        content: '§ ' counter(section);
+        display: block;
+        margin-bottom: var(--space-2);
+        color: var(--color-brass-ink);
+        font-family: var(--font-sans);
+        font-size: 0.75rem;
+        font-variant-numeric: lining-nums;
+        letter-spacing: 0.16em;
+    }
+
+    /* A brass initial on the first paragraph. */
+    .body > :global(p:first-child::first-letter) {
+        float: left;
+        margin: 0.06em 0.1em 0 0;
+        color: var(--color-brass-ink);
+        font-size: 4.3em;
+        line-height: 0.78;
+    }
+
+    .body > :global(p:first-child::first-line) {
+        font-variant-caps: small-caps;
+        letter-spacing: 0.03em;
+    }
+
+    .notice {
+        max-width: var(--width-prose);
+        margin-top: var(--space-12);
+        padding: var(--space-8);
+        border: 1px solid var(--color-brass);
+        background: var(--color-paper);
+        box-shadow: inset 0 0 0 4px var(--color-paper), inset 0 0 0 5px var(--color-rule);
+    }
+
+    .notice p {
+        color: var(--color-prose);
+        font-family: var(--font-sans);
+        font-size: 0.9375rem;
+        line-height: 1.65;
+    }
+
+    .notice .notice-title {
+        margin-bottom: var(--space-3);
+        color: var(--color-navy);
+        font-family: var(--font-serif);
+        font-size: 1.3rem;
+        font-variant-caps: all-small-caps;
+        letter-spacing: 0.1em;
+    }
+
+    .notice .actions {
+        margin: var(--space-6) 0 0;
+    }
+
+    .related {
+        padding: 0 0 var(--section);
+    }
+
+    .related h2 {
+        margin-bottom: var(--space-8);
+    }
+</style>
