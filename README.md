@@ -21,7 +21,7 @@ It is built the way Waffle is, for people with some engineering skill who work w
 
 The stack: Astro 7 building static pages, Markdown for the blog only, Caddy 2.11 serving files and forwarding `/api/site/*` to the waffle app, Docker Compose, Doppler for the one secret, one server deployed by GitHub Actions. There is no application server, database or PHP in production.
 
-The example site is a local electrician, with service pages, town pages, a price guide read from the waffle app, reviews, an emergency page, an FAQ, a quote form and a 24-article blog, illustrated with free Unsplash photos you replace with your own ([docs/design.md](docs/design.md)).
+Nine example sites ship with it, each a complete, working site for a fictional business with its own design, logo, motion, photographs and blog: an electrician, a mobile auto detailer, a wedding photographer, a dental practice, a bakery, a yoga studio, a brewery, a veterinary clinic and a law firm. Setup installs the one you choose as your site's own code, and your agent reshapes it for your business ([docs/examples.md](docs/examples.md)). The photographs are free Unsplash photos you replace with your own.
 
 ## Documentation
 
@@ -54,7 +54,7 @@ gh repo create acme-site --template treehousetim/waffle-site --private --clone
 cd acme-site && ./tools/setup.sh
 ```
 
-`tools/setup.sh` checks your machine for Docker, Compose, git, Doppler and `gh`, asks for a **slug**, a **display name**, the **site's hostname** and the **waffle app's hostname** (suggesting each), renames the project, and offers the first commit. Every answer has a flag (`./tools/setup.sh --help`). [docs/create-project.md](docs/create-project.md) has the details.
+`tools/setup.sh` checks your machine for Docker, Compose, git, Doppler and `gh`, asks which **example site** to start from, then for a **slug**, a **display name**, the **site's hostname** and the **waffle app's hostname** (suggesting each), renames the project, and offers the first commit. Every answer has a flag (`./tools/setup.sh --help`). [docs/create-project.md](docs/create-project.md) has the details.
 
 **Platforms:** macOS (the stock bash 3.2 is fine), Linux, and Windows inside WSL2.
 

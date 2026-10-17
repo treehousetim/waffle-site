@@ -158,15 +158,107 @@ never hidden waiting for an animation the browser cannot run.
 | `brewery` | Hospitality | `Brewery` | tap list, events, private hire form |
 | `veterinary` | Health | `VeterinaryCare` | wellness plans, appointment request |
 | `law-firm` | Professional | `LegalService` | consultation request |
-| `landscape-design` | Local trade | `HomeAndConstructionBusiness` | seasonal services, consultation form |
-| `tattoo-studio` | Studio | `TattooParlor` | artists and their books, booking request |
-| `interior-design` | Studio | `ProfessionalService` | enquiry form |
-| `escape-room` | Entertainment | `EntertainmentBusiness` | rooms and open slots, booking form |
-| `bookshop` | Retail | `BookStore` | events, staff picks, special order form |
-| `climbing-gym` | Fitness | `ExerciseGym` | memberships, party booking form |
-| `vintage-clothing` | Retail | `ClothingStore` | new arrivals, sell-to-us form |
-| `music-school` | Education | `EducationalOrganization` | lesson rates, trial lesson form |
-| `florist` | Retail | `Florist` | today's bouquets, order form |
-| `tutoring` | Education | `EducationalOrganization` | test dates, assessment form |
-| `kayak-tours` | Outdoors | `SportsActivityLocation` | tours and departures, booking form |
-| `barber-shop` | Personal care | `HairSalon` | price list, barbers, booking form |
+
+## Concepts not built
+
+Twelve more examples were designed and not built. They are recorded here so
+any of them can be built later, by the steps in "Adding an example", without
+designing it again. Six were started: their unfinished, unverified work is on
+local branches named `example/<name>` (not merged, not pushed), a head start
+rather than a finished site; check it against the contract before using it.
+
+### `landscape-design`: Landscape design studio (started)
+
+- **Business:** Fernbrook Landscape Studio, design-and-build gardens for homes. schema.org type `HomeAndConstructionBusiness`.
+- **Look:** Botanical: forest green, moss, stone and clay; a botanical-plate serif; SVG fern and leaf line drawings; site-plan diagrams.
+- **Motion:** Vines that draw themselves along the page edge as it scrolls; leaves that sway; an accent colour that moves through the seasons down the page; planting-plan circles that grow in.
+- **Pages:** Services (design, hardscaping, planting, irrigation, garden care), a page per project, process, seasons, areas, consultation. Plus the pages every example has ("The contract", above).
+- **Waffle endpoints:** `GET /api/site/seasonal-services` (what is booking now, and the lead time), `POST /api/site/forms/consultation`.
+
+### `tattoo-studio`: Tattoo studio (started)
+
+- **Business:** Black Lotus Tattoo, custom and fine-line work by four resident artists. schema.org type `TattooParlor`.
+- **Look:** Ink black, bone white and blood red; blackletter or brutalist display with a monospace; flash-sheet grids, halftone and torn-paper textures.
+- **Motion:** Ink-bleed reveals that sharpen into focus; a glitch flicker on artist names; a lotus logo that unfolds; flash cards that flip; a needle line stitching down the page; portraits that morph into artist pages.
+- **Pages:** A page per artist and per style, flash, booking process, aftercare, pricing and deposits, policies (18+), booking request. Plus the pages every example has ("The contract", above).
+- **Waffle endpoints:** `GET /api/site/artists` (whose books are open, next opening, minimum price), `POST /api/site/forms/booking-request`.
+
+### `interior-design`: Interior design studio (started)
+
+- **Business:** Maison Lumen Interiors, residential and boutique-hospitality interiors. schema.org type `ProfessionalService`.
+- **Look:** Minimal luxury: stone, sand and greige with one deep accent; an oversized thin serif; an asymmetric editorial grid; material swatch chips drawn in CSS.
+- **Motion:** Split-screen image wipes; clip-path reveals that open like a door; sticky project cards that stack and scale as you scroll; a slow swatch strip; words fading in one by one.
+- **Pages:** Services (full-service, e-design, styling, renovation management, commercial), a page per project, process, the studio, enquiry. Plus the pages every example has ("The contract", above).
+- **Waffle endpoints:** `POST /api/site/forms/enquiry` only.
+
+### `escape-room`: Escape room (started)
+
+- **Business:** The Locked Lantern, four Victorian-mystery rooms in an old mill. schema.org type `EntertainmentBusiness`.
+- **Look:** Midnight blue-black, candle gold, parchment and wax-seal red; an ornate Victorian serif with a typewriter face; engraved borders, keyholes and lanterns.
+- **Motion:** Candlelight that flickers behind headings; drifting fog; lock tumblers that turn into place on scroll; typewritten room teasers; case files that slide out of envelopes; a hidden clue to find.
+- **Pages:** A page per room, private and corporate events, birthdays, gift vouchers, how it works, accessibility, booking. Plus the pages every example has ("The contract", above).
+- **Waffle endpoints:** `GET /api/site/rooms` (players, duration, difficulty, price, next open slots), `POST /api/site/forms/booking`.
+
+### `bookshop`: Independent bookshop (started)
+
+- **Business:** Dog-Eared Books, with a café corner and a children's den. schema.org type `BookStore`.
+- **Look:** Warm paper, ink, oxblood and bottle green; a classic book serif with handwritten staff notes; book spines, library and catalogue cards, marginalia.
+- **Motion:** Page-turn transitions; spines that slide off the shelf on hover; a shelf that scrolls sideways as the page scrolls down; a bookmark ribbon for reading progress; notes that write themselves in.
+- **Pages:** Staff picks, events (a page per series), book clubs, the children's den, special orders, gift cards, visit. Plus the pages every example has ("The contract", above).
+- **Waffle endpoints:** `GET /api/site/events`, `GET /api/site/staff-picks`, `POST /api/site/forms/special-order`.
+
+### `climbing-gym`: Climbing gym (started)
+
+- **Business:** Crux Climbing, bouldering and ropes in a converted warehouse. schema.org type `ExerciseGym`.
+- **Look:** Chalk white, neon orange, electric blue and graphite; a heavy condensed italic; diagonal cuts, giant grades, hold shapes in SVG.
+- **Motion:** Type that shears in on diagonals; holds that pop in; a route line that climbs the page as you scroll; a parallax wall; a grade ticker; a header that compacts.
+- **Pages:** Bouldering, ropes, training, first visit, memberships and day passes, classes, youth, parties, events, route setting. Plus the pages every example has ("The contract", above).
+- **Waffle endpoints:** `GET /api/site/memberships`, `POST /api/site/forms/party-booking`.
+
+### `vintage-clothing`: Vintage clothing shop
+
+- **Business:** Second Act Vintage, clothes from the 60s to the 90s. schema.org type `ClothingStore`.
+- **Look:** 1970s retro: mustard, burnt orange, avocado and cream; a rounded groovy display face; wavy stripes and sticker badges.
+- **Motion:** Flowing wavy stripes; rotating sticker badges; a "new in" marquee; wiggling hover states.
+- **Pages:** New arrivals, a page per era, sell to us, rentals and styling, visit. Plus the pages every example has ("The contract", above).
+- **Waffle endpoints:** `GET /api/site/new-arrivals` (era, size, price, sold), `POST /api/site/forms/sell-to-us`.
+
+### `music-school`: Music school
+
+- **Business:** Bright Notes Music Academy, lessons for children and adults. schema.org type `EducationalOrganization`.
+- **Look:** Deep indigo with a colour per instrument; geometric rhythm shapes and staff lines.
+- **Motion:** Equaliser bars; notes floating along staff lines; pulses on the beat; instrument cards.
+- **Pages:** A page per instrument, teachers, lessons and rates, ensembles, recitals, adult learners. Plus the pages every example has ("The contract", above).
+- **Waffle endpoints:** `GET /api/site/lesson-rates`, `POST /api/site/forms/trial-lesson`.
+
+### `florist`: Florist
+
+- **Business:** Petal & Stem, bouquets, weddings and subscriptions. schema.org type `Florist`.
+- **Look:** Blush, sage and butter with dark ink; a delicate script with a serif.
+- **Motion:** Petals drifting down; flowers that bloom open in SVG; layered bouquet parallax.
+- **Pages:** Shop bouquets, weddings, events, subscriptions, sympathy, delivery areas, workshops, care guide. Plus the pages every example has ("The contract", above).
+- **Waffle endpoints:** `GET /api/site/bouquets` (today's bouquets and prices), `POST /api/site/forms/order`.
+
+### `tutoring`: Tutoring centre
+
+- **Business:** Northstar Tutoring, subject tutoring and test prep. schema.org type `EducationalOrganization`.
+- **Look:** Night-sky navy and star yellow; a crisp sans on grid paper.
+- **Motion:** Constellation lines drawing between stars; a progress path; chalk underlines.
+- **Pages:** Subjects, test prep, how it works, tutors, results, pricing. Plus the pages every example has ("The contract", above).
+- **Waffle endpoints:** `GET /api/site/test-dates` (upcoming test dates and prep cohorts), `POST /api/site/forms/assessment`.
+
+### `kayak-tours`: Kayak tours
+
+- **Business:** Saltmarsh Kayak Co., guided tours and rentals on a salt marsh. schema.org type `SportsActivityLocation`.
+- **Look:** Ocean teal, sand and sunset coral; a hand-drawn map style.
+- **Motion:** Animated SVG waves; a bobbing boat; a tide chart driven by scroll; a layered parallax horizon.
+- **Pages:** A page per tour, rentals, private groups, what to bring, safety, the marsh, gift vouchers. Plus the pages every example has ("The contract", above).
+- **Waffle endpoints:** `GET /api/site/tours` (duration, price, level, departures), `POST /api/site/forms/booking`.
+
+### `barber-shop`: Barber shop
+
+- **Business:** Sharp & Co. Barbers, cuts, shaves and beard work. schema.org type `HairSalon`.
+- **Look:** Oxblood, cream, navy and brass; vintage sign-painter type and pinstripes.
+- **Motion:** A turning barber-pole stripe; a neon sign that flickers on; straight-razor swipe reveals.
+- **Pages:** Services and prices, the barbers, the shop, grooming products, kids, gift cards. Plus the pages every example has ("The contract", above).
+- **Waffle endpoints:** `GET /api/site/services-menu`, `GET /api/site/barbers`, `POST /api/site/forms/booking`.
