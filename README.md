@@ -28,6 +28,7 @@ Nine example sites ship with it, each a complete, working site for a fictional b
 | Document | Read it when | What it covers |
 | --- | --- | --- |
 | [AGENTS.md](AGENTS.md) | Before changing anything | The rulebook: stack, layout, content rules, layering, testing, secrets, the release flow. |
+| [docs/setups.md](docs/setups.md) | Before starting a project | Where the site fits in each of Waffle's setups: hosting, publishing, and how it talks to the app; setup 3, a static site published from `main` to DigitalOcean App Platform. |
 | [docs/create-project.md](docs/create-project.md) | Starting a site from the template | `tools/setup.sh`: the four names it asks for, what the rename touches, its failure list. |
 | [docs/design.md](docs/design.md) | Changing how anything looks, or replacing the photos | The design principles, the tokens, the photo pipeline and its licence, and the audit the design came from. |
 | [docs/pages.md](docs/pages.md) | Adding or changing a page | Pages as `.astro` files, the components, service and town pages, removing a page. |

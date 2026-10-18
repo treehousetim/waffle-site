@@ -203,7 +203,9 @@ still one page with one URL.
 ## The waffle app's side
 
 What the site needs from the app, as `/api/site/*` endpoints (docs/waffle-api.md
-has the envelope and the rules); a Waffle Iron module can provide them.
+has the envelope and the rules). The tables behind them are Waffle's content
+model ([docs/content-model.md](https://github.com/treehousetim/waffle/blob/main/docs/content-model.md)):
+publishable columns, slug history, terms for hubs, media, form submissions.
 
 | Endpoint | Read | Returns |
 |---|---|---|

@@ -17,6 +17,8 @@ This is the instruction file for anyone (human or AI agent) working in this repo
 
 The template ships complete example sites, one per kind of business, each with its own design (docs/examples.md). Setup installs the one the user picks as this site's own code, and its playbook as `docs/playbook.md`: the route from the example to the real business. Rewrite it for the real business; keep the rules.
 
+**Every project is one of Waffle's setups** (docs/setups.md): the site beside an app on its own server (setups 2, 2a, 4) or a static site on a static host (setup 3). Name it in this section; hosting, publishing and how the site reaches the app follow from it.
+
 ### First session in a new project
 
 If `package.json`'s `name` is still `waffle_site`, or the paragraph above still says **Replace this paragraph**, the project has not been set up yet. Before anything else:
