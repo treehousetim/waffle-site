@@ -138,6 +138,7 @@ The site has no server code; the waffle app it fronts is the system of record. d
 
 - **Build time:** pages read `/api/site/*` through `waffle.get()` from `@core/settings`. Development and tests read `api-fixtures/`; production reads the app. A new endpoint gets a fixture, a parser with tests, and its waffle-side endpoint.
 - **Run time:** the browser posts to `/api/site/*` on this site; Caddy forwards it to the app with `X-Site-Key` and without the visitor's cookies. Forms work without script (docs/forms.md).
+- **Data changes rebuild only the pages they affect.** The waffle app sends a change notice (record type and slugs); the site works out the affected pages from its page manifest (before and after the change, so a page a record left is rebuilt too: usually several pages) and builds only those into a new release. A full build is for a code release or recovery, never for a data change. docs/data-pages.md, decision 8, is the rule and its failure list.
 - **Anything that stores, sends or decides belongs in the waffle app**, not here. Build it there, as a slice or a [Waffle Iron](https://github.com/treehousetim/waffle-iron) module.
 
 ---

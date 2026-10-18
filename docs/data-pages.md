@@ -27,6 +27,10 @@ Used with exactly these meanings, here and in code, tests and commit messages.
 | **retired record** | A record that was published and no longer is. Its URL must still answer (decision 7). |
 | **crawl trap** | URLs search engines could follow forever: filters, sorts, date pickers. Never indexed. |
 | **site plan** | The table from decision 1: every page type, its URL, its data and the searches it answers. |
+| **change notice** | What the waffle app sends when records change: the record type and the slugs that changed. Never "rebuild everything". |
+| **affected pages** | Every page whose HTML a change notice alters: the changed records' entity pages, every hub, combination and list page that showed them before or shows them now, and the sitemap and feeds. Usually more than one page; never the whole site for a data change. |
+| **page manifest** | A file each build writes beside its pages, recording which records every page was built from. How the site works out the affected pages. |
+| **scoped build** | A rebuild of only the affected pages, laid over a copy of the release being served. |
 
 ## Decision 1: what do people search for?
 
@@ -150,11 +154,34 @@ still one page with one URL.
   its hub if there is one, and otherwise answers `410 Gone`. It is never
   redirected to the home page, and it leaves the sitemap.
 
-## Decision 8: keeping it fresh
+## Decision 8: keeping it fresh, one change at a time
 
-- **Lasting data is as fresh as the last build.** When the waffle app changes a
-  record's lasting data, it asks for a rebuild; the site rebuilds and
-  redeploys. A few changes close together make one rebuild.
+- **A data change rebuilds only its affected pages.** The waffle app sends a
+  change notice naming the record type and slugs; the site, not the app,
+  works out which pages that touches, because only the site knows its page
+  types. A full build is for a new release (a code change) and for recovery,
+  never for a data change.
+- **The affected pages come from the page manifest, before and after.** A
+  property that moves from Asheville to Boone changes its own page, the
+  Asheville hub it left, the Boone hub it joined, both towns' combination
+  pages, any list page that featured it, and the sitemap. The previous
+  release's manifest gives the pages that showed it; the new data gives the
+  pages that will. The union is the scoped build. A record that crosses the
+  publish bar either way, or retires, adds or removes pages and the redirect
+  list, the same way.
+- **A scoped build is assembled into a new release, never patched in place.**
+  The current release is copied (hard links, so it is cheap), the affected
+  pages and their new images are built over it, the sitemap, feeds and page
+  manifest are rewritten from the full record set, the audit runs over the
+  whole result, and `deploy.sh` switches to it atomically, as for any
+  release. Rollback is the same as ever.
+- **Only for the release that is being served.** A scoped build uses the code
+  of the current release tag; its scripts and styles are byte-identical, so
+  the pages it adds sit beside the old ones without mismatch. A change notice
+  that arrives while a new release is deploying waits for it.
+- **Notices are coalesced.** Changes arriving close together become one
+  scoped build covering all their slugs (the waffle app's queue does this:
+  see "The waffle app's side").
 - **Live data needs no rebuild**: the islands read it on every visit.
 - **The build fails rather than publish wrong pages.** An unreachable app or a
   record that does not parse stops the build, and the site keeps serving the
@@ -183,7 +210,7 @@ has the envelope and the rules); a Waffle Iron module can provide them.
 | `GET /api/site/<records>` | at build time | every published record's lasting data and slug, and each record's previous slugs. Paged by path (`/api/site/<records>/page/2`) once large: build-time paths carry no query string |
 | `GET /api/site/<records>/retired` | at build time | the slugs of retired records, with the hub each redirects to, if any |
 | `GET /api/site/availability`, `/quote` | by islands, in the browser | live data, with query strings (dates, guests) |
-| a rebuild request | by the app, on change | asks the site to rebuild (decision 8) |
+| a change notice | sent by the app, on change | the record type and changed slugs, coalesced by the app's queue; the site scopes its rebuild from it (decision 8) |
 
 The build makes one request per endpoint, not one per record.
 
@@ -205,6 +232,10 @@ site's checks or the core before the code that prevents it is written
 10. The waffle app is down or answers garbage at build time, and the site publishes an empty or partial set of pages.
 11. A rebuild is never triggered after a change, and pages drift from the app.
 12. Photos are hot-linked from the app's storage instead of resized and served by the site.
+13. A scoped build misses an affected page: the hub a record left, a list that featured it, the sitemap.
+14. A data change triggers a full rebuild, so every change costs the whole site's build time and grows with it.
+15. A scoped build mixes pages from two code versions, or patches the served release in place instead of making a new one.
+16. Two change notices close together start two overlapping builds, and the later finishes first.
 
 ## What exists today, and what this needs
 
@@ -225,8 +256,12 @@ Not built yet, and needed for a site like the vacation-rental example:
 - **remote photos**: `image.remotePatterns` in `astro.config.mjs` for the
   waffle app's photo storage, so the build fetches, resizes and serves them
   itself (failure 12)
-- **rebuild requests**: a way for the waffle app to start the deploy
-  workflow for the current release, and its waffle-side module
+- **scoped builds**: the page manifest, working out the affected pages from a
+  change notice (pure, in `src/core/lib/`, at 100% coverage), building only
+  those (`getStaticPaths` limited to them), assembling the new release over a
+  copy of the current one, and a deploy trigger that carries the notice
+- **change notices from the app**: sent through a queue in the waffle app,
+  which coalesces them; Waffle has no queue yet (its OPEN-QUESTIONS.md)
 - **a worked example**: an example site built this way
 
 Until those exist, a site can follow every decision here with code of its own;
