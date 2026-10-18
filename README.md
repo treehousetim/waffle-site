@@ -34,6 +34,7 @@ Nine example sites ship with it, each a complete, working site for a fictional b
 | [docs/blog.md](docs/blog.md) | Writing a post | The front matter, its rules, writing posts that get found, what the blog builds. |
 | [docs/seo.md](docs/seo.md) | A build fails the audit, or before launch | What every page gets, local business details, preview builds, the audit's rules. |
 | [docs/building.md](docs/building.md) | Building locally, or a build refuses its settings | The dev server, the build, the build settings and their failure list. |
+| [docs/data-pages.md](docs/data-pages.md) | Building pages from the waffle app's data: listings, locations, products | The decisions in order: page types from searches, built or live, the publish bar, URLs that last, freshness, proving it; the terms; the failure list; what exists and what is still to build. |
 | [docs/waffle-api.md](docs/waffle-api.md) | Showing app data on a page, or building the app side | Build-time reads, the `/api/site` proxy, the contract the waffle app implements, the failure list. |
 | [docs/forms.md](docs/forms.md) | Adding or changing a form | How a submission travels, the honeypot, what the app sends back. |
 | [docs/https.md](docs/https.md) | Launching on your hostname, or HTTPS is not coming up | The Caddyfile, DNS, the certificate store, and their failure lists. |

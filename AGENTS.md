@@ -110,6 +110,7 @@ README.md, CHANGELOG.md, OPEN-QUESTIONS.md, RESOLVED_QUESTIONS.md
 - **Blog posts are Markdown** in `src/content/blog/`, one template, front matter checked by a strict schema (docs/blog.md).
 - **One `<h1>` per page**, rendered by `Hero` or the blog template.
 - **Nothing inline that Astro does not hash.** Astro writes each page's content security policy (`security.csp` in `astro.config.mjs`), hashing every script and style it emits, so component `<style>` and `<script>` blocks are fine. A `style=` or `on*=` attribute, or a script or style added any other way, is blocked by the browser and failed by the audit.
+- **Pages generated from waffle data follow docs/data-pages.md**, decision by decision, with its terms (record, page type, publish bar, lasting and live data). Its site plan goes in `docs/playbook.md` before any code.
 - **Shared facts live in one place.** The business's name, address, phone, hours and licence are in `src/site.ts`; services, towns and reviews in `src/data/`. Never retype them into a page.
 - **Town pages say something true about that town** and no other, or they are not written (docs/pages.md, "Town pages").
 - **Never invent facts about a real business**: phone numbers, addresses, licence numbers, prices, reviews or credentials. Ask. The example's 555-01xx numbers are reserved for fiction.
