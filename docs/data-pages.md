@@ -262,8 +262,9 @@ Not built yet, and needed for a site like the vacation-rental example:
   change notice (pure, in `src/core/lib/`, at 100% coverage), building only
   those (`getStaticPaths` limited to them), assembling the new release over a
   copy of the current one, and a deploy trigger that carries the notice
-- **change notices from the app**: sent through a queue in the waffle app,
-  which coalesces them; Waffle has no queue yet (its OPEN-QUESTIONS.md)
+- **change notices from the app**: sent through the waffle app's queue, which
+  coalesces them; the queue is designed, not yet built (Waffle's
+  docs/queue.md)
 - **a worked example**: an example site built this way
 
 Until those exist, a site can follow every decision here with code of its own;
