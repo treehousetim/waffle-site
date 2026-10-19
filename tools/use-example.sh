@@ -10,8 +10,9 @@
 # (docs/examples.md). Installing one copies its src/ in beside the core
 # (src/core/), its public/ and api-fixtures/ to the top level, its
 # PLAYBOOK.md to docs/playbook.md for the agent, and its checks.js to
-# tests/e2e/site.checks.js, then removes examples/: from here on the code is
-# the site's own. docs/create-project.md has the failure list; the numbers
+# tests/e2e/site.checks.js, then removes examples/ and the template's own
+# setup tests (tests/infra/setup.test.js): from here on the code is the
+# site's own. docs/create-project.md has the failure list; the numbers
 # below cite it.
 #
 set -euo pipefail
@@ -82,5 +83,9 @@ if [ -d "${SOURCE}/api-fixtures" ]; then cp -R "${SOURCE}/api-fixtures" api-fixt
 cp "${SOURCE}/PLAYBOOK.md" docs/playbook.md
 cp "${SOURCE}/checks.js" tests/e2e/site.checks.js
 rm -rf examples
+# The setup scripts' own tests need the template (its examples and
+# placeholders) and fail in a site, where both are gone; they stay with the
+# template.
+rm -f tests/infra/setup.test.js
 
 echo "installed the ${NAME} example: src/, public/, api-fixtures/, docs/playbook.md and tests/e2e/site.checks.js are the site's own now."

@@ -169,6 +169,18 @@ for (const site of sites) {
     });
 }
 
+test('no test names a placeholder the rename cannot reach, so a renamed site still passes', () => {
+    // The rename replaces the placeholders as plain text. Written escaped, as
+    // in a regular expression, they are missed, and the test fails in every
+    // site made from the template.
+    const escaped = /waffle-site\\\.example|Waffle\\ Site/;
+    const offenders = walk('tests')
+        .filter((file) => file.endsWith('.js') && file !== 'tests/infra/setup.test.js' && file !== 'tests/infra/structure.test.js')
+        .filter((file) => escaped.test(readFileSync(join(ROOT, file), 'utf8')));
+
+    assert.deepEqual(offenders, []);
+});
+
 test('every document is listed in the README\'s documentation table', () => {
     const readme = read('README.md');
     const missing = readdirSync(join(ROOT, 'docs')).filter((name) => name.endsWith('.md') && name !== 'playbook.md' && !readme.includes(`(docs/${name})`));

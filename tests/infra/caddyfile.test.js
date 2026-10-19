@@ -118,9 +118,9 @@ test('(10) locally: plain HTTP on loopback, dist/ served, a waffle app on this m
 });
 
 test('(10) in production: the hostname, the current release, the key from Doppler or nothing', () => {
-    assert.match(prod, /^ {6}SITE_ADDRESS: waffle-site\.example\.com$/m);
+    assert.ok(prod.split('\n').includes('      SITE_ADDRESS: waffle-site.example.com'), 'SITE_ADDRESS is the site\'s hostname');
     assert.match(prod, /SITE_ROOT: \/srv\/site\/current/);
-    assert.match(prod, /^ {6}WAFFLE_APP_URL: https:\/\/app\.waffle-site\.example\.com$/m);
+    assert.ok(prod.split('\n').includes('      WAFFLE_APP_URL: https://app.waffle-site.example.com'), 'WAFFLE_APP_URL is the app\'s origin');
     assert.match(prod, /WAFFLE_SITE_KEY: \$\{WAFFLE_SITE_KEY:\?/);
     assert.match(prod, /ports: !override\n\s+- "80:80"\n\s+- "443:443"\n\s+- "443:443\/udp"/);
     assert.match(prod, /extra_hosts: !reset \[\]/);
@@ -130,4 +130,10 @@ test('(11) the certificate store is a named volume, never a path the rsync could
     assert.match(prod, /- caddy_data:\/data/);
     assert.match(prod, /^volumes:\n {2}caddy_data:/m);
     assert.match(prod, /restart: unless-stopped/);
+});
+
+test('names the Compose project for the slug, whatever folder the site is in', () => {
+    // Containers and volumes then belong to the site wherever it is cloned;
+    // on the server the folder is /opt/<slug>, so the names agree.
+    assert.ok(read('docker-compose.yml').split('\n').includes('name: waffle_site'));
 });

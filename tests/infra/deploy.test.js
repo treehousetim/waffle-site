@@ -223,7 +223,7 @@ test('deploy (5): the first deploy points current at the release, verifies it, a
     assert.equal(site.state('tag'), 'v1');
     assert.equal(site.state('previous-tag'), null);
     assert.match(result.stdout, /serving v1/);
-    assert.match(site.crontab(), /https:\/\/waffle-site\.example\.com\//);
+    assert.ok(site.crontab().includes('https://waffle-site.example.com/'), site.crontab());
 
     const compose = site.bin.calls().filter((call) => call.startsWith('docker compose'));
     assert.ok(compose.every((call) => call.includes('-f docker-compose.yml -f docker-compose.prod.yml')), compose.join('\n'));
@@ -310,7 +310,7 @@ test('the DNS check runs unless skipped, and its refusal stops a first deploy', 
     });
 
     assert.equal(result.status, 1);
-    assert.match(result.stderr, /refusing the first deploy until waffle-site\.example\.com points here/);
+    assert.ok(result.stderr.includes('refusing the first deploy until waffle-site.example.com points here'), result.stderr);
     assert.equal(site.current(), null);
 });
 

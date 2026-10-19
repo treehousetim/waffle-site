@@ -211,6 +211,7 @@ test('(17-20) installs one example as the site\'s own code, and refuses what it 
     }
     assert.equal(file(dir, 'src/core/marker'), 'core\n', '(20) the core is kept');
     assert.equal(existsSync(join(dir, 'examples')), false);
+    assert.equal(existsSync(join(dir, 'tests/infra/setup.test.js')), false, 'the template\'s setup tests stay with the template');
 
     assert.equal(useExample(dir, 'electrician').status, 1, '(17) a site has no examples left to install');
 });

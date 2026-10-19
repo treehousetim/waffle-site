@@ -13,6 +13,11 @@
 # production deploy.sh runs Compose under `doppler run --` with the server's
 # prod-serve config, which supplies WAFFLE_SITE_KEY.
 
+# The Compose project's name: containers, networks and volumes are named for
+# the project's slug, not for whatever folder it was cloned into (on the server
+# that folder is /opt/<slug>, so the two agree).
+name: waffle_site
+
 services:
   caddy:
     image: caddy:2.11
