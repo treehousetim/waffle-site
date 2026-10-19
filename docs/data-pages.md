@@ -127,9 +127,10 @@ each page type has a publish bar, enforced by the build:
   record is still bookable in the waffle app; it just has no landing page.
 - **The build reports what it left out and why**, so the owner can fill the
   gaps: "3 properties below the publish bar: lakeside-cabin (5 photos, needs 8)".
-- **The numbers are the site's to choose**, written in the site plan. Raise
-  them when Search Console shows a page type "crawled, currently not indexed"
-  (decision 9).
+- **The numbers live in the waffle app** (its content model), are checked when
+  staff publish, and come to the site with the records, so the build checks
+  the same numbers. Write them in the site plan too. Raise them when Search
+  Console shows a page type "crawled, currently not indexed" (decision 9).
 
 ## Decision 6: what is never indexed?
 

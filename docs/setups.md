@@ -14,6 +14,9 @@ side: what it does, where it is hosted and how it is published in each.
 
 Setups 1 and 5 have no site.
 
+**Versions:** matching majors. A Waffle Site 1.x site works with a Waffle 1.x
+app; a breaking change to the site API is a major release of both.
+
 **Locally, every setup is the same**: the dev server and Caddy in Docker
 (docs/building.md), fixtures for waffle data, nothing indexable.
 

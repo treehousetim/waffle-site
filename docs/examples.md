@@ -17,6 +17,11 @@ every change, so none of them can rot. `SITE_EXAMPLE` picks which one the dev
 server and a plain build use (default `electrician`); the end-to-end group
 builds them all.
 
+**Decided 2026-10-19, not yet done:** the electrician stays in this template
+as its reference example and test fixture; the other examples move to their
+own repository, `waffle-site-starters`, tested there against the core, with a
+public gallery of them running. Until then they stay here.
+
 ## What is shared and what is not
 
 | Shared: `src/core/` | Each example's own: `examples/<name>/` |
