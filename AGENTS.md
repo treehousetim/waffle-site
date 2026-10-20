@@ -189,7 +189,7 @@ Doppler is the **only** source of secrets, and the site has one: `WAFFLE_SITE_KE
 
 - One Doppler project, named for the slug, with two configs inheriting nothing: `prod-serve` (the server: `WAFFLE_SITE_KEY`, optional `HEARTBEAT_URL`) and `prod-deploy` (GitHub Actions: `DROPLET_HOST`, `DROPLET_USER`, `DROPLET_SSH_KEY`, `DROPLET_SSH_KNOWN_HOSTS`, optional `DEPLOY_ALERT_WEBHOOK`). **No secret values ever live in this repository.**
 - **Local:** no Doppler and no `.env` file, anywhere. Every value has a default in `docker-compose.yml`, and none is secret.
-- **CI** holds exactly one GitHub secret, `DOPPLER_TOKEN`, on the `prod` environment (with a `v*` tag rule), scoped to `prod-deploy`, loaded only after npm has run. The site key never reaches the runner. Never click Doppler's "Add missing value" on `prod-deploy`.
+- **CI** holds exactly one kind of GitHub secret, `DOPPLER_TOKEN`, on two environments, each with its own read-only token scoped to `prod-deploy`: `prod` (a `v*` tag rule; `deploy.yml`) and `prod-rebuild` (the default branch only; `rebuild.yml`). Only the `ship` job reads it, and **npm never runs there**: it runs in the `build` job, which has no environment, and the built site reaches `ship` as an artifact, so no process an npm package started can outlive its job and read the server's key. `ci.yml` holds no secret at all. The site key never reaches the runner. Never click Doppler's "Add missing value" on `prod-deploy`.
 - **Production:** the server's own token reads `prod-serve`; `deploy.sh` wraps every Compose call in `doppler run --`, so the key lives in Caddy's environment and never on disk. Rotation: change it in Doppler and in the waffle app, then redeploy.
 - **Tests never use Doppler.**
 
