@@ -37,6 +37,7 @@ the version in `VERSION` has one.
 - **Tests**: `./tools/test.sh`, Node's test runner in a container; `src/core/lib` at 100% line, branch and function coverage; infra tests for every script, the Caddyfile and the workflow; an end-to-end test that builds the site twice and leaves a repeatable artifact.
 
 ### Fixed
+- **`rebuild.yml` is valid YAML**: an unquoted `run:` holding `: ` made GitHub reject the whole file, so a change notice would never have started a rebuild. A test now refuses any workflow value YAML would misread.
 - **An image's credit shows without a caption**, and a gallery names whose its images are (`src/core/components/Caption.astro`, from `creditsOf()` in `src/core/lib/blocks.js`), each credit linked when the app has a link; a credit link that is not https:// fails the build. Before, a licensed image with no caption was shown with no credit, which its licence does not allow. Found in KAW Meetup's site. Porting: `blocks.js`, `Blocks.astro` and `Caption.astro`.
 
 ### Security

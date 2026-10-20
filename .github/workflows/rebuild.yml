@@ -41,7 +41,8 @@ jobs:
       - name: Read the notice
         env:
           CHANGES: ${{ toJSON(github.event.client_payload.changes) }}
-        run: printf 'change notice: %s\n' "$CHANGES"
+        run: |
+          printf 'change notice: %s\n' "$CHANGES"
 
       - name: Check out the repository
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5

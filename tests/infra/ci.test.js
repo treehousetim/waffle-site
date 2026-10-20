@@ -5,7 +5,9 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { read } from '../support/shell.js';
+import { readdirSync } from 'node:fs';
+import { join } from 'node:path';
+import { read, ROOT } from '../support/shell.js';
 
 const workflow = read('.github/workflows/ci.yml');
 
@@ -29,4 +31,23 @@ test('pins every action to a commit', () => {
     for (const action of uses) {
         assert.match(action, /@[0-9a-f]{40}$/);
     }
+});
+
+test('no workflow holds a plain value YAML would read as a second key, so GitHub can parse every one', () => {
+    // `run: printf 'a: b'` is invalid YAML: GitHub rejects the whole file, and
+    // says so only after a push. A value holding ": " must be quoted or a
+    // block (`run: |`).
+    const offenders = [];
+
+    for (const file of readdirSync(join(ROOT, '.github/workflows')).filter((name) => name.endsWith('.yml'))) {
+        read(`.github/workflows/${file}`).split('\n').forEach((line, index) => {
+            const value = /^\s*(?:- )?[\w-]+: (.*)$/.exec(line)?.[1] ?? '';
+
+            if (!/^[|>'"]/.test(value) && value.replace(/\s#.*$/, '').includes(': ')) {
+                offenders.push(`${file}:${index + 1}: ${line.trim()}`);
+            }
+        });
+    }
+
+    assert.deepEqual(offenders, []);
 });
