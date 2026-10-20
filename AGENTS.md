@@ -68,8 +68,9 @@ src/
   core/                           # shared by every site; not changed for one site's sake
     settings.ts                   # the build's settings and the waffle client, for pages (@core/settings)
     components/Seo.astro          # the <head>: title, description, canonical, robots, Open Graph, JSON-LD
+    components/Blocks.astro       # a body of blocks from the app (pages), as plain semantic HTML
     routes/robots.txt.ts          # robots.txt, injected by astro.config.mjs
-    lib/                          # pure logic, held to 100% coverage: settings, project, seo, jsonld, audit, posts, prices, forms, waffle-api, records, manifest, redirects, sitemap
+    lib/                          # pure logic, held to 100% coverage: settings, project, seo, jsonld, audit, posts, prices, forms, waffle-api, records, blocks, routes, manifest, redirects, sitemap
     lib/clients/                  # the network and the disk, and nothing else; outside coverage
     build-scope.ts                # full build or scoped to what changed (docs/scoped-builds.md)
   site.ts                         # the business (NAP, hours, licence), navigation, footer, noindex list

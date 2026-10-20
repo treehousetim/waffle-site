@@ -96,3 +96,11 @@ test('a fingerprint changes with any field, and only then', () => {
     assert.match(fingerprint(raw()), /^[0-9a-f]{64}$/);
     assert.ok(SLUG.test('a-b-1') && !SLUG.test('a--b'));
 });
+
+test('a type whose body is blocks has its blocks checked (1)', () => {
+    const blocks = [{ type: 'heading', level: 2, text: 'The cabin' }];
+    const [record] = parseRecords(data(raw({ body: blocks })), { path: '/api/site/pages', fields: noFields, body: 'blocks' });
+
+    assert.deepEqual(record.body, blocks);
+    assert.throws(() => parseRecords(data(raw({ body: 'text' })), { path: '/api/site/pages', fields: noFields, body: 'blocks' }), /records\[0\]\.body: expected a list of blocks/);
+});

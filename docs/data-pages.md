@@ -262,6 +262,15 @@ Built and usable now:
   hard-linked copy of the served one (`tools/scoped-release.mjs`,
   `deploy/assemble.sh`), and `rebuild.yml`, which a change notice from the app
   starts. A site adds two endpoints from its own plan of data pages.
+- **pages made of blocks**: the app's `pages` (Waffle's docs/content.md,
+  "Blocks") read with `parseRecords(..., { body: 'blocks' })`, every block
+  checked by `src/core/lib/blocks.js` and rendered by
+  `src/core/components/Blocks.astro`, which outputs plain semantic HTML for
+  the site's styles. `markdownOf()` names the Markdown in each block, for a
+  content loader's `renderMarkdown`. A page published at `/<slug>/` must not
+  take a slug the site's own pages use: `assertFreeSlugs()`
+  (`src/core/lib/routes.js`) fails the build if it does. KAW Meetup's site is
+  the worked example.
 
 Not built yet, and needed for a site like the vacation-rental example:
 

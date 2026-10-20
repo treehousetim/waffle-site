@@ -8,6 +8,7 @@
  */
 
 import { createHash } from 'node:crypto';
+import { parseBlocks } from './blocks.js';
 import { WaffleApiError } from './waffle-api.js';
 
 /** Lowercase letters, digits and single dashes: the app's slug rule. */
@@ -21,7 +22,7 @@ const UTC_TIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/;
  * @property {string} slug
  * @property {string} title
  * @property {string} summary
- * @property {string} body            Markdown, rendered by the page
+ * @property {any} body               Markdown text, or a list of blocks (blocks.js) for a type whose body is blocks
  * @property {string | null} seoTitle
  * @property {string | null} seoDescription
  * @property {Date} publishedAt       first published
@@ -33,10 +34,14 @@ const UTC_TIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/;
 
 /**
  * @param {unknown} data  the envelope's data
- * @param {{ path: string, fields: (raw: Record<string, unknown>, where: string) => Record<string, unknown> }} options
+ * @param {{
+ *   path: string,
+ *   fields: (raw: Record<string, unknown>, where: string) => Record<string, unknown>,
+ *   body?: 'markdown' | 'blocks',
+ * }} options
  * @returns {SiteRecord[]}
  */
-export function parseRecords(data, { path, fields }) {
+export function parseRecords(data, { path, fields, body = 'markdown' }) {
     const type = path.split('/').filter(Boolean).at(-1);
 
     if (data === null || typeof data !== 'object' || !Array.isArray(/** @type {{records?: unknown}} */ (data).records)) {
@@ -58,7 +63,7 @@ export function parseRecords(data, { path, fields }) {
             slug,
             title: text(record.title, `${where}.title`, true),
             summary: text(record.summary, `${where}.summary`, false),
-            body: text(record.body, `${where}.body`, false),
+            body: body === 'blocks' ? parseBlocks(record.body, `${where}.body`) : text(record.body, `${where}.body`, false),
             seoTitle: optionalText(record.seo_title, `${where}.seo_title`),
             seoDescription: optionalText(record.seo_description, `${where}.seo_description`),
             publishedAt: utc(record.published_at, `${where}.published_at`),

@@ -1,0 +1,61 @@
+---
+/**
+ * A body of blocks from the waffle app (Waffle's docs/content.md, "Blocks";
+ * src/core/lib/blocks.js), as plain semantic HTML. The look is the site's:
+ * style the classes, never change what the blocks mean. `html` holds each
+ * block's rendered Markdown, in the order markdownOf() names it.
+ */
+interface Props {
+    blocks: Record<string, any>[];
+    html: string[][];
+}
+
+const { blocks, html } = Astro.props;
+---
+
+{
+    blocks.map((block, index) => {
+        switch (block.type) {
+            case 'heading':
+                return block.level === 2 ? <h2 class="block-heading">{block.text}</h2>
+                    : block.level === 3 ? <h3 class="block-heading">{block.text}</h3>
+                    : <h4 class="block-heading">{block.text}</h4>;
+            case 'text':
+                return <div class="block-text prose" set:html={html[index][0]} />;
+            case 'quote':
+                return (
+                    <blockquote class="block-quote">
+                        <p>{block.text}</p>
+                        {block.cite && <cite>{block.cite}</cite>}
+                    </blockquote>
+                );
+            case 'callout':
+                return <aside class:list={['block-callout', block.tone]} set:html={html[index][0]} />;
+            case 'faq':
+                return (
+                    <dl class="block-faq">
+                        {block.items.map((item: { question: string }, at: number) => (
+                            <>
+                                <dt>{item.question}</dt>
+                                <dd class="prose" set:html={html[index][at]} />
+                            </>
+                        ))}
+                    </dl>
+                );
+            case 'cta':
+                return (
+                    <p class="block-cta">
+                        <a class="button" href={block.path}>{block.label}</a>
+                        {block.note && <small>{block.note}</small>}
+                    </p>
+                );
+            default:
+                return (
+                    <table class="block-table">
+                        <thead><tr>{block.columns.map((column: string) => <th scope="col">{column}</th>)}</tr></thead>
+                        <tbody>{block.rows.map((row: string[]) => <tr>{row.map((cell) => <td>{cell}</td>)}</tr>)}</tbody>
+                    </table>
+                );
+        }
+    })
+}
