@@ -43,3 +43,26 @@ export async function readFixture(relativePath) {
         throw error;
     }
 }
+
+/**
+ * An image from the waffle app, as bytes, for the build to resize (Waffle's
+ * docs/content.md, "Media"). Live builds fetch it from the app; development
+ * builds read the same path under the fixtures directory.
+ *
+ * @param {{ mode: 'fixtures' | 'live', baseUrl: string | null, fixturesDir: string }} source
+ * @param {string} path  /api/site/media/<id>.jpg
+ * @returns {Promise<Uint8Array>}
+ */
+export async function fetchImage({ mode, baseUrl, fixturesDir }, path) {
+    if (mode === 'fixtures') {
+        return new Uint8Array(await readFile(resolve(process.cwd(), fixturesDir, path.slice(1))));
+    }
+
+    const response = await fetch(`${baseUrl}${path}`, { redirect: 'manual', signal: AbortSignal.timeout(TIMEOUT_MS) });
+
+    if (response.status !== 200) {
+        throw new Error(`the waffle app answered ${response.status} for ${path}`);
+    }
+
+    return new Uint8Array(await response.arrayBuffer());
+}

@@ -274,7 +274,7 @@ Built and usable now:
   keeps its old and retired slugs out of the redirects. KAW Meetup's site is
   the worked example.
 
-Not built yet, and needed for a site like the vacation-rental example:
+Not built yet, and needed for a site like the vacation-rental example: Image and gallery blocks carry each image's path, size and alt text: a loader fetches each once (`fetchImage()` in `src/core/lib/clients/waffle.js`, from the app or the fixtures) and hands it to Astro through the collection's `image()` schema, so the site serves its own resized copies; `mediaOf()` names the images a page shows.
 
 - **core helpers for collections**: the publish-bar check with its report,
   and hub and combination grouping, so every site uses the same code

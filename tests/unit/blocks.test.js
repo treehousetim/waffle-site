@@ -1,7 +1,7 @@
 // src/core/lib/blocks.js — block bodies from the waffle app (Waffle's docs/content.md, "Blocks").
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { markdownOf, parseBlocks } from '../../src/core/lib/blocks.js';
+import { markdownOf, mediaOf, parseBlocks } from '../../src/core/lib/blocks.js';
 import { WaffleApiError } from '../../src/core/lib/waffle-api.js';
 
 const every = () => [
@@ -45,4 +45,35 @@ test('anything outside the set fails the build, naming the block and field (1)',
 
 test('names the Markdown each block holds, for rendering', () => {
     assert.deepEqual(markdownOf(every()), [[], ['Sleeps **six**.'], [], ['Bring a torch.'], ['Yes.'], [], []]);
+});
+
+const media = (id, overrides = {}) => ({ id, path: `/api/site/media/${id}.jpg`, width: 1200, height: 800, alt: `Image ${id}`, caption: null, credit_name: null, credit_url: null, ...overrides });
+
+test('image and gallery blocks carry the images the app describes, and every image is named once', () => {
+    const blocks = [
+        { type: 'image', media_id: 1, caption: 'The room', media: media(1) },
+        { type: 'gallery', media_ids: [2, 1], caption: null, media: [media(2), media(1)] },
+    ];
+
+    assert.deepEqual(parseBlocks(blocks, 'b'), blocks);
+    assert.deepEqual(markdownOf(blocks), [[], []]);
+    assert.deepEqual(mediaOf(blocks).map((m) => m.id), [1, 2]);
+    assert.deepEqual(mediaOf([{ type: 'heading', level: 2, text: 'A' }]), []);
+});
+
+test('an image the build cannot trust fails it, naming the field (1)', () => {
+    const cases = [
+        [{ type: 'image', media_id: 1, caption: null, media: null }, /b\[0\]\.media: expected an image/],
+        [{ type: 'image', media_id: 1, caption: null, media: media(1, { extra: 1 }) }, /b\[0\]\.media: unexpected field extra/],
+        [{ type: 'image', media_id: 1, caption: null, media: media(1, { path: 'https://elsewhere.example/x.jpg' }) }, /expected an image id and its/],
+        [{ type: 'image', media_id: 1, caption: null, media: media(1, { width: 0 }) }, /expected the image's width and height/],
+        [{ type: 'image', media_id: 1, caption: null, media: media(1, { alt: '' }) }, /b\[0\]\.media\.alt: expected text/],
+        [{ type: 'image', media_id: 1, caption: 3, media: media(1) }, /b\[0\]\.caption: expected text or null/],
+        [{ type: 'gallery', media_ids: [1], caption: null, media: [media(1)] }, /b\[0\]\.media: expected the gallery's images/],
+        [{ type: 'gallery', media_ids: [1, 2], caption: null, media: [media(1), null] }, /b\[0\]\.media\[1\]: expected an image/],
+    ];
+
+    for (const [block, message] of cases) {
+        assert.throws(() => parseBlocks([block], 'b'), message, String(message));
+    }
 });

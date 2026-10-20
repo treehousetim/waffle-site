@@ -13,6 +13,7 @@ the version in `VERSION` has one.
 ## [Unreleased]
 
 ### Added
+- **Images in pages' blocks** (Waffle's docs/content.md, "Media"): `blocks.js` checks image and gallery blocks and `mediaOf()` lists their images; `Blocks.astro` renders them with Astro's `<Image>` from an `images` map; `fetchImage()` in `src/core/lib/clients/waffle.js` gets each from the app or the fixtures. Brought back from KAW Meetup's site, where the pages loader is the worked example. Porting: the three files.
 - **Pages made of blocks** from the app (Waffle's docs/content.md, "Blocks"): `src/core/lib/blocks.js` checks every block, `parseRecords()` takes `body: 'blocks'`, `src/core/components/Blocks.astro` renders them as plain semantic HTML, and `src/core/lib/routes.js` fails the build when an app page's slug is one of the site's own. Brought back from KAW Meetup's site. Porting: copy the three files and `Blocks.astro`, and `records.js`.
 - **The template**: an SEO-first marketing site and blog that fronts a [Waffle](https://github.com/treehousetim/waffle) app, built the same way: a fixed stack, a test-first method, guard rails that fail the build, and a one-server deploy by GitHub Actions.
 - **Static pages from Astro 7.** Pages are `.astro` files written by hand or by an agent from a shared component library; blog posts are Markdown with a strictly checked schema. Production serves plain files, with no application server.

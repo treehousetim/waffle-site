@@ -17,7 +17,11 @@ const FIELDS = {
     faq: ['type', 'items'],
     cta: ['type', 'label', 'path', 'note'],
     table: ['type', 'columns', 'rows'],
+    image: ['type', 'media_id', 'caption', 'media'],
+    gallery: ['type', 'media_ids', 'caption', 'media'],
 };
+
+const MEDIA_FIELDS = ['id', 'path', 'width', 'height', 'alt', 'caption', 'credit_name', 'credit_url'];
 
 const SITE_PATH = /^\/(?:[a-z0-9]+(?:-[a-z0-9]+)*\/)*$/;
 
@@ -53,6 +57,25 @@ export function markdownOf(blocks) {
                 return [];
         }
     });
+}
+
+/**
+ * Every image the blocks show, once each, as the app described it: what a
+ * build fetches and resizes.
+ *
+ * @param {readonly Record<string, any>[]} blocks  parsed
+ * @returns {{ id: number, path: string, width: number, height: number, alt: string, caption: string | null, credit_name: string | null, credit_url: string | null }[]}
+ */
+export function mediaOf(blocks) {
+    const seen = new Map();
+
+    for (const block of blocks) {
+        for (const media of block.type === 'image' ? [block.media] : block.type === 'gallery' ? block.media : []) {
+            seen.set(media.id, media);
+        }
+    }
+
+    return [...seen.values()];
 }
 
 /** @param {unknown} raw @param {string} where */
@@ -105,11 +128,55 @@ function parseBlock(raw, where) {
             }
             optionalText(block.note, `${where}.note`);
             break;
+        case 'image':
+            optionalText(block.caption, `${where}.caption`);
+            parseMedia(block.media, `${where}.media`);
+            break;
+        case 'gallery':
+            optionalText(block.caption, `${where}.caption`);
+            if (!Array.isArray(block.media) || block.media.length < 2) {
+                throw new WaffleApiError(`${where}.media: expected the gallery's images.`);
+            }
+            block.media.forEach((media, index) => parseMedia(media, `${where}.media[${index}]`));
+            break;
         default:
             table(block, where);
     }
 
     return block;
+}
+
+/**
+ * One image as the app describes it: published, so described (Waffle's
+ * docs/content.md, "Media"), and fetched by its path on the app.
+ *
+ * @param {unknown} raw
+ * @param {string} where
+ */
+function parseMedia(raw, where) {
+    if (raw === null || typeof raw !== 'object' || Array.isArray(raw)) {
+        throw new WaffleApiError(`${where}: expected an image.`);
+    }
+
+    const media = /** @type {Record<string, unknown>} */ (raw);
+    const extra = Object.keys(media).filter((key) => !MEDIA_FIELDS.includes(key));
+
+    if (extra.length > 0) {
+        throw new WaffleApiError(`${where}: unexpected field ${extra.join(', ')}.`);
+    }
+
+    if (!Number.isInteger(media.id) || typeof media.path !== 'string' || media.path !== `/api/site/media/${media.id}.jpg`) {
+        throw new WaffleApiError(`${where}: expected an image id and its /api/site/media/<id>.jpg path.`);
+    }
+
+    if (!Number.isInteger(media.width) || !Number.isInteger(media.height) || Number(media.width) < 1 || Number(media.height) < 1) {
+        throw new WaffleApiError(`${where}: expected the image's width and height.`);
+    }
+
+    text(media.alt, `${where}.alt`);
+    optionalText(media.caption, `${where}.caption`);
+    optionalText(media.credit_name, `${where}.credit_name`);
+    optionalText(media.credit_url, `${where}.credit_url`);
 }
 
 /** @param {unknown} items @param {string} where */
