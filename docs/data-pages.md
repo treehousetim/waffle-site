@@ -274,17 +274,23 @@ Built and usable now:
   keeps its old and retired slugs out of the redirects. KAW Meetup's site is
   the worked example.
 
-Not built yet, and needed for a site like the vacation-rental example: Image and gallery blocks carry each image's path, size and alt text: a loader fetches each once (`fetchImage()` in `src/core/lib/clients/waffle.js`, from the app or the fixtures) and hands it to Astro through the collection's `image()` schema, so the site serves its own resized copies; `mediaOf()` names the images a page shows.
+- **images from the app**: image and gallery blocks, and images a record's
+  own fields name (an event's cover), carry each image's path, size, alt
+  text, caption and credit, checked by `parseMedia()`; `mediaOf()` names the
+  images a page's blocks show. A content loader fetches each once per build
+  (`fetchImage()` in `src/core/lib/clients/waffle.js`, from the app or the
+  fixtures) and hands it to Astro through the collection's `image()`
+  schema, so the site serves its own resized copies and never links to the
+  app's storage (failure 12). `Caption.astro` shows each caption and credit.
+- **change notices from the app**: Waffle's content slice queues a
+  coalesced `repository_dispatch` of type `change-notice` on every publish,
+  retire and restore, and when a public image's description changes.
+
+Not built yet, and needed for a site like the vacation-rental example:
 
 - **core helpers for collections**: the publish-bar check with its report,
   and hub and combination grouping, so every site uses the same code
   (`src/core/lib/`, at 100% coverage)
-- **remote photos**: `image.remotePatterns` in `astro.config.mjs` for the
-  waffle app's photo storage, so the build fetches, resizes and serves them
-  itself (failure 12)
-- **change notices from the app** in Waffle itself: built in KAW Meetup's
-  app (a queued, coalesced `repository_dispatch` of type `change-notice`), on
-  Waffle's queue, and coming back into Waffle with the content slice
 - **a worked example**: an example site built this way
 
 Until those exist, a site can follow every decision here with code of its own;
