@@ -19,6 +19,13 @@ written (`tests/infra/release.test.js` fails if `package.json` grows one).
 - **The template itself** uses semver (`--patch`, `--minor`, `--major`) and
   never deploys: the workflow's job is skipped in `treehousetim/waffle-site`.
 
+**CI** (`.github/workflows/ci.yml`) runs the same gate on every push to
+`main` and every pull request, with no secret, no environment and a
+read-only token, so a pull request from anyone can be tested safely. It is
+the check, not the release: releasing still runs the gate itself, before
+anything is tagged. A project started from this template keeps it; on a
+private repository its runs count against the account's Actions minutes.
+
 ## What the script does
 
 Every check runs before anything changes, the gate runs before anything is

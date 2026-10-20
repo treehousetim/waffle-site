@@ -13,6 +13,7 @@ the version in `VERSION` has one.
 ## [Unreleased]
 
 ### Added
+- **CI** (`.github/workflows/ci.yml`, docs/releasing.md): the gate, `./tools/test.sh --coverage`, on every push to `main` and every pull request; read-only, no secrets, actions pinned to commits (`tests/infra/ci.test.js` holds it to that). Porting: the workflow and its test.
 - **`parseMedia()`** in `src/core/lib/blocks.js`, exported: checks one image the app describes, such as one a record's own field names (KAW Meetup's event covers), as an image block's is checked, and gives it back. `fetchImage()` now fetches an image shown by two record types once per build. Porting: the two files.
 - **Images in pages' blocks** (Waffle's docs/content.md, "Media"): `blocks.js` checks image and gallery blocks and `mediaOf()` lists their images; `Blocks.astro` renders them with Astro's `<Image>` from an `images` map; `fetchImage()` in `src/core/lib/clients/waffle.js` gets each from the app or the fixtures. Brought back from KAW Meetup's site, where the pages loader is the worked example. Porting: the three files.
 - **Pages made of blocks** from the app (Waffle's docs/content.md, "Blocks"): `src/core/lib/blocks.js` checks every block, `parseRecords()` takes `body: 'blocks'`, `src/core/components/Blocks.astro` renders them as plain semantic HTML, and `src/core/lib/routes.js` fails the build when an app page's slug is one of the site's own. Brought back from KAW Meetup's site. Porting: copy the three files and `Blocks.astro`, and `records.js`.

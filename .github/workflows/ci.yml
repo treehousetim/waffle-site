@@ -1,0 +1,36 @@
+name: CI
+
+# The gate (`./tools/test.sh --coverage`) on every push to main and every pull
+# request: the unit tests at 100%, then the infra and e2e groups, the same
+# suite tools/release.sh runs before a release. It holds no secret and
+# deploys nothing.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# A newer push to the same branch makes an older run pointless.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    name: Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      # Pinned to a commit, like every action here (deploy.yml says why).
+      - name: Check out
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+
+      # npm runs in throwaway containers (tools/npm.sh), as on a laptop, and
+      # the site builds with the fixtures in api-fixtures/: no app is needed.
+      - name: Run the gate
+        run: ./tools/test.sh --coverage
