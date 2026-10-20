@@ -2,8 +2,8 @@
 
 How a change in the waffle app reaches the site without rebuilding the whole
 site: docs/data-pages.md, decision 8, as built. The waffle side is the app's
-content slice and its change notices (Waffle's docs/content-model.md; built
-first in KAW Meetup, the first real project, and coming back into Waffle).
+content slice and its change notices (Waffle's docs/content.md, "Change
+notices"; the design is its docs/content-model.md).
 
 ```
 app: publish ──► change notice (queued, coalesced) ──► GitHub repository_dispatch
