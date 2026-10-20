@@ -93,7 +93,7 @@ test('(5) a cross-site form post is refused before it reaches the app', () => {
 test('(6) the proxy adds the site key and leaves the visitor\'s cookies and origin behind', () => {
     const proxy = block('reverse_proxy {$WAFFLE_APP_URL}');
 
-    for (const line of ['header_up Host {upstream_hostport}', 'header_up X-Site-Key {$WAFFLE_SITE_KEY}', 'header_up -Cookie',
+    for (const line of ['header_up Host {upstream_hostport}', 'header_up X-Site-Key {$WAFFLE_SITE_KEY}', 'header_up X-Visitor-Address {client_ip}', 'header_up -Cookie',
         'header_up -Authorization', 'header_up -Origin', 'header_up -Referer', 'header_up -Sec-Fetch-Site', 'header_down -Set-Cookie']) {
         assert.ok(proxy.includes(line), line);
     }

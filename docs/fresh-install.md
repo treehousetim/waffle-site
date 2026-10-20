@@ -119,17 +119,20 @@ ssh-keyscan -t ed25519 waffle-site.example.com | doppler secrets set -p waffle_s
 > **Ignore it and never click "Add missing value"**: that would hand the CI
 > runner the site key.
 
-**11. The `prod` environment and its token, in one command**, once
+**11. The `prod` and `prod-rebuild` environments and their tokens, in one command**, once
 `prod-deploy` is filled and `gh` and `doppler` are signed in:
 
 ```bash
 ./tools/setup-github.sh
 ```
 
-It creates the `prod` environment with only a `v*` tag rule, checks that
-`prod-deploy` holds the deploy credentials and nothing more, and pipes a new
-read-only token straight from Doppler into the environment's `DOPPLER_TOKEN`
-secret, never shown or put on a command line. Safe to re-run; it replaces an
+It creates the `prod` environment with only a `v*` tag rule (releases), and
+`prod-rebuild` with only a rule for the default branch (scoped rebuilds from
+the app's change notices, which run there: docs/scoped-builds.md). It checks
+that `prod-deploy` holds the deploy credentials and nothing more, and pipes a
+new read-only token straight from Doppler into each environment's
+`DOPPLER_TOKEN` secret, never shown or put on a command line. Whoever can
+push to the default branch can deploy through `prod-rebuild`: protect it. Safe to re-run; it replaces an
 existing token only with `--rotate-token`. Required reviewers stay a manual
 choice (Settings → Environments → prod).
 
@@ -175,7 +178,7 @@ gh run watch            # the build and deploy it started
 | `HEARTBEAT_URL` | Doppler `prod-serve` | no | step 9 |
 | `DROPLET_HOST`, `DROPLET_USER`, `DROPLET_SSH_KEY`, `DROPLET_SSH_KNOWN_HOSTS` | Doppler `prod-deploy` | yes | step 10 |
 | `DEPLOY_ALERT_WEBHOOK` | Doppler `prod-deploy` | no | step 9 |
-| `DOPPLER_TOKEN` | GitHub `prod` environment | yes | step 11 |
+| `DOPPLER_TOKEN` | GitHub `prod` and `prod-rebuild` environments | yes | step 11 |
 | `SITE_ENV`, `SITE_URL`, `WAFFLE_DATA` | the build's environment | set by the workflow | docs/building.md |
 
 ## Appendix — `tools/setup-github.sh` failure list
@@ -193,8 +196,9 @@ against stand-in `gh` and `doppler` commands.
 6. A deploy credential is missing, and the first release fails at the SSH step
    instead of here.
 7. The `prod` environment already allows a branch or another tag pattern to
-   deploy, and the script leaves it that way without saying.
-8. A re-run adds a second `v*` rule.
+   deploy (or `prod-rebuild` anything but the default branch), and the script
+   leaves it that way without saying.
+8. A re-run adds a second `v*` (or default-branch) rule.
 9. A re-run silently replaces a working `DOPPLER_TOKEN`.
 10. The token appears in the terminal or on a command line.
 11. The token can write to Doppler.

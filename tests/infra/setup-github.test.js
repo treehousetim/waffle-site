@@ -16,11 +16,19 @@ function setupGithub(args = [], env = {}) {
         gh: `
             case "$1 $2" in
                 "auth status") exit "\${FAKE_GH_AUTH_EXIT:-0}" ;;
-                "repo view")   [ -n "\${FAKE_GH_REPO:-}" ] || exit 1; echo "$FAKE_GH_REPO" ;;
+                "repo view")
+                    case "$*" in
+                        *defaultBranchRef*) echo "\${FAKE_GH_BRANCH-main}" ;;
+                        *) [ -n "\${FAKE_GH_REPO:-}" ] || exit 1; echo "$FAKE_GH_REPO" ;;
+                    esac ;;
                 "secret list") printf '%b' "\${FAKE_GH_SECRETS:-}" ;;
-                "secret set")  cat > "$(dirname "$0")/secret.stdin" ;;
+                "secret set")  cat >> "$(dirname "$0")/secret.stdin" ;;
                 "api -X")      cat >/dev/null ;;
-                *)             printf '%b' "\${FAKE_GH_POLICIES:-}" ;;
+                *)
+                    case "$*" in
+                        *environments/prod-rebuild/*) printf '%b' "\${FAKE_GH_REBUILD_POLICIES:-}" ;;
+                        *) printf '%b' "\${FAKE_GH_POLICIES:-}" ;;
+                    esac ;;
             esac`,
         doppler: `
             case "$1" in
@@ -50,15 +58,19 @@ function setupGithub(args = [], env = {}) {
 
 const called = (calls, needle) => calls.some((call) => call.includes(needle));
 
-test('(10, 11) creates the tag-gated environment and pipes a read-only token into it', () => {
+test('(10, 11) creates the tag-gated and the branch-gated environments, and pipes a read-only token into each', () => {
     const result = setupGithub();
 
     assert.equal(result.status, 0, result.output);
-    assert.ok(called(result.calls, 'gh api -X PUT repos/acme/site/environments/prod'));
-    assert.ok(called(result.calls, 'deployment-branch-policies -f name=v* -f type=tag'));
-    assert.ok(called(result.calls, 'doppler configs tokens create'));
+    assert.ok(called(result.calls, 'gh api -X PUT repos/acme/site/environments/prod '));
+    assert.ok(called(result.calls, 'gh api -X PUT repos/acme/site/environments/prod-rebuild '));
+    assert.ok(called(result.calls, 'environments/prod/deployment-branch-policies -f name=v* -f type=tag'));
+    assert.ok(called(result.calls, 'environments/prod-rebuild/deployment-branch-policies -f name=main -f type=branch'));
+    assert.equal(result.calls.filter((call) => call.startsWith('doppler configs tokens create')).length, 2);
     assert.ok(called(result.calls, '--access read'));
-    assert.equal(result.stdin.trim(), 'dp.st.prod-deploy.FAKETOKEN0123456789');
+    assert.ok(called(result.calls, 'secret set DOPPLER_TOKEN --env prod '));
+    assert.ok(called(result.calls, 'secret set DOPPLER_TOKEN --env prod-rebuild '));
+    assert.equal(result.stdin.trim(), 'dp.st.prod-deploy.FAKETOKEN0123456789\ndp.st.prod-deploy.FAKETOKEN0123456789');
     assert.equal(called(result.calls, 'FAKETOKEN'), false, 'the token appeared on a command line');
     assert.equal(result.output.includes('FAKETOKEN'), false, 'the token was printed');
 });
@@ -108,25 +120,34 @@ test('(6) warns about a missing deploy credential, and carries on', () => {
     assert.match(result.stdout, /missing: DROPLET_SSH_KEY DROPLET_SSH_KNOWN_HOSTS/);
 });
 
-test('(7) refuses an environment that lets anything but v* tags deploy', () => {
-    const result = setupGithub([], { FAKE_GH_POLICIES: 'tag v*\\nbranch main\\n' });
+test('(7) refuses an environment that lets anything but its own rule deploy', () => {
+    const prod = setupGithub([], { FAKE_GH_POLICIES: 'tag v*\\nbranch main\\n' });
+    const rebuild = setupGithub([], { FAKE_GH_REBUILD_POLICIES: 'branch main\\ntag v*\\n' });
 
-    assert.equal(result.status, 1);
-    assert.match(result.stderr, /branch main/);
+    assert.equal(prod.status, 1);
+    assert.match(prod.stderr, /the prod environment already lets these deploy, besides v\* tags:\n\s+branch main/);
+    assert.equal(rebuild.status, 1);
+    assert.match(rebuild.stderr, /the prod-rebuild environment already lets these deploy, besides the main branch:\n\s+tag v\*/);
 });
 
-test('(8) adds the v* rule only once', () => {
-    assert.equal(called(setupGithub([], { FAKE_GH_POLICIES: 'tag v*\\n' }).calls, '-f name=v*'), false);
+test('(8) adds each rule only once, and the rebuild rule for whatever the default branch is', () => {
+    const again = setupGithub([], { FAKE_GH_POLICIES: 'tag v*\\n', FAKE_GH_REBUILD_POLICIES: 'branch main\\n' });
+
+    assert.equal(called(again.calls, '-f name=v*'), false);
+    assert.equal(called(again.calls, '-f name=main'), false);
+    assert.ok(called(setupGithub([], { FAKE_GH_BRANCH: 'trunk' }).calls, '-f name=trunk -f type=branch'));
+    assert.match(setupGithub([], { FAKE_GH_BRANCH: '' }).stderr, /could not read acme\/site's default branch/);
 });
 
 test('(9) leaves an existing token alone unless told to rotate it', () => {
     const kept = setupGithub([], { FAKE_GH_SECRETS: 'DOPPLER_TOKEN\\n' });
-    assert.match(kept.stdout, /already set; left alone/);
+    assert.match(kept.stdout, /DOPPLER_TOKEN is already set; left alone/);
     assert.equal(called(kept.calls, 'tokens create'), false);
 
     const rotated = setupGithub(['--rotate-token'], { FAKE_GH_SECRETS: 'DOPPLER_TOKEN\\n' });
     assert.ok(called(rotated.calls, 'tokens create'));
-    assert.match(rotated.stdout, /revoke the previous github-actions-\* token/);
+    assert.match(rotated.stdout, /revoke the previous github-actions-prod-\* token/);
+    assert.match(rotated.stdout, /revoke the previous github-actions-prod-rebuild-\* token/);
 });
 
 test('an unknown option is refused', () => {

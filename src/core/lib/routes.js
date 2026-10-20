@@ -17,6 +17,18 @@ export function topLevelNames(files) {
 }
 
 /**
+ * The slugs that are not one of the site's own: an old or retired page slug
+ * that is never becomes a redirect or a 410 over the site's own page.
+ *
+ * @param {readonly string[]} slugs
+ * @param {Set<string>} own  topLevelNames() of the site's pages
+ * @returns {string[]}
+ */
+export function withoutOwn(slugs, own) {
+    return slugs.filter((slug) => !own.has(slug));
+}
+
+/**
  * @param {readonly string[]} slugs  the app's page slugs
  * @param {Set<string>} own          topLevelNames() of the site's pages
  */

@@ -20,8 +20,8 @@ permissions:
 # server's key. Re-pin deliberately, never to a moving tag.
 
 jobs:
-  deploy:
-    name: Build and ship ${{ github.event.release.tag_name }}
+  build:
+    name: Build ${{ github.event.release.tag_name }}
     # The template's own repository publishes releases too (semver) and has no
     # server: never try to deploy from it. In a project started from it this
     # is always true. tools/rename-project.sh leaves this line alone because
@@ -29,13 +29,7 @@ jobs:
     if: github.repository != 'treehousetim/waffle-site'
     runs-on: ubuntu-latest
 
-    # A GitHub *environment*, not repository secrets: DOPPLER_TOKEN lives on
-    # it, so only a job that declares it can read the value, and its v* tag
-    # policy blocks a release cut from anything else (docs/fresh-install.md).
-    environment:
-      name: prod
-      url: https://waffle-site.example.com
-
+    # No environment: this job cannot read DOPPLER_TOKEN.
     steps:
       # -------------------------------------------------------------------
       # The tag is text somebody typed, and it reaches a shell on the server.
@@ -109,15 +103,68 @@ jobs:
           done
           echo "artifact complete"
 
+      # The built site goes to the next job as an artifact. Nothing here can
+      # read a secret: this job has no environment, and the packages npm ran
+      # die with it.
+      - name: Hand the build to the ship job
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: site
+          path: dist/
+          retention-days: 3
+
+  # -------------------------------------------------------------------------
+  # Ship: the only job that can read DOPPLER_TOKEN, and it runs no npm. A
+  # process an npm package started in the build job cannot outlive that job,
+  # so it can never see the server's key (secrets loaded later in the same
+  # job would not have been safe from it).
+  # -------------------------------------------------------------------------
+  ship:
+    name: Ship ${{ github.event.release.tag_name }}
+    needs: build
+    # Skipped with build in the template's own repository anyway; said again
+    # so no edit to build's condition can let this job run there.
+    if: github.repository != 'treehousetim/waffle-site'
+    runs-on: ubuntu-latest
+
+    # A GitHub *environment*, not repository secrets: DOPPLER_TOKEN lives on
+    # it, so only a job that declares it can read the value, and its v* tag
+    # policy blocks a release cut from anything else (docs/fresh-install.md).
+    environment:
+      name: prod
+      url: https://waffle-site.example.com
+
+    steps:
+      - name: Refuse anything but a release tag
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$TAG" =~ ^v[1-9][0-9]*$ ]]; then
+            echo "::error::release tag is not vN (docs/releasing.md); refusing to deploy it"
+            exit 1
+          fi
+          echo "TAG=$TAG" >> "$GITHUB_ENV"
+
+      # The tree the server needs (Compose files, the Caddyfile, deploy/),
+      # from the release tag; nothing from it is run here.
+      - name: Check out the release tag
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ github.event.release.tag_name }}
+
+      - name: Take the build from the build job
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: site
+          path: dist/
+
       # -------------------------------------------------------------------
       # Secrets. DOPPLER_TOKEN is the ONLY GitHub secret, it lives on the
       # `prod` environment, and it is scoped to Doppler's `prod-deploy`
       # config, which holds nothing but the deploy credentials. The site's
       # own secret (WAFFLE_SITE_KEY) is in `prod-serve`, read by the server
       # itself, and never touches this runner.
-      #
-      # Loaded only now, after npm: it runs code from the packages it
-      # installs, and anything run after this step can read the server's key.
       # -------------------------------------------------------------------
       - name: Install the Doppler CLI
         uses: dopplerhq/cli-action@014df23b1329b615816a38eb5f473bb9000700b1 # v3
@@ -207,13 +254,32 @@ jobs:
             "${DROPLET_USER}@${DROPLET_HOST}" \
             "bash /opt/waffle_site/deploy/deploy.sh '$TAG'"
 
+      - name: Clean up credentials
+        if: always()
+        run: rm -f ~/.ssh/deploy_key ~/.ssh/known_hosts
+
+  # -------------------------------------------------------------------------
+  # A failed build or ship says so where people look. Its own job, so a
+  # failed build (which never reaches ship) is reported too; it runs no npm.
+  # -------------------------------------------------------------------------
+  alert:
+    name: Report a failed deploy
+    needs: [build, ship]
+    if: failure() && github.repository != 'treehousetim/waffle-site'
+    runs-on: ubuntu-latest
+    environment:
+      name: prod
+    steps:
+      - name: Install the Doppler CLI
+        uses: dopplerhq/cli-action@014df23b1329b615816a38eb5f473bb9000700b1 # v3
+
       # A failed deploy says so where people look. Optional:
       # DEPLOY_ALERT_WEBHOOK, a Slack incoming-webhook URL in Doppler's
       # prod-deploy config. Without it, the failed run here is the only notice.
       - name: Tell Slack the deploy failed
-        if: failure()
         env:
           DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+          TAG: ${{ github.event.release.tag_name }}
         run: |
           set -uo pipefail
           url="$(doppler secrets get DEPLOY_ALERT_WEBHOOK --plain 2>/dev/null || true)"
@@ -227,7 +293,3 @@ jobs:
           text="The deploy of ${TAG:-a release} failed: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
           curl -fsS -m 10 -H 'Content-Type: application/json' -d "$(jq -n --arg text "$text" '{text: $text}')" "$url" >/dev/null \
             || echo "::warning::the deploy alert could not be sent"
-
-      - name: Clean up credentials
-        if: always()
-        run: rm -f ~/.ssh/deploy_key ~/.ssh/known_hosts

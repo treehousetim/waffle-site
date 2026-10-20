@@ -80,13 +80,16 @@
 		# The visitor's cookies and the browser's origin headers stay here: the
 		# app is called by this site, identified by the site key, and must not
 		# be handed a session it could mistake for a signed-in user. The
-		# visitor's address goes as X-Forwarded-For, for rate limiting.
+		# visitor's address goes as X-Visitor-Address, for the app's rate
+		# limit: the app's own Caddy rewrites X-Forwarded-For to this
+		# server's address, so that header cannot carry it.
 		handle /api/site/* {
 			header Cache-Control "no-store"
 			reverse_proxy {$WAFFLE_APP_URL} {
 				header_up Host {upstream_hostport}
 				header_up X-Site-Key {$WAFFLE_SITE_KEY}
 				header_up X-Forwarded-Host {host}
+				header_up X-Visitor-Address {client_ip}
 				header_up -Cookie
 				header_up -Authorization
 				header_up -Origin

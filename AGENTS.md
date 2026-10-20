@@ -42,7 +42,7 @@ Use exactly these majors, latest patch a week old or more at install time (docs/
 | Sitemap, feed | `@astrojs/sitemap` 3, `@astrojs/rss` 4 | |
 | Images | `sharp`, through Astro's `<Picture>` (AVIF and WebP) | 0.35 |
 | Typefaces | Open-licensed font files in each site's `src/assets/fonts/`, served by Astro's Fonts API (`src/fonts.ts`) | approved 2026-10-15: self-hosted faces, licence beside them |
-| HTML parsing (the audit) | `node-html-parser` | 9, dev only |
+| HTML parsing | `node-html-parser` | 9: the audit, and sanitising the HTML rendered from the app's Markdown (`src/core/lib/sanitize.js`); build time only, like everything here |
 | Tests | Node's built-in `node:test` and its coverage, in `node:26` | |
 | Node | 26 LTS | run only through `tools/npm.sh` and `tools/test.sh`, in `node:26`; not needed on the host |
 | Web server | Caddy | 2.11 (`caddy:2.11`): serves the files, proxies `/api/site/*`, gets its own certificate |
@@ -70,7 +70,7 @@ src/
     components/Seo.astro          # the <head>: title, description, canonical, robots, Open Graph, JSON-LD
     components/Blocks.astro       # a body of blocks from the app (pages), as plain semantic HTML
     routes/robots.txt.ts          # robots.txt, injected by astro.config.mjs
-    lib/                          # pure logic, held to 100% coverage: settings, project, seo, jsonld, audit, posts, prices, forms, waffle-api, records, blocks, routes, manifest, redirects, sitemap
+    lib/                          # pure logic, held to 100% coverage: settings, project, seo, jsonld, audit, posts, prices, forms, waffle-api, records, blocks, routes, sanitize, manifest, redirects, sitemap
     lib/clients/                  # the network and the disk, and nothing else; outside coverage
     build-scope.ts                # full build or scoped to what changed (docs/scoped-builds.md)
   site.ts                         # the business (NAP, hours, licence), navigation, footer, noindex list

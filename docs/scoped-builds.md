@@ -74,6 +74,9 @@ export const GET = () => new Response(caddyRedirects({
 Read each endpoint once per build: when pages also need Astro to render a
 record's Markdown, a content collection whose loader is the only reader does
 both (a loader's context has `renderMarkdown`), and pages read the collection.
+Astro's renderer passes raw HTML through, so a loader that renders the app's
+Markdown passes the HTML through `sanitize()` (`src/core/lib/sanitize.js`)
+before storing it.
 
 ## What a rebuild does
 
@@ -93,7 +96,10 @@ both (a loader's context has `renderMarkdown`), and pages read the collection.
    the build's hashed assets, its manifest, its redirects and a sitemap
    merged with the served one, and lists the affected pages that no longer
    exist in `.scoped-remove`. Nothing changed: no release.
-4. The result is rsync'd beside the releases on the server, and
+4. Steps 1 to 3 run in a job with no environment, so nothing npm installs
+   or runs there can read a secret. The result reaches a second job, which
+   runs no npm, as an artifact; only that job holds `DOPPLER_TOKEN`
+   (`prod-rebuild`). It is rsync'd beside the releases on the server, and
    `deploy/assemble.sh <tag> <run>` makes `releases/<tag>.d<run>/`: a copy of
    the served release with hard links, the changes laid over it (each
    replacing its link, never writing through it), the removed pages deleted.
@@ -114,6 +120,10 @@ so each release carries its own, and `deploy.sh`'s reload picks it up.
 
 ## Before the first rebuild
 
+- The `prod-rebuild` environment must exist: run `./tools/setup-github.sh`
+  again (docs/fresh-install.md, step 11). A rebuild's ship job deploys
+  through it, because a change notice runs on the default branch, which
+  `prod`'s `v*` rule rightly refuses.
 - The site writes `pages-manifest.json` and `redirects.caddy` (above).
   Without them `rebuild.yml` stops at its first step, saying the served
   site has no manifest: a site with no data pages has nothing to rebuild.

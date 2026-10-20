@@ -23,14 +23,17 @@ permissions:
 # Every action is pinned to a commit, as in deploy.yml.
 
 jobs:
-  rebuild:
-    name: Rebuild what changed
+  # -------------------------------------------------------------------------
+  # Build: npm runs here, with no environment, so nothing here can read a
+  # secret.
+  # -------------------------------------------------------------------------
+  build:
+    name: Build what changed
     if: github.repository != 'treehousetim/waffle-site'
     runs-on: ubuntu-latest
-
-    environment:
-      name: prod
-      url: https://waffle-site.example.com
+    outputs:
+      release: ${{ steps.served.outputs.release }}
+      scoped: ${{ steps.scoped.outputs.scoped }}
 
     steps:
       # The notice says what changed, for the log. It is text from outside,
@@ -53,12 +56,11 @@ jobs:
           echo "SITE_URL=https://$host" >> "$GITHUB_ENV"
           echo "WAFFLE_APP_URL=$app" >> "$GITHUB_ENV"
 
-      # -------------------------------------------------------------------
       # What is being served: its page manifest names the release whose code
       # built it, and with its sitemap is what the scoped build is compared
       # with. Both are public files on the site.
-      # -------------------------------------------------------------------
       - name: Read the release being served
+        id: served
         run: |
           set -euo pipefail
           curl -fsS -m 30 "$SITE_URL/pages-manifest.json" -o "$RUNNER_TEMP/served-manifest.json"
@@ -69,6 +71,7 @@ jobs:
             exit 1
           fi
           echo "RELEASE=$release" >> "$GITHUB_ENV"
+          echo "release=$release" >> "$GITHUB_OUTPUT"
 
       - name: Check out the release being served
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
@@ -94,20 +97,49 @@ jobs:
           npm run build
 
       - name: Pick what the new release changes
+        id: scoped
         run: |
           set -euo pipefail
           node tools/scoped-release.mjs dist "$RUNNER_TEMP/served-manifest.json" "$RUNNER_TEMP/served-sitemap.xml" "$RUNNER_TEMP/scoped"
-          if [ -d "$RUNNER_TEMP/scoped" ]; then echo "SCOPED=1" >> "$GITHUB_ENV"; fi
+          if [ -d "$RUNNER_TEMP/scoped" ]; then echo "scoped=1" >> "$GITHUB_OUTPUT"; fi
 
-      # -------------------------------------------------------------------
-      # Secrets, as in deploy.yml: loaded only now, after npm.
-      # -------------------------------------------------------------------
+      # .scoped-remove is a dotfile: kept on purpose.
+      - name: Hand what changed to the ship job
+        if: steps.scoped.outputs.scoped == '1'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: scoped
+          path: ${{ runner.temp }}/scoped/
+          include-hidden-files: true
+          retention-days: 3
+
+  # -------------------------------------------------------------------------
+  # Ship: the only job that can read DOPPLER_TOKEN, and it runs no npm. Its
+  # environment, prod-rebuild, is deployable from the default branch only
+  # (a repository_dispatch runs there), with its own read-only token
+  # (tools/setup-github.sh).
+  # -------------------------------------------------------------------------
+  ship:
+    name: Ship what changed
+    needs: build
+    if: needs.build.outputs.scoped == '1' && github.repository != 'treehousetim/waffle-site'
+    runs-on: ubuntu-latest
+
+    environment:
+      name: prod-rebuild
+      url: https://waffle-site.example.com
+
+    steps:
+      - name: Take what changed from the build job
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: scoped
+          path: ${{ runner.temp }}/scoped/
+
       - name: Install the Doppler CLI
-        if: env.SCOPED == '1'
         uses: dopplerhq/cli-action@014df23b1329b615816a38eb5f473bb9000700b1 # v3
 
       - name: Load deploy credentials from Doppler
-        if: env.SCOPED == '1'
         env:
           DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
         run: |
@@ -133,7 +165,6 @@ jobs:
           done
 
       - name: Configure SSH
-        if: env.SCOPED == '1'
         run: |
           set -euo pipefail
           mkdir -p ~/.ssh
@@ -146,11 +177,12 @@ jobs:
       # Only what changed goes to the server, beside the releases; assemble.sh
       # lays it over a copy of the served release and deploys that.
       - name: Ship and assemble the new release
-        if: env.SCOPED == '1'
         env:
+          RELEASE: ${{ needs.build.outputs.release }}
           RUN: ${{ github.run_number }}
         run: |
           set -euo pipefail
+          if [[ ! "$RELEASE" =~ ^v[1-9][0-9]*$ ]]; then echo "::error::no release to rebuild"; exit 1; fi
           SSH="ssh -i ~/.ssh/deploy_key -o UserKnownHostsFile=~/.ssh/known_hosts -o StrictHostKeyChecking=yes"
           rsync -az -e "$SSH" "$RUNNER_TEMP/scoped/" "${DROPLET_USER}@${DROPLET_HOST}:/opt/waffle_site/releases/${RELEASE}.d${RUN}.incoming/"
           $SSH "${DROPLET_USER}@${DROPLET_HOST}" "bash /opt/waffle_site/deploy/assemble.sh '$RELEASE' '$RUN'"

@@ -129,3 +129,46 @@ test('a rebuild never splices the notice into a script, and loads secrets after 
         assert.match(action, /@[0-9a-f]{40}$/, action);
     }
 });
+
+// ------------------------------------- jobs that run npm never hold secrets
+
+/** Each job of a workflow, by name, as text. */
+function jobsOf(text) {
+    const body = text.slice(text.indexOf('\njobs:\n') + 7);
+    const names = [...body.matchAll(/^ {2}([a-z][a-z-]*):\n/gm)];
+
+    return Object.fromEntries(names.map((match, index) => [match[1], body.slice(match.index, names[index + 1]?.index ?? body.length)]));
+}
+
+test('npm runs only in a job with no environment, and secrets only in jobs that run no npm', () => {
+    for (const [file, text] of [['deploy.yml', workflow], ['rebuild.yml', rebuild]]) {
+        const jobs = jobsOf(text);
+
+        assert.ok(Object.keys(jobs).length >= 2, `${file} has a build job and a ship job`);
+
+        for (const [name, text] of Object.entries(jobs)) {
+            const job = text.split('\n').filter((line) => !/^\s*#/.test(line)).join('\n');
+            const runsNpm = /\bnpm (ci|run|install|audit)\b/.test(job);
+            const holdsSecrets = /secrets\.|environment:/.test(job);
+
+            assert.equal(runsNpm && holdsSecrets, false, `${file}: job ${name} runs npm and can read a secret`);
+        }
+    }
+});
+
+test('the build reaches the ship job only as an artifact, the scoped one with its dotfile', () => {
+    assert.match(workflow, /uses: actions\/upload-artifact@[0-9a-f]{40} # v7/);
+    assert.match(workflow, /uses: actions\/download-artifact@[0-9a-f]{40} # v8/);
+    assert.match(rebuild, /include-hidden-files: true/);
+    assert.match(jobsOf(workflow).ship, /environment:\n {6}name: prod\n/);
+    assert.match(jobsOf(rebuild).ship, /environment:\n {6}name: prod-rebuild\n/);
+    assert.match(jobsOf(workflow).alert, /needs: \[build, ship\]\n {4}if: failure\(\) && /);
+});
+
+test('no job of either workflow can run in the template\'s own repository', () => {
+    for (const [file, text] of [['deploy.yml', workflow], ['rebuild.yml', rebuild]]) {
+        for (const [name, job] of Object.entries(jobsOf(text))) {
+            assert.match(job, /\n {4}if: .*github\.repository != 'treehousetim\/waffle-site'/, `${file}: job ${name} has no repository guard`);
+        }
+    }
+});

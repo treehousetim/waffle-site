@@ -51,7 +51,9 @@ same origin: no CORS, nothing to configure in the app for it. On the way:
   headers are dropped, and any `Set-Cookie` from the app is dropped on the way
   back: the app must never mistake a site visitor for a signed-in user, or
   hand one a session.
-- The visitor's address arrives as `X-Forwarded-For`, for rate limiting.
+- The visitor's address arrives as `X-Visitor-Address`, for rate limiting (the
+  app's own Caddy rewrites `X-Forwarded-For`, so the app reads this header, and
+  only on a request that carries the site key).
 
 `./tools/npm.sh run dev` does the same through the dev server's proxy, to a
 waffle app on your machine (`WAFFLE_APP_URL`, default
@@ -71,8 +73,7 @@ Rules for every `/api/site/*` route in the app:
 - Answers in the envelope every waffle endpoint uses: `{"success": true,
   "data": ...}` or `{"success": false, "error": "..."}`.
 - Never reads or sets a session. These are not the app's signed-in routes.
-- Rate-limits forms per `X-Forwarded-For` address, trusting that header only
-  from the site's server.
+- Rate-limits forms per `X-Visitor-Address`, read only behind the site key.
 - Accepts form-encoded bodies on `POST /api/site/forms/*` (a browser without
   script sends one). Waffle's `SameSiteMiddleware` refuses form bodies on
   `/api/`, so these routes need an explicit exception, which the site key

@@ -9,9 +9,11 @@
 # config is filled (step 12) and both CLIs are signed in:
 #
 #   1. checks prod-deploy holds the deploy credentials and nothing more
-#   2. creates the `prod` GitHub environment, deployable from v* tags only
-#   3. issues a read-only Doppler token for prod-deploy and pipes it straight
-#      into the environment's DOPPLER_TOKEN secret: never printed, never on a
+#   2. creates the `prod` GitHub environment, deployable from v* tags only,
+#      and `prod-rebuild`, deployable from the default branch only (scoped
+#      rebuilds from the app's change notices, docs/scoped-builds.md)
+#   3. issues each a read-only Doppler token for prod-deploy and pipes it
+#      straight into its DOPPLER_TOKEN secret: never printed, never on a
 #      command line
 #
 # Safe to re-run. It replaces an existing token only with --rotate-token.
@@ -27,7 +29,6 @@ cd "$ROOT"
 GH="${SETUP_GH:-gh}"
 DOPPLER="${SETUP_DOPPLER:-doppler}"
 CONFIG="prod-deploy"
-ENVIRONMENT="prod"
 
 # What prod-deploy may hold. Anything else is a production secret that would
 # reach the CI runner (5). Doppler adds its own DOPPLER_* names to every config.
@@ -49,8 +50,9 @@ usage() {
     cat <<'EOF'
 Usage: ./tools/setup-github.sh [options]
 
-Creates the `prod` GitHub environment (v* tags only) and gives it a read-only
-Doppler token for the prod-deploy config.
+Creates the `prod` GitHub environment (v* tags only) and `prod-rebuild` (the
+default branch only), each with its own read-only Doppler token for the
+prod-deploy config.
 
 Options:
   --repo <owner/name>  the GitHub repository (default: from the git remote)
@@ -142,57 +144,73 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# The environment: v* tags and nothing else may deploy (7), added once (8).
+# Two environments, each holding its own read-only DOPPLER_TOKEN:
+#
+#   prod          deployable from v* release tags only (deploy.yml)
+#   prod-rebuild  deployable from the default branch only (rebuild.yml: a
+#                 change notice's repository_dispatch runs there)
+#
+# Each lets nothing else deploy (7), its rule is added once (8), and its
+# token is read-only (11), piped (10), and not replaced unasked (9).
 # ---------------------------------------------------------------------------
-step "The ${ENVIRONMENT} environment"
+BRANCH="$("$GH" repo view "$REPO" --json defaultBranchRef -q .defaultBranchRef.name 2>/dev/null || true)"
+[ -n "$BRANCH" ] || die "could not read ${REPO}'s default branch."
 
-POLICIES="$("$GH" api "repos/${REPO}/environments/${ENVIRONMENT}/deployment-branch-policies" \
-             --jq '.branch_policies[] | "\(.type // "branch") \(.name)"' 2>/dev/null || true)"
+environment() {
+    local name="$1" type="$2" pattern="$3" what="$4" policies others
 
-OTHERS="$(printf '%s\n' "$POLICIES" | grep -v -x 'tag v\*' | grep -v '^$' || true)"
-if [ -n "$OTHERS" ]; then
-    die "the ${ENVIRONMENT} environment already lets these deploy, besides v* tags:
-$(printf '%s\n' "$OTHERS" | sed 's/^/         /')
+    step "The ${name} environment"
+
+    policies="$("$GH" api "repos/${REPO}/environments/${name}/deployment-branch-policies" \
+                 --jq '.branch_policies[] | "\(.type // "branch") \(.name)"' 2>/dev/null || true)"
+
+    others="$(printf '%s\n' "$policies" | grep -v -F -x "${type} ${pattern}" | grep -v '^$' || true)"
+    if [ -n "$others" ]; then
+        die "the ${name} environment already lets these deploy, besides ${what}:
+$(printf '%s\n' "$others" | sed 's/^/         /')
        Anything that can deploy can read DOPPLER_TOKEN. Remove them in
-       Settings -> Environments -> ${ENVIRONMENT}, then run this again."
-fi
+       Settings -> Environments -> ${name}, then run this again."
+    fi
 
-"$GH" api -X PUT "repos/${REPO}/environments/${ENVIRONMENT}" --input - >/dev/null <<'JSON'
+    "$GH" api -X PUT "repos/${REPO}/environments/${name}" --input - >/dev/null <<'JSON'
 {"deployment_branch_policy": {"protected_branches": false, "custom_branch_policies": true}}
 JSON
-ok "environment ${ENVIRONMENT} exists, deployable by rule only"
+    ok "environment ${name} exists, deployable by rule only"
 
-if printf '%s\n' "$POLICIES" | grep -x 'tag v\*' >/dev/null; then
-    ok "v* tag rule already there"
-else
-    "$GH" api -X POST "repos/${REPO}/environments/${ENVIRONMENT}/deployment-branch-policies" \
-        -f name='v*' -f type=tag >/dev/null
-    ok "v* tag rule added"
-fi
+    if printf '%s\n' "$policies" | grep -F -x "${type} ${pattern}" >/dev/null; then
+        ok "${what} rule already there"
+    else
+        "$GH" api -X POST "repos/${REPO}/environments/${name}/deployment-branch-policies" \
+            -f name="$pattern" -f type="$type" >/dev/null
+        ok "${what} rule added"
+    fi
 
-# ---------------------------------------------------------------------------
-# The token: read-only (11), piped (10), and not replaced unasked (9).
-# ---------------------------------------------------------------------------
-step "DOPPLER_TOKEN"
+    # Not grep -q: under pipefail its early exit can fail the pipe, which would
+    # read as "no token" and replace a working one.
+    if "$GH" secret list --env "$name" --repo "$REPO" --json name --jq '.[].name' 2>/dev/null | grep -x 'DOPPLER_TOKEN' >/dev/null \
+       && [ "$ROTATE" -eq 0 ]; then
+        ok "its DOPPLER_TOKEN is already set; left alone (--rotate-token replaces it)"
+    else
+        local token_name
+        token_name="github-actions-${name}-$(date -u +%Y%m%d%H%M%S)"
+        # From Doppler straight into GitHub: the value is never in a variable,
+        # an argument, or the terminal.
+        "$DOPPLER" configs tokens create "$token_name" --project "$PROJECT" --config "$CONFIG" --access read --plain \
+            | "$GH" secret set DOPPLER_TOKEN --env "$name" --repo "$REPO" >/dev/null \
+            || die "the token was not stored. If Doppler created ${token_name}, revoke it under ${CONFIG} -> Access."
+        ok "read-only token ${token_name} stored as the ${name} environment's DOPPLER_TOKEN"
+        if [ "$ROTATE" -eq 1 ]; then
+            warn "revoke the previous github-actions-${name}-* token under ${CONFIG} -> Access in Doppler"
+        fi
+    fi
+}
 
-# Not grep -q: under pipefail its early exit can fail the pipe, which would
-# read as "no token" and replace a working one.
-if "$GH" secret list --env "$ENVIRONMENT" --repo "$REPO" --json name --jq '.[].name' 2>/dev/null | grep -x 'DOPPLER_TOKEN' >/dev/null \
-   && [ "$ROTATE" -eq 0 ]; then
-    ok "already set; left alone (--rotate-token replaces it)"
-else
-    TOKEN_NAME="github-actions-$(date -u +%Y%m%d%H%M%S)"
-    # From Doppler straight into GitHub: the value is never in a variable, an
-    # argument, or the terminal.
-    "$DOPPLER" configs tokens create "$TOKEN_NAME" --project "$PROJECT" --config "$CONFIG" --access read --plain \
-        | "$GH" secret set DOPPLER_TOKEN --env "$ENVIRONMENT" --repo "$REPO" >/dev/null \
-        || die "the token was not stored. If Doppler created ${TOKEN_NAME}, revoke it under ${CONFIG} -> Access."
-    ok "read-only token ${TOKEN_NAME} stored as the ${ENVIRONMENT} environment's DOPPLER_TOKEN"
-    [ "$ROTATE" -eq 1 ] && warn "revoke the previous github-actions-* token under ${CONFIG} -> Access in Doppler"
-fi
+environment prod tag 'v*' 'v* tags'
+environment prod-rebuild branch "$BRANCH" "the ${BRANCH} branch"
 
 step "Done"
 cat <<EOF
-  GitHub Actions can now deploy ${REPO} from a v* release tag.
-  Optional: require a reviewer for each deploy in Settings -> Environments -> ${ENVIRONMENT}.
+  GitHub Actions can now deploy ${REPO} from a v* release tag (prod), and
+  rebuild from the app's change notices (prod-rebuild, from ${BRANCH}).
+  Optional: require a reviewer for each deploy in Settings -> Environments -> prod.
 EOF
