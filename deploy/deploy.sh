@@ -27,8 +27,9 @@ set -euo pipefail
 # ---------------------------------------------------------------------------
 TAG="${1:-}"
 
-if [[ ! "$TAG" =~ ^v[1-9][0-9]*$ ]]; then
-    echo "error: a release tag like v7 is required." >&2
+# vN is a release; vN.dM is a scoped data rebuild of it (deploy/assemble.sh).
+if [[ ! "$TAG" =~ ^v[1-9][0-9]*(\.d[1-9][0-9]*)?$ ]]; then
+    echo "error: a release tag like v7 (or a data rebuild of one, like v7.d12) is required." >&2
     echo "usage: deploy.sh <tag>" >&2
     exit 2
 fi

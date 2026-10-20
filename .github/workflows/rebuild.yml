@@ -1,0 +1,160 @@
+name: Rebuild from data
+
+# A change notice from the waffle app (its docs/content.md): records the site
+# publishes changed, so the pages they touch are rebuilt, and only those
+# (docs/scoped-builds.md). Never a full build, and never new code: the code
+# is the release being served.
+on:
+  repository_dispatch:
+    types: [change-notice]
+
+# The same group as deploy.yml: a notice that arrives while a release is
+# deploying waits for it, and two notices never build at once (failure 16).
+# A notice waiting behind another may be replaced by a newer one; nothing is
+# lost, because the rebuild compares all the data with what is served, not
+# with what the notice names.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+# Every action is pinned to a commit, as in deploy.yml.
+
+jobs:
+  rebuild:
+    name: Rebuild what changed
+    if: github.repository != 'treehousetim/waffle-site'
+    runs-on: ubuntu-latest
+
+    environment:
+      name: prod
+      url: https://waffle-site.example.com
+
+    steps:
+      # The notice says what changed, for the log. It is text from outside,
+      # so it is printed through the environment, never spliced into a script.
+      - name: Read the notice
+        env:
+          CHANGES: ${{ toJSON(github.event.client_payload.changes) }}
+        run: printf 'change notice: %s\n' "$CHANGES"
+
+      - name: Check out the repository
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      - name: Read the hostnames
+        run: |
+          set -euo pipefail
+          host="$(sed -n 's/^ *SITE_ADDRESS: *//p' docker-compose.prod.yml | tr -d '"' | head -n 1)"
+          app="$(sed -n 's/^ *WAFFLE_APP_URL: *//p' docker-compose.prod.yml | tr -d '"' | head -n 1)"
+          [ -n "$host" ] || { echo "::error::no SITE_ADDRESS in docker-compose.prod.yml"; exit 1; }
+          [ -n "$app" ] || { echo "::error::no WAFFLE_APP_URL in docker-compose.prod.yml"; exit 1; }
+          echo "SITE_URL=https://$host" >> "$GITHUB_ENV"
+          echo "WAFFLE_APP_URL=$app" >> "$GITHUB_ENV"
+
+      # -------------------------------------------------------------------
+      # What is being served: its page manifest names the release whose code
+      # built it, and with its sitemap is what the scoped build is compared
+      # with. Both are public files on the site.
+      # -------------------------------------------------------------------
+      - name: Read the release being served
+        run: |
+          set -euo pipefail
+          curl -fsS -m 30 "$SITE_URL/pages-manifest.json" -o "$RUNNER_TEMP/served-manifest.json"
+          curl -fsS -m 30 "$SITE_URL/sitemap-0.xml" -o "$RUNNER_TEMP/served-sitemap.xml"
+          release="$(jq -r .release "$RUNNER_TEMP/served-manifest.json")"
+          if [[ ! "$release" =~ ^v[1-9][0-9]*$ ]]; then
+            echo "::error::the served page manifest names no release (got '$release'); publish a release first"
+            exit 1
+          fi
+          echo "RELEASE=$release" >> "$GITHUB_ENV"
+
+      - name: Check out the release being served
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ env.RELEASE }}
+
+      - name: Set up Node
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: '26'
+          cache: npm
+
+      # A production build of the served release's code, scoped by the
+      # served manifest: entity pages only for records that changed.
+      - name: Build what changed
+        env:
+          SITE_ENV: production
+          SITE_RELEASE: ${{ env.RELEASE }}
+          SITE_PREVIOUS_MANIFEST: ${{ runner.temp }}/served-manifest.json
+        run: |
+          npm ci
+          npm audit signatures
+          npm run build
+
+      - name: Pick what the new release changes
+        run: |
+          set -euo pipefail
+          node tools/scoped-release.mjs dist "$RUNNER_TEMP/served-manifest.json" "$RUNNER_TEMP/served-sitemap.xml" "$RUNNER_TEMP/scoped"
+          if [ -d "$RUNNER_TEMP/scoped" ]; then echo "SCOPED=1" >> "$GITHUB_ENV"; fi
+
+      # -------------------------------------------------------------------
+      # Secrets, as in deploy.yml: loaded only now, after npm.
+      # -------------------------------------------------------------------
+      - name: Install the Doppler CLI
+        if: env.SCOPED == '1'
+        uses: dopplerhq/cli-action@014df23b1329b615816a38eb5f473bb9000700b1 # v3
+
+      - name: Load deploy credentials from Doppler
+        if: env.SCOPED == '1'
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          for name in DROPLET_HOST DROPLET_USER DROPLET_SSH_KEY DROPLET_SSH_KNOWN_HOSTS; do
+            value="$(doppler secrets get "$name" --plain)"
+
+            if [ -z "$value" ]; then
+              echo "::error::${name} is empty in Doppler's prod-deploy config"
+              exit 1
+            fi
+
+            while IFS= read -r line; do
+              [ -n "$line" ] && echo "::add-mask::$line"
+            done <<< "$value"
+
+            {
+              echo "${name}<<__DOPPLER_EOF__"
+              echo "$value"
+              echo "__DOPPLER_EOF__"
+            } >> "$GITHUB_ENV"
+          done
+
+      - name: Configure SSH
+        if: env.SCOPED == '1'
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$DROPLET_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$DROPLET_SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      # Only what changed goes to the server, beside the releases; assemble.sh
+      # lays it over a copy of the served release and deploys that.
+      - name: Ship and assemble the new release
+        if: env.SCOPED == '1'
+        env:
+          RUN: ${{ github.run_number }}
+        run: |
+          set -euo pipefail
+          SSH="ssh -i ~/.ssh/deploy_key -o UserKnownHostsFile=~/.ssh/known_hosts -o StrictHostKeyChecking=yes"
+          rsync -az -e "$SSH" "$RUNNER_TEMP/scoped/" "${DROPLET_USER}@${DROPLET_HOST}:/opt/waffle_site/releases/${RELEASE}.d${RUN}.incoming/"
+          $SSH "${DROPLET_USER}@${DROPLET_HOST}" "bash /opt/waffle_site/deploy/assemble.sh '$RELEASE' '$RUN'"
+
+      - name: Clean up credentials
+        if: always()
+        run: rm -f ~/.ssh/deploy_key ~/.ssh/known_hosts

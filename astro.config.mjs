@@ -82,6 +82,10 @@ export default defineConfig({
             WAFFLE_APP_URL: envField.string({ context: 'server', access: 'public', optional: true }),
             WAFFLE_DATA: envField.enum({ context: 'server', access: 'public', values: ['fixtures', 'live'], optional: true }),
             SITE_EXAMPLE: envField.string({ context: 'server', access: 'public', optional: true }),
+            // A scoped build (docs/scoped-builds.md): the release tag whose code
+            // this is, and the page manifest of the release being served.
+            SITE_RELEASE: envField.string({ context: 'server', access: 'public', optional: true }),
+            SITE_PREVIOUS_MANIFEST: envField.string({ context: 'server', access: 'public', optional: true }),
         },
     },
 

@@ -69,8 +69,9 @@ src/
     settings.ts                   # the build's settings and the waffle client, for pages (@core/settings)
     components/Seo.astro          # the <head>: title, description, canonical, robots, Open Graph, JSON-LD
     routes/robots.txt.ts          # robots.txt, injected by astro.config.mjs
-    lib/                          # pure logic, held to 100% coverage: settings, project, seo, jsonld, audit, posts, prices, forms, waffle-api
+    lib/                          # pure logic, held to 100% coverage: settings, project, seo, jsonld, audit, posts, prices, forms, waffle-api, records, manifest, redirects, sitemap
     lib/clients/                  # the network and the disk, and nothing else; outside coverage
+    build-scope.ts                # full build or scoped to what changed (docs/scoped-builds.md)
   site.ts                         # the business (NAP, hours, licence), navigation, footer, noindex list
   fonts.ts                        # the typefaces, for Astro's Fonts API
   content.config.ts               # the blog's front matter schema
@@ -89,11 +90,12 @@ docs/playbook.md                  # how this site was meant to be adapted from i
 examples/<name>/                  # the template only: each a complete site, with example.json, PLAYBOOK.md, checks.js
 docker/caddy/Caddyfile            # the web server, local and production
 docker-compose.yml, docker-compose.prod.yml
-deploy/                           # deploy.sh, check-dns.sh, crontab + render-crontab.sh
+deploy/                           # deploy.sh, assemble.sh (scoped releases), check-dns.sh, crontab + render-crontab.sh
 tools/
   npm.sh                          # the only way npm is run
   test.sh                         # the only way tests are run
   check.mjs, audit.mjs            # the type check and the SEO audit, around every build
+  scoped-release.mjs              # what a scoped build ships (docs/scoped-builds.md)
   release.sh, setup.sh, use-example.sh, rename-project.sh, setup-github.sh, changed-groups.sh
 tests/
   unit/                           # src/core/lib, one file per module
@@ -101,7 +103,7 @@ tests/
   e2e/                            # each site built twice and audited; site.checks.js is the site's own
   support/                        # shell helpers, the E2E artifact
 docs/                             # indexed in README.md's Documentation table
-.github/workflows/deploy.yml
+.github/workflows/deploy.yml, rebuild.yml   # a release; a change notice's scoped rebuild
 AGENTS.md                         # this file; CLAUDE.md contains only "See @AGENTS.md"
 README.md, CHANGELOG.md, OPEN-QUESTIONS.md, RESOLVED_QUESTIONS.md
 ```

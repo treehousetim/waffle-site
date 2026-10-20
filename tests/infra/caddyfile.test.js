@@ -68,6 +68,14 @@ test('(3) one route, in the order the security depends on', () => {
     }
 });
 
+test('the release\'s own redirects and 410s, after the proxy and before any file (docs/scoped-builds.md)', () => {
+    const route = block('route {');
+    const at = route.indexOf('import {$SITE_ROOT}/redirects*.caddy');
+
+    assert.notEqual(at, -1, 'the redirects snippet is not imported');
+    assert.ok(at > route.indexOf('handle /api/site/*') && at < route.indexOf('handle /_astro/*'));
+});
+
 test('(4) dotfiles are refused, except .well-known', () => {
     const dotfiles = block('@dotfiles {');
 

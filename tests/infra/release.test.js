@@ -97,3 +97,35 @@ test('every shell script is executable in git', () => {
         assert.match(line, /^100755 /, line);
     }
 });
+
+// ------------------------------------------------- rebuild.yml (docs/scoped-builds.md)
+
+const rebuild = read('.github/workflows/rebuild.yml');
+
+test('a change notice rebuilds, one build at a time, behind any deploy (16)', () => {
+    assert.match(rebuild, /on:\n {2}repository_dispatch:\n {4}types: \[change-notice\]/);
+    assert.match(rebuild, /concurrency:\n {2}group: deploy-production\n {2}cancel-in-progress: false/);
+    assert.match(rebuild, /permissions:\n {2}contents: read/);
+    assert.match(rebuild, /if: github\.repository != 'treehousetim\/waffle-site'/);
+});
+
+test('a rebuild uses the served release\'s code, scoped by its manifest (14, 15)', () => {
+    assert.match(rebuild, /\$SITE_URL\/pages-manifest\.json/);
+    assert.match(rebuild, /\[\[ ! "\$release" =~ \^v\[1-9\]\[0-9\]\*\$ \]\]/);
+    assert.match(rebuild, /ref: \$\{\{ env\.RELEASE \}\}/);
+    assert.match(rebuild, /SITE_PREVIOUS_MANIFEST: \$\{\{ runner\.temp \}\}\/served-manifest\.json/);
+    assert.match(rebuild, /node tools\/scoped-release\.mjs dist/);
+    assert.match(rebuild, /deploy\/assemble\.sh '\$RELEASE' '\$RUN'/);
+    assert.match(workflow, /SITE_RELEASE: \$\{\{ env\.TAG \}\}/);
+});
+
+test('a rebuild never splices the notice into a script, and loads secrets after npm', () => {
+    assert.match(rebuild, /CHANGES: \$\{\{ toJSON\(github\.event\.client_payload\.changes\) \}\}/);
+    assert.doesNotMatch(rebuild.replace(/^.*CHANGES: .*$/m, ''), /client_payload/);
+    assert.ok(rebuild.indexOf('npm run build') < rebuild.indexOf('Install the Doppler CLI'));
+    assert.deepEqual([...new Set(rebuild.match(/secrets\.[A-Z_]+/g))], ['secrets.DOPPLER_TOKEN']);
+
+    for (const action of rebuild.match(/uses: \S+/g) ?? []) {
+        assert.match(action, /@[0-9a-f]{40}$/, action);
+    }
+});

@@ -248,24 +248,32 @@ Built and usable now:
   strict parsers, the audit, the sitemap), as every example does
 - islands as component scripts, posting and fetching through `/api/site/*`
 - structured data helpers (`src/core/lib/jsonld.js`)
+- **records with slugs**: `parseRecords()` and `parseRetired()` in
+  `src/core/lib/records.js` read the waffle app's `GET /api/site/<type>` and
+  `/retired` answers strictly, refuse a slug two records share (failure 3),
+  and fingerprint each record
+- **redirects and `410`s from data**: `caddyRedirects()`
+  (`src/core/lib/redirects.js`) writes a Caddy snippet of previous slugs and
+  retired records, which `docker/caddy/Caddyfile` imports from the release
+  being served (docs/scoped-builds.md)
+- **scoped builds** (docs/scoped-builds.md): the page manifest, the affected
+  pages worked out from it before and after (`src/core/lib/manifest.js`), entity
+  pages built only for changed records, a scoped release assembled over a
+  hard-linked copy of the served one (`tools/scoped-release.mjs`,
+  `deploy/assemble.sh`), and `rebuild.yml`, which a change notice from the app
+  starts. A site adds two endpoints from its own plan of data pages.
 
 Not built yet, and needed for a site like the vacation-rental example:
 
-- **core helpers for collections**: a tested parser for "records with slugs",
-  the publish-bar check with its report, and hub and combination grouping, so
-  every site uses the same code (`src/core/lib/`, at 100% coverage)
-- **redirects and `410`s from data**: the build writing a Caddy snippet of
-  previous slugs and retired records that `docker/caddy/Caddyfile` imports
+- **core helpers for collections**: the publish-bar check with its report,
+  and hub and combination grouping, so every site uses the same code
+  (`src/core/lib/`, at 100% coverage)
 - **remote photos**: `image.remotePatterns` in `astro.config.mjs` for the
   waffle app's photo storage, so the build fetches, resizes and serves them
   itself (failure 12)
-- **scoped builds**: the page manifest, working out the affected pages from a
-  change notice (pure, in `src/core/lib/`, at 100% coverage), building only
-  those (`getStaticPaths` limited to them), assembling the new release over a
-  copy of the current one, and a deploy trigger that carries the notice
-- **change notices from the app**: sent through the waffle app's queue, which
-  coalesces them; the queue is designed, not yet built (Waffle's
-  docs/queue.md)
+- **change notices from the app** in Waffle itself: built in KAW Meetup's
+  app (a queued, coalesced `repository_dispatch` of type `change-notice`), on
+  Waffle's queue, and coming back into Waffle with the content slice
 - **a worked example**: an example site built this way
 
 Until those exist, a site can follow every decision here with code of its own;

@@ -93,6 +93,9 @@ jobs:
       - name: Build the site
         env:
           SITE_ENV: production
+          # Written into the page manifest, so a scoped rebuild knows which
+          # release's code to use (docs/scoped-builds.md).
+          SITE_RELEASE: ${{ env.TAG }}
         run: |
           npm ci
           npm audit signatures

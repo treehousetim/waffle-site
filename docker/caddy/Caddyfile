@@ -99,6 +99,11 @@
 			}
 		}
 
+		# Redirects and 410s from the waffle app's data, written by the build
+		# beside the pages (docs/scoped-builds.md), so each release carries
+		# its own. A glob, so a release without the file still loads.
+		import {$SITE_ROOT}/redirects*.caddy
+
 		# Astro writes content-hashed filenames here, so they never change.
 		handle /_astro/* {
 			header Cache-Control "public, max-age=31536000, immutable"

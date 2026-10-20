@@ -10,7 +10,7 @@ import { existsSync, mkdirSync, readFileSync, readlinkSync, readdirSync, utimesS
 import { join } from 'node:path';
 import { copyRepo, fakeBin, ROOT, run } from '../support/shell.js';
 
-const SCRIPTS = ['deploy/deploy.sh', 'deploy/check-dns.sh', 'deploy/render-crontab.sh',
+const SCRIPTS = ['deploy/deploy.sh', 'deploy/assemble.sh', 'deploy/check-dns.sh', 'deploy/render-crontab.sh',
     'tools/npm.sh', 'tools/test.sh', 'tools/release.sh', 'tools/setup.sh', 'tools/rename-project.sh',
     'tools/setup-github.sh', 'tools/changed-groups.sh'];
 
@@ -177,9 +177,12 @@ function release(dir, tag, age = 0) {
 test('deploy (1): refuses a tag that is not vN, before anything', () => {
     const site = server();
 
-    for (const tag of ['', '1', 'v0', 'v1.0', 'v1;rm -rf /', 'main']) {
+    for (const tag of ['', '1', 'v0', 'v1.0', 'v1.d0', 'v1.d', 'v1.d2;id', 'v1;rm -rf /', 'main']) {
         assert.equal(site.deploy(tag).status, 2, tag);
     }
+
+    // A scoped data rebuild of a release (deploy/assemble.sh) is a tag too.
+    assert.match(site.deploy('v1.d2').stderr, /missing releases\/v1\.d2\/index\.html/);
 
     assert.equal(site.current(), null);
 });
