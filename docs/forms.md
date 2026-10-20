@@ -16,6 +16,17 @@ site only draws it and reads the answer.
 4. Caddy forwards the request to the app with the site key and without the
    visitor's cookies.
 
+## The site key
+
+The app issues it: an owner adds this site on the app's **Sites** page and
+issues its key, which is shown once (Waffle's docs/forms.md). Put it in this
+site's Doppler config as `WAFFLE_SITE_KEY`; Caddy sends it as `X-Site-Key`.
+Issuing a new key in the app replaces the old one at once, so update Doppler
+and redeploy in the same sitting. For local development, issue a key to a
+site with the origin `http://localhost:4321` in your local app, and run the
+dev server with `WAFFLE_SITE_KEY` set to it; the default `local-site-key` is
+refused, so a form posted without one fails as it would in production.
+
 ## The honeypot
 
 Every form has a field named `company_website`, hidden off screen and out of

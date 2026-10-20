@@ -64,7 +64,7 @@ This is the waffle side's work: a slice (or a Waffle Iron module) in the app.
 | Endpoint | Auth | Answer |
 | --- | --- | --- |
 | `GET /api/site/prices` | none: public, read-only | `{"success": true, "data": {"updated": "YYYY-MM-DD", "items": [...]}}`, items as in `api-fixtures/api/site/prices.json` |
-| `POST /api/site/forms/<name>` | `X-Site-Key` must equal the app's `WAFFLE_SITE_KEY` (constant-time compare; 401 otherwise) | see docs/forms.md |
+| `POST /api/site/forms/<name>` | `X-Site-Key` must be a key the app issued to this site, on its Sites page (kept there only as a hash; 401 otherwise) | see docs/forms.md, and Waffle's docs/forms.md |
 
 Rules for every `/api/site/*` route in the app:
 
