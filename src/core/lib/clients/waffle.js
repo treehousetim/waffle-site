@@ -62,7 +62,12 @@ export function fetchImage(source, path) {
     const key = `${source.mode} ${source.baseUrl} ${path}`;
 
     if (!images.has(key)) {
-        images.set(key, readImage(source, path));
+        // A failure is not kept: `astro dev` reloads without restarting, and
+        // the next load should try again.
+        images.set(key, readImage(source, path).catch((error) => {
+            images.delete(key);
+            throw error;
+        }));
     }
 
     return images.get(key);
