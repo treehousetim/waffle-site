@@ -24,6 +24,8 @@ const FIELDS = {
 const MEDIA_FIELDS = ['id', 'path', 'width', 'height', 'alt', 'caption', 'credit_name', 'credit_url'];
 
 const SITE_PATH = /^\/(?:[a-z0-9]+(?:-[a-z0-9]+)*\/)*$/;
+/** An https:// address, as the app checks a credit link. */
+const HTTPS_URL = /^https:\/\/[^\s/?#]+\.[^\s/?#]+(?:[/?#]\S*)?$/i;
 
 /**
  * @param {unknown} value
@@ -79,19 +81,24 @@ export function mediaOf(blocks) {
 }
 
 /**
- * The line under an image or a set of them: the caption, then whose they
- * are. A licensed image's credit shows even with no caption: the licence
- * asks for it (Waffle's docs/content.md, "Media"). Empty when there is
- * neither.
+ * Whose the images are, each credit once, for the line under an image or a
+ * set of them. A licensed image's credit shows even with no caption: the
+ * licence asks for it (Waffle's docs/content.md, "Media"). `url`, when the
+ * app has one, is an https:// address (parseMedia() checked it).
  *
- * @param {string | null} caption
- * @param {readonly { credit_name: string | null }[]} media
- * @returns {string}
+ * @param {readonly { credit_name: string | null, credit_url: string | null }[]} media
+ * @returns {{ name: string, url: string | null }[]}
  */
-export function captionLine(caption, media) {
-    const credits = [...new Set(media.map((item) => item.credit_name).filter((name) => name !== null))];
+export function creditsOf(media) {
+    const seen = new Map();
 
-    return [caption, credits.length === 0 ? null : `Credit: ${credits.join(', ')}`].filter(Boolean).join(' · ');
+    for (const item of media) {
+        if (item.credit_name !== null && !seen.has(`${item.credit_name}\n${item.credit_url}`)) {
+            seen.set(`${item.credit_name}\n${item.credit_url}`, { name: item.credit_name, url: item.credit_url });
+        }
+    }
+
+    return [...seen.values()];
 }
 
 /** @param {unknown} raw @param {string} where */
@@ -194,7 +201,9 @@ export function parseMedia(raw, where) {
     text(media.alt, `${where}.alt`);
     optionalText(media.caption, `${where}.caption`);
     optionalText(media.credit_name, `${where}.credit_name`);
-    optionalText(media.credit_url, `${where}.credit_url`);
+    if (media.credit_url !== null && (typeof media.credit_url !== 'string' || !HTTPS_URL.test(media.credit_url))) {
+        throw new WaffleApiError(`${where}.credit_url: expected an https:// address or null.`);
+    }
 
     return /** @type {any} */ (media);
 }

@@ -1,7 +1,7 @@
 // src/core/lib/blocks.js — block bodies from the waffle app (Waffle's docs/content.md, "Blocks").
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { captionLine, markdownOf, mediaOf, parseBlocks, parseMedia } from '../../src/core/lib/blocks.js';
+import { creditsOf, markdownOf, mediaOf, parseBlocks, parseMedia } from '../../src/core/lib/blocks.js';
 import { WaffleApiError } from '../../src/core/lib/waffle-api.js';
 
 const every = () => [
@@ -83,9 +83,19 @@ test('one image on its own, such as a cover, is checked like a block\'s and give
     assert.throws(() => parseMedia(media(4, { width: 0 }), 'cover'), (e) => e instanceof WaffleApiError && /cover: expected the image's width and height/.test(e.message));
 });
 
-test('an image\'s credit is shown with or without a caption, each name once', () => {
-    assert.equal(captionLine('The room', [media(1, { credit_name: 'Sample Person' })]), 'The room · Credit: Sample Person');
-    assert.equal(captionLine(null, [media(1, { credit_name: 'Sample Person' }), media(2, { credit_name: 'Sample Person' }), media(3)]), 'Credit: Sample Person');
-    assert.equal(captionLine('Just a caption', [media(1)]), 'Just a caption');
-    assert.equal(captionLine(null, [media(1)]), '');
+test('whose the images are: each credit once, with its link when the app has one', () => {
+    assert.deepEqual(creditsOf([
+        media(1, { credit_name: 'Sample Person', credit_url: 'https://example.com/sample' }),
+        media(2, { credit_name: 'Sample Person', credit_url: 'https://example.com/sample' }),
+        media(3, { credit_name: 'Sample Studio' }),
+        media(4),
+    ]), [{ name: 'Sample Person', url: 'https://example.com/sample' }, { name: 'Sample Studio', url: null }]);
+    assert.deepEqual(creditsOf([media(1)]), []);
+});
+
+test('a credit link that is not https fails the build, naming the field', () => {
+    for (const url of ['javascript:alert(1)', 'http://example.com', 7]) {
+        assert.throws(() => parseMedia(media(1, { credit_name: 'Sample', credit_url: url }), 'm'), (e) => e instanceof WaffleApiError && /m\.credit_url: expected an https:\/\/ address or null/.test(e.message));
+    }
+    assert.equal(parseMedia(media(1, { credit_name: 'Sample', credit_url: 'https://example.com/a' }), 'm').credit_url, 'https://example.com/a');
 });

@@ -8,7 +8,7 @@
  */
 import type { ImageMetadata } from 'astro';
 import { Image } from 'astro:assets';
-import { captionLine } from '../lib/blocks.js';
+import Caption from './Caption.astro';
 
 interface Props {
     blocks: Record<string, any>[];
@@ -61,7 +61,7 @@ const widths = [480, 960, 1600];
                 return (
                     <figure class="block-image">
                         <Image src={images[block.media.id]} alt={block.media.alt} widths={widths} sizes="(min-width: 60rem) 60rem, 100vw" />
-                        {captionLine(block.caption ?? block.media.caption, [block.media]) && <figcaption>{captionLine(block.caption ?? block.media.caption, [block.media])}</figcaption>}
+                        <Caption caption={block.caption ?? block.media.caption} media={[block.media]} />
                     </figure>
                 );
             case 'gallery':
@@ -72,7 +72,7 @@ const widths = [480, 960, 1600];
                                 <li><Image src={images[media.id]} alt={media.alt} widths={[320, 640]} sizes="(min-width: 40rem) 20rem, 50vw" /></li>
                             ))}
                         </ul>
-                        {captionLine(block.caption, block.media) && <figcaption>{captionLine(block.caption, block.media)}</figcaption>}
+                        <Caption caption={block.caption} media={block.media} />
                     </figure>
                 );
             default:

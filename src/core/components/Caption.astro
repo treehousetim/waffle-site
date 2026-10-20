@@ -1,0 +1,33 @@
+---
+/**
+ * The line under an image or a set of them: the caption, then whose they are,
+ * each credit once and linked when the app has a link (creditsOf() in
+ * src/core/lib/blocks.js). Nothing when there is neither. A licensed image's
+ * credit shows even with no caption: the licence asks for it.
+ */
+import { creditsOf } from '../lib/blocks.js';
+
+interface Props {
+    caption: string | null;
+    media: { credit_name: string | null; credit_url: string | null }[];
+}
+
+const { caption, media } = Astro.props;
+const credits = creditsOf(media);
+---
+
+{
+    (caption || credits.length > 0) && (
+        <figcaption>
+            {caption}
+            {caption && credits.length > 0 && ' · '}
+            {credits.length > 0 && 'Credit: '}
+            {credits.map((credit, index) => (
+                <>
+                    {index > 0 && ', '}
+                    {credit.url ? <a href={credit.url} rel="noopener">{credit.name}</a> : credit.name}
+                </>
+            ))}
+        </figcaption>
+    )
+}
