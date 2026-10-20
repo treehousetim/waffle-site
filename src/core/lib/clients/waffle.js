@@ -44,16 +44,36 @@ export async function readFixture(relativePath) {
     }
 }
 
+/** Each image asked for in this build, so two record types showing one image fetch it once. */
+const images = new Map();
+
 /**
  * An image from the waffle app, as bytes, for the build to resize (Waffle's
  * docs/content.md, "Media"). Live builds fetch it from the app; development
- * builds read the same path under the fixtures directory.
+ * builds read the same path under the fixtures directory. Asked for twice in
+ * one build (a page's image that is also an event's cover), it is fetched
+ * once: an image's id always names the same picture.
  *
  * @param {{ mode: 'fixtures' | 'live', baseUrl: string | null, fixturesDir: string }} source
  * @param {string} path  /api/site/media/<id>.jpg
  * @returns {Promise<Uint8Array>}
  */
-export async function fetchImage({ mode, baseUrl, fixturesDir }, path) {
+export function fetchImage(source, path) {
+    const key = `${source.mode} ${source.baseUrl} ${path}`;
+
+    if (!images.has(key)) {
+        images.set(key, readImage(source, path));
+    }
+
+    return images.get(key);
+}
+
+/**
+ * @param {{ mode: 'fixtures' | 'live', baseUrl: string | null, fixturesDir: string }} source
+ * @param {string} path
+ * @returns {Promise<Uint8Array>}
+ */
+async function readImage({ mode, baseUrl, fixturesDir }, path) {
     if (mode === 'fixtures') {
         return new Uint8Array(await readFile(resolve(process.cwd(), fixturesDir, path.slice(1))));
     }

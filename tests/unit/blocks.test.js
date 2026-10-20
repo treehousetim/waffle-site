@@ -1,7 +1,7 @@
 // src/core/lib/blocks.js — block bodies from the waffle app (Waffle's docs/content.md, "Blocks").
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { markdownOf, mediaOf, parseBlocks } from '../../src/core/lib/blocks.js';
+import { captionLine, markdownOf, mediaOf, parseBlocks, parseMedia } from '../../src/core/lib/blocks.js';
 import { WaffleApiError } from '../../src/core/lib/waffle-api.js';
 
 const every = () => [
@@ -76,4 +76,16 @@ test('an image the build cannot trust fails it, naming the field (1)', () => {
     for (const [block, message] of cases) {
         assert.throws(() => parseBlocks([block], 'b'), message, String(message));
     }
+});
+
+test('one image on its own, such as a cover, is checked like a block\'s and given back', () => {
+    assert.deepEqual(parseMedia(media(4), 'cover'), media(4));
+    assert.throws(() => parseMedia(media(4, { width: 0 }), 'cover'), (e) => e instanceof WaffleApiError && /cover: expected the image's width and height/.test(e.message));
+});
+
+test('an image\'s credit is shown with or without a caption, each name once', () => {
+    assert.equal(captionLine('The room', [media(1, { credit_name: 'Sample Person' })]), 'The room · Credit: Sample Person');
+    assert.equal(captionLine(null, [media(1, { credit_name: 'Sample Person' }), media(2, { credit_name: 'Sample Person' }), media(3)]), 'Credit: Sample Person');
+    assert.equal(captionLine('Just a caption', [media(1)]), 'Just a caption');
+    assert.equal(captionLine(null, [media(1)]), '');
 });

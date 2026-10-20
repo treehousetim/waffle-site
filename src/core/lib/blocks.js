@@ -78,6 +78,22 @@ export function mediaOf(blocks) {
     return [...seen.values()];
 }
 
+/**
+ * The line under an image or a set of them: the caption, then whose they
+ * are. A licensed image's credit shows even with no caption: the licence
+ * asks for it (Waffle's docs/content.md, "Media"). Empty when there is
+ * neither.
+ *
+ * @param {string | null} caption
+ * @param {readonly { credit_name: string | null }[]} media
+ * @returns {string}
+ */
+export function captionLine(caption, media) {
+    const credits = [...new Set(media.map((item) => item.credit_name).filter((name) => name !== null))];
+
+    return [caption, credits.length === 0 ? null : `Credit: ${credits.join(', ')}`].filter(Boolean).join(' · ');
+}
+
 /** @param {unknown} raw @param {string} where */
 function parseBlock(raw, where) {
     if (raw === null || typeof raw !== 'object' || Array.isArray(raw)) {
@@ -148,12 +164,14 @@ function parseBlock(raw, where) {
 
 /**
  * One image as the app describes it: published, so described (Waffle's
- * docs/content.md, "Media"), and fetched by its path on the app.
+ * docs/content.md, "Media"), and fetched by its path on the app. An image
+ * block's, or one a record's own field names, such as an event's cover.
  *
  * @param {unknown} raw
  * @param {string} where
+ * @returns {{ id: number, path: string, width: number, height: number, alt: string, caption: string | null, credit_name: string | null, credit_url: string | null }}
  */
-function parseMedia(raw, where) {
+export function parseMedia(raw, where) {
     if (raw === null || typeof raw !== 'object' || Array.isArray(raw)) {
         throw new WaffleApiError(`${where}: expected an image.`);
     }
@@ -177,6 +195,8 @@ function parseMedia(raw, where) {
     optionalText(media.caption, `${where}.caption`);
     optionalText(media.credit_name, `${where}.credit_name`);
     optionalText(media.credit_url, `${where}.credit_url`);
+
+    return /** @type {any} */ (media);
 }
 
 /** @param {unknown} items @param {string} where */
