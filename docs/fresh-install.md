@@ -12,7 +12,7 @@ slug `tools/setup.sh` set, `waffle-site.example.com` the site's hostname, and
 - The waffle app this site fronts, and its hostname. The site and the app each
   run their own Caddy with their own certificate, so they need different
   hostnames, and usually different droplets: both want ports 80 and 443.
-- The server: a single DigitalOcean droplet (Ubuntu LTS). The site is static
+- The server: a single DigitalOcean droplet (Debian 13). The site is static
   files behind Caddy, so the smallest droplet is plenty. IPv4 is enough; an
   AAAA record is only for a droplet with IPv6 turned on (`deploy/check-dns.sh`
   refuses one pointing anywhere else).
@@ -57,7 +57,7 @@ file.
 
 ## Part C — The server
 
-**6. Create the droplet** (Ubuntu LTS) with your own SSH key, and point an A
+**6. Create the droplet** (Debian 13) with your own SSH key, and point an A
 record for `waffle-site.example.com` at it. Firewall: 22 from your addresses;
 80, 443 and 443/udp from anywhere. Port 80 stays open for good: Let's Encrypt
 validates over it, and Caddy redirects everything else on it to HTTPS.
@@ -65,10 +65,10 @@ validates over it, and Caddy redirects everything else on it to HTTPS.
 **7. Install what the deploy needs**, as root:
 
 - Docker Engine and the Compose plugin from Docker's own apt repository
-  (https://docs.docker.com/engine/install/ubuntu/). Compose **v2.24 or later**:
+  (https://docs.docker.com/engine/install/debian/). Compose **v2.24 or later**:
   `docker-compose.prod.yml` uses `!override` and `!reset`.
 - The Doppler CLI (https://docs.doppler.com/docs/install-cli).
-- `curl`, `rsync` and `bind9-dnsutils` (for `dig`) from Ubuntu's own
+- `curl`, `rsync` and `bind9-dnsutils` (for `dig`) from Debian's own
   repositories. No certbot, no Node, no PHP: Caddy is the whole server.
 
 Then the deploy user and the directory:
