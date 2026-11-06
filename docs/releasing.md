@@ -87,6 +87,25 @@ There is no database, so nothing else needs rolling back.
 **Never edit files on the server.** The next deploy's `rsync --delete` would
 overwrite them anyway.
 
+## Pull-based deploys (proposal)
+
+**Not built.** Waffle's docs/pull-based-deployments.md proposes the
+other way round from the push above: the server pulls each release from
+GitHub itself, on a timer, so the workflow never reaches the server. For this
+site it changes only how a release arrives, since the server already keeps
+`releases/vN/` and switches `current` by a rename:
+
+- the `build` job attaches the built `dist/` as `<slug>-vN.tar.gz`, with its
+  `.sha256`, to the release; there is no `ship` job, no SSH, and no
+  `prod-deploy` config in Doppler
+- the server checks the release (newer than live, an approved publisher, the
+  checksum), unpacks it into `releases/vN/`, switches `current`, and proves it
+  is being served over HTTPS, switching back if not, as `deploy.sh` does now
+- a scoped rebuild from a change notice becomes a `vN.dRUN` release, ordered
+  after `vN`
+- secrets stay in Doppler on the server; the only new one is a read-only
+  token for this repository's releases, in `prod-serve`
+
 ## Failure lists
 
 ### tools/release.sh

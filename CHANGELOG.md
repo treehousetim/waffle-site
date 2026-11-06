@@ -13,6 +13,7 @@ the version in `VERSION` has one.
 ## [Unreleased]
 
 ### Added
+- **docs/releasing.md, "Pull-based deploys (proposal)"**: what Waffle's docs/pull-based-deployments.md would change for a site (a release tarball pulled by the server, no `ship` job, scoped rebuilds as `vN.dRUN` releases). Not built.
 - **The server's daily advisory check, designed** (docs/supply-chain.md, "Watching for advisories, on the server"): Caddy and Debian checked against what is running, reported once per finding, never changed by the check. Not built yet; where it reports is in OPEN-QUESTIONS.md.
 - **CI** (`.github/workflows/ci.yml`, docs/releasing.md): the gate, `./tools/test.sh --coverage`, on every push to `main` and every pull request; read-only, no secrets, actions pinned to commits (`tests/infra/ci.test.js` holds it to that). Porting: the workflow and its test.
 - **`parseMedia()`** in `src/core/lib/blocks.js`, exported: checks one image the app describes, such as one a record's own field names (KAW Meetup's event covers), as an image block's is checked, and gives it back. `fetchImage()` now fetches an image shown by two record types once per build. Porting: the two files.
