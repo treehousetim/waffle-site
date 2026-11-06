@@ -164,7 +164,7 @@ case " ${PICKED:-$GROUPS_ALL} " in
                     -e SITE_ADDRESS=site.example.test -e SITE_ROOT=/srv/site/current \
                     -e WAFFLE_APP_URL=https://app.example.test -e WAFFLE_SITE_KEY=validate \
                     -v "${ROOT}/docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro" \
-                    caddy:2.11 caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile >/dev/null 2>coverage/caddy-validate.log; then
+                    caddy:2.11.9 caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile >/dev/null 2>coverage/caddy-validate.log; then
                 cat coverage/caddy-validate.log >&2
                 echo "error: Caddy cannot load docker/caddy/Caddyfile." >&2
                 if [ "$STATUS" -eq 0 ]; then STATUS=1; fi

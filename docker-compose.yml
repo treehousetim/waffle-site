@@ -20,7 +20,7 @@ name: waffle_site
 
 services:
   caddy:
-    image: caddy:2.11
+    image: caddy:2.11.9
     environment:
       # Plain HTTP on a port, no hostname, no certificate.
       SITE_ADDRESS: ":80"

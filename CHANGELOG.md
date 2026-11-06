@@ -13,6 +13,7 @@ the version in `VERSION` has one.
 ## [Unreleased]
 
 ### Added
+- **The server's daily advisory check, designed** (docs/supply-chain.md, "Watching for advisories, on the server"): Caddy and Debian checked against what is running, reported once per finding, never changed by the check. Not built yet; where it reports is in OPEN-QUESTIONS.md.
 - **CI** (`.github/workflows/ci.yml`, docs/releasing.md): the gate, `./tools/test.sh --coverage`, on every push to `main` and every pull request; read-only, no secrets, actions pinned to commits (`tests/infra/ci.test.js` holds it to that). Porting: the workflow and its test.
 - **`parseMedia()`** in `src/core/lib/blocks.js`, exported: checks one image the app describes, such as one a record's own field names (KAW Meetup's event covers), as an image block's is checked, and gives it back. `fetchImage()` now fetches an image shown by two record types once per build. Porting: the two files.
 - **Images in pages' blocks** (Waffle's docs/content.md, "Media"): `blocks.js` checks image and gallery blocks and `mediaOf()` lists their images; `Blocks.astro` renders them with Astro's `<Image>` from an `images` map; `fetchImage()` in `src/core/lib/clients/waffle.js` gets each from the app or the fixtures. Brought back from KAW Meetup's site, where the pages loader is the worked example. Porting: the three files.
@@ -37,6 +38,7 @@ the version in `VERSION` has one.
 - **Tests**: `./tools/test.sh`, Node's test runner in a container; `src/core/lib` at 100% line, branch and function coverage; infra tests for every script, the Caddyfile and the workflow; an end-to-end test that builds the site twice and leaves a repeatable artifact.
 
 ### Changed
+- **Caddy is pinned to 2.11.9**, an exact patch instead of the floating `caddy:2.11`, which builds from whatever older image a machine has cached: 2.11.8 and 2.11.9 fix the advisories published on 2026-11-04. `tools/test.sh` validates the Caddyfile with the same image, and `tests/infra/caddyfile.test.js` holds both. Porting: the `image:` line in `docker-compose.yml` and the image in `tools/test.sh`.
 - **Production runs on Debian 13**, not Ubuntu LTS (docs/fresh-install.md). Nothing in deploy/ is distribution-specific.
 ### Fixed
 - **`rebuild.yml` is valid YAML**: an unquoted `run:` holding `: ` made GitHub reject the whole file, so a change notice would never have started a rebuild. A test now refuses any workflow value YAML would misread.

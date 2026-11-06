@@ -76,3 +76,41 @@ stand-in `docker`.
     silently ignored.
 12. The script runs in a native Windows shell, where nothing behaves as
     expected.
+
+# Watching for advisories, on the server
+
+**Status: designed, not built.** The same design as Waffle's
+docs/supply-chain.md, "Watching for advisories, on the server", for what this
+server runs.
+
+The week-long cooldown keeps a hijacked release out; it does nothing about a
+flaw found later in a version already running. The server checks for those
+itself, once a day, reports what it finds, and never changes anything: a
+version is still bumped by hand, in the repository, through a release.
+
+### What it checks
+
+| What | The running version, from | Compared with |
+| --- | --- | --- |
+| Caddy | `docker compose exec caddy caddy version` | the GitHub Advisory Database (`api.github.com/advisories`, Go ecosystem, `github.com/caddyserver/caddy/v2` at that version) |
+| Debian | `/var/run/reboot-required` | security updates are installed by `unattended-upgrades` (docs/fresh-install.md); the check only reports a reboot they are waiting for |
+
+That is all the site runs. npm is not checked here: no package from npm runs
+on the server; the build audits it on the runner, on every release. When the
+site shares a server with its waffle app, the app's check covers both.
+
+### How it reports, and its failure list
+
+As Waffle's: once per finding (state in `.deploy/advisories`), to the channel
+chosen in OPEN-QUESTIONS.md, a check that cannot run reported after two days,
+and nothing but versions and links ever sent. Its numbered failure list is
+Waffle's, items 1 to 9, less the ones about PHP, MariaDB and Composer.
+
+### To build
+
+- `deploy/check-advisories.sh`, run daily from `deploy/crontab`, its state in
+  `.deploy/`
+- the reporting channel, rendered into the crontab the way `HEARTBEAT_URL` is
+- `unattended-upgrades` in docs/fresh-install.md
+- tests in `tests/infra/deploy.test.js` against stand-in `docker` and `curl`,
+  written first (AGENTS.md §7)

@@ -140,6 +140,12 @@ test('(11) the certificate store is a named volume, never a path the rsync could
     assert.match(prod, /restart: unless-stopped/);
 });
 
+test('Caddy is an exact patch, and the suite validates with the image the site runs', () => {
+    const image = compose.match(/image: (caddy:\S+)/)?.[1];
+    assert.equal(image, 'caddy:2.11.9');
+    assert.ok(read('tools/test.sh').includes(` ${image} caddy validate`), 'tools/test.sh validates with another image');
+});
+
 test('names the Compose project for the slug, whatever folder the site is in', () => {
     // Containers and volumes then belong to the site wherever it is cloned;
     // on the server the folder is /opt/<slug>, so the names agree.

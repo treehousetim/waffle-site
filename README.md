@@ -43,7 +43,7 @@ Nine example sites ship with it, each a complete, working site for a fictional b
 | [docs/fresh-install.md](docs/fresh-install.md) | Putting it on a server for the first time | From nothing to production: Doppler, the droplet, GitHub, the waffle app, the first release. |
 | [docs/releasing.md](docs/releasing.md) | Cutting a release, or rolling one back | `./tools/release.sh`, the pipeline, `deploy.sh`, rollback, their failure lists. |
 | [docs/examples.md](docs/examples.md) | Choosing a starting point, or adding one | The example sites, one per kind of business, each its own design: what is shared, the contract every example meets, motion, how to add one. |
-| [docs/supply-chain.md](docs/supply-chain.md) | Adding or updating a package | npm in a container, no install scripts, the week-long cooldown, signature checks. |
+| [docs/supply-chain.md](docs/supply-chain.md) | Adding or updating a package | npm in a container, no install scripts, the week-long cooldown, signature checks; and, designed but not built, the server's daily check for advisories against what it runs. |
 | [docs/README.md](docs/README.md) | Adding a document | Where documents go and how they are indexed. |
 | [CHANGELOG.md](CHANGELOG.md) | Cutting a release, or catching up | What changed, and what is waiting under `[Unreleased]`. |
 | [OPEN-QUESTIONS.md](OPEN-QUESTIONS.md) | The brief is silent on something | Decisions not yet made. Answered ones move to [RESOLVED_QUESTIONS.md](RESOLVED_QUESTIONS.md). |

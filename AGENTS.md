@@ -45,7 +45,7 @@ Use exactly these majors, latest patch a week old or more at install time (docs/
 | HTML parsing | `node-html-parser` | 9: the audit, and sanitising the HTML rendered from the app's Markdown (`src/core/lib/sanitize.js`); build time only, like everything here |
 | Tests | Node's built-in `node:test` and its coverage, in `node:26` | |
 | Node | 26 LTS | run only through `tools/npm.sh` and `tools/test.sh`, in `node:26`; not needed on the host |
-| Web server | Caddy | 2.11 (`caddy:2.11`): serves the files, proxies `/api/site/*`, gets its own certificate |
+| Web server | Caddy | 2.11.9 (`caddy:2.11.9`, an exact patch, bumped deliberately after checking Caddy's security advisories; `tools/test.sh` validates with the same image): serves the files, proxies `/api/site/*`, gets its own certificate |
 | Secrets | Doppler CLI | the **only** source of secrets |
 | Runtime | Docker Compose v2.24+ | |
 | Hosting | One DigitalOcean droplet, deployed by GitHub Actions on `release: published` | |
