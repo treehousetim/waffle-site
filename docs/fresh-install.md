@@ -76,7 +76,10 @@ validates over it, and the front Caddy redirects everything else on it to
 HTTPS.
 Password logins stay off: only keys open it.
 
-**8. Install what the deploy needs**, as root:
+**8. Harden it, then install what the deploy needs**, as root. First
+Waffle's [docs/hardening.md](https://github.com/treehousetim/waffle/blob/main/docs/hardening.md),
+once per server (on a server the app already shares, it is done): the cloud
+firewall, SSH by key only, daily security updates, swap and log limits. Then:
 
 - Docker Engine and the Compose plugin from Docker's own apt repository
   (https://docs.docker.com/engine/install/debian/). Compose **v2.24 or later**:
@@ -141,15 +144,21 @@ renews it on its own (docs/https.md). A deploy refuses to start without it.
 
 ## Part D — GitHub
 
-**12. Protect the tags.** Settings → Rules → Rulesets → **New tag ruleset**:
-target every tag, restrict creations, updates and deletions, with only you on
-the bypass list. Then only you can create or move a release tag.
+**12. Protect what deploys, once anyone else can push.** Settings → Rules →
+Rulesets (on a private repository, rulesets need GitHub Pro or a paid
+organization):
 
-**13. Protect `main`** (Settings → Branches): pull requests required.
+- a branch ruleset for `main`: pull requests required, with you on the bypass
+  list so `./tools/release.sh` can still push;
+- a tag ruleset for every tag (`~ALL`): creations, updates and deletions
+  restricted, with you on the bypass list. A release's tag is what deploys.
+
+While you are the only one with access, neither is needed: the poller deploys
+only a release you published, whose files GitHub Actions uploaded.
 
 ## Part E — The waffle app
 
-**14.** The site reads the app's public `/api/site/*` endpoints while it
+**13.** The site reads the app's public `/api/site/*` endpoints while it
 builds and forwards `/api/site/forms/<name>` from visitors (docs/waffle-api.md
 has the contract). The app needs those endpoints and the same
 `WAFFLE_SITE_KEY` before the first release, or the production build fails.
@@ -158,7 +167,7 @@ For change notices, the app also needs `SITE_REPOSITORY` and
 
 ## Part F — The first release
 
-**15.** Record the first release's notes under `## [Unreleased]` in
+**14.** Record the first release's notes under `## [Unreleased]` in
 `CHANGELOG.md`, commit, then (docs/releasing.md):
 
 ```bash

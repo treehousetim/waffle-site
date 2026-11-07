@@ -82,7 +82,7 @@ run Docker and so is as good as root. Everything here protects that file:
   tag's own, which nothing npm ran could change. The build keeps its network,
   because a production build reads the waffle app's live data; there is no
   token or secret on the runner for it to take.
-- **Which tag.** A tag ruleset lets only the owner create or move a tag,
+- **Which tag.** Once others can push, a tag ruleset lets only the owner create or move a tag,
   and the poller refuses a release older than live or published by someone
   not in `DEPLOY_AUTHORS`.
 - **What is on disk.** A release kept on disk is checked against the list of
