@@ -2,19 +2,19 @@
 #
 # deploy/deploy.sh — bring this release into service.
 #
-#   bash /opt/waffle_site/releases/v7/deploy/deploy.sh v7
+#   bash /opt/waffle_site/releases/7/deploy/deploy.sh 7
 #
 # Runs on the server, from inside the release it deploys. The poller
 # (deploy/pull.sh) has, by this point, downloaded the release GitHub Actions
-# built, checked it and unpacked it into releases/v7/ (or, for a data
-# rebuild like v7.d12, laid it over a copy of the live release), and it runs
+# built, checked it and unpacked it into releases/7/ (or, for a data
+# rebuild like 7.d12, laid it over a copy of the live release), and it runs
 # this release's own copy of this script, so the deploy logic is always the
 # new release's. Nothing here fetches anything.
 #
 # Every release stays on disk under releases/, and `current` is a link to the
 # one being served. Switching is one rename, so a visitor never sees half of
 # one release and half of another. Rolling back is the poller deploying the
-# older tag: waffle_site-pull deploy v6.
+# older tag: waffle_site-pull deploy 6.
 #
 # Never edit files on the server: the poller refuses a release that has
 # changed since it was unpacked. docs/releasing.md has the failure list; the
@@ -27,9 +27,9 @@ set -euo pipefail
 # ---------------------------------------------------------------------------
 TAG="${1:-}"
 
-# vN is a release; vN.dM is a data rebuild of it.
-if [[ ! "$TAG" =~ ^v[1-9][0-9]*(\.d[1-9][0-9]*)?$ ]]; then
-    echo "error: a release tag like v7 (or a data rebuild of one, like v7.d12) is required." >&2
+# N is a release; N.dM is a data rebuild of it.
+if [[ ! "$TAG" =~ ^[1-9][0-9]*(\.d[1-9][0-9]*)?$ ]]; then
+    echo "error: a release tag like 7 (or a data rebuild of one, like 7.d12) is required." >&2
     echo "usage: deploy.sh <tag>" >&2
     exit 2
 fi

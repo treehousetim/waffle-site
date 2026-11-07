@@ -201,10 +201,10 @@ Doppler is the **only** source of secrets. The site itself has one, `WAFFLE_SITE
 `./tools/release.sh` is the release (docs/releasing.md).
 
 1. Record what changed under `## [Unreleased]` in `CHANGELOG.md` as you go; a release with nothing there is refused.
-2. Run `./tools/release.sh` on a clean `main` that matches `origin/main` (`--dry-run` first if you like). It bumps `VERSION`, dates the changelog section, runs `./tools/test.sh --coverage` (red puts it all back), commits, tags `vN`, pushes `main` and the tag together, and publishes the GitHub release.
-3. Publishing deploys: the workflow builds the production site (type check, build with live waffle data, audit) and attaches it to the release as `<slug>-vN.tar.gz`; within a minute the server's poller (`deploy/pull.sh`, on a systemd timer) finds it, checks it, unpacks it into `releases/vN/`, and that release's `deploy.sh` switches `current` to it and proves it is being served over HTTPS, switching back if not (docs/pull-based-deployments.md). A change notice's data rebuild arrives the same way, as `vN.dRUN`.
+2. Run `./tools/release.sh` on a clean `main` that matches `origin/main` (`--dry-run` first if you like). It bumps `VERSION`, dates the changelog section, runs `./tools/test.sh --coverage` (red puts it all back), commits, tags `N`, pushes `main` and the tag together, and publishes the GitHub release.
+3. Publishing deploys: the workflow builds the production site (type check, build with live waffle data, audit) and attaches it to the release as `<slug>-N.tar.gz`; within a minute the server's poller (`deploy/pull.sh`, on a systemd timer) finds it, checks it, unpacks it into `releases/N/`, and that release's `deploy.sh` switches `current` to it and proves it is being served over HTTPS, switching back if not (docs/pull-based-deployments.md). A change notice's data rebuild arrives the same way, as `N.dRUN`.
 
-**Versions:** a site is numbered 1, 2, 3 (`0` never released); the template itself uses semver and never deploys. **Rollback** is `<slug>-pull deploy vN` on the server, instant while it is in `releases/`; the server holds there until something newer is published. **Never edit files on the server**: the poller refuses a release that has changed since it was unpacked.
+**Versions:** a site is numbered 1, 2, 3 (`0` never released); the template itself uses semver and never deploys. **Rollback** is `<slug>-pull deploy N` on the server, instant while it is in `releases/`; the server holds there until something newer is published. **Never edit files on the server**: the poller refuses a release that has changed since it was unpacked.
 
 ---
 

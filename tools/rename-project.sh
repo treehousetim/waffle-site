@@ -125,7 +125,7 @@ done < <(find . \( -name node_modules -o -name .git -o -name dist -o -name cover
 # later run renames it.
 STARTED_FROM="$(tr -d ' \t\r\n' < VERSION 2>/dev/null || true)"
 if [[ "$STARTED_FROM" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && [ "$STARTED_FROM" != "0.0.0" ]; then
-    ORIGIN_LINE="Started from [treehousetim/waffle-site v${STARTED_FROM}](https://github.com/treehousetim/waffle-site/releases/tag/v${STARTED_FROM})."
+    ORIGIN_LINE="Started from [treehousetim/waffle-site ${STARTED_FROM}](https://github.com/treehousetim/waffle-site/releases/tag/${STARTED_FROM})."
 else
     ORIGIN_LINE="Started from [treehousetim/waffle-site](https://github.com/treehousetim/waffle-site)."
 fi

@@ -41,9 +41,16 @@ test('the workflow never builds a release in the template\'s own repository', ()
     assert.match(workflow, /if: github\.repository != 'treehousetim\/waffle-site'/);
 });
 
-test('the workflow refuses a tag that is not vN, read through the environment', () => {
+test('the workflow refuses a tag that is not a release number, read through the environment', () => {
     assert.match(workflow, /TAG: \$\{\{ github\.event\.release\.tag_name \}\}/);
-    assert.match(workflow, /\[\[ ! "\$TAG" =~ \^v\[1-9\]\[0-9\]\*\$ \]\]/);
+    assert.match(workflow, /\[\[ ! "\$TAG" =~ \^\[1-9\]\[0-9\]\*\$ \]\]/);
+});
+
+test('a release tag is the release number alone, everywhere a tag is checked', () => {
+    for (const text of [workflow, rebuild, read('deploy/pull.sh'), read('deploy/deploy.sh'), read('deploy/assemble.sh'), read('tools/release.sh')]) {
+        assert.doesNotMatch(text, /\^\(?v\[1-9\]|TAG="v|#v\}/);
+    }
+    assert.match(read('tools/release.sh'), /^TAG="\$\{NEXT\}"$/m);
 });
 
 test('every action is pinned to a commit, and no checkout keeps a token', () => {
@@ -157,7 +164,7 @@ test('a rebuild waits until the server serves the latest release and its newest 
 
     assert.match(wait, /gh api "repos\/\$GITHUB_REPOSITORY\/releases\/latest"/);
     assert.match(wait, /"\$SITE_URL\/build\.txt"/);
-    assert.match(wait, /\[\[ ! "\$latest" =~ \^v\[1-9\]\[0-9\]\*\$ \]\]/);
+    assert.match(wait, /\[\[ ! "\$latest" =~ \^\[1-9\]\[0-9\]\*\$ \]\]/);
     assert.match(wait, /GH_TOKEN: \$\{\{ github\.token \}\}/);
 });
 

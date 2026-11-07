@@ -128,7 +128,7 @@ test('DNS (6): no dig is a failure, not a pass; no hostname is a usage error', (
  * serve something else. Each release's deploy.sh is run from inside it, as
  * the poller runs it.
  */
-function server(tags = ['v1']) {
+function server(tags = ['1']) {
     const dir = scratch('site-root-');
     mkdirSync(join(dir, 'shared/deploy'), { recursive: true });
     tags.forEach((tag) => release(dir, tag));
@@ -184,29 +184,29 @@ function release(dir, tag) {
     writeFileSync(join(path, 'dist/build.txt'), `${tag}\n`);
 }
 
-test('deploy (1): refuses a tag that is not vN or a data rebuild of one, before anything', () => {
+test('deploy (1): refuses a tag that is not a release number or a data rebuild of one, before anything', () => {
     const site = server();
 
-    for (const tag of ['', '1', 'v0', 'v1.0', 'v1.d0', 'v1.d', 'v1.d2;id', 'v1;rm -rf /', 'main']) {
-        assert.equal(site.deploy(tag, {}, 'v1').status, 2, tag);
+    for (const tag of ['', 'v1', '0', '01', '1.0', '1.d0', '1.d', '1.d2;id', '1;rm -rf /', 'main']) {
+        assert.equal(site.deploy(tag, {}, '1').status, 2, tag);
     }
 
     assert.equal(site.current(), null);
 });
 
 test('deploy (1): refuses to deploy a tag from another release\'s directory', () => {
-    const site = server(['v1']);
-    const result = site.deploy('v2', {}, 'v1');
+    const site = server(['1']);
+    const result = site.deploy('2', {}, '1');
 
     assert.equal(result.status, 1);
-    assert.match(result.stderr, /is releases\/v1, not v2/);
+    assert.match(result.stderr, /is releases\/1, not 2/);
     assert.equal(site.current(), null);
 });
 
 test('deploy (1): refuses a release that is incomplete', () => {
-    const site = server(['v1']);
-    rmSync(join(site.dir, 'releases/v1/dist/build.txt'));
-    const result = site.deploy('v1');
+    const site = server(['1']);
+    rmSync(join(site.dir, 'releases/1/dist/build.txt'));
+    const result = site.deploy('1');
 
     assert.equal(result.status, 1);
     assert.match(result.stderr, /missing dist\/build\.txt/);
@@ -217,14 +217,14 @@ test('deploy (1): refuses a release that is incomplete', () => {
 test('deploy (2): refuses without Doppler, or without the site key', () => {
     const site = server();
 
-    assert.match(site.deploy('v1', { FAKE_DOPPLER_DOWN: '1' }).stderr, /cannot read secrets/);
-    assert.match(site.deploy('v1', { FAKE_KEY: '' }).stderr, /WAFFLE_SITE_KEY is not set/);
+    assert.match(site.deploy('1', { FAKE_DOPPLER_DOWN: '1' }).stderr, /cannot read secrets/);
+    assert.match(site.deploy('1', { FAKE_KEY: '' }).stderr, /WAFFLE_SITE_KEY is not set/);
     assert.equal(site.current(), null);
 });
 
 test('deploy (the app\'s docs/edge.md, 5): refuses before the server\'s front Caddy exists, and says what to set up', () => {
     const site = server();
-    const result = site.deploy('v1', { FAKE_NO_EDGE: '1' });
+    const result = site.deploy('1', { FAKE_NO_EDGE: '1' });
 
     assert.equal(result.status, 1);
     assert.match(result.stderr, /no edge network/);
@@ -235,25 +235,25 @@ test('deploy (the app\'s docs/edge.md, 5): refuses before the server\'s front Ca
 
 test('deploy (4): the new release\'s own Caddyfile is validated, and one Caddy cannot load changes nothing', () => {
     const site = server();
-    const result = site.deploy('v1', { FAKE_CADDY_INVALID: '1' });
+    const result = site.deploy('1', { FAKE_CADDY_INVALID: '1' });
 
     assert.equal(result.status, 1);
     assert.match(result.stderr, /bad Caddyfile/);
     assert.equal(site.current(), null);
 
     const validate = site.docker().find((call) => call.includes('caddy validate'));
-    assert.match(validate, /-e SITE_ROOT=\/srv\/site\/releases\/v1\/dist/);
-    assert.match(validate, /--config \/srv\/site\/releases\/v1\/docker\/caddy\/Caddyfile/);
+    assert.match(validate, /-e SITE_ROOT=\/srv\/site\/releases\/1\/dist/);
+    assert.match(validate, /--config \/srv\/site\/releases\/1\/docker\/caddy\/Caddyfile/);
 });
 
 test('deploy (5): the first deploy points current at the release, verifies it, and installs the crontab', () => {
-    const site = server(['v1']);
-    const result = site.deploy('v1');
+    const site = server(['1']);
+    const result = site.deploy('1');
 
     assert.equal(result.status, 0, result.output);
-    assert.equal(site.current(), 'releases/v1');
+    assert.equal(site.current(), 'releases/1');
     assert.equal(site.state('previous-tag'), null);
-    assert.match(result.stdout, /serving v1/);
+    assert.match(result.stdout, /serving 1/);
     assert.ok(site.crontab().includes('https://waffle-site.example.com/'), site.crontab());
 
     const compose = site.docker().filter((call) => call.startsWith('docker compose'));
@@ -261,27 +261,27 @@ test('deploy (5): the first deploy points current at the release, verifies it, a
     assert.ok(compose.every((call) => call.includes('compose -f docker-compose.yml -f docker-compose.prod.yml')), compose.join('\n'));
     assert.ok(compose.some((call) => call.includes('up -d --remove-orphans')));
     assert.ok(compose.some((call) => call.includes('caddy reload --config /srv/site/current/docker/caddy/Caddyfile')));
-    assert.ok(site.bin.calls().includes(`in ${join(site.dir, 'releases/v1')}`), 'Compose runs from the release');
+    assert.ok(site.bin.calls().includes(`in ${join(site.dir, 'releases/1')}`), 'Compose runs from the release');
 });
 
 test('deploy: the heartbeat goes into the crontab when Doppler has one, and a bad one is only a warning', () => {
-    const site = server(['v1']);
+    const site = server(['1']);
 
-    assert.equal(site.deploy('v1', { FAKE_HEARTBEAT: 'https://hc-ping.com/abc' }).status, 0);
+    assert.equal(site.deploy('1', { FAKE_HEARTBEAT: 'https://hc-ping.com/abc' }).status, 0);
     assert.match(site.crontab(), /&& curl -fsS -m 10 -o \/dev\/null https:\/\/hc-ping\.com\/abc/);
 
-    const bad = site.deploy('v1', { FAKE_HEARTBEAT: 'https://hc-ping.com/$(id)' });
+    const bad = site.deploy('1', { FAKE_HEARTBEAT: 'https://hc-ping.com/$(id)' });
     assert.equal(bad.status, 0);
     assert.match(bad.stderr, /without the heartbeat/);
     assert.doesNotMatch(site.crontab(), /hc-ping/);
 });
 
 test('deploy: the crontab replaces only this site\'s own lines, so the app beside it keeps its jobs', () => {
-    const site = server(['v1']);
+    const site = server(['1']);
     writeFileSync(join(site.bin.dir, 'crontab.installed'), '# BEGIN waffle\n15 3 * * * the app\'s backup\n# END waffle\n');
 
-    site.deploy('v1');
-    site.deploy('v1');
+    site.deploy('1');
+    site.deploy('1');
     const crontab = site.crontab();
 
     assert.match(crontab, /the app's backup/);
@@ -291,47 +291,47 @@ test('deploy: the crontab replaces only this site\'s own lines, so the app besid
 });
 
 test('deploy: the next release switches current and remembers the one before', () => {
-    const site = server(['v1', 'v2']);
+    const site = server(['1', '2']);
 
-    site.deploy('v1');
-    const result = site.deploy('v2');
+    site.deploy('1');
+    const result = site.deploy('2');
 
     assert.equal(result.status, 0, result.output);
-    assert.equal(site.current(), 'releases/v2');
-    assert.equal(site.state('previous-tag'), 'v1');
+    assert.equal(site.current(), 'releases/2');
+    assert.equal(site.state('previous-tag'), '1');
 });
 
 test('deploy: a data rebuild is deployed like a release', () => {
-    const site = server(['v1', 'v1.d5']);
+    const site = server(['1', '1.d5']);
 
-    site.deploy('v1');
-    const result = site.deploy('v1.d5');
+    site.deploy('1');
+    const result = site.deploy('1.d5');
 
     assert.equal(result.status, 0, result.output);
-    assert.equal(site.current(), 'releases/v1.d5');
-    assert.equal(site.state('previous-tag'), 'v1');
+    assert.equal(site.current(), 'releases/1.d5');
+    assert.equal(site.state('previous-tag'), '1');
 });
 
 test('deploy (6): a release that is not what the site serves is switched back, its containers recreated', () => {
-    const site = server(['v1', 'v2']);
+    const site = server(['1', '2']);
 
-    site.deploy('v1');
-    const result = site.deploy('v2', { FAKE_SERVE: join(site.dir, 'releases/v1/dist/build.txt') });
+    site.deploy('1');
+    const result = site.deploy('2', { FAKE_SERVE: join(site.dir, 'releases/1/dist/build.txt') });
 
     assert.equal(result.status, 1);
-    assert.match(result.stderr, /not serving v2/);
-    assert.match(result.stderr, /current is back on v1/);
-    assert.equal(site.current(), 'releases/v1');
+    assert.match(result.stderr, /not serving 2/);
+    assert.match(result.stderr, /current is back on 1/);
+    assert.equal(site.current(), 'releases/1');
     assert.equal(site.state('previous-tag'), null);
 
     const calls = site.bin.calls();
     assert.ok(site.docker().at(-1).includes('caddy reload'), calls.join('\n'));
-    assert.ok(calls.lastIndexOf(`in ${join(site.dir, 'releases/v1')}`) > calls.lastIndexOf(`in ${join(site.dir, 'releases/v2')}`));
+    assert.ok(calls.lastIndexOf(`in ${join(site.dir, 'releases/1')}`) > calls.lastIndexOf(`in ${join(site.dir, 'releases/2')}`));
 });
 
 test('deploy (6): HTTPS that never comes up fails the first deploy and says where to look', () => {
-    const site = server(['v1']);
-    const result = site.deploy('v1', { FAKE_HTTPS_DOWN: '1' });
+    const site = server(['1']);
+    const result = site.deploy('1', { FAKE_HTTPS_DOWN: '1' });
 
     assert.equal(result.status, 1);
     assert.ok(result.stderr.includes('check-dns.sh waffle-site.example.com'), result.stderr);
@@ -339,31 +339,31 @@ test('deploy (6): HTTPS that never comes up fails the first deploy and says wher
 });
 
 test('deploy: rolling back is deploying the older tag again', () => {
-    const site = server(['v1', 'v2']);
+    const site = server(['1', '2']);
 
-    site.deploy('v1');
-    site.deploy('v2');
-    const result = site.deploy('v1');
+    site.deploy('1');
+    site.deploy('2');
+    const result = site.deploy('1');
 
     assert.equal(result.status, 0, result.output);
-    assert.equal(site.current(), 'releases/v1');
-    assert.equal(site.state('previous-tag'), 'v2');
+    assert.equal(site.current(), 'releases/1');
+    assert.equal(site.state('previous-tag'), '2');
 });
 
 test('deploy: says so when the installed poller is not this release\'s', () => {
-    const site = server(['v1']);
+    const site = server(['1']);
 
     writeFileSync(join(site.dir, 'installed-pull'), 'an older poller\n');
-    assert.match(site.deploy('v1').stderr, /install -m 755 \S*\/releases\/v1\/deploy\/pull\.sh \S*\/installed-pull/);
+    assert.match(site.deploy('1').stderr, /install -m 755 \S*\/releases\/1\/deploy\/pull\.sh \S*\/installed-pull/);
     assert.match(readFileSync(join(ROOT, 'deploy/deploy.sh'), 'utf8'), /PULL_BIN="\$\{PULL_BIN:-\/usr\/local\/sbin\/\$\{SLUG\}-pull\}"/);
 
     cpSync(join(ROOT, 'deploy/pull.sh'), join(site.dir, 'installed-pull'));
-    assert.doesNotMatch(site.deploy('v1').stderr, /poller/);
+    assert.doesNotMatch(site.deploy('1').stderr, /poller/);
 });
 
 test('the DNS check runs unless skipped, and its refusal stops a first deploy', () => {
-    const site = server(['v1']);
-    const result = site.deploy('v1', { SKIP_DNS_CHECK: '', DIG: '/nonexistent/dig' });
+    const site = server(['1']);
+    const result = site.deploy('1', { SKIP_DNS_CHECK: '', DIG: '/nonexistent/dig' });
 
     assert.equal(result.status, 1);
     assert.ok(result.stderr.includes('refusing the first deploy until waffle-site.example.com points here'), result.stderr);

@@ -69,11 +69,11 @@ test('(9, 10) releases a site as the next number: version, changelog, commit, ta
     assert.equal(result.status, 0, result.output);
     assert.equal(site.file('VERSION'), '1\n');
     assert.match(site.file('CHANGELOG.md'), /## \[Unreleased\]\n\n## \[1\] - \d{4}-\d{2}-\d{2}\n\n### Added\n- A page\./);
-    assert.equal(site.git('log', '-1', '--format=%s'), 'Release v1');
-    assert.equal(site.git('tag', '--list'), 'v1');
-    assert.match(git(site.dir, 'ls-remote', '--tags', 'origin').stdout, /refs\/tags\/v1/);
+    assert.equal(site.git('log', '-1', '--format=%s'), 'Release 1');
+    assert.equal(site.git('tag', '--list'), '1');
+    assert.match(git(site.dir, 'ls-remote', '--tags', 'origin').stdout, /refs\/tags\/1$/m);
     assert.equal(site.notes(), '### Added\n- A page.\n');
-    assert.ok(site.gh.calls().some((call) => call.startsWith('gh release create v1 --title v1')));
+    assert.ok(site.gh.calls().some((call) => call.startsWith('gh release create 1 --title 1')));
 });
 
 test('(7) works out the next version', () => {
@@ -122,9 +122,9 @@ test('(4) refuses a release with nothing under [Unreleased]', () => {
 
 test('(5) refuses a tag that already exists', () => {
     const site = repo('0');
-    site.git('tag', 'v1');
+    site.git('tag', '1');
 
-    assert.match(site.release().stderr, /the tag v1 already exists/);
+    assert.match(site.release().stderr, /the tag 1 already exists/);
 });
 
 test('(6) leaves nothing behind when the gate is red', () => {

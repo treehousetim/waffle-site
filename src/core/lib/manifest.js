@@ -59,8 +59,8 @@ export function parseManifest(value) {
 
     const { release, records, pages } = /** @type {Record<string, unknown>} */ (value);
 
-    if (typeof release !== 'string' || !/^v[1-9][0-9]*$|^dev$/.test(release)) {
-        throw new ManifestError('page manifest.release: expected a release tag, like v7.');
+    if (typeof release !== 'string' || !/^[1-9][0-9]*$|^dev$/.test(release)) {
+        throw new ManifestError('page manifest.release: expected a release tag, like 7.');
     }
 
     if (!isMap(records, (key, fingerprint) => KEY.test(key) && !key.endsWith(':*') && typeof fingerprint === 'string')) {

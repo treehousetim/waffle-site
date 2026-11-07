@@ -7,7 +7,7 @@ notices"; the design is its docs/content-model.md).
 
 ```
 app: publish ──► change notice (queued, coalesced) ──► GitHub repository_dispatch
-site: rebuild.yml ──► scoped build of the served release ──► attached to it as vN.dRUN
+site: rebuild.yml ──► scoped build of the served release ──► attached to it as N.dRUN
 server: the poller ──► assemble.sh (from the live release) ──► deploy.sh
 ```
 
@@ -17,7 +17,7 @@ Every site with data pages writes `pages-manifest.json` beside its pages:
 
 ```json
 {
- "release": "v7",
+ "release": "7",
  "records": { "stays:lakeside-cabin": "<sha-256 of the record as the app sent it>" },
  "pages": {
   "/stays/": ["stays:*"],
@@ -101,12 +101,12 @@ before storing it.
    merged with the served one, and lists the affected pages that no longer
    exist in `.scoped-remove`. Nothing changed: no release.
 5. The rebuild is packed with `.scoped-base` (what it was built over) and
-   `build.txt` (its own name, `vN.dRUN`), and attached to release `vN` by
+   `build.txt` (its own name, `N.dRUN`), and attached to release `N` by
    the workflow's bot. npm runs only in containers, as in a release, and
    nothing in the workflow holds a secret.
 6. The server's poller (docs/pull-based-deployments.md) finds it within a
    minute, checks it as it checks a release, and has the live release's
-   `deploy/assemble.sh` make `releases/vN.dRUN/`: a copy of the live release
+   `deploy/assemble.sh` make `releases/N.dRUN/`: a copy of the live release
    with hard links, the changes laid over it (each replacing its link, never
    writing through it), the removed pages deleted. It is refused unless it
    was built over what is live. `deploy.sh` then switches to it as to any

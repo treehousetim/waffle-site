@@ -22,11 +22,12 @@ private repository its runs count against the account's Actions minutes.
 `VERSION` holds the last released version and is the only place one is
 written (`tests/infra/release.test.js` fails if `package.json` grows one).
 
-- **A site** is numbered 1, 2, 3, tagged `v1`, `v2`, `v3`; `0` means never
-  released. `vN` is the only shape the workflow builds and the server
-  deploys; a data rebuild of `vN` is `vN.dRUN` (docs/scoped-builds.md).
-- **The template itself** uses semver (`--patch`, `--minor`, `--major`) and
-  never deploys: the workflow's jobs are skipped in `treehousetim/waffle-site`.
+- **A site** is numbered 1, 2, 3, and tagged with the number alone; `0`
+  means never released. A release number is the only shape the workflow
+  builds and the server deploys; a data rebuild of `N` is `N.dRUN`
+  (docs/scoped-builds.md).
+- **The template itself** uses semver (`--patch`, `--minor`, `--major`),
+  tagged with the version alone (`0.4.2`), and never deploys: the workflow's jobs are skipped in `treehousetim/waffle-site`.
 
 ## What the script does
 
@@ -45,7 +46,8 @@ committed, and `main` and the tag are pushed together:
 `.github/workflows/deploy.yml` runs on `release: published`. It holds no
 secret and cannot reach the server; every action is pinned to a commit.
 
-1. Refuses a tag that is not `vN`, and checks out the tag, keeping no token.
+1. Refuses a tag that is not a release number, and checks out the tag,
+   keeping no token.
 2. Reads the hostname and the waffle app's URL from `docker-compose.prod.yml`.
 3. Installs exactly the lockfile and verifies its registry signatures, in a
    container that sees only the package files.
@@ -54,7 +56,7 @@ secret and cannot reach the server; every action is pinned to a commit.
    audit. Any of them failing stops the release here.
 5. Takes only the built site, plain files only, adds `build.txt` naming the
    release, and packs it with the tag's own server files (the Compose files,
-   the Caddyfile, `deploy/`) as `waffle_site-vN.tar.gz`.
+   the Caddyfile, `deploy/`) as `waffle_site-N.tar.gz`.
 6. The `attach` job, the only one that can write, uploads it and its
    `.sha256` to the release.
 
@@ -69,7 +71,7 @@ Every release stays on disk under `releases/`, and `current` is a link to the
 one being served. The poller runs the new release's own `deploy/deploy.sh`,
 from inside it. In order:
 
-1. Refuses anything but `vN` or `vN.dM`, a tag other than the release it is
+1. Refuses anything but `N` or `N.dM`, a tag other than the release it is
    in, and a release that is not complete.
 2. Checks Doppler can be read and holds `WAFFLE_SITE_KEY`.
 3. Checks DNS points here (a refusal on the first deploy, a warning after).
@@ -90,7 +92,7 @@ from inside it. In order:
 Deploy the older tag again, on the server:
 
 ```bash
-sudo -u deploy waffle_site-pull deploy v6
+sudo -u deploy waffle_site-pull deploy 6
 ```
 
 Instant while it is still in `releases/`, downloaded again from its GitHub
@@ -127,7 +129,7 @@ Each has a test in `tests/infra/deploy.test.js`, which runs the real script
 from inside a release against stand-in `docker`, `doppler`, `curl` and
 `crontab`. The poller's own list is in docs/pull-based-deployments.md.
 
-1. A tag that is not `vN` or `vN.dM`, a tag other than the release the script
+1. A tag that is not `N` or `N.dM`, a tag other than the release the script
    is in, or an incomplete release, is put into service.
 2. The stack starts without Doppler, or without the site key, and every form
    fails.

@@ -4,7 +4,7 @@ name: Rebuild from data
 # publishes changed, so the pages they touch are rebuilt, and only those
 # (docs/scoped-builds.md). Never a full build, and never new code: the code
 # is the release being served. The result is attached to that release as a
-# data rebuild, vN.dRUN, and the server deploys it from there
+# data rebuild, N.dRUN, and the server deploys it from there
 # (docs/pull-based-deployments.md). Nothing here can reach the server, and
 # there are no secrets.
 on:
@@ -72,8 +72,8 @@ jobs:
           deadline=$(( $(date +%s) + 1200 ))
           while :; do
             latest="$(gh api "repos/$GITHUB_REPOSITORY/releases/latest" --jq .tag_name)"
-            if [[ ! "$latest" =~ ^v[1-9][0-9]*$ ]]; then
-              echo "::error::the latest release is not vN; publish one with ./tools/release.sh"
+            if [[ ! "$latest" =~ ^[1-9][0-9]*$ ]]; then
+              echo "::error::the latest release is not a release number; publish one with ./tools/release.sh"
               exit 1
             fi
             names="$(gh api "repos/$GITHUB_REPOSITORY/releases/latest" --jq '.assets[].name')"
@@ -207,6 +207,6 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
-          [[ "$RELEASE" =~ ^v[1-9][0-9]*$ ]] || { echo "::error::no release to attach to"; exit 1; }
+          [[ "$RELEASE" =~ ^[1-9][0-9]*$ ]] || { echo "::error::no release to attach to"; exit 1; }
           sha256sum -c "waffle_site-${RELEASE}.d${RUN}.tar.gz.sha256"
           gh release upload "$RELEASE" "waffle_site-${RELEASE}.d${RUN}.tar.gz" "waffle_site-${RELEASE}.d${RUN}.tar.gz.sha256" --clobber

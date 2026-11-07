@@ -195,30 +195,30 @@ const released = (f, path) => read(join(f.root, 'releases', path));
 
 test('pulls a newer release, checks it, unpacks it and hands it to its own deploy.sh', () => {
     const f = fixture();
-    live(f, 'v1');
-    publish(f, 'v2');
+    live(f, '1');
+    publish(f, '2');
 
     const result = pull(f);
 
     assert.equal(result.status, 0, result.output);
-    assert.equal(deployed(f), 'v2\n');
-    assert.equal(released(f, 'v2/dist/index.html'), 'v2 home');
-    assert.equal(current(f), 'releases/v2');
+    assert.equal(deployed(f), '2\n');
+    assert.equal(released(f, '2/dist/index.html'), '2 home');
+    assert.equal(current(f), 'releases/2');
     assert.equal(alerts(f), '');
 });
 
 test('deploys the first release onto an empty server', () => {
     const f = fixture();
-    publish(f, 'v1');
+    publish(f, '1');
 
     assert.equal(pull(f).status, 0);
-    assert.equal(deployed(f), 'v1\n');
+    assert.equal(deployed(f), '1\n');
 });
 
 test('(4) does nothing, quietly, when the latest release is already live', () => {
     const f = fixture();
-    live(f, 'v3');
-    publish(f, 'v3');
+    live(f, '3');
+    publish(f, '3');
 
     assert.equal(pull(f).status, 0);
     assert.equal(deployed(f), '');
@@ -232,40 +232,40 @@ test('(2) does nothing when no release has been published yet', () => {
     assert.equal(deployed(f), '');
 });
 
-test('(3) refuses a tag that is not vN, says so once, and never repeats the tag', () => {
+test('(3) refuses a tag that is not a release number, says so once, and never repeats the tag', () => {
     const f = fixture();
     publish(f, 'v2-<!channel>');
 
     pull(f);
     assert.equal(pull(f).status, 0);
     assert.equal(deployed(f), '');
-    assert.equal(count(alerts(f), 'is not vN'), 1);
+    assert.equal(count(alerts(f), 'is not a release number'), 1);
     assert.doesNotMatch(alerts(f), /<!channel>/);
 });
 
 test('(5) refuses a release older than the one live, so a re-marked old tag cannot roll back', () => {
     const f = fixture();
-    live(f, 'v10');
-    publish(f, 'v9');
+    live(f, '10');
+    publish(f, '9');
 
     pull(f);
     pull(f);
     assert.equal(deployed(f), '');
-    assert.equal(count(alerts(f), 'older than v10'), 1);
+    assert.equal(count(alerts(f), 'older than 10'), 1);
 });
 
 test('(5) compares versions as numbers, not text, and a data rebuild counts as its release', () => {
     const f = fixture();
-    live(f, 'v9.d4');
-    publish(f, 'v10');
+    live(f, '9.d4');
+    publish(f, '10');
 
     pull(f);
-    assert.equal(deployed(f), 'v10\n');
+    assert.equal(deployed(f), '10\n');
 });
 
 test('(6) refuses a release published by someone not approved', () => {
     const f = fixture();
-    publish(f, 'v2', { author: 'mallory' });
+    publish(f, '2', { author: 'mallory' });
 
     pull(f);
     pull(f);
@@ -275,7 +275,7 @@ test('(6) refuses a release published by someone not approved', () => {
 
 test('(7) waits without failing while the files are still being attached', () => {
     const f = fixture();
-    publish(f, 'v2', { assets: false });
+    publish(f, '2', { assets: false });
 
     assert.equal(pull(f).status, 0);
     assert.equal(deployed(f), '');
@@ -284,7 +284,7 @@ test('(7) waits without failing while the files are still being attached', () =>
 
 test('(7) counts a file still uploading as missing', () => {
     const f = fixture();
-    publish(f, 'v2', { uploaded: false });
+    publish(f, '2', { uploaded: false });
 
     pull(f);
     assert.equal(deployed(f), '');
@@ -292,7 +292,7 @@ test('(7) counts a file still uploading as missing', () => {
 
 test('(7) says so, once, when the files have been missing too long', () => {
     const f = fixture();
-    publish(f, 'v2', { assets: false });
+    publish(f, '2', { assets: false });
 
     pull(f, ['check'], { ASSET_WAIT_MINUTES: '0' });
     pull(f, ['check'], { ASSET_WAIT_MINUTES: '0' });
@@ -301,29 +301,29 @@ test('(7) says so, once, when the files have been missing too long', () => {
 
 test('(8) refuses a tarball that does not match its checksum, and keeps nothing of it', () => {
     const f = fixture();
-    publish(f, 'v2', { badSum: true });
+    publish(f, '2', { badSum: true });
 
     pull(f);
     pull(f);
     assert.equal(deployed(f), '');
-    assert.equal(existsSync(join(f.root, 'releases/v2')), false);
-    assert.equal(existsSync(join(f.root, 'releases/v2.partial')), false);
+    assert.equal(existsSync(join(f.root, 'releases/2')), false);
+    assert.equal(existsSync(join(f.root, 'releases/2.partial')), false);
     assert.equal(count(alerts(f), 'checksum'), 1);
 });
 
 test('(9) refuses a release whose tree is incomplete', () => {
     const f = fixture();
-    publish(f, 'v2', { complete: false });
+    publish(f, '2', { complete: false });
 
     pull(f);
     assert.equal(deployed(f), '');
-    assert.equal(existsSync(join(f.root, 'releases/v2')), false);
+    assert.equal(existsSync(join(f.root, 'releases/2')), false);
     assert.match(alerts(f), /incomplete/);
 });
 
 test('(10) skips a tick while another deploy holds the lock', async () => {
     const f = fixture();
-    publish(f, 'v2');
+    publish(f, '2');
     const holder = spawn('flock', [join(f.root, 'shared/deploy/lock'), 'sleep', '3']);
     await new Promise((resolve) => setTimeout(resolve, 300));
 
@@ -336,33 +336,33 @@ test('(10) skips a tick while another deploy holds the lock', async () => {
 
 test('(11, 12) records a failed deploy, says so, and does not retry it on the next tick', () => {
     const f = fixture();
-    live(f, 'v1');
-    publish(f, 'v2');
+    live(f, '1');
+    publish(f, '2');
 
     const result = pull(f, ['check'], { FAKE_DEPLOY_EXIT: '1' });
     pull(f, ['check'], { FAKE_DEPLOY_EXIT: '1' });
 
     assert.equal(result.status, 1);
-    assert.equal(deployed(f), 'v2\n');
-    assert.equal(read(join(f.root, 'shared/deploy/failed-tag')).trim(), 'v2');
-    assert.match(alerts(f), /v2 failed/);
-    assert.equal(current(f), 'releases/v1');
+    assert.equal(deployed(f), '2\n');
+    assert.equal(read(join(f.root, 'shared/deploy/failed-tag')).trim(), '2');
+    assert.match(alerts(f), /2 failed/);
+    assert.equal(current(f), 'releases/1');
 });
 
 test('(11) tries a failed release again after retry', () => {
     const f = fixture();
-    publish(f, 'v2');
+    publish(f, '2');
     pull(f, ['check'], { FAKE_DEPLOY_EXIT: '1' });
 
     pull(f, ['retry']);
     pull(f);
-    assert.equal(deployed(f), 'v2\nv2\n');
+    assert.equal(deployed(f), '2\n2\n');
     assert.equal(existsSync(join(f.root, 'shared/deploy/failed-tag')), false);
 });
 
 test('(1) reports GitHub being unreachable only once it has lasted', () => {
     const f = fixture();
-    publish(f, 'v2');
+    publish(f, '2');
 
     const quiet = pull(f, ['check'], { FAKE_API_DOWN: '1' });
     const before = alerts(f);
@@ -385,7 +385,7 @@ test('(1) treats an answer it cannot read as GitHub failing, never as nothing to
 
 test('(13) stops, and says so once, without the release token', () => {
     const f = fixture();
-    publish(f, 'v2');
+    publish(f, '2');
 
     const result = pull(f, ['check'], { FAKE_SECRET_GITHUB_RELEASES_TOKEN: '' });
     pull(f, ['check'], { FAKE_SECRET_GITHUB_RELEASES_TOKEN: '' });
@@ -397,7 +397,7 @@ test('(13) stops, and says so once, without the release token', () => {
 
 test('(13) stops when Doppler cannot be read', () => {
     const f = fixture();
-    publish(f, 'v2');
+    publish(f, '2');
 
     const result = pull(f, ['check'], { FAKE_DOPPLER_DOWN: '1' });
 
@@ -408,33 +408,33 @@ test('(13) stops when Doppler cannot be read', () => {
 
 test('(14) clears a half-unpacked release left by an interrupted run', () => {
     const f = fixture();
-    publish(f, 'v2');
-    mkdirSync(join(f.root, 'releases/v2.partial/stale'), { recursive: true });
+    publish(f, '2');
+    mkdirSync(join(f.root, 'releases/2.partial/stale'), { recursive: true });
 
     pull(f);
-    assert.equal(existsSync(join(f.root, 'releases/v2.partial')), false);
-    assert.equal(existsSync(join(f.root, 'releases/v2/stale')), false);
-    assert.equal(deployed(f), 'v2\n');
+    assert.equal(existsSync(join(f.root, 'releases/2.partial')), false);
+    assert.equal(existsSync(join(f.root, 'releases/2/stale')), false);
+    assert.equal(deployed(f), '2\n');
 });
 
 test('(15) keeps the newest releases, data rebuilds among them, and always the live and previous ones', () => {
     const f = fixture();
 
-    for (const tag of ['v1', 'v2', 'v3', 'v3.d2', 'v3.d10', 'v4']) {
+    for (const tag of ['1', '2', '3', '3.d2', '3.d10', '4']) {
         mkdirSync(join(f.root, 'releases', tag));
     }
 
-    // v2 is live, so once v5 is deployed it is the previous release.
-    live(f, 'v2');
-    publish(f, 'v5');
+    // 2 is live, so once 5 is deployed it is the previous release.
+    live(f, '2');
+    publish(f, '5');
 
     pull(f, ['check'], { KEEP: '3' });
-    assert.deepEqual(readdirSync(join(f.root, 'releases')).sort(), ['v2', 'v3.d10', 'v4', 'v5']);
+    assert.deepEqual(readdirSync(join(f.root, 'releases')).sort(), ['2', '3.d10', '4', '5']);
 });
 
 test('(16) never puts the release token on a command line or leaves it on disk', () => {
     const f = fixture();
-    publish(f, 'v2');
+    publish(f, '2');
 
     pull(f);
     assert.doesNotMatch(read(join(f.shims, 'curl.args')), new RegExp(TOKEN));
@@ -443,7 +443,7 @@ test('(16) never puts the release token on a command line or leaves it on disk',
 
 test('(16) never puts the alert webhook on a command line', () => {
     const f = fixture();
-    publish(f, 'v2', { author: 'mallory' });
+    publish(f, '2', { author: 'mallory' });
 
     pull(f);
     assert.match(alerts(f), /mallory/);
@@ -452,38 +452,38 @@ test('(16) never puts the alert webhook on a command line', () => {
 
 test('(17) refuses release files that GitHub Actions did not upload, and says so once', () => {
     const f = fixture();
-    publish(f, 'v2', { uploader: 'mallory' });
+    publish(f, '2', { uploader: 'mallory' });
 
     pull(f);
     pull(f);
     assert.equal(deployed(f), '');
-    assert.equal(existsSync(join(f.root, 'releases/v2')), false);
+    assert.equal(existsSync(join(f.root, 'releases/2')), false);
     assert.equal(count(alerts(f), 'not uploaded by github-actions[bot]'), 1);
 });
 
 for (const change of ['edited', 'added', 'removed']) {
     test(`(18) refuses to deploy a release on disk that has changed since it was unpacked: a file ${change}`, () => {
         const f = fixture();
-        publish(f, 'v2');
+        publish(f, '2');
         pull(f, ['check'], { FAKE_DEPLOY_EXIT: '1' });
-        const release = join(f.root, 'releases/v2');
+        const release = join(f.root, 'releases/2');
 
         if (change === 'edited') appendFileSync(join(release, 'deploy/deploy.sh'), '\necho planted\n');
         if (change === 'added') writeFileSync(join(release, 'planted.sh'), 'echo planted\n');
         if (change === 'removed') rmSync(join(release, 'dist/index.html'));
 
         pull(f, ['retry']);
-        const result = pull(f, ['deploy', 'v2']);
+        const result = pull(f, ['deploy', '2']);
 
         assert.equal(result.status, 1);
-        assert.equal(deployed(f), 'v2\n');
+        assert.equal(deployed(f), '2\n');
         assert.match(alerts(f), /changed since it was unpacked/);
     });
 }
 
 test('(19) refuses to run as anyone but the deploy user', () => {
     const f = fixture();
-    publish(f, 'v2');
+    publish(f, '2');
 
     const result = pull(f, ['check'], { DEPLOY_USER: 'someone-else' });
 
@@ -495,8 +495,8 @@ test('(19) refuses to run as anyone but the deploy user', () => {
 
 // ------------------------------------------------------- data rebuilds
 
-/** A server serving v1, deployed by the poller itself, so it is on disk with its manifest. */
-function serving(tag = 'v1') {
+/** A server serving 1, deployed by the poller itself, so it is on disk with its manifest. */
+function serving(tag = '1') {
     const f = fixture();
     publish(f, tag);
     const result = pull(f);
@@ -512,13 +512,13 @@ test('(20) deploys a data rebuild of the live release: a copy of it with the cha
     const result = pull(f);
 
     assert.equal(result.status, 0, result.output);
-    assert.equal(deployed(f), 'v1\nv1.d5\n');
-    assert.equal(current(f), 'releases/v1.d5');
-    assert.equal(released(f, 'v1.d5/dist/events/a/index.html'), 'event a, from d5');
-    assert.equal(released(f, 'v1.d5/dist/index.html'), 'v1 home');
-    assert.equal(released(f, 'v1.d5/dist/build.txt'), 'v1.d5\n');
-    assert.equal(existsSync(join(f.root, 'releases/v1.d5/dist/events/b')), false);
-    assert.equal(existsSync(join(f.root, 'releases/v1.d5.incoming')), false);
+    assert.equal(deployed(f), '1\n1.d5\n');
+    assert.equal(current(f), 'releases/1.d5');
+    assert.equal(released(f, '1.d5/dist/events/a/index.html'), 'event a, from d5');
+    assert.equal(released(f, '1.d5/dist/index.html'), '1 home');
+    assert.equal(released(f, '1.d5/dist/build.txt'), '1.d5\n');
+    assert.equal(existsSync(join(f.root, 'releases/1.d5/dist/events/b')), false);
+    assert.equal(existsSync(join(f.root, 'releases/1.d5.incoming')), false);
     assert.equal(alerts(f), '');
 });
 
@@ -527,12 +527,12 @@ test('(20) the live release is never changed by its data rebuild, so rolling bac
     rebuild(f, 5);
 
     pull(f);
-    assert.equal(released(f, 'v1/dist/events/a/index.html'), 'event a, old');
-    assert.ok(existsSync(join(f.root, 'releases/v1/dist/events/b/index.html')));
+    assert.equal(released(f, '1/dist/events/a/index.html'), 'event a, old');
+    assert.ok(existsSync(join(f.root, 'releases/1/dist/events/b/index.html')));
 
-    const back = pull(f, ['deploy', 'v1']);
+    const back = pull(f, ['deploy', '1']);
     assert.equal(back.status, 0, back.output);
-    assert.equal(current(f), 'releases/v1');
+    assert.equal(current(f), 'releases/1');
 });
 
 test('(20) takes only the newest data rebuild, and none older than what is live', () => {
@@ -542,47 +542,47 @@ test('(20) takes only the newest data rebuild, and none older than what is live'
     rebuild(f, 9);
 
     pull(f);
-    assert.equal(current(f), 'releases/v1.d12');
+    assert.equal(current(f), 'releases/1.d12');
 
     pull(f);
-    assert.equal(deployed(f), 'v1\nv1.d12\n');
+    assert.equal(deployed(f), '1\n1.d12\n');
 });
 
 test('(20) a data rebuild of a release that is no longer the latest is never deployed', () => {
     const f = serving();
     rebuild(f, 5);
-    f.assets.push({ ...f.assets.at(-2), name: 'site-v0.d7.tar.gz' });
+    f.assets.push({ ...f.assets.at(-2), name: 'site-0.d7.tar.gz' });
     save(f);
-    publish(f, 'v2');
-    attach(f, 'site-v1.d6.tar.gz', { 'build.txt': 'v1.d6\n' });
+    publish(f, '2');
+    attach(f, 'site-1.d6.tar.gz', { 'build.txt': '1.d6\n' });
 
     pull(f);
     pull(f);
-    assert.equal(deployed(f), 'v1\nv2\n');
+    assert.equal(deployed(f), '1\n2\n');
 });
 
 test('(21) refuses a data rebuild built over something that is not live, once, and does not retry it', () => {
     const f = serving();
-    rebuild(f, 5, { over: 'v1.d4' });
+    rebuild(f, 5, { over: '1.d4' });
 
     const result = pull(f);
     pull(f);
 
     assert.equal(result.status, 0);
-    assert.equal(deployed(f), 'v1\n');
-    assert.equal(current(f), 'releases/v1');
-    assert.equal(count(alerts(f), 'not built over v1'), 1);
-    assert.equal(existsSync(join(f.root, 'releases/v1.d5')), false);
+    assert.equal(deployed(f), '1\n');
+    assert.equal(current(f), 'releases/1');
+    assert.equal(count(alerts(f), 'not built over 1'), 1);
+    assert.equal(existsSync(join(f.root, 'releases/1.d5')), false);
 });
 
 test('(22) refuses to build a data rebuild over a live release that has changed since it was unpacked', () => {
     const f = serving();
-    appendFileSync(join(f.root, 'releases/v1/dist/index.html'), '<script>planted</script>');
+    appendFileSync(join(f.root, 'releases/1/dist/index.html'), '<script>planted</script>');
     rebuild(f, 5);
 
     pull(f);
-    assert.equal(deployed(f), 'v1\n');
-    assert.match(alerts(f), /v1 on this server has changed since it was unpacked/);
+    assert.equal(deployed(f), '1\n');
+    assert.match(alerts(f), /1 on this server has changed since it was unpacked/);
 });
 
 test('(8, 9, 17) a data rebuild is checked like a release: checksum, contents, uploader', () => {
@@ -591,14 +591,14 @@ test('(8, 9, 17) a data rebuild is checked like a release: checksum, contents, u
         rebuild(f, 5, options);
 
         pull(f);
-        assert.equal(deployed(f), 'v1\n', needle);
+        assert.equal(deployed(f), '1\n', needle);
         assert.match(alerts(f), new RegExp(needle.replace(/[[\]]/g, '\\$&')));
     }
 
     const f = serving();
-    attach(f, 'site-v1.d5.tar.gz', { 'build.txt': 'v1.d5\n' });
+    attach(f, 'site-1.d5.tar.gz', { 'build.txt': '1.d5\n' });
     pull(f);
-    assert.equal(deployed(f), 'v1\n');
+    assert.equal(deployed(f), '1\n');
     assert.match(alerts(f), /incomplete/);
 });
 
@@ -608,17 +608,17 @@ test('(11) a failed data rebuild is not retried until retry, or a newer one', ()
 
     pull(f, ['check'], { FAKE_DEPLOY_EXIT: '1' });
     pull(f);
-    assert.equal(deployed(f), 'v1\nv1.d5\n');
+    assert.equal(deployed(f), '1\n1.d5\n');
 
     rebuild(f, 6);
     pull(f);
-    assert.equal(current(f), 'releases/v1.d6');
+    assert.equal(current(f), 'releases/1.d6');
 });
 
 test('a data rebuild deploys by name only from disk: it cannot be rebuilt from GitHub', () => {
     const f = serving();
 
-    const result = pull(f, ['deploy', 'v1.d5']);
+    const result = pull(f, ['deploy', '1.d5']);
 
     assert.equal(result.status, 1);
     assert.match(result.stderr, /only from disk/);
@@ -628,90 +628,90 @@ test('a data rebuild deploys by name only from disk: it cannot be rebuilt from G
 
 test('deploys a named tag on request, older ones included, for a deliberate rollback', () => {
     const f = fixture();
-    live(f, 'v5');
-    publish(f, 'v4');
+    live(f, '5');
+    publish(f, '4');
 
-    assert.equal(pull(f, ['deploy', 'v4']).status, 0);
-    assert.equal(deployed(f), 'v4\n');
+    assert.equal(pull(f, ['deploy', '4']).status, 0);
+    assert.equal(deployed(f), '4\n');
 });
 
 test('(23) a rollback by name holds: the next tick does not deploy the newer release again', () => {
     const f = fixture();
-    publish(f, 'v4');
+    publish(f, '4');
     pull(f);
-    publish(f, 'v5');
+    publish(f, '5');
     pull(f);
 
-    const back = pull(f, ['deploy', 'v4']);
+    const back = pull(f, ['deploy', '4']);
     pull(f);
     pull(f);
 
     assert.equal(back.status, 0, back.output);
-    assert.equal(deployed(f), 'v4\nv5\nv4\n');
-    assert.equal(current(f), 'releases/v4');
-    assert.match(pull(f, ['status']).stdout, /held: {5}v5/);
+    assert.equal(deployed(f), '4\n5\n4\n');
+    assert.equal(current(f), 'releases/4');
+    assert.match(pull(f, ['status']).stdout, /held: {5}5/);
 });
 
 test('(23) the hold ends when something newer is published, or on retry', () => {
-    const f = serving('v4');
+    const f = serving('4');
     rebuild(f, 2);
     pull(f);
-    pull(f, ['deploy', 'v4']);
+    pull(f, ['deploy', '4']);
 
     rebuild(f, 3);
     pull(f);
-    assert.equal(current(f), 'releases/v4.d3');
+    assert.equal(current(f), 'releases/4.d3');
 
-    pull(f, ['deploy', 'v4']);
+    pull(f, ['deploy', '4']);
     pull(f, ['retry']);
     pull(f);
-    assert.equal(current(f), 'releases/v4.d3');
+    assert.equal(current(f), 'releases/4.d3');
 });
 
 test('(23) a rollback while GitHub cannot be read holds whatever the next check finds', () => {
-    const f = serving('v4');
+    const f = serving('4');
     rebuild(f, 2);
     pull(f);
 
-    assert.equal(pull(f, ['deploy', 'v4'], { FAKE_API_DOWN: '1' }).status, 0);
+    assert.equal(pull(f, ['deploy', '4'], { FAKE_API_DOWN: '1' }).status, 0);
     pull(f);
-    assert.equal(current(f), 'releases/v4');
-    assert.match(pull(f, ['status']).stdout, /held: {5}v4\.d2/);
+    assert.equal(current(f), 'releases/4');
+    assert.match(pull(f, ['status']).stdout, /held: {5}4\.d2/);
 });
 
 test('(8) still refuses a named tag that fails its checksum', () => {
     const f = fixture();
-    publish(f, 'v4', { badSum: true });
+    publish(f, '4', { badSum: true });
 
-    assert.equal(pull(f, ['deploy', 'v4']).status, 1);
+    assert.equal(pull(f, ['deploy', '4']).status, 1);
     assert.equal(deployed(f), '');
 });
 
 test('refuses a named tag that is not a release', () => {
     const f = fixture();
 
-    for (const tag of ['main', 'v1;id', 'v1.d', '../v1']) {
+    for (const tag of ['main', 'v1', '1;id', '1.d', '../1', '01']) {
         assert.equal(pull(f, ['deploy', tag]).status, 2, tag);
     }
 });
 
 test('shows what is live, what was before, and what failed', () => {
     const f = fixture();
-    live(f, 'v7.d3');
-    writeFileSync(join(f.root, 'shared/deploy/previous-tag'), 'v7\n');
-    writeFileSync(join(f.root, 'shared/deploy/failed-tag'), 'v8\n');
+    live(f, '7.d3');
+    writeFileSync(join(f.root, 'shared/deploy/previous-tag'), '7\n');
+    writeFileSync(join(f.root, 'shared/deploy/failed-tag'), '8\n');
 
     const result = pull(f, ['status']);
 
     assert.equal(result.status, 0);
-    assert.match(result.stdout, /live: {5}v7\.d3/);
-    assert.match(result.stdout, /previous: v7/);
-    assert.match(result.stdout, /failed: {3}v8/);
+    assert.match(result.stdout, /live: {5}7\.d3/);
+    assert.match(result.stdout, /previous: 7/);
+    assert.match(result.stdout, /failed: {3}8/);
 });
 
 test('refuses to run until the unit names the repository and who may publish', () => {
     const f = fixture();
-    publish(f, 'v2');
+    publish(f, '2');
 
     for (const [name, message] of [['REPO', /REPO is not set/], ['DEPLOY_AUTHORS', /DEPLOY_AUTHORS is not set/]]) {
         const result = pull(f, ['check'], { [name]: '' });

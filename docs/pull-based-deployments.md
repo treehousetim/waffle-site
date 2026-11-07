@@ -11,15 +11,15 @@ over HTTPS, and switches back if not. CI never has any access to the server.
 ## Overview
 
 ```
-./tools/release.sh ──▶ GitHub Release vN
-                          │  deploy.yml builds it and attaches <slug>-vN.tar.gz + .sha256
-a change notice ──▶ rebuild.yml builds what changed and attaches <slug>-vN.dRUN.tar.gz + .sha256 to vN
+./tools/release.sh ──▶ GitHub Release N
+                          │  deploy.yml builds it and attaches <slug>-N.tar.gz + .sha256
+a change notice ──▶ rebuild.yml builds what changed and attaches <slug>-N.dRUN.tar.gz + .sha256 to N
                           ▼
 server: <slug>-deploy.timer, every minute ──▶ <slug>-pull check   (deploy/pull.sh)
-   ├─ a newer release? guards: vN? newer than live? approved publisher? the bot's files? checksum?
-   │    └─ unpack into /opt/<slug>/releases/vN
+   ├─ a newer release? guards: a release number? newer than live? approved publisher? the bot's files? checksum?
+   │    └─ unpack into /opt/<slug>/releases/N
    ├─ or a newer data rebuild of the live release? the same guards, then
-   │    └─ built over what is live? the live release's assemble.sh copies it into releases/vN.dRUN
+   │    └─ built over what is live? the live release's assemble.sh copies it into releases/N.dRUN
    │       and lays the changed pages over the copy
    ├─ then that release's own deploy/deploy.sh:
    │    ├─ complete? Doppler readable? DNS here? its Caddyfile valid?
@@ -33,8 +33,8 @@ server: <slug>-deploy.timer, every minute ──▶ <slug>-pull check   (deploy/
 
 | Piece | What it is |
 | --- | --- |
-| `.github/workflows/deploy.yml` | On `release: published`: the `build` job (read-only) installs packages in a container that sees only the package files, builds the site in a container on a copy of the tree, and packs the tag's own server files with the built site; the `attach` job, the only one that can write and which runs no package manager, uploads `<slug>-vN.tar.gz` and its `.sha256` to the release. No secrets. |
-| `.github/workflows/rebuild.yml` | On a change notice: waits until the server serves the latest release and its newest data rebuild, builds what changed (docs/scoped-builds.md), and attaches `<slug>-vN.dRUN.tar.gz` and its `.sha256` to that release. The same two jobs, no secrets. |
+| `.github/workflows/deploy.yml` | On `release: published`: the `build` job (read-only) installs packages in a container that sees only the package files, builds the site in a container on a copy of the tree, and packs the tag's own server files with the built site; the `attach` job, the only one that can write and which runs no package manager, uploads `<slug>-N.tar.gz` and its `.sha256` to the release. No secrets. |
+| `.github/workflows/rebuild.yml` | On a change notice: waits until the server serves the latest release and its newest data rebuild, builds what changed (docs/scoped-builds.md), and attaches `<slug>-N.dRUN.tar.gz` and its `.sha256` to that release. The same two jobs, no secrets. |
 | `deploy/pull.sh` | The poller, installed by hand as `/usr/local/sbin/<slug>-pull`: `check`, `deploy <tag>`, `status`, `retry`. |
 | `deploy/systemd/<slug>-deploy.service` + `.timer` | Run `<slug>-pull check` every minute as the `deploy` user. The service holds the settings: `APP_ROOT`, `SLUG`, `REPO`, `DEPLOY_AUTHORS`, `KEEP`. None is secret. |
 | `deploy/deploy.sh` | Inside each release: brings that release into service, as above. The poller runs the new release's copy, so the deploy logic is always the new release's. |
@@ -82,7 +82,7 @@ run Docker and so is as good as root. Everything here protects that file:
   tag's own, which nothing npm ran could change. The build keeps its network,
   because a production build reads the waffle app's live data; there is no
   token or secret on the runner for it to take.
-- **Which tag.** A tag ruleset lets only the owner create or move a `v` tag,
+- **Which tag.** A tag ruleset lets only the owner create or move a tag,
   and the poller refuses a release older than live or published by someone
   not in `DEPLOY_AUTHORS`.
 - **What is on disk.** A release kept on disk is checked against the list of
@@ -94,7 +94,7 @@ run Docker and so is as good as root. Everything here protects that file:
 | Command | Use |
 | --- | --- |
 | `<slug>-pull status` | Live, previous, failed and held releases, the lock, what is kept. |
-| `<slug>-pull deploy vN` | Deploy one tag, older ones included: **the rollback**. It holds the server there until something newer is published, or `retry`. A data rebuild (`vN.dRUN`) deploys this way only while it is still on disk. |
+| `<slug>-pull deploy N` | Deploy one tag, older ones included: **the rollback**. It holds the server there until something newer is published, or `retry`. A data rebuild (`N.dRUN`) deploys this way only while it is still on disk. |
 | `<slug>-pull retry` | Forget a failed release and a hold, so the next tick deploys the latest again. |
 | `journalctl -fu <slug>-deploy` | Watch a deploy. |
 
@@ -110,18 +110,18 @@ against stand-ins for GitHub and Doppler, and `deploy/assemble.sh` for real.
    release: nothing changes and the tick fails; it is reported once it has
    lasted `API_ALERT_MINUTES` (60), never read as "nothing to do".
 2. No release has been published yet: nothing to do.
-3. The latest release's tag is not `vN`: refused, reported once.
+3. The latest release's tag is not a release number: refused, reported once.
 4. The latest release, and its newest data rebuild, are what is live: nothing
    to do, quietly.
 5. The latest release is older than the one live (an old tag marked latest
-   again): refused, reported once. Versions compare as numbers, so `v10` is
-   newer than `v9`, and a data rebuild counts as its release.
+   again): refused, reported once. Versions compare as numbers, so `10` is
+   newer than `9`, and a data rebuild counts as its release.
 6. The release was published by someone not in `DEPLOY_AUTHORS`: refused,
    reported once.
 7. The release's files are not attached yet, or still uploading: wait without
    failing; reported once if still missing after `ASSET_WAIT_MINUTES` (15).
 8. A tarball does not match its checksum: refused, nothing kept, reported
-   once. This holds for a named `deploy vN` and for a data rebuild too.
+   once. This holds for a named `deploy N` and for a data rebuild too.
 9. The unpacked tree is incomplete: refused before anything changes.
 10. A tick starts while a deploy runs: the lock skips it.
 11. A release or data rebuild that failed is not retried on every tick: only
@@ -154,10 +154,10 @@ against stand-ins for GitHub and Doppler, and `deploy/assemble.sh` for real.
     next change notice rebuilds over what is live then.
 22. The live release has changed since it was unpacked when a data rebuild is
     to be built over it: refused, reported once.
-23. A rollback by name is undone by the next tick: after `deploy vN`, the
+23. A rollback by name is undone by the next tick: after `deploy N`, the
     server holds there until something newer than what was newest is
     published, or `retry`. A rollback while GitHub cannot be read holds
     whatever the first check after it finds.
 
-A tag that is not `vN` is never repeated in an alert, and alerts are escaped
+A tag that is not a release number is never repeated in an alert, and alerts are escaped
 for Slack, so a crafted tag cannot post a link or mention a channel.

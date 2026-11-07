@@ -12,7 +12,7 @@ import { ROOT, run, scratch } from '../support/shell.js';
 
 const HEAD = '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
 const sitemap = (...paths) => `${HEAD}${paths.map((path) => `<url><loc>https://waffle-site.example.com${path}</loc></url>`).join('')}</urlset>`;
-const manifest = (records, pages, release = 'v7') => JSON.stringify({ release, records, pages });
+const manifest = (records, pages, release = '7') => JSON.stringify({ release, records, pages });
 
 /** @param {string} dir @param {Record<string, string>} files */
 function write(dir, files) {
@@ -28,7 +28,7 @@ const served = manifest(
 );
 
 /** A scoped build where stay a changed and stay b was retired. */
-function scopedBuild(release = 'v7') {
+function scopedBuild(release = '7') {
     const dir = scratch('scoped-');
     write(dir, {
         'served-manifest.json': served,
@@ -65,10 +65,10 @@ test('a scoped build ships only the pages that changed, and lists those that wen
 });
 
 test('a scoped build is refused over another release\'s code (15)', () => {
-    const result = scope(scopedBuild('v8'));
+    const result = scope(scopedBuild('8'));
 
     assert.equal(result.status, 1);
-    assert.match(result.stderr, /built from v8, but v7 is being served/);
+    assert.match(result.stderr, /built from 8, but 7 is being served/);
 });
 
 test('a changed page the build did not make fails, rather than shipping without it (13)', () => {
@@ -99,31 +99,31 @@ test('a build too big for one sitemap file, or bad arguments, is refused', () =>
 // ------------------------------------------------------------ assemble.sh
 
 /**
- * A server serving v7, with a data rebuild of it unpacked by the poller into
- * releases/v7.d5.incoming. assemble.sh is run from the served release, as the
+ * A server serving 7, with a data rebuild of it unpacked by the poller into
+ * releases/7.d5.incoming. assemble.sh is run from the served release, as the
  * poller runs it.
  */
-function server({ servedRelease = 'v7', base = 'v7' } = {}) {
+function server({ servedRelease = '7', base = '7' } = {}) {
     const dir = scratch('assemble-');
     write(dir, {
-        'releases/v7/deploy/assemble.sh': readFileSync(join(ROOT, 'deploy/assemble.sh'), 'utf8'),
-        'releases/v7/deploy/deploy.sh': 'echo "$1" > "$(dirname "$0")/../../../deployed"',
-        'releases/v7/dist/pages-manifest.json': `{\n "release": "${servedRelease}",\n "records": {},\n "pages": {}\n}`,
-        'releases/v7/dist/index.html': 'home',
-        'releases/v7/dist/stays/a/index.html': 'stay a, old',
-        'releases/v7/dist/stays/b/index.html': 'stay b',
-        'incoming/pages-manifest.json': '{"release": "v7"}',
+        'releases/7/deploy/assemble.sh': readFileSync(join(ROOT, 'deploy/assemble.sh'), 'utf8'),
+        'releases/7/deploy/deploy.sh': 'echo "$1" > "$(dirname "$0")/../../../deployed"',
+        'releases/7/dist/pages-manifest.json': `{\n "release": "${servedRelease}",\n "records": {},\n "pages": {}\n}`,
+        'releases/7/dist/index.html': 'home',
+        'releases/7/dist/stays/a/index.html': 'stay a, old',
+        'releases/7/dist/stays/b/index.html': 'stay b',
+        'incoming/pages-manifest.json': '{"release": "7"}',
         'incoming/stays/a/index.html': 'stay a, new',
-        'incoming/build.txt': 'v7.d5\n',
+        'incoming/build.txt': '7.d5\n',
         'incoming/.scoped-remove': 'stays/b\n',
         'incoming/.scoped-base': `${base}\n`,
     });
-    symlinkSync('releases/v7', join(dir, 'current'));
+    symlinkSync('releases/7', join(dir, 'current'));
 
     return {
         dir,
-        out: join(dir, 'releases/v7.d5.partial'),
-        assemble: (...args) => run('bash', [join(dir, 'releases/v7/deploy/assemble.sh'), ...args], { cwd: dir }),
+        out: join(dir, 'releases/7.d5.partial'),
+        assemble: (...args) => run('bash', [join(dir, 'releases/7/deploy/assemble.sh'), ...args], { cwd: dir }),
     };
 }
 
@@ -137,7 +137,7 @@ test('assemble: a copy of the served release with the changes laid over, and not
     assert.equal(result.status, 0, result.stderr);
     assert.equal(fresh('dist/stays/a/index.html'), 'stay a, new');
     assert.equal(fresh('dist/index.html'), 'home');
-    assert.equal(fresh('dist/build.txt'), 'v7.d5\n');
+    assert.equal(fresh('dist/build.txt'), '7.d5\n');
     assert.equal(existsSync(join(site.out, 'dist/stays/b')), false);
     assert.equal(existsSync(join(site.out, 'dist/.scoped-remove')), false);
     assert.equal(existsSync(join(site.out, 'dist/.scoped-base')), false);
@@ -149,37 +149,37 @@ test('assemble: the served release is never changed, so rolling back works (15)'
     const site = server();
     go(site);
 
-    assert.equal(readFileSync(join(site.dir, 'releases/v7/dist/stays/a/index.html'), 'utf8'), 'stay a, old');
-    assert.ok(existsSync(join(site.dir, 'releases/v7/dist/stays/b/index.html')));
-    assert.equal(readlinkSync(join(site.dir, 'current')), 'releases/v7');
+    assert.equal(readFileSync(join(site.dir, 'releases/7/dist/stays/a/index.html'), 'utf8'), 'stay a, old');
+    assert.ok(existsSync(join(site.dir, 'releases/7/dist/stays/b/index.html')));
+    assert.equal(readlinkSync(join(site.dir, 'current')), 'releases/7');
 });
 
 test('assemble: refused over a release built from other code (15)', () => {
-    const site = server({ servedRelease: 'v6' });
+    const site = server({ servedRelease: '6' });
     const result = go(site);
 
     assert.equal(result.status, 1);
-    assert.match(result.stderr, /built from v6, not v7/);
+    assert.match(result.stderr, /built from 6, not 7/);
     assert.equal(existsSync(site.out), false);
 });
 
 test('assemble: refused when the rebuild was made over something other than this release (21)', () => {
-    const site = server({ base: 'v7.d4' });
+    const site = server({ base: '7.d4' });
     const result = go(site);
 
     assert.equal(result.status, 1);
-    assert.match(result.stderr, /built over v7\.d4, not v7/);
+    assert.match(result.stderr, /built over 7\.d4, not 7/);
     assert.equal(existsSync(site.out), false);
 });
 
 test('assemble: removes only page directories inside the release', () => {
     const site = server();
-    write(site.dir, { 'incoming/.scoped-remove': '../v7\n' });
+    write(site.dir, { 'incoming/.scoped-remove': '../7\n' });
     const result = go(site);
 
     assert.equal(result.status, 1);
     assert.match(result.stderr, /not a page directory/);
-    assert.ok(existsSync(join(site.dir, 'releases/v7/dist/index.html')));
+    assert.ok(existsSync(join(site.dir, 'releases/7/dist/index.html')));
     assert.equal(existsSync(site.out), false);
 });
 
@@ -189,7 +189,7 @@ test('assemble: refuses bad arguments, or an incomplete rebuild', () => {
     assert.equal(site.assemble().status, 2);
     assert.equal(site.assemble(join(site.dir, 'incoming')).status, 2);
 
-    write(site.dir, { 'incoming/build.txt': 'v7.d5;id\n' });
+    write(site.dir, { 'incoming/build.txt': '7.d5;id\n' });
     assert.match(go(site).stderr, /build\.txt/);
 
     rmSync(join(site.dir, 'incoming/.scoped-base'));

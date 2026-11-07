@@ -83,7 +83,7 @@ test('(8) starts the site\'s own release stream, recording where it came from', 
     rename(dir, 'acme', 'Acme', 'www.acme.com');
 
     assert.equal(file(dir, 'VERSION'), '0\n');
-    assert.match(file(dir, 'CHANGELOG.md'), /Started from \[treehousetim\/waffle-site v0\.3\.1\]/);
+    assert.match(file(dir, 'CHANGELOG.md'), /Started from \[treehousetim\/waffle-site 0\.3\.1\]\(https:\/\/github\.com\/treehousetim\/waffle-site\/releases\/tag\/0\.3\.1\)/);
     assert.match(file(dir, 'CHANGELOG.md'), /## \[Unreleased\]\n$/);
 });
 

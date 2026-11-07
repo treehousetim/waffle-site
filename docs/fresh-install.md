@@ -141,9 +141,9 @@ renews it on its own (docs/https.md). A deploy refuses to start without it.
 
 ## Part D — GitHub
 
-**12. Protect the release tags.** Settings → Rules → Rulesets → **New tag
-ruleset**: target `v*`, restrict creations, updates and deletions, with only
-you on the bypass list. Then only you can create or move a release tag.
+**12. Protect the tags.** Settings → Rules → Rulesets → **New tag ruleset**:
+target every tag, restrict creations, updates and deletions, with only you on
+the bypass list. Then only you can create or move a release tag.
 
 **13. Protect `main`** (Settings → Branches): pull requests required.
 
@@ -162,8 +162,8 @@ For change notices, the app also needs `SITE_REPOSITORY` and
 `CHANGELOG.md`, commit, then (docs/releasing.md):
 
 ```bash
-./tools/release.sh      # v1: version, changelog, gate, tag, push, GitHub release
-gh run watch            # the build, which attaches waffle_site-v1.tar.gz to the release
+./tools/release.sh      # 1: version, changelog, gate, tag, push, GitHub release
+gh run watch            # the build, which attaches waffle_site-1.tar.gz to the release
 ```
 
 Within a minute of the files being attached, the server deploys it. Watch it
@@ -176,19 +176,19 @@ sudo -u deploy waffle_site-pull status
 
 | Symptom | Cause |
 | --- | --- |
-| `release tag is not vN` | the release was not cut by `./tools/release.sh`; delete it and run the script |
+| `release tag is not a release number` | the release was not cut by `./tools/release.sh`; delete it and run the script |
 | `could not reach the waffle app` / `answered HTTP …` | the build could not read the app's `/api/site/*` (Part E) |
 | `audit: … errors` | a page breaks an SEO rule; the build log names the page and the rule (docs/seo.md) |
 | `GITHUB_RELEASES_TOKEN is not set in Doppler` | the key is missing from `prod` (step 4), or the token in step 9 is not the deploy user's |
 | `GitHub's API has been failing (last answer: HTTP 401)` | the GitHub token expired or was revoked; make a new one (step 4) |
-| `waiting for v1's files`, then `still has no tarball` | the build failed; `gh run view` says why |
+| `waiting for 1's files`, then `still has no tarball` | the build failed; `gh run view` says why |
 | `published by …, who is not in DEPLOY_AUTHORS` | add that login to the unit's `DEPLOY_AUTHORS` (step 10) |
 | `Doppler is installed but cannot read secrets` | step 9 skipped, not scoped to `/opt/waffle_site`, or not set as `deploy` |
 | `WAFFLE_SITE_KEY is not set in Doppler` | step 5 |
 | `has no A record` / `points at …, but this server is …` | DNS (step 7) is missing, wrong, or still spreading; fix it, then `waffle_site-pull retry` |
 | `Caddy cannot load this release's docker/caddy/Caddyfile` | a Caddyfile change that does not parse; nothing was changed |
 | `there is no edge network` | the front Caddy is not set up (step 11) |
-| `is not serving v1 with a valid certificate` | ports 80/443 closed, DNS, Let's Encrypt's rate limit, or the front Caddy not naming `waffle-site.example.com`; `cd /opt/edge && docker compose logs --tail=80 caddy` says which |
+| `is not serving 1 with a valid certificate` | ports 80/443 closed, DNS, Let's Encrypt's rate limit, or the front Caddy not naming `waffle-site.example.com`; `cd /opt/edge && docker compose logs --tail=80 caddy` says which |
 
 ## Appendix — every configuration key
 

@@ -27,7 +27,7 @@ workflow, the app spec and the cross-origin settings below are still to
 build.
 
 Setup 3 publishes the way every other setup does: `./tools/release.sh` cuts
-`vN` on a clean `main`, with its changelog section, after the whole suite
+`N` on a clean `main`, with its changelog section, after the whole suite
 passes (docs/releasing.md), and publishing the GitHub release starts the
 workflow. Only the last step differs: instead of attaching them to the
 release for a droplet to pull, the workflow hands the files to the static
@@ -37,13 +37,13 @@ nothing.
 ### The flow
 
 ```
-./tools/release.sh ──► tag vN, GitHub release published
+./tools/release.sh ──► tag N, GitHub release published
                           ▼
-GitHub Actions (on: release published): check out vN, install from the
+GitHub Actions (on: release published): check out N, install from the
 lockfile, type check, build with live waffle data, SEO audit
                           │ any error stops here; the live site is untouched
                           ▼
-the built files committed to the `publish` branch as "vN", and pushed
+the built files committed to the `publish` branch as "N", and pushed
                           ▼
 DigitalOcean App Platform: a static site serving `publish`,
 redeployed on every push to it
@@ -60,7 +60,7 @@ redeployed on every push to it
   build. Nothing is edited on the host.
 - **Data changes** (docs/data-pages.md, decision 8) rebuild the current
   release's tag, scoped to the affected pages, and push to `publish` the same
-  way, as "vN + data".
+  way, as "N + data".
 - **No hosting secret.** The workflow needs only permission to push to its own
   repository; App Platform watches the branch. The only secret is the site
   key, for build-time reads, in Doppler as in every setup.

@@ -3,13 +3,13 @@
 # deploy/assemble.sh — make a data rebuild's release from the release this
 # script is in (docs/scoped-builds.md).
 #
-#   bash /opt/waffle_site/releases/v7/deploy/assemble.sh <incoming> <out>
+#   bash /opt/waffle_site/releases/7/deploy/assemble.sh <incoming> <out>
 #
 # Run by the poller (deploy/pull.sh) from the live release, once it has
 # downloaded a data rebuild, checked it and unpacked it into <incoming>: the
 # pages the rebuild changed, .scoped-remove (the page directories that no
 # longer exist), .scoped-base (the release it was built over) and build.txt
-# (its own name, like v7.d12). This release is copied to <out> with hard
+# (its own name, like 7.d12). This release is copied to <out> with hard
 # links (cheap, and the copy shares nothing it changes: each changed file
 # replaces its link rather than writing into it), the changes are laid over
 # the copy's dist/, and the pages that no longer exist are removed. This
@@ -37,8 +37,8 @@ for required in .scoped-base .scoped-remove build.txt pages-manifest.json; do
 done
 
 NEW="$(head -n 1 "$INCOMING/build.txt")"
-if [[ ! "$NEW" =~ ^(v[1-9][0-9]*)\.d[1-9][0-9]*$ ]]; then
-    echo "error: the data rebuild's build.txt names '${NEW}', not a data rebuild like v7.d12." >&2
+if [[ ! "$NEW" =~ ^([1-9][0-9]*)\.d[1-9][0-9]*$ ]]; then
+    echo "error: the data rebuild's build.txt names '${NEW}', not a data rebuild like 7.d12." >&2
     exit 1
 fi
 CODE="${BASH_REMATCH[1]}"

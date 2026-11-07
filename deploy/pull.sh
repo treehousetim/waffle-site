@@ -4,7 +4,7 @@
 # it, unpack it, and hand it to its own deploy/deploy.sh.
 #
 #   waffle_site-pull check          # what the timer runs every minute
-#   waffle_site-pull deploy v7      # deploy one tag, older ones included
+#   waffle_site-pull deploy 7       # deploy one tag, older ones included
 #   waffle_site-pull status         # live, previous, failed
 #   waffle_site-pull retry          # forget a failure so check tries it again
 #
@@ -14,10 +14,10 @@
 # attaches files to the GitHub release.
 #
 # Two kinds of file arrive on the latest release:
-#   <slug>-vN.tar.gz       a release: the server's files and the built site
-#   <slug>-vN.dM.tar.gz    a data rebuild of vN (rebuild.yml): only the pages a
+#   <slug>-N.tar.gz        a release: the server's files and the built site
+#   <slug>-N.dM.tar.gz     a data rebuild of N (rebuild.yml): only the pages a
 #                          change notice changed, laid over the live release by
-#                          its own deploy/assemble.sh into releases/vN.dM
+#                          its own deploy/assemble.sh into releases/N.dM
 # each with its .sha256.
 #
 # Settings come from the systemd unit's environment and are not secret. The
@@ -150,7 +150,7 @@ asset_foreign() {
 }
 
 # The newest data rebuild of a release the bot has attached, as its run
-# number: <slug>-vN.d<run>.tar.gz. Nothing when there is none (20).
+# number: <slug>-N.d<run>.tar.gz. Nothing when there is none (20).
 latest_rebuild() {
     jq -r --arg prefix "$SLUG-$1.d" --arg uploader "$ASSET_UPLOADER" \
         '[.assets[] | select(.state == "uploaded" and .uploader.login == $uploader)
@@ -312,8 +312,8 @@ prune() {
     local live previous
     live="$(live_tag || true)"
     previous="$(cat "$STATE/previous-tag" 2>/dev/null || true)"
-    find "$RELEASES" -mindepth 1 -maxdepth 1 -type d -name 'v*' -printf '%f\n' \
-        | grep -E '^v[0-9]+(\.d[0-9]+)?$' | sort -V -r | tail -n +"$((KEEP + 1))" \
+    find "$RELEASES" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' \
+        | grep -E '^[0-9]+(\.d[0-9]+)?$' | sort -V -r | tail -n +"$((KEEP + 1))" \
         | while read -r old; do
             [ "$old" = "$live" ] || [ "$old" = "$previous" ] || rm -rf "${RELEASES:?}/$old" "${MANIFESTS:?}/$old"
         done
@@ -407,12 +407,12 @@ check() {
         check_rebuild "$TAG" "$live"
     fi
 
-    if [[ ! "$TAG" =~ ^v[1-9][0-9]*$ ]]; then
-        # Not repeated: a tag that is not vN is text nobody has checked.
-        alert "refused-$(key "$TAG")" "the latest release's tag is not vN; not deploying it"   # (3)
+    if [[ ! "$TAG" =~ ^[1-9][0-9]*$ ]]; then
+        # Not repeated: a tag that is not a release number is text nobody has checked.
+        alert "refused-$(key "$TAG")" "the latest release's tag is not a release number; not deploying it"   # (3)
         exit 0
     fi
-    if [ -n "$code" ] && [ "${TAG#v}" -le "${code#v}" ]; then
+    if [ -n "$code" ] && [ "$TAG" -le "$code" ]; then
         alert "refused-$(key "$TAG")" "the latest release, ${TAG}, is older than ${live}, which is live; not deploying it"   # (5)
         exit 0
     fi
@@ -449,7 +449,7 @@ check() {
 
 deploy_tag() {
     local tag="$1"
-    [[ "$tag" =~ ^v[1-9][0-9]*(\.d[1-9][0-9]*)?$ ]] || { echo "error: '${tag}' is not vN or vN.dM" >&2; exit 2; }
+    [[ "$tag" =~ ^[1-9][0-9]*(\.d[1-9][0-9]*)?$ ]] || { echo "error: '${tag}' is not a release number, or a data rebuild of one like 7.d12" >&2; exit 2; }
     local hold=unknown
     settings
     lock

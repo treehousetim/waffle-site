@@ -42,8 +42,8 @@ jobs:
           TAG: ${{ github.event.release.tag_name }}
         run: |
           set -euo pipefail
-          if [[ ! "$TAG" =~ ^v[1-9][0-9]*$ ]]; then
-            echo "::error::release tag is not vN (docs/releasing.md); refusing to build it"
+          if [[ ! "$TAG" =~ ^[1-9][0-9]*$ ]]; then
+            echo "::error::release tag is not a release number (docs/releasing.md); refusing to build it"
             exit 1
           fi
           echo "TAG=$TAG" >> "$GITHUB_ENV"
@@ -182,6 +182,6 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
-          [[ "$TAG" =~ ^v[1-9][0-9]*$ ]] || { echo "::error::release tag is not vN"; exit 1; }
+          [[ "$TAG" =~ ^[1-9][0-9]*$ ]] || { echo "::error::release tag is not a release number"; exit 1; }
           sha256sum -c "waffle_site-${TAG}.tar.gz.sha256"
           gh release upload "$TAG" "waffle_site-${TAG}.tar.gz" "waffle_site-${TAG}.tar.gz.sha256" --clobber

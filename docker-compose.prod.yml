@@ -4,7 +4,7 @@
 #   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 #
 # deploy/deploy.sh invokes it exactly that way, under `doppler run --`, from
-# the release it is deploying (/opt/waffle_site/releases/vN).
+# the release it is deploying (/opt/waffle_site/releases/N).
 
 services:
   caddy:

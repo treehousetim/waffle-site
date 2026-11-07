@@ -5,7 +5,7 @@ import {
     affectedPages, changedKeys, createManifest, ManifestError, parseManifest, pageFile, planScopedRelease, wants,
 } from '../../src/core/lib/manifest.js';
 
-const manifest = (records, pages, release = 'v7') => ({ release, records, pages });
+const manifest = (records, pages, release = '7') => ({ release, records, pages });
 
 const before = manifest(
     { 'stays:a': 'fa', 'stays:b': 'fb', 'posts:p': 'fp' },
@@ -14,7 +14,7 @@ const before = manifest(
 
 test('a manifest records every record\'s fingerprint and what each page uses', () => {
     const made = createManifest({
-        release: 'v7',
+        release: '7',
         records: [{ key: 'stays:b', fingerprint: 'fb' }, { key: 'stays:a', fingerprint: 'fa' }, { key: 'stays:c', fingerprint: 'fc' }],
         pages: [{ path: '/stays/a/', uses: ['stays:a'] }, { path: '/stays/', uses: ['stays:*'] }, { path: '/stays/c/', uses: ['stays:c'] }],
     });
@@ -28,12 +28,14 @@ test('a manifest that is not one is refused, naming what is wrong', () => {
     for (const [bad, message] of [
         [null, /expected an object/],
         [{ release: '', records: {}, pages: {} }, /release: expected a release tag/],
-        [{ release: 'v7', records: [], pages: {} }, /records: expected/],
-        [{ release: 'v7', records: { 'stays:a': 3 }, pages: {} }, /records: expected/],
-        [{ release: 'v7', records: { 'Stays a': 'f' }, pages: {} }, /records: expected/],
-        [{ release: 'v7', records: {}, pages: { '/a/': 'stays:a' } }, /pages: expected/],
-        [{ release: 'v7', records: {}, pages: { 'a/': [] } }, /pages: expected/],
-        [{ release: 'v7', records: {}, pages: { '/a/': ['nope'] } }, /pages: expected/],
+        [{ release: 'v7', records: {}, pages: {} }, /release: expected a release tag, like 7/],
+        [{ release: '07', records: {}, pages: {} }, /release: expected a release tag/],
+        [{ release: '7', records: [], pages: {} }, /records: expected/],
+        [{ release: '7', records: { 'stays:a': 3 }, pages: {} }, /records: expected/],
+        [{ release: '7', records: { 'Stays a': 'f' }, pages: {} }, /records: expected/],
+        [{ release: '7', records: {}, pages: { '/a/': 'stays:a' } }, /pages: expected/],
+        [{ release: '7', records: {}, pages: { 'a/': [] } }, /pages: expected/],
+        [{ release: '7', records: {}, pages: { '/a/': ['nope'] } }, /pages: expected/],
     ]) {
         assert.throws(() => parseManifest(bad), (e) => e instanceof ManifestError && message.test(e.message));
     }
@@ -84,5 +86,5 @@ test('a scoped release copies the affected pages that exist and removes those th
 });
 
 test('a scoped release is never laid over another release\'s code (15)', () => {
-    assert.throws(() => planScopedRelease(before, { ...before, release: 'v8' }), /built from v8, but v7 is being served/);
+    assert.throws(() => planScopedRelease(before, { ...before, release: '8' }), /built from 8, but 7 is being served/);
 });

@@ -19,4 +19,4 @@ Each starts with where it was settled. Newest moves at the top.
 
 ## How is the site deployed?
 
-**Resolved by the template:** GitHub Actions on `release: published` builds the production site and attaches it to the release; the server pulls it on a timer, unpacks it into `releases/vN/`, and `deploy/deploy.sh` switches `current` to it atomically and proves it is served over HTTPS. Nothing is cloned or built on the server, and CI cannot reach it. AGENTS.md §9, docs/pull-based-deployments.md.
+**Resolved by the template:** GitHub Actions on `release: published` builds the production site and attaches it to the release; the server pulls it on a timer, unpacks it into `releases/N/`, and `deploy/deploy.sh` switches `current` to it atomically and proves it is served over HTTPS. Nothing is cloned or built on the server, and CI cannot reach it. AGENTS.md §9, docs/pull-based-deployments.md.
