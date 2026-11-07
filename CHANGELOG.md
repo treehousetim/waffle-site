@@ -12,6 +12,9 @@ the version in `VERSION` has one.
 
 ## [Unreleased]
 
+### Fixed
+- **A renamed site keeps its own name on the front Caddy's network.** `tools/rename-project.sh` left `docker-compose.prod.yml`'s alias as `waffle-site`; it is now the slug with `_` written `-`, ending in `-site` (`acme` and `acme_site` are both `acme-site`), never the bare slug (docs/create-project.md, 22.). Porting: a renamed site checks its alias against its front Caddy's `deploy/edge/Caddyfile`.
+
 ### Added
 - **The server's daily advisory check, designed** (docs/supply-chain.md, "Watching for advisories, on the server"): Caddy and Debian checked against what is running, reported once per finding, never changed by the check. Not built yet; where it reports is in OPEN-QUESTIONS.md.
 - **CI** (`.github/workflows/ci.yml`, docs/releasing.md): the gate, `./tools/test.sh --coverage`, on every push to `main` and every pull request; read-only, no secrets, actions pinned to commits (`tests/infra/ci.test.js` holds it to that). Porting: the workflow and its test.

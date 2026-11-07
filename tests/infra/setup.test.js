@@ -60,6 +60,19 @@ test('(21) renames the files whose names hold the slug: the server\'s units', ()
     assert.match(result.stdout, /renamed deploy\/systemd\/waffle_site-deploy\.service to deploy\/systemd\/acme-deploy\.service/);
 });
 
+test('(22) names the site on the front Caddy\'s network for its slug: _ written -, ending in -site, never the bare slug', () => {
+    const plain = site();
+    rename(plain, 'acme', 'Acme', 'www.acme.com');
+    const suffixed = site();
+    rename(suffixed, 'acme_site', 'Acme', 'www.acme.com');
+    const multi = site();
+    rename(multi, 'acme_web_2', 'Acme', 'www.acme.com');
+
+    assert.match(file(plain, 'docker-compose.prod.yml'), /^ {8}aliases: \[acme-site\]$/m);
+    assert.match(file(suffixed, 'docker-compose.prod.yml'), /^ {8}aliases: \[acme-site\]$/m);
+    assert.match(file(multi, 'docker-compose.prod.yml'), /^ {8}aliases: \[acme-web-2-site\]$/m);
+});
+
 test('(6) the waffle app defaults to app. on the site\'s domain, and can be named', () => {
     const dir = project();
     rename(dir, 'acme', 'Acme', 'www.acme.com');

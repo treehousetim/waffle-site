@@ -214,7 +214,7 @@ Doppler is the **only** source of secrets. The site itself has one, `WAFFLE_SITE
 - **Front matter values containing `: ` must be quoted**, or YAML reads a nested mapping and the build fails with "Nested mappings are not allowed".
 - **Data is as fresh as the last build.** A change notice from the waffle app rebuilds what it touched; anything else (prices, say) waits for the next release.
 - **`/pricing` and `/pricing/` are one page**: Caddy redirects to the slash, and canonical URLs and internal links always use it.
-- **The certificates are the server's front Caddy's** (`edge_data`, in `/opt/edge`; Waffle's docs/edge.md). Never `docker compose down -v` there. The site's own Caddy serves plain HTTP on the front Caddy's `edge` network, publishes no port, and trusts the visitor's address the front Caddy forwards.
+- **The certificates are the server's front Caddy's** (`edge_data`, in `/opt/edge`; Waffle's docs/edge.md). Never `docker compose down -v` there. The site's own Caddy serves plain HTTP on the front Caddy's `edge` network as `<slug>-site` (`_` written `-`), publishes no port, and trusts the visitor's address the front Caddy forwards.
 - **`node_modules` is a Docker volume**, not a folder on disk; editors will not find it. The dev server and the suite share it.
 - **The dev server is for writing pages**; `docker compose up -d` serves `dist/` behind the real Caddyfile for checking headers, redirects and the 404 page.
 - **TypeScript is pinned to 6** until `@astrojs/check` supports 7.

@@ -146,7 +146,10 @@ test('(the app\'s docs/edge.md, 2) forwarded addresses are trusted only from pri
 });
 
 test('(the app\'s docs/edge.md, 3) on the front Caddy\'s network under the name its Caddyfile uses', () => {
-    assert.match(prod, /networks:\n {6}default:\n {6}edge:\n {8}aliases: \[waffle-site\]/);
+    // Its slug with _ written -, ending in -site (docs/create-project.md, 22).
+    const slug = prod.match(/- \/opt\/(\w+):\/srv\/site:ro/)?.[1] ?? '';
+    const alias = slug.replaceAll('_', '-').replace(/(-site)?$/, '-site');
+    assert.ok(prod.includes(`networks:\n      default:\n      edge:\n        aliases: [${alias}]`), `aliases: [${alias}]`);
     assert.match(prod, /^networks:\n {2}edge:\n {4}external: true$/m);
 });
 

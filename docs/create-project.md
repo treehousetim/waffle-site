@@ -86,3 +86,5 @@ Each has a test in `tests/infra/setup.test.js`, which works on a copy.
 20. An example overwrites the shared core.
 21. A file whose name holds the slug (the server's systemd units) keeps the
     template's name, so the server runs units named for the template.
+22. The site keeps the template's name on the front Caddy's network, or takes
+    the bare slug, which the server itself may be named and resolves to.

@@ -15,7 +15,9 @@
 #                                canonical URLs, the deploy's DNS check
 #   Waffle Site                  the name people read: titles, the footer
 #   waffle_site                  the slug: the Doppler project, /opt/<slug>
-#                                on the server, the npm package and volumes
+#                                on the server, the npm package and volumes,
+#                                and (as <slug>-site, _ written -) the
+#                                site's name on the front Caddy's network
 #
 # Lines containing `treehousetim/waffle` point at the templates themselves
 # and are left alone. Then VERSION starts at 0 and CHANGELOG.md starts fresh,
@@ -72,6 +74,12 @@ if [ "$APP" = "$HOST" ]; then
     exit 2
 fi
 
+# The site's name on the front Caddy's network: the slug with _ written -,
+# ending in -site, so never the bare slug, which the server itself may be
+# named and resolves to (failure list 22). acme and acme_site are acme-site.
+ALIAS="${SLUG//_/-}"
+ALIAS="${ALIAS%-site}-site"
+
 KEEP='treehousetim/waffle'
 # Files that describe the rename, and must keep the placeholders to do so.
 EXCLUDED='^(\./)?(tools/rename-project\.sh|tools/setup\.sh|tools/use-example\.sh|docs/create-project\.md|LICENSE|tests/infra/setup\.test\.js)$'
@@ -103,6 +111,7 @@ for file in $FILES; do
         -e "s|app\.waffle-site\.example\.com|${APP}|g" \
         -e "s|waffle-site\.example\.com|${HOST}|g" \
         -e "s|Waffle Site|${NAME}|g" \
+        -e "s|aliases: \[waffle-site\]|aliases: [${ALIAS}]|g" \
         -e "s|waffle_site|${SLUG}|g" \
         -e "}" \
         "$file"
