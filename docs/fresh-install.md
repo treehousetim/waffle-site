@@ -38,7 +38,7 @@ else: never into a file, a chat, a ticket or a command line.
 | --- | --- | --- |
 | [Doppler](https://www.doppler.com) | Project `waffle_site`, one config, `prod`; a read-only service token for the server | Step 9 |
 | [GitHub](https://github.com) | A fine-grained token that can read this repository's contents (step 4) | Doppler `prod`: `GITHUB_RELEASES_TOKEN` |
-| The waffle app | The site key, shared with the app (step 5) | Doppler `prod`: `WAFFLE_SITE_KEY` |
+| The waffle app | The site key, issued on the app's Sites page once the app is running (step 5) | Doppler `prod`: `WAFFLE_SITE_KEY` |
 | [healthchecks.io](https://healthchecks.io) | Optional: a check's ping URL | Doppler `prod`: `HEARTBEAT_URL` |
 | [Slack](https://slack.com) | Optional: an incoming-webhook URL for failed or refused deploys | Doppler `prod`: `DEPLOY_ALERT_WEBHOOK` |
 
@@ -55,16 +55,12 @@ Doppler `prod` as `GITHUB_RELEASES_TOKEN`. When it expires the server reports
 it; make a new one and replace the value.
 
 **5. The site key.** How the waffle app knows a request came through this
-site (docs/waffle-api.md). Generate it and pipe it in, so it never appears on
-a command line:
-
-```bash
-openssl rand -hex 32 | tr -d '\n' | doppler secrets set WAFFLE_SITE_KEY -p waffle_site -c prod >/dev/null
-```
-
-The waffle app needs the same value; register this site on its Sites page and
-copy the key across in the Doppler dashboard. Never paste it into a chat, a
-ticket or a file.
+site (docs/waffle-api.md). The app issues it, so it comes after the app is
+running: in the app, as an owner, **Sites** → add this site → **Issue a key**.
+The key is shown once, and the app keeps only its hash. Paste it straight
+into Doppler `prod` as `WAFFLE_SITE_KEY`, through the website; never into a
+chat, a ticket or a file. A new key replaces the old one at once, so issuing
+one again means pasting it here and deploying again.
 
 **6. Optional:** `HEARTBEAT_URL` (an `https://` URL from a dead-man's switch;
 the crontab pings it every five minutes after the site answers) and
