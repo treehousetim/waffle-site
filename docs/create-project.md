@@ -64,8 +64,8 @@ Each has a test in `tests/infra/setup.test.js`, which works on a copy.
 2. A display name that would break the TypeScript, JSON or HTML it is written
    into is accepted.
 3. A hostname that is not a plain DNS name is accepted.
-4. The site and the app are given the same hostname, so each Caddy fights the
-   other for the certificate.
+4. The site and the app are given the same hostname, so the front Caddy
+   cannot tell them apart.
 5. A placeholder is left behind somewhere.
 6. The app's hostname has to be typed even when it is the obvious one.
 7. A line pointing at the template itself is rewritten, so the workflow tries
@@ -84,3 +84,5 @@ Each has a test in `tests/infra/setup.test.js`, which works on a copy.
 18. A name that is not an example, or is a path, installs something else.
 19. An incomplete example is half installed, leaving a site that cannot build.
 20. An example overwrites the shared core.
+21. A file whose name holds the slug (the server's systemd units) keeps the
+    template's name, so the server runs units named for the template.

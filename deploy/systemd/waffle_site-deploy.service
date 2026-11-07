@@ -1,0 +1,31 @@
+# The server's half of a release (docs/pull-based-deployments.md): every
+# minute, waffle_site-deploy.timer runs this, which pulls the latest GitHub
+# release or data rebuild if it is newer than what is live, and deploys it.
+#
+# A reference copy. Installed by hand, as root, and never by a release:
+#   install -m 644 deploy/systemd/waffle_site-deploy.service deploy/systemd/waffle_site-deploy.timer /etc/systemd/system/
+#   install -m 755 deploy/pull.sh /usr/local/sbin/waffle_site-pull
+#   systemctl daemon-reload && systemctl enable --now waffle_site-deploy.timer
+#
+# The settings below are not secret. The secrets come from Doppler, through
+# the deploy user's token scoped to /opt/waffle_site.
+
+[Unit]
+Description=Pull and deploy the latest waffle_site release or data rebuild
+Wants=network-online.target
+After=network-online.target docker.service
+
+[Service]
+Type=oneshot
+User=deploy
+Group=deploy
+Environment=APP_ROOT=/opt/waffle_site
+Environment=SLUG=waffle_site
+# Fill these two in for your project (docs/fresh-install.md); the poller
+# refuses to run while either is empty.
+# The GitHub repository the releases come from, as owner/name.
+Environment=REPO=
+# GitHub logins allowed to publish a release that deploys, separated by spaces.
+Environment=DEPLOY_AUTHORS=
+Environment=KEEP=5
+ExecStart=/usr/local/sbin/waffle_site-pull check

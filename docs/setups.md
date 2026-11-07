@@ -7,7 +7,7 @@ side: what it does, where it is hosted and how it is published in each.
 
 | Setup | The site | Hosted on | Published by | Talks to the app |
 |---|---|---|---|---|
-| **2. App + Site** | the main domain, pages from the app's data | its own droplet, or one droplet with the app behind an edge | `./tools/release.sh`, then the deploy workflow (docs/releasing.md); data changes by scoped rebuild (docs/data-pages.md, decision 8) | through its own Caddy (`/api/site/*` forwarded with the site key) |
+| **2. App + Site** | the main domain, pages from the app's data | a droplet, alone or beside the app, behind the server's front Caddy (Waffle's docs/edge.md) | `./tools/release.sh`; the workflow attaches the build to the release and the server pulls it (docs/pull-based-deployments.md); data changes by scoped rebuild (docs/data-pages.md, decision 8) | through its own Caddy (`/api/site/*` forwarded with the site key) |
 | **2a. Back office + Site** | as setup 2 | as setup 2 | as setup 2 | as setup 2 |
 | **3. Site** | a static site, no server of its own | a static host: DigitalOcean App Platform's free static sites out of the box | `./tools/release.sh`, as in every setup; the release workflow builds and hands the files to the host (below) | from the browser, straight to the app's site API (below) |
 | **4. One app, several sites** | one of several; its site key says which | as setup 2 | as setup 2 | as setup 2; the app answers this site's key with this site's records |
@@ -29,8 +29,9 @@ build.
 Setup 3 publishes the way every other setup does: `./tools/release.sh` cuts
 `vN` on a clean `main`, with its changelog section, after the whole suite
 passes (docs/releasing.md), and publishing the GitHub release starts the
-workflow. Only the last step differs: instead of copying files to a droplet,
-the workflow hands them to the static host. Commits to `main` publish
+workflow. Only the last step differs: instead of attaching them to the
+release for a droplet to pull, the workflow hands the files to the static
+host. Commits to `main` publish
 nothing.
 
 ### The flow

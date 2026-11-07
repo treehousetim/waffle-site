@@ -3,18 +3,19 @@ name: Rebuild from data
 # A change notice from the waffle app (its docs/content.md): records the site
 # publishes changed, so the pages they touch are rebuilt, and only those
 # (docs/scoped-builds.md). Never a full build, and never new code: the code
-# is the release being served.
+# is the release being served. The result is attached to that release as a
+# data rebuild, vN.dRUN, and the server deploys it from there
+# (docs/pull-based-deployments.md). Nothing here can reach the server, and
+# there are no secrets.
 on:
   repository_dispatch:
     types: [change-notice]
 
-# The same group as deploy.yml: a notice that arrives while a release is
-# deploying waits for it, and two notices never build at once (failure 16).
-# A notice waiting behind another may be replaced by a newer one; nothing is
-# lost, because the rebuild compares all the data with what is served, not
-# with what the notice names.
+# One rebuild at a time (failure 16). A notice waiting behind another may be
+# replaced by a newer one; nothing is lost, because the rebuild compares all
+# the data with what is served, not with what the notice names.
 concurrency:
-  group: deploy-production
+  group: rebuild
   cancel-in-progress: false
 
 permissions:
@@ -23,10 +24,6 @@ permissions:
 # Every action is pinned to a commit, as in deploy.yml.
 
 jobs:
-  # -------------------------------------------------------------------------
-  # Build: npm runs here, with no environment, so nothing here can read a
-  # secret.
-  # -------------------------------------------------------------------------
   build:
     name: Build what changed
     if: github.repository != 'treehousetim/waffle-site'
@@ -46,6 +43,8 @@ jobs:
 
       - name: Check out the repository
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
 
       - name: Read the hostnames
         run: |
@@ -57,6 +56,44 @@ jobs:
           echo "SITE_URL=https://$host" >> "$GITHUB_ENV"
           echo "WAFFLE_APP_URL=$app" >> "$GITHUB_ENV"
 
+      # -------------------------------------------------------------------
+      # (16) The server deploys on its own time, a minute or so after a file
+      # is attached. A rebuild is laid over what is served, so it waits until
+      # the server serves the latest release and that release's newest data
+      # rebuild; otherwise two rebuilds could be built over the same thing,
+      # or one over a release about to be replaced. build.txt, on the site,
+      # names what is served.
+      # -------------------------------------------------------------------
+      - name: Wait for the server to serve the latest release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          deadline=$(( $(date +%s) + 1200 ))
+          while :; do
+            latest="$(gh api "repos/$GITHUB_REPOSITORY/releases/latest" --jq .tag_name)"
+            if [[ ! "$latest" =~ ^v[1-9][0-9]*$ ]]; then
+              echo "::error::the latest release is not vN; publish one with ./tools/release.sh"
+              exit 1
+            fi
+            names="$(gh api "repos/$GITHUB_REPOSITORY/releases/latest" --jq '.assets[].name')"
+            expected=""
+            served=""
+            if grep -qx "waffle_site-${latest}.tar.gz" <<< "$names"; then
+              run="$(grep -E "^waffle_site-${latest}\.d[1-9][0-9]*\.tar\.gz$" <<< "$names" | sed -E 's/.*\.d([0-9]+)\.tar\.gz$/\1/' | sort -n | tail -n 1 || true)"
+              expected="${latest}${run:+.d$run}"
+              served="$(curl -fsS -m 30 "$SITE_URL/build.txt" | head -n 1 || true)"
+              [ "$served" = "$expected" ] && break
+            fi
+            if [ "$(date +%s)" -ge "$deadline" ]; then
+              echo "::error::the server is not serving ${expected:-$latest} (it serves ${served:-nothing}); journalctl -u waffle_site-deploy on the server says why"
+              exit 1
+            fi
+            sleep 20
+          done
+          echo "RELEASE=$latest" >> "$GITHUB_ENV"
+          echo "SERVED=$served" >> "$GITHUB_ENV"
+
       # What is being served: its page manifest names the release whose code
       # built it, and with its sitemap is what the scoped build is compared
       # with. Both are public files on the site.
@@ -64,130 +101,112 @@ jobs:
         id: served
         run: |
           set -euo pipefail
-          curl -fsS -m 30 "$SITE_URL/pages-manifest.json" -o "$RUNNER_TEMP/served-manifest.json"
-          curl -fsS -m 30 "$SITE_URL/sitemap-0.xml" -o "$RUNNER_TEMP/served-sitemap.xml"
-          release="$(jq -r .release "$RUNNER_TEMP/served-manifest.json")"
-          if [[ ! "$release" =~ ^v[1-9][0-9]*$ ]]; then
-            echo "::error::the served page manifest names no release (got '$release'); publish a release first"
+          mkdir -p "$RUNNER_TEMP/served"
+          curl -fsS -m 30 "$SITE_URL/pages-manifest.json" -o "$RUNNER_TEMP/served/manifest.json"
+          curl -fsS -m 30 "$SITE_URL/sitemap-0.xml" -o "$RUNNER_TEMP/served/sitemap.xml"
+          release="$(jq -r .release "$RUNNER_TEMP/served/manifest.json")"
+          if [ "$release" != "$RELEASE" ]; then
+            echo "::error::the served page manifest names '$release', not $RELEASE"
             exit 1
           fi
-          echo "RELEASE=$release" >> "$GITHUB_ENV"
           echo "release=$release" >> "$GITHUB_OUTPUT"
 
       - name: Check out the release being served
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           ref: ${{ env.RELEASE }}
+          persist-credentials: false
 
-      - name: Set up Node
-        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
-        with:
-          node-version: '26'
-          cache: npm
+      # As deploy.yml: npm in containers, the install seeing only the package
+      # files, the build a copy of the tree it cannot change.
+      - name: Install the site's packages, in a container
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/node_modules"
+          docker run --rm \
+            -v "$PWD/package.json:/app/package.json:ro" \
+            -v "$PWD/package-lock.json:/app/package-lock.json:ro" \
+            -v "$PWD/.npmrc:/app/.npmrc:ro" \
+            -v "$RUNNER_TEMP/node_modules:/app/node_modules" \
+            -w /app -e NPM_CONFIG_IGNORE_SCRIPTS=true \
+            node:26 sh -euc 'npm ci; npm audit signatures'
 
       # A production build of the served release's code, scoped by the
       # served manifest: entity pages only for records that changed.
-      - name: Build what changed
-        env:
-          SITE_ENV: production
-          SITE_RELEASE: ${{ env.RELEASE }}
-          SITE_PREVIOUS_MANIFEST: ${{ runner.temp }}/served-manifest.json
-        run: |
-          npm ci
-          npm audit signatures
-          npm run build
-
-      - name: Pick what the new release changes
-        id: scoped
+      - name: Build what changed, in a container
         run: |
           set -euo pipefail
-          node tools/scoped-release.mjs dist "$RUNNER_TEMP/served-manifest.json" "$RUNNER_TEMP/served-sitemap.xml" "$RUNNER_TEMP/scoped"
-          if [ -d "$RUNNER_TEMP/scoped" ]; then echo "scoped=1" >> "$GITHUB_OUTPUT"; fi
+          mkdir -p "$RUNNER_TEMP/dist"
+          docker run --rm \
+            -v "$PWD:/src:ro" \
+            -v "$RUNNER_TEMP/node_modules:/app/node_modules" \
+            -v "$RUNNER_TEMP/served:/served:ro" \
+            -v "$RUNNER_TEMP/dist:/out" \
+            -w /app \
+            -e SITE_ENV=production -e SITE_URL -e WAFFLE_APP_URL -e SITE_RELEASE="$RELEASE" \
+            -e SITE_PREVIOUS_MANIFEST=/served/manifest.json \
+            -e ASTRO_TELEMETRY_DISABLED=1 -e NPM_CONFIG_IGNORE_SCRIPTS=true \
+            node:26 sh -euc 'tar -C /src --exclude=./.git --exclude=./node_modules -cf - . | tar -C /app -xf -; npm run build; cp -R dist/. /out/'
 
-      # .scoped-remove is a dotfile: kept on purpose.
-      - name: Hand what changed to the ship job
+      # tools/scoped-release.mjs compares the two manifests and writes only
+      # what changed; it needs no package and no network.
+      - name: Pick what the rebuild changes
+        id: scoped
+        env:
+          RUN: ${{ github.run_number }}
+        run: |
+          set -euo pipefail
+          odd="$(find "$RUNNER_TEMP/dist" ! -type f ! -type d)"
+          [ -z "$odd" ] || { echo "::error::the build left something that is not a plain file: $odd"; exit 1; }
+          mkdir -p "$RUNNER_TEMP/out"
+          # What it was built over, and its own name, are written in the
+          # container too: what a container writes belongs to root.
+          docker run --rm --network none -v "$PWD:/app:ro" -v "$RUNNER_TEMP/dist:/dist:ro" -v "$RUNNER_TEMP/served:/served:ro" -v "$RUNNER_TEMP/out:/out" \
+            -e SERVED -e BUILD="${RELEASE}.d${RUN}" \
+            node:26 sh -euc 'node /app/tools/scoped-release.mjs /dist /served/manifest.json /served/sitemap.xml /out/scoped; if [ -d /out/scoped ]; then printf "%s\n" "$SERVED" > /out/scoped/.scoped-base; printf "%s\n" "$BUILD" > /out/scoped/build.txt; fi'
+          if [ -d "$RUNNER_TEMP/out/scoped" ]; then
+            tar -C "$RUNNER_TEMP/out/scoped" -czf "waffle_site-${RELEASE}.d${RUN}.tar.gz" .
+            sha256sum "waffle_site-${RELEASE}.d${RUN}.tar.gz" > "waffle_site-${RELEASE}.d${RUN}.tar.gz.sha256"
+            echo "scoped=1" >> "$GITHUB_OUTPUT"
+          fi
+
+      # .scoped-remove and .scoped-base are inside the tarball; the artifact
+      # is the tarball and its checksum.
+      - name: Hand the rebuild to the attach job
         if: steps.scoped.outputs.scoped == '1'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
-          name: scoped
-          path: ${{ runner.temp }}/scoped/
+          name: rebuild
+          path: waffle_site-*.tar.gz*
           include-hidden-files: true
           retention-days: 3
 
   # -------------------------------------------------------------------------
-  # Ship: the only job that can read DOPPLER_TOKEN, and it runs no npm. Its
-  # environment, prod-rebuild, is deployable from the default branch only
-  # (a repository_dispatch runs there), with its own read-only token
-  # (tools/setup-github.sh).
+  # Attach: the only job that can write, and it runs nothing but the
+  # checksum and the upload, onto the release the rebuild was built from.
   # -------------------------------------------------------------------------
-  ship:
-    name: Ship what changed
+  attach:
+    name: Attach what changed
     needs: build
     if: needs.build.outputs.scoped == '1' && github.repository != 'treehousetim/waffle-site'
     runs-on: ubuntu-latest
-
-    environment:
-      name: prod-rebuild
-      url: https://waffle-site.example.com
+    permissions:
+      contents: write
 
     steps:
-      - name: Take what changed from the build job
+      - name: Take the rebuild from the build job
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
-          name: scoped
-          path: ${{ runner.temp }}/scoped/
+          name: rebuild
 
-      - name: Install the Doppler CLI
-        uses: dopplerhq/cli-action@014df23b1329b615816a38eb5f473bb9000700b1 # v3
-
-      - name: Load deploy credentials from Doppler
-        env:
-          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
-        run: |
-          set -euo pipefail
-
-          for name in DROPLET_HOST DROPLET_USER DROPLET_SSH_KEY DROPLET_SSH_KNOWN_HOSTS; do
-            value="$(doppler secrets get "$name" --plain)"
-
-            if [ -z "$value" ]; then
-              echo "::error::${name} is empty in Doppler's prod-deploy config"
-              exit 1
-            fi
-
-            while IFS= read -r line; do
-              [ -n "$line" ] && echo "::add-mask::$line"
-            done <<< "$value"
-
-            {
-              echo "${name}<<__DOPPLER_EOF__"
-              echo "$value"
-              echo "__DOPPLER_EOF__"
-            } >> "$GITHUB_ENV"
-          done
-
-      - name: Configure SSH
-        run: |
-          set -euo pipefail
-          mkdir -p ~/.ssh
-          chmod 700 ~/.ssh
-          printf '%s\n' "$DROPLET_SSH_KEY" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          printf '%s\n' "$DROPLET_SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
-          chmod 600 ~/.ssh/known_hosts
-
-      # Only what changed goes to the server, beside the releases; assemble.sh
-      # lays it over a copy of the served release and deploys that.
-      - name: Ship and assemble the new release
+      - name: Attach it to the release it was built from
         env:
           RELEASE: ${{ needs.build.outputs.release }}
           RUN: ${{ github.run_number }}
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
-          if [[ ! "$RELEASE" =~ ^v[1-9][0-9]*$ ]]; then echo "::error::no release to rebuild"; exit 1; fi
-          SSH="ssh -i ~/.ssh/deploy_key -o UserKnownHostsFile=~/.ssh/known_hosts -o StrictHostKeyChecking=yes"
-          rsync -az -e "$SSH" "$RUNNER_TEMP/scoped/" "${DROPLET_USER}@${DROPLET_HOST}:/opt/waffle_site/releases/${RELEASE}.d${RUN}.incoming/"
-          $SSH "${DROPLET_USER}@${DROPLET_HOST}" "bash /opt/waffle_site/deploy/assemble.sh '$RELEASE' '$RUN'"
-
-      - name: Clean up credentials
-        if: always()
-        run: rm -f ~/.ssh/deploy_key ~/.ssh/known_hosts
+          [[ "$RELEASE" =~ ^v[1-9][0-9]*$ ]] || { echo "::error::no release to attach to"; exit 1; }
+          sha256sum -c "waffle_site-${RELEASE}.d${RUN}.tar.gz.sha256"
+          gh release upload "$RELEASE" "waffle_site-${RELEASE}.d${RUN}.tar.gz" "waffle_site-${RELEASE}.d${RUN}.tar.gz.sha256" --clobber

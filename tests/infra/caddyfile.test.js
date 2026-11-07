@@ -130,14 +130,24 @@ test('(10) in production: the hostname, the current release, the key from Dopple
     assert.match(prod, /SITE_ROOT: \/srv\/site\/current/);
     assert.ok(prod.split('\n').includes('      WAFFLE_APP_URL: https://app.waffle-site.example.com'), 'WAFFLE_APP_URL is the app\'s origin');
     assert.match(prod, /WAFFLE_SITE_KEY: \$\{WAFFLE_SITE_KEY:\?/);
-    assert.match(prod, /ports: !override\n\s+- "80:80"\n\s+- "443:443"\n\s+- "443:443\/udp"/);
     assert.match(prod, /extra_hosts: !reset \[\]/);
+    assert.match(prod, /restart: unless-stopped/);
 });
 
-test('(11) the certificate store is a named volume, never a path the rsync could delete', () => {
-    assert.match(prod, /- caddy_data:\/data/);
-    assert.match(prod, /^volumes:\n {2}caddy_data:/m);
-    assert.match(prod, /restart: unless-stopped/);
+test('(11; the app\'s docs/edge.md, 1) plain HTTP for the hostname only, no public port, no certificate: the server\'s front Caddy has them', () => {
+    assert.match(caddyfile, /^http:\/\/\{\$SITE_ADDRESS\} \{$/m);
+    assert.match(prod, /ports: !reset \[\]/);
+    assert.doesNotMatch(prod + compose, /caddy_data|caddy_config/);
+});
+
+test('(the app\'s docs/edge.md, 2) forwarded addresses are trusted only from private networks, so the app gets the visitor\'s', () => {
+    assert.match(caddyfile, /^\{\n\tservers \{\n\t\ttrusted_proxies static private_ranges\n\t\}\n\}$/m);
+    assert.match(block('handle /api/site/*'), /header_up X-Visitor-Address \{client_ip\}/);
+});
+
+test('(the app\'s docs/edge.md, 3) on the front Caddy\'s network under the name its Caddyfile uses', () => {
+    assert.match(prod, /networks:\n {6}default:\n {6}edge:\n {8}aliases: \[waffle-site\]/);
+    assert.match(prod, /^networks:\n {2}edge:\n {4}external: true$/m);
 });
 
 test('Caddy is an exact patch, and the suite validates with the image the site runs', () => {

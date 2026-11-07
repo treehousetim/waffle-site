@@ -9,8 +9,9 @@
 #   ./tools/test.sh tests/unit/seo.test.js   # one file
 #   ./tools/test.sh --filter=canonical       # tests whose name matches
 #
-# Runs Node's own test runner in a throwaway node:26 container, the same image
-# and the same node_modules volume as tools/npm.sh, installing exactly the
+# Runs Node's own test runner in a throwaway container of docker/test's image
+# (node:26, the image tools/npm.sh runs, plus jq for the server's poller), with
+# the same node_modules volume as tools/npm.sh, installing exactly the
 # lockfile first when it has changed. Then, for a whole run or the infra
 # group, Caddy itself validates docker/caddy/Caddyfile.
 #
@@ -26,7 +27,6 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
 DOCKER="${TEST_DOCKER:-docker}"
-IMAGE="node:26"
 GROUPS_ALL="unit infra e2e"
 
 COVERAGE=0
@@ -89,6 +89,10 @@ CACHE="${SLUG:-site}_npm_cache"
 USER_ID="$(id -u):$(id -g)"
 
 command -v "$DOCKER" >/dev/null 2>&1 || { echo "error: Docker is needed: the suite runs in a container." >&2; exit 1; }
+
+# Built once, then from Docker's cache.
+IMAGE="${SLUG:-site}_test"
+"$DOCKER" build -q -t "$IMAGE" "$ROOT/docker/test" >/dev/null
 
 "$DOCKER" run --rm -v "${VOLUME}:/nm" -v "${CACHE}:/cache" "$IMAGE" chown "$USER_ID" /nm /cache
 

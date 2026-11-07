@@ -42,6 +42,7 @@ Nine example sites ship with it, each a complete, working site for a fictional b
 | [docs/https.md](docs/https.md) | Launching on your hostname, or HTTPS is not coming up | The Caddyfile, DNS, the certificate store, and their failure lists. |
 | [docs/fresh-install.md](docs/fresh-install.md) | Putting it on a server for the first time | From nothing to production: Doppler, the droplet, GitHub, the waffle app, the first release. |
 | [docs/releasing.md](docs/releasing.md) | Cutting a release, or rolling one back | `./tools/release.sh`, the pipeline, `deploy.sh`, rollback, their failure lists. |
+| [docs/pull-based-deployments.md](docs/pull-based-deployments.md) | How a release reaches the server | The server pulls each release and data rebuild from GitHub: the poller, what is trusted, the commands on the server, its failure list. |
 | [docs/examples.md](docs/examples.md) | Choosing a starting point, or adding one | The example sites, one per kind of business, each its own design: what is shared, the contract every example meets, motion, how to add one. |
 | [docs/supply-chain.md](docs/supply-chain.md) | Adding or updating a package | npm in a container, no install scripts, the week-long cooldown, signature checks; and, designed but not built, the server's daily check for advisories against what it runs. |
 | [docs/README.md](docs/README.md) | Adding a document | Where documents go and how they are indexed. |
@@ -96,7 +97,7 @@ The end-to-end test writes its artifact to `coverage/e2e/site-build.json`.
 | --- | --- | --- |
 | [GitHub](https://github.com) | The repository, and GitHub Actions, which builds and deploys every release through a `prod` environment. | Free within the Actions allowance. |
 | [DigitalOcean](https://www.digitalocean.com) | The one droplet the site runs on. The smallest is plenty for static files. | From a few dollars a month. |
-| [Doppler](https://www.doppler.com) | The only source of secrets: `prod-serve` for the server, `prod-deploy` for GitHub Actions. | Free Developer plan. |
+| [Doppler](https://www.doppler.com) | The only source of secrets: one config, `prod`, read by the server. GitHub Actions holds none. | Free Developer plan. |
 | A domain registrar | The site's hostname. | A domain a year. |
 
 Optional: a heartbeat monitor such as [healthchecks.io](https://healthchecks.io) (`HEARTBEAT_URL`), and a Slack webhook for failed deploys (`DEPLOY_ALERT_WEBHOOK`). [docs/fresh-install.md](docs/fresh-install.md) walks through all of it.

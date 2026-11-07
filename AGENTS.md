@@ -26,7 +26,7 @@ If `package.json`'s `name` is still `waffle_site`, or the paragraph above still 
 1. **Pick the example and name it, with the script — never by hand.** Show the user `./tools/setup.sh --list-examples` and ask which is closest to their business. Ask for the slug, display name, the site's hostname and the waffle app's hostname, offering the suggestions from `./tools/setup.sh --suggest "$(basename "$PWD")"` (one per line: slug, name, host, app host); placeholders are fine if they do not have them yet. Then run `./tools/setup.sh --example <example> --slug <slug> --name "<name>" --host <host> --app <app> --yes`, adding `--no-git` if the user wants to make the first commit themselves. If the script refuses an answer, show its message and ask again; do not work around it.
 2. **Fill in this section's first paragraph.** Interview the user: the business, its customers, where it works, what makes it different. Draft two or three sentences, show them, and write them only once the user agrees.
 3. **Follow `docs/playbook.md`**: it interviews the user, then replaces the example business in `src/site.ts` and `src/data/`, the logo, the photographs, and the pages and posts, one at a time, showing the user each before moving on. Ask for each real value; never invent a phone number, an address, a licence number or a review.
-4. **Deployment only when asked.** Follow docs/fresh-install.md; `./tools/setup-github.sh` does the GitHub half. Secret values are the user's to type into Doppler: never ask for one in chat, never put one on a command line or in a file, and never create or fill a Doppler config on their behalf.
+4. **Deployment only when asked.** Follow docs/fresh-install.md. Secret values are the user's to type into Doppler: never ask for one in chat, never put one on a command line or in a file, and never create or fill a Doppler config on their behalf.
 
 ---
 
@@ -43,12 +43,12 @@ Use exactly these majors, latest patch a week old or more at install time (docs/
 | Images | `sharp`, through Astro's `<Picture>` (AVIF and WebP) | 0.35 |
 | Typefaces | Open-licensed font files in each site's `src/assets/fonts/`, served by Astro's Fonts API (`src/fonts.ts`) | approved 2026-10-15: self-hosted faces, licence beside them |
 | HTML parsing | `node-html-parser` | 9: the audit, and sanitising the HTML rendered from the app's Markdown (`src/core/lib/sanitize.js`); build time only, like everything here |
-| Tests | Node's built-in `node:test` and its coverage, in `node:26` | |
+| Tests | Node's built-in `node:test` and its coverage, in `node:26` plus `jq` (`docker/test/Dockerfile`, for the server's poller) | |
 | Node | 26 LTS | run only through `tools/npm.sh` and `tools/test.sh`, in `node:26`; not needed on the host |
-| Web server | Caddy | 2.11.9 (`caddy:2.11.9`, an exact patch, bumped deliberately after checking Caddy's security advisories; `tools/test.sh` validates with the same image): serves the files, proxies `/api/site/*`, gets its own certificate |
+| Web server | Caddy | 2.11.9 (`caddy:2.11.9`, an exact patch, bumped deliberately after checking Caddy's security advisories; `tools/test.sh` validates with the same image): serves the files, proxies `/api/site/*`, behind the server's front Caddy, which holds the certificate (Waffle's docs/edge.md) |
 | Secrets | Doppler CLI | the **only** source of secrets |
 | Runtime | Docker Compose v2.24+ | |
-| Hosting | One DigitalOcean droplet, deployed by GitHub Actions on `release: published` | |
+| Hosting | One DigitalOcean droplet, which pulls each release from GitHub (docs/pull-based-deployments.md) | |
 
 There is no application server in production, no database and no PHP. Anything stateful belongs to the waffle app (§6).
 
@@ -90,21 +90,22 @@ api-fixtures/api/site/*.json      # the waffle app's answers, for development bu
 docs/playbook.md                  # how this site was meant to be adapted from its example
 examples/<name>/                  # the template only: each a complete site, with example.json, PLAYBOOK.md, checks.js
 docker/caddy/Caddyfile            # the web server, local and production
+docker/test/Dockerfile            # the suite's image: node:26 plus jq
 docker-compose.yml, docker-compose.prod.yml
-deploy/                           # deploy.sh, assemble.sh (scoped releases), check-dns.sh, crontab + render-crontab.sh
+deploy/                           # pull.sh (the server's poller) + systemd/, deploy.sh, assemble.sh (data rebuilds), check-dns.sh, crontab + render-crontab.sh
 tools/
   npm.sh                          # the only way npm is run
   test.sh                         # the only way tests are run
   check.mjs, audit.mjs            # the type check and the SEO audit, around every build
   scoped-release.mjs              # what a scoped build ships (docs/scoped-builds.md)
-  release.sh, setup.sh, use-example.sh, rename-project.sh, setup-github.sh, changed-groups.sh
+  release.sh, setup.sh, use-example.sh, rename-project.sh, changed-groups.sh
 tests/
   unit/                           # src/core/lib, one file per module
   infra/                          # the scripts, the Caddyfile, the workflow, the repository's rules
   e2e/                            # each site built twice and audited; site.checks.js is the site's own
   support/                        # shell helpers, the E2E artifact
 docs/                             # indexed in README.md's Documentation table
-.github/workflows/deploy.yml, rebuild.yml   # a release; a change notice's scoped rebuild
+.github/workflows/deploy.yml, rebuild.yml   # a release's build; a change notice's data rebuild
 AGENTS.md                         # this file; CLAUDE.md contains only "See @AGENTS.md"
 README.md, CHANGELOG.md, OPEN-QUESTIONS.md, RESOLVED_QUESTIONS.md
 ```
@@ -185,12 +186,12 @@ The site has no server code; the waffle app it fronts is the system of record. d
 
 ## 8. Secrets and the Doppler workflow
 
-Doppler is the **only** source of secrets, and the site has one: `WAFFLE_SITE_KEY`.
+Doppler is the **only** source of secrets. The site itself has one, `WAFFLE_SITE_KEY`; the server's poller has its own two.
 
-- One Doppler project, named for the slug, with two configs inheriting nothing: `prod-serve` (the server: `WAFFLE_SITE_KEY`, optional `HEARTBEAT_URL`) and `prod-deploy` (GitHub Actions: `DROPLET_HOST`, `DROPLET_USER`, `DROPLET_SSH_KEY`, `DROPLET_SSH_KNOWN_HOSTS`, optional `DEPLOY_ALERT_WEBHOOK`). **No secret values ever live in this repository.**
+- One Doppler project, named for the slug, with one config, `prod`, read by the server: `WAFFLE_SITE_KEY`, `GITHUB_RELEASES_TOKEN` (a fine-grained GitHub token that can read this repository's contents and change nothing; the poller downloads releases with it), optional `HEARTBEAT_URL` and `DEPLOY_ALERT_WEBHOOK`. **No secret values ever live in this repository.**
 - **Local:** no Doppler and no `.env` file, anywhere. Every value has a default in `docker-compose.yml`, and none is secret.
-- **CI** holds exactly one kind of GitHub secret, `DOPPLER_TOKEN`, on two environments, each with its own read-only token scoped to `prod-deploy`: `prod` (a `v*` tag rule; `deploy.yml`) and `prod-rebuild` (the default branch only; `rebuild.yml`). Only the `ship` job reads it, and **npm never runs there**: it runs in the `build` job, which has no environment, and the built site reaches `ship` as an artifact, so no process an npm package started can outlive its job and read the server's key. `ci.yml` holds no secret at all. The site key never reaches the runner. Never click Doppler's "Add missing value" on `prod-deploy`.
-- **Production:** the server's own token reads `prod-serve`; `deploy.sh` wraps every Compose call in `doppler run --`, so the key lives in Caddy's environment and never on disk. Rotation: change it in Doppler and in the waffle app, then redeploy.
+- **CI (GitHub Actions) holds no secret at all** and cannot reach the server. It builds each release, and each data rebuild, and attaches it to the GitHub release with the workflow's own `GITHUB_TOKEN`. npm runs only in containers in the `build` job, which can only read: the install sees only the package files, and the build works on its own copy of the tree and hands back only `dist/`, so nothing npm runs can change the server files a release carries. The checkout keeps no token (`persist-credentials: false`). The `attach` job, the only one that can write, runs no package manager. `ci.yml` holds no secret either. **No `secrets.*` reference anywhere.**
+- **Production:** the server's own read-only service token for `prod`, set as the deploy user and scoped to `/opt/<slug>` (which covers every release under it). `deploy.sh` wraps every Compose call in `doppler run --`, so the site key lives in Caddy's environment and never on disk; the poller's two keys reach no container. **A release is trusted only as far as GitHub Actions built it:** the poller deploys only files the workflow's own bot uploaded, and checks a release kept on disk against the list of files it was unpacked with before deploying it again or building on it. Rotation: change it in Doppler (and the site key in the waffle app), then release.
 - **Tests never use Doppler.**
 
 ---
@@ -201,9 +202,9 @@ Doppler is the **only** source of secrets, and the site has one: `WAFFLE_SITE_KE
 
 1. Record what changed under `## [Unreleased]` in `CHANGELOG.md` as you go; a release with nothing there is refused.
 2. Run `./tools/release.sh` on a clean `main` that matches `origin/main` (`--dry-run` first if you like). It bumps `VERSION`, dates the changelog section, runs `./tools/test.sh --coverage` (red puts it all back), commits, tags `vN`, pushes `main` and the tag together, and publishes the GitHub release.
-3. Publishing deploys: the workflow builds the production site on the runner (type check, build with live waffle data, audit), rsyncs it to `releases/vN/` on the server, and `deploy.sh` switches `current` to it and proves it is being served over HTTPS, switching back if not.
+3. Publishing deploys: the workflow builds the production site (type check, build with live waffle data, audit) and attaches it to the release as `<slug>-vN.tar.gz`; within a minute the server's poller (`deploy/pull.sh`, on a systemd timer) finds it, checks it, unpacks it into `releases/vN/`, and that release's `deploy.sh` switches `current` to it and proves it is being served over HTTPS, switching back if not (docs/pull-based-deployments.md). A change notice's data rebuild arrives the same way, as `vN.dRUN`.
 
-**Versions:** a site is numbered 1, 2, 3 (`0` never released); the template itself uses semver and never deploys. **Rollback** is `deploy.sh` with the older tag, instant while it is in `releases/`. **Never edit files on the server.**
+**Versions:** a site is numbered 1, 2, 3 (`0` never released); the template itself uses semver and never deploys. **Rollback** is `<slug>-pull deploy vN` on the server, instant while it is in `releases/`; the server holds there until something newer is published. **Never edit files on the server**: the poller refuses a release that has changed since it was unpacked.
 
 ---
 
@@ -211,9 +212,9 @@ Doppler is the **only** source of secrets, and the site has one: `WAFFLE_SITE_KE
 
 - **The content security policy is in each page, not only the header.** Astro writes a `<meta>` policy with a hash for every script and style it emits; Caddy's header adds only what a `<meta>` cannot carry (`frame-ancestors`). A `script-src` or `style-src` added to the Caddy header would override the hashes and break every page. Astro's `<ClientRouter>` does not work with it; use the browser's own view transitions (docs/examples.md).
 - **Front matter values containing `: ` must be quoted**, or YAML reads a nested mapping and the build fails with "Nested mappings are not allowed".
-- **Data is as fresh as the last build.** When the waffle app's prices change, release (or re-run the workflow for the current tag).
+- **Data is as fresh as the last build.** A change notice from the waffle app rebuilds what it touched; anything else (prices, say) waits for the next release.
 - **`/pricing` and `/pricing/` are one page**: Caddy redirects to the slash, and canonical URLs and internal links always use it.
-- **The `caddy_data` volume is the certificate store.** Never `docker compose down -v` on the server.
+- **The certificates are the server's front Caddy's** (`edge_data`, in `/opt/edge`; Waffle's docs/edge.md). Never `docker compose down -v` there. The site's own Caddy serves plain HTTP on the front Caddy's `edge` network, publishes no port, and trusts the visitor's address the front Caddy forwards.
 - **`node_modules` is a Docker volume**, not a folder on disk; editors will not find it. The dev server and the suite share it.
 - **The dev server is for writing pages**; `docker compose up -d` serves `dist/` behind the real Caddyfile for checking headers, redirects and the 404 page.
 - **TypeScript is pinned to 6** until `@astrojs/check` supports 7.

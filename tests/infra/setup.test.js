@@ -13,7 +13,8 @@ import { join } from 'node:path';
 import { copyRepo, fakeBin, run } from '../support/shell.js';
 
 const TREE = ['tools/rename-project.sh', 'tools/setup.sh', 'tools/use-example.sh', 'package.json', 'package-lock.json', 'VERSION', 'CHANGELOG.md',
-    'docker-compose.prod.yml', '.github/workflows/deploy.yml', 'README.md', 'AGENTS.md', 'LICENSE', 'docs/README.md', 'tests/e2e/site-build.test.js'];
+    'docker-compose.prod.yml', '.github/workflows/deploy.yml', 'README.md', 'AGENTS.md', 'LICENSE', 'docs/README.md', 'tests/e2e/site-build.test.js',
+    'deploy/systemd/waffle_site-deploy.service', 'deploy/systemd/waffle_site-deploy.timer'];
 const EXAMPLE = 'examples/electrician';
 
 /** The rename's files, and the one example a site is made from. */
@@ -34,7 +35,8 @@ test('(5) renames every placeholder outside the lines that point at the template
 
     assert.equal(result.status, 0, result.output);
 
-    for (const name of [...TREE, 'src/site.ts'].filter((path) => !['tools/rename-project.sh', 'tools/setup.sh', 'tools/use-example.sh', 'LICENSE'].includes(path))) {
+    const renamed = (path) => path.replace(/waffle_site/g, 'acme');
+    for (const name of [...TREE, 'src/site.ts'].filter((path) => !['tools/rename-project.sh', 'tools/setup.sh', 'tools/use-example.sh', 'LICENSE'].includes(path)).map(renamed)) {
         const leftover = file(dir, name).split('\n').filter((line) => placeholders.test(line) && !line.includes('treehousetim/waffle'));
 
         assert.deepEqual(leftover, [], name);
@@ -44,7 +46,18 @@ test('(5) renames every placeholder outside the lines that point at the template
     assert.match(file(dir, 'src/site.ts'), /name: 'Acme Electric'/);
     assert.match(file(dir, 'src/site.ts'), /legalName: 'Acme Electric LLC'/);
     assert.match(file(dir, 'docker-compose.prod.yml'), /SITE_ADDRESS: www\.acme\.com/);
-    assert.match(file(dir, '.github/workflows/deploy.yml'), /\/opt\/acme\//);
+    assert.match(file(dir, '.github/workflows/deploy.yml'), /"acme-\$\{TAG\}\.tar\.gz"/);
+});
+
+test('(21) renames the files whose names hold the slug: the server\'s units', () => {
+    const dir = site();
+    const result = rename(dir, 'acme', 'Acme', 'www.acme.com');
+
+    assert.equal(result.status, 0, result.output);
+    assert.equal(existsSync(join(dir, 'deploy/systemd/waffle_site-deploy.service')), false);
+    assert.match(file(dir, 'deploy/systemd/acme-deploy.service'), /^ExecStart=\/usr\/local\/sbin\/acme-pull check$/m);
+    assert.match(file(dir, 'deploy/systemd/acme-deploy.timer'), /^Unit=acme-deploy\.service$/m);
+    assert.match(result.stdout, /renamed deploy\/systemd\/waffle_site-deploy\.service to deploy\/systemd\/acme-deploy\.service/);
 });
 
 test('(6) the waffle app defaults to app. on the site\'s domain, and can be named', () => {

@@ -107,7 +107,8 @@ test('stops when Docker is missing, and on a native Windows shell (12)', () => {
 });
 
 test('(4) is the only way any document or script tells you to run npm', () => {
-    // CI is the one exception: `npm ci` on a runner that holds no secret yet.
+    // CI is the one exception (the workflows are not in this list): npm in
+    // containers on a runner that holds no secret.
     const files = ['README.md', 'AGENTS.md',
         ...readdirSync(join(ROOT, 'docs')).filter((name) => name.endsWith('.md')).map((name) => `docs/${name}`),
         ...readdirSync(join(ROOT, 'tools')).filter((name) => name.endsWith('.sh')).map((name) => `tools/${name}`),
@@ -125,9 +126,12 @@ test('(4) is the only way any document or script tells you to run npm', () => {
     assert.deepEqual(offenders, []);
 });
 
-test('(6, 7) CI installs exactly the lockfile and checks signatures before building', () => {
-    const workflow = read('.github/workflows/deploy.yml');
+test('(6, 7) CI installs exactly the lockfile and checks its signatures, then builds', () => {
+    for (const file of ['.github/workflows/deploy.yml', '.github/workflows/rebuild.yml']) {
+        const workflow = read(file);
 
-    assert.doesNotMatch(workflow, /^\s+npm (?:install|i|update)\b/m);
-    assert.match(workflow, /^( +)npm ci\n\1npm audit signatures\n\1npm run build$/m);
+        assert.doesNotMatch(workflow, /\bnpm (?:install|i|update)\b/, file);
+        assert.match(workflow, /sh -euc 'npm ci; npm audit signatures'/, file);
+        assert.ok(workflow.indexOf('npm audit signatures') < workflow.indexOf('npm run build'), file);
+    }
 });

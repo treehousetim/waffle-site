@@ -3,7 +3,8 @@
 # Always used together with the base file, never on its own:
 #   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 #
-# deploy/deploy.sh invokes it exactly that way, under `doppler run --`.
+# deploy/deploy.sh invokes it exactly that way, under `doppler run --`, from
+# the release it is deploying (/opt/waffle_site/releases/vN).
 
 services:
   caddy:
@@ -14,36 +15,42 @@ services:
       # build's SITE_URL. A literal, not a Doppler value: nothing per
       # environment to get wrong.
       SITE_ADDRESS: waffle-site.example.com
-      # The release deploy.sh brought into service (deploy.sh, "Switch").
-      SITE_ROOT: /srv/site/current
+      # The built site of the release deploy.sh brought into service
+      # (deploy.sh, "Switch"): `current` is a link that moves by a rename.
+      SITE_ROOT: /srv/site/current/dist
       # The waffle app this site fronts. Also a literal, written by
       # tools/rename-project.sh, and read by the release workflow for the
       # build's waffle data.
       WAFFLE_APP_URL: https://app.waffle-site.example.com
       # The only secret: how the waffle app knows a request came through this
-      # site (docs/waffle-api.md). From Doppler's prod-serve config; Compose
+      # site (docs/waffle-api.md). From Doppler's prod config; Compose
       # refuses to start without it.
       WAFFLE_SITE_KEY: ${WAFFLE_SITE_KEY:?WAFFLE_SITE_KEY is not set; is Compose running under doppler run?}
     # !reset clears the base file's list; the app is on the internet, not
     # this machine.
     extra_hosts: !reset []
-    # !override REPLACES the base list instead of merging with it.
-    ports: !override
-      - "80:80"
-      - "443:443"
-      # HTTP/3.
-      - "443:443/udp"
+    # No port at all: the server's front Caddy owns 80 and 443 and reaches
+    # this one over the `edge` network (Waffle's docs/edge.md).
+    ports: !reset []
+    # The whole server directory, read-only, so `current` and every release
+    # under it look the same inside as out: a switch is a rename and a
+    # reload, never a new container. The Caddyfile is read through `current`
+    # too, so the reload picks up the new release's.
     volumes: !override
-      - .:/srv/site:ro
-      - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
-      # The certificates and the ACME account. A named volume, never a path
-      # in the tree: a wiped store means a new certificate every deploy until
-      # Let's Encrypt's rate limit locks the hostname out for days. Never
-      # `docker compose down -v` here.
-      - caddy_data:/data
-      - caddy_config:/config
+      - /opt/waffle_site:/srv/site:ro
+    # The deploy's own state (the GitHub token, while a check runs) is no
+    # business of Caddy's.
+    tmpfs:
+      - /srv/site/shared
+    command: caddy run --config /srv/site/current/docker/caddy/Caddyfile --adapter caddyfile
+    # On the front Caddy's network under the name its Caddyfile uses.
+    networks:
+      default:
+      edge:
+        aliases: [waffle-site]
     restart: unless-stopped
 
-volumes:
-  caddy_data:
-  caddy_config:
+# Made by the front Caddy, which is set up before the first deploy.
+networks:
+  edge:
+    external: true

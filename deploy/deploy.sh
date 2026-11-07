@@ -1,95 +1,109 @@
 #!/usr/bin/env bash
 #
-# deploy/deploy.sh — bring a release that is ALREADY ON DISK into service.
+# deploy/deploy.sh — bring this release into service.
 #
-#   bash deploy/deploy.sh v7
+#   bash /opt/waffle_site/releases/v7/deploy/deploy.sh v7
 #
-# Runs on the server. .github/workflows/deploy.yml has, by this point, built
-# the site on the runner and rsync'd it to releases/v7/, and the rest of the
-# tree (this script, the Compose files, the Caddyfile) next to it. This script
-# never fetches anything and the server needs no access to GitHub.
+# Runs on the server, from inside the release it deploys. The poller
+# (deploy/pull.sh) has, by this point, downloaded the release GitHub Actions
+# built, checked it and unpacked it into releases/v7/ (or, for a data
+# rebuild like v7.d12, laid it over a copy of the live release), and it runs
+# this release's own copy of this script, so the deploy logic is always the
+# new release's. Nothing here fetches anything.
 #
 # Every release stays on disk under releases/, and `current` is a link to the
 # one being served. Switching is one rename, so a visitor never sees half of
-# one release and half of another, and going back is the same command with
-# the older tag:
+# one release and half of another. Rolling back is the poller deploying the
+# older tag: waffle_site-pull deploy v6.
 #
-#   bash deploy/deploy.sh v6        # instant, if releases/v6 is still here
-#
-# Idempotent: running it twice with the same tag is a no-op beyond a reload.
-# Never edit files on the server. The next deploy's rsync --delete reverts them.
-# docs/releasing.md has the failure list; the numbers below cite it.
+# Never edit files on the server: the poller refuses a release that has
+# changed since it was unpacked. docs/releasing.md has the failure list; the
+# numbers below cite it.
 #
 set -euo pipefail
 
 # ---------------------------------------------------------------------------
-# 1. Arguments and working directory.
+# 1. Arguments and where things are.
 # ---------------------------------------------------------------------------
 TAG="${1:-}"
 
-# vN is a release; vN.dM is a scoped data rebuild of it (deploy/assemble.sh).
+# vN is a release; vN.dM is a data rebuild of it.
 if [[ ! "$TAG" =~ ^v[1-9][0-9]*(\.d[1-9][0-9]*)?$ ]]; then
     echo "error: a release tag like v7 (or a data rebuild of one, like v7.d12) is required." >&2
     echo "usage: deploy.sh <tag>" >&2
     exit 2
 fi
 
-APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-cd "$APP_DIR"
+RELEASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+APP_ROOT="$(cd "$RELEASE_DIR/../.." && pwd)"
+SLUG="${SLUG:-waffle_site}"
+STATE_DIR="$APP_ROOT/shared/deploy"
+CURRENT="$APP_ROOT/current"
+PULL_BIN="${PULL_BIN:-/usr/local/sbin/${SLUG}-pull}"
 
-# Deploy state. The workflow's rsync excludes it, so --delete never removes it.
-STATE_DIR="$APP_DIR/.deploy"
-mkdir -p "$STATE_DIR" "$APP_DIR/releases"
+if [ "$(basename "$RELEASE_DIR")" != "$TAG" ]; then
+    echo "error: this is releases/$(basename "$RELEASE_DIR"), not ${TAG}; run the deploy.sh inside the release you mean." >&2
+    exit 1
+fi
 
-PREV="$( [ -f "$STATE_DIR/tag" ] && cat "$STATE_DIR/tag" || echo "" )"
-RELEASE="releases/${TAG}"
+cd "$RELEASE_DIR"
+mkdir -p "$STATE_DIR"
 
-# How many releases to keep for an instant rollback.
-KEEP=5
+PREV=""
+if [ -L "$CURRENT" ]; then PREV="$(basename "$(readlink "$CURRENT")")"; fi
 
 # Every Compose call is wrapped: `up` needs WAFFLE_SITE_KEY to interpolate,
-# and the rest would warn about it.
+# and the rest would warn about it. Compose runs from this release, and the
+# project's name (docker-compose.yml's `name:`) is the same in every one, so
+# every release shares the certificate volume.
 COMPOSE=(doppler run -- docker compose -f docker-compose.yml -f docker-compose.prod.yml)
 
-echo "==> deploying ${TAG} in ${APP_DIR}"
-echo "    previous: ${PREV:-none recorded}"
+# The paths Caddy sees: production mounts APP_ROOT read-only at /srv/site.
+IN_CADDY="/srv/site/releases/${TAG}"
+CADDYFILE_LIVE="/srv/site/current/docker/caddy/Caddyfile"
+
+echo "==> deploying ${TAG} in ${RELEASE_DIR}"
+echo "    previous: ${PREV:-none}"
 
 # ---------------------------------------------------------------------------
-# 2. (1) Prove the runner did its half. A half-finished rsync, or a tag that
-#    was never shipped, would otherwise be discovered as a 404 on every page.
+# 2. (1) Complete. The poller checks this too; a release run by hand is not.
 # ---------------------------------------------------------------------------
 echo "==> checking the release is complete"
 
 MISSING=0
 for required in \
-    "${RELEASE}/index.html" \
-    "${RELEASE}/404.html" \
-    "${RELEASE}/robots.txt" \
-    "${RELEASE}/sitemap-index.xml" \
-    "docker-compose.yml" \
-    "docker-compose.prod.yml" \
-    "docker/caddy/Caddyfile"
+    dist/index.html \
+    dist/404.html \
+    dist/robots.txt \
+    dist/sitemap-index.xml \
+    dist/build.txt \
+    docker-compose.yml \
+    docker-compose.prod.yml \
+    docker/caddy/Caddyfile
 do
-    if [ ! -e "$APP_DIR/$required" ]; then
+    if [ ! -e "$RELEASE_DIR/$required" ]; then
         echo "error: missing ${required}" >&2
         MISSING=1
     fi
 done
 
 if [ "$MISSING" -ne 0 ]; then
-    echo "error: ${TAG} is not a complete release here; refusing to deploy it." >&2
-    echo "       the workflow builds the site on the runner and rsyncs it to ${RELEASE}/." >&2
+    echo "error: ${TAG} is not a complete release; refusing to deploy it." >&2
     exit 1
 fi
 echo "    complete"
 
+# The poller is server config, installed by hand; a release can carry a newer
+# one. Said, never done: a release never changes the server's config.
+if [ -f "$PULL_BIN" ] && ! cmp -s "$PULL_BIN" "$RELEASE_DIR/deploy/pull.sh"; then
+    echo "warning: the installed poller differs from this release's deploy/pull.sh. To install it, as root:" >&2
+    echo "         install -m 755 ${RELEASE_DIR}/deploy/pull.sh ${PULL_BIN}" >&2
+fi
+
 # ---------------------------------------------------------------------------
 # 3. (2) Doppler. The one secret, WAFFLE_SITE_KEY, is injected into Caddy's
-#    environment by `doppler run`, never written to disk here.
-#
-#    The server holds its own service token, scoped to prod-serve:
-#      doppler configure set token <token> --scope /opt/waffle_site
-#    Rotating the key: change it in Doppler (and in the waffle app), redeploy.
+#    environment by `doppler run`, never written to disk. The server's token
+#    is scoped to APP_ROOT, which covers every release under it.
 # ---------------------------------------------------------------------------
 echo "==> checking Doppler"
 
@@ -100,13 +114,13 @@ if ! command -v doppler >/dev/null 2>&1; then
 fi
 
 if ! doppler secrets --only-names >/dev/null 2>&1; then
-    echo "error: Doppler is installed but cannot read secrets from ${APP_DIR}." >&2
-    echo "       check: doppler configure get token --scope ${APP_DIR}" >&2
+    echo "error: Doppler is installed but cannot read secrets from ${RELEASE_DIR}." >&2
+    echo "       check: doppler configure get token --scope ${APP_ROOT}" >&2
     exit 1
 fi
 
 if [ -z "$(doppler secrets get WAFFLE_SITE_KEY --plain 2>/dev/null || true)" ]; then
-    echo "error: WAFFLE_SITE_KEY is not set in Doppler's prod-serve config." >&2
+    echo "error: WAFFLE_SITE_KEY is not set in Doppler's prod config." >&2
     echo "       the waffle app needs it to accept the site's forms (docs/waffle-api.md)." >&2
     exit 1
 fi
@@ -120,7 +134,7 @@ echo "    reachable, WAFFLE_SITE_KEY set"
 #    site is already live and an emergency fix should not wait on DNS.
 #    SKIP_DNS_CHECK=1 for a hostname behind a proxy such as Cloudflare.
 # ---------------------------------------------------------------------------
-SITE_HOST="$(sed -n 's/^ *SITE_ADDRESS: *//p' "$APP_DIR/docker-compose.prod.yml" | tr -d '"' | head -n 1)"
+SITE_HOST="$(sed -n 's/^ *SITE_ADDRESS: *//p' docker-compose.prod.yml | tr -d '"' | head -n 1)"
 
 if [ -z "$SITE_HOST" ]; then
     echo "error: no SITE_ADDRESS in docker-compose.prod.yml; Caddy would not know its hostname." >&2
@@ -130,7 +144,7 @@ fi
 echo "==> checking DNS for ${SITE_HOST}"
 if [ "${SKIP_DNS_CHECK:-}" = "1" ]; then
     echo "    skipped (SKIP_DNS_CHECK=1)"
-elif ! bash "$APP_DIR/deploy/check-dns.sh" "$SITE_HOST"; then
+elif ! bash "$RELEASE_DIR/deploy/check-dns.sh" "$SITE_HOST"; then
     if [ -z "$PREV" ]; then
         echo "error: refusing the first deploy until ${SITE_HOST} points here; Caddy cannot get a certificate otherwise." >&2
         echo "       behind a proxy such as Cloudflare? Re-run with SKIP_DNS_CHECK=1." >&2
@@ -140,14 +154,24 @@ elif ! bash "$APP_DIR/deploy/check-dns.sh" "$SITE_HOST"; then
 fi
 
 # ---------------------------------------------------------------------------
-# 5. (4) Validate the Caddyfile before anything restarts. A throwaway
-#    container with the same mounts and environment; no ports published.
+# The server's front Caddy (Waffle's docs/edge.md) owns ports 80 and
+# 443 and reaches this Caddy over the `edge` network. Without it, Compose
+# cannot start Caddy at all, and nobody could reach the site.
+# ---------------------------------------------------------------------------
+if ! docker network inspect edge >/dev/null 2>&1; then
+    echo "error: there is no edge network, so the server's front Caddy is not set up; set it up first (Waffle's docs/edge.md)." >&2
+    exit 1
+fi
+
+# ---------------------------------------------------------------------------
+# 5. (4) Validate this release's Caddyfile, with this release's redirects,
+#    before anything restarts. A throwaway container; no ports published.
 # ---------------------------------------------------------------------------
 echo "==> validating docker/caddy/Caddyfile"
-if ! "${COMPOSE[@]}" run --rm --no-deps -T caddy \
-        caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile >/dev/null 2>"$STATE_DIR/caddy-validate.log"; then
+if ! "${COMPOSE[@]}" run --rm --no-deps -T -e SITE_ROOT="${IN_CADDY}/dist" caddy \
+        caddy validate --config "${IN_CADDY}/docker/caddy/Caddyfile" --adapter caddyfile >/dev/null 2>"$STATE_DIR/caddy-validate.log"; then
     cat "$STATE_DIR/caddy-validate.log" >&2
-    echo "error: Caddy cannot load docker/caddy/Caddyfile; nothing was changed." >&2
+    echo "error: Caddy cannot load this release's docker/caddy/Caddyfile; nothing was changed." >&2
     exit 1
 fi
 echo "    valid"
@@ -156,50 +180,53 @@ echo "    valid"
 # 6. (5) Switch. `current` is replaced by a rename, which is atomic: every
 #    request is answered from one release or the other, never a mixture.
 #    The link is relative, so it resolves the same on the host and inside
-#    the container (/srv/site/current).
+#    the container. Caddy reads its Caddyfile and the site through it, so a
+#    reload picks up both.
 # ---------------------------------------------------------------------------
 switch_to() {
-    ln -sfn "$1" "$APP_DIR/current.next"
-    mv -fT "$APP_DIR/current.next" "$APP_DIR/current"
+    ln -sfn "releases/$1" "$APP_ROOT/current.next"
+    mv -fT "$APP_ROOT/current.next" "$CURRENT"
 }
 
-echo "==> switching current to ${RELEASE}"
-switch_to "$RELEASE"
+reload() {
+    "${COMPOSE[@]}" exec -T caddy caddy reload --config "$CADDYFILE_LIVE" --adapter caddyfile >/dev/null
+}
 
-# ---------------------------------------------------------------------------
-# 7. Bring Caddy up (a first deploy, or a changed Compose file recreates it)
-#    and reload it, which picks up a changed Caddyfile without dropping a
-#    connection.
-# ---------------------------------------------------------------------------
+echo "==> switching current to releases/${TAG}"
+switch_to "$TAG"
+
+# Brings Caddy up on a first deploy, or recreates it when this release's
+# Compose files change it; otherwise it keeps running and the reload is all.
 echo "==> starting Caddy"
 "${COMPOSE[@]}" up -d --remove-orphans
-"${COMPOSE[@]}" exec -T caddy caddy reload --config /etc/caddy/Caddyfile --adapter caddyfile >/dev/null
+reload
 
 # ---------------------------------------------------------------------------
-# 8. (6) Prove the site is serving THIS release over HTTPS with a valid
-#    certificate: the home page that comes back must be byte for byte the
-#    one in ${RELEASE}. Checked from this host with the real hostname, which
-#    leaves out the cloud firewall and DNS caching.
+# 7. (6) Prove the site is serving THIS release over HTTPS with a valid
+#    certificate: build.txt, written by the release's build, must name it.
+#    Checked from this host with the real hostname, which leaves out the
+#    cloud firewall and DNS caching.
 #
-#    If it is not, and a previous release exists, `current` goes back to it,
-#    so a bad release never stays live.
+#    If it is not, and a previous release exists, `current` goes back to it
+#    and its containers are recreated from its own Compose files, so a bad
+#    release never stays live.
 # ---------------------------------------------------------------------------
 echo "==> verifying https://${SITE_HOST} serves ${TAG}"
 HTTPS_WAIT_SECONDS=60
 [ -z "$PREV" ] && HTTPS_WAIT_SECONDS=180
-EXPECTED="$(sha256sum "$APP_DIR/${RELEASE}/index.html" | cut -d' ' -f1)"
 waited=0
 
 served() {
-    curl -fsS --max-time 10 --resolve "${SITE_HOST}:443:127.0.0.1" "https://${SITE_HOST}/" 2>/dev/null | sha256sum | cut -d' ' -f1
+    curl -fsS --max-time 10 --resolve "${SITE_HOST}:443:127.0.0.1" "https://${SITE_HOST}/build.txt" 2>/dev/null | head -n 1
 }
 
-while [ "$(served || true)" != "$EXPECTED" ]; do
+while [ "$(served || true)" != "$TAG" ]; do
     if [ "$waited" -ge "$HTTPS_WAIT_SECONDS" ]; then
         echo "error: https://${SITE_HOST}/ is not serving ${TAG} with a valid certificate after ${HTTPS_WAIT_SECONDS}s." >&2
 
-        if [ -n "$PREV" ] && [ -d "$APP_DIR/releases/${PREV}" ]; then
-            switch_to "releases/${PREV}"
+        if [ -n "$PREV" ] && [ "$PREV" != "$TAG" ] && [ -d "$APP_ROOT/releases/${PREV}" ]; then
+            switch_to "$PREV"
+            (cd "$APP_ROOT/releases/${PREV}" && "${COMPOSE[@]}" up -d --remove-orphans && reload) || true
             echo "       current is back on ${PREV}." >&2
         fi
 
@@ -207,7 +234,8 @@ while [ "$(served || true)" != "$EXPECTED" ]; do
         echo "         - DNS: bash deploy/check-dns.sh ${SITE_HOST}" >&2
         echo "         - the firewall: ports 80 and 443 must be open to everyone; Let's Encrypt checks from outside" >&2
         echo "         - Let's Encrypt's rate limit, if the certificate store was wiped repeatedly" >&2
-        echo "       Caddy says why: ${COMPOSE[*]} logs --tail=80 caddy" >&2
+        echo "         - the front Caddy not naming ${SITE_HOST} (Waffle's docs/edge.md)" >&2
+        echo "       The front Caddy says why: cd /opt/edge && docker compose logs --tail=80 caddy" >&2
         exit 1
     fi
     sleep 5
@@ -216,40 +244,33 @@ done
 echo "    serving ${TAG} after ${waited}s"
 
 # ---------------------------------------------------------------------------
-# 9. The crontab: the heartbeat, when HEARTBEAT_URL is set in Doppler. A URL
-#    it will not use is a warning, never a failed deploy this late.
+# 8. The crontab: the heartbeat, when HEARTBEAT_URL is set in Doppler. A URL
+#    it will not use is a warning, never a failed deploy this late. The
+#    deploy user's crontab is shared with the app beside this site, so only
+#    this site's own block is replaced.
 # ---------------------------------------------------------------------------
 echo "==> installing crontab"
 HEARTBEAT_URL="$(doppler secrets get HEARTBEAT_URL --plain 2>/dev/null || true)"
 
-if ! CRON_RENDERED="$(bash "$APP_DIR/deploy/render-crontab.sh" "$APP_DIR/deploy/crontab" "https://${SITE_HOST}" "$HEARTBEAT_URL")"; then
+if ! CRON_RENDERED="$(bash "$RELEASE_DIR/deploy/render-crontab.sh" "$RELEASE_DIR/deploy/crontab" "https://${SITE_HOST}" "$HEARTBEAT_URL")"; then
     echo "warning: installing the crontab without the heartbeat ping" >&2
-    CRON_RENDERED="$(bash "$APP_DIR/deploy/render-crontab.sh" "$APP_DIR/deploy/crontab" "https://${SITE_HOST}")"
+    CRON_RENDERED="$(bash "$RELEASE_DIR/deploy/render-crontab.sh" "$RELEASE_DIR/deploy/crontab" "https://${SITE_HOST}")"
 fi
 
-printf '%s\n' "$CRON_RENDERED" | crontab -
-echo "    $(crontab -l | grep -c '^[^#]*curl') cron job(s) installed"
+CRON_OTHERS="$(crontab -l 2>/dev/null | sed "/^# BEGIN ${SLUG}\$/,/^# END ${SLUG}\$/d" || true)"
+{
+    [ -z "$CRON_OTHERS" ] || printf '%s\n' "$CRON_OTHERS"
+    printf '# BEGIN %s\n%s\n# END %s\n' "$SLUG" "$CRON_RENDERED" "$SLUG"
+} | crontab -
+echo "    $(crontab -l | sed -n "/^# BEGIN ${SLUG}\$/,/^# END ${SLUG}\$/p" | grep -c '^[^#]*curl') cron job(s) installed"
 
 # ---------------------------------------------------------------------------
-# 10. (7) Record what is deployed, LAST, so a failed deploy leaves the
-#     previous tag in place. Then keep the newest releases for rollback and
-#     remove the rest, never the one serving or the one before it.
+# 9. (7) Record the release before this one, LAST, so a failed deploy leaves
+#    it as it was. The poller keeps the newest releases and removes the rest.
 # ---------------------------------------------------------------------------
 if [ -n "$PREV" ] && [ "$PREV" != "$TAG" ]; then
     printf '%s\n' "$PREV" > "$STATE_DIR/previous-tag"
 fi
-printf '%s\n' "$TAG" > "$STATE_DIR/tag"
-
-PROTECT=" ${TAG} ${PREV} "
-COUNT=0
-for dir in $(ls -1t "$APP_DIR/releases"); do
-    COUNT=$((COUNT + 1))
-    if [ "$COUNT" -gt "$KEEP" ] && [[ "$PROTECT" != *" ${dir} "* ]]; then
-        rm -rf "${APP_DIR:?}/releases/${dir}"
-        echo "    removed old release ${dir}"
-    fi
-done
 
 echo "==> deployed ${TAG} successfully"
-echo "    rollback: bash deploy/deploy.sh ${PREV:-<an older tag>}   (instant while it is in releases/)"
-echo "    or re-run the release workflow for that tag."
+echo "    rollback: ${SLUG}-pull deploy ${PREV:-<an older tag>}   (instant while it is in releases/)"

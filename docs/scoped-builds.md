@@ -7,7 +7,8 @@ notices"; the design is its docs/content-model.md).
 
 ```
 app: publish ──► change notice (queued, coalesced) ──► GitHub repository_dispatch
-site: rebuild.yml ──► scoped build of the served release ──► assemble.sh ──► deploy.sh
+site: rebuild.yml ──► scoped build of the served release ──► attached to it as vN.dRUN
+server: the poller ──► assemble.sh (from the live release) ──► deploy.sh
 ```
 
 ## The page manifest
@@ -83,28 +84,34 @@ before storing it.
 `.github/workflows/rebuild.yml` runs on a `repository_dispatch` of type
 `change-notice`:
 
-1. Reads the served site's `pages-manifest.json` and `sitemap-0.xml`. The
+1. Waits until the server serves the latest release and that release's
+   newest data rebuild (its `build.txt` names what it serves), so a rebuild
+   is always built over what is live (failure 16).
+2. Reads the served site's `pages-manifest.json` and `sitemap-0.xml`. The
    manifest's `release` is the code to use: a data change never ships new
    code (failure 15).
-2. Checks out that tag and builds it with `SITE_PREVIOUS_MANIFEST` pointing
+3. Checks out that tag and builds it with `SITE_PREVIOUS_MANIFEST` pointing
    at the served manifest. Entity pages are built only for records whose
    fingerprint changed or that are new (`wants()` in
    `src/core/lib/manifest.js`); every other page is built as usual.
-3. `tools/scoped-release.mjs` compares the two manifests. The **affected
+4. `tools/scoped-release.mjs` compares the two manifests. The **affected
    pages** are every page that used a changed record in the served release
    or uses one now (`affectedPages()`). It writes only those that exist now,
    the build's hashed assets, its manifest, its redirects and a sitemap
    merged with the served one, and lists the affected pages that no longer
    exist in `.scoped-remove`. Nothing changed: no release.
-4. Steps 1 to 3 run in a job with no environment, so nothing npm installs
-   or runs there can read a secret. The result reaches a second job, which
-   runs no npm, as an artifact; only that job holds `DOPPLER_TOKEN`
-   (`prod-rebuild`). It is rsync'd beside the releases on the server, and
-   `deploy/assemble.sh <tag> <run>` makes `releases/<tag>.d<run>/`: a copy of
-   the served release with hard links, the changes laid over it (each
-   replacing its link, never writing through it), the removed pages deleted.
-   `deploy.sh` then switches to it as to any release, so the served release
-   is never changed and rolling back is deploying it again.
+5. The rebuild is packed with `.scoped-base` (what it was built over) and
+   `build.txt` (its own name, `vN.dRUN`), and attached to release `vN` by
+   the workflow's bot. npm runs only in containers, as in a release, and
+   nothing in the workflow holds a secret.
+6. The server's poller (docs/pull-based-deployments.md) finds it within a
+   minute, checks it as it checks a release, and has the live release's
+   `deploy/assemble.sh` make `releases/vN.dRUN/`: a copy of the live release
+   with hard links, the changes laid over it (each replacing its link, never
+   writing through it), the removed pages deleted. It is refused unless it
+   was built over what is live. `deploy.sh` then switches to it as to any
+   release, so the served release is never changed and rolling back is
+   deploying it again.
 
 The notice only starts the rebuild; what to rebuild comes from comparing all
 the data with what is served. So a notice that waits behind a deploy, or is
@@ -120,15 +127,10 @@ so each release carries its own, and `deploy.sh`'s reload picks it up.
 
 ## Before the first rebuild
 
-- The `prod-rebuild` environment must exist: run `./tools/setup-github.sh`
-  again (docs/fresh-install.md, step 11). A rebuild's ship job deploys
-  through it, because a change notice runs on the default branch, which
-  `prod`'s `v*` rule rightly refuses.
 - The site writes `pages-manifest.json` and `redirects.caddy` (above).
-  Without them `rebuild.yml` stops at its first step, saying the served
-  site has no manifest: a site with no data pages has nothing to rebuild.
-- A release must be served whose manifest names its tag: publish one release
-  after the endpoints land.
+  Without them `rebuild.yml` stops when it reads the served site's
+  manifest: a site with no data pages has nothing to rebuild.
+- A release must be served: publish one release after the endpoints land.
 - The waffle app needs `SITE_REPOSITORY` and `SITE_DISPATCH_TOKEN` (its
   docs/content.md), the token a fine-grained GitHub token with the Contents
   permission on this repository.
@@ -143,7 +145,7 @@ end-to-end check that a scoped build makes only the changed pages. Numbers 13 to
 13. A scoped build misses an affected page: the page a record left, a list that showed it, the sitemap.
 14. A data change rebuilds every entity page, so each change costs the whole site's build time.
 15. A scoped build is laid over a release built from other code, or changes the served release in place.
-16. Two rebuilds run at once, or one runs while a release deploys.
+16. Two rebuilds run at once, or one is built over something the server is not serving.
 17. A scoped release's sitemap loses the pages it did not rebuild, or keeps one that was removed.
 18. A path in the redirects, or in the list of removed pages, is anything but a page path inside the release.
 19. A changed page that the scoped build failed to make is shipped as missing rather than failing the rebuild.

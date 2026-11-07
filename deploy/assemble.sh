@@ -1,63 +1,70 @@
 #!/usr/bin/env bash
 #
-# deploy/assemble.sh — make a scoped release from the one being served, and
-# deploy it (docs/scoped-builds.md).
+# deploy/assemble.sh — make a data rebuild's release from the release this
+# script is in (docs/scoped-builds.md).
 #
-#   bash deploy/assemble.sh v7 123
+#   bash /opt/waffle_site/releases/v7/deploy/assemble.sh <incoming> <out>
 #
-# Runs on the server, after .github/workflows/rebuild.yml has rsync'd what
-# the scoped build changed to releases/v7.d123.incoming/. The served release
-# is copied with hard links (cheap, and the copy shares nothing it changes:
-# each changed file replaces its link rather than writing into it), the changed files are
-# laid over the copy, the pages that no longer exist are removed, and
-# deploy.sh switches to the result as to any release. The served release is
-# never touched (failure 15), so rolling back is deploying it again.
+# Run by the poller (deploy/pull.sh) from the live release, once it has
+# downloaded a data rebuild, checked it and unpacked it into <incoming>: the
+# pages the rebuild changed, .scoped-remove (the page directories that no
+# longer exist), .scoped-base (the release it was built over) and build.txt
+# (its own name, like v7.d12). This release is copied to <out> with hard
+# links (cheap, and the copy shares nothing it changes: each changed file
+# replaces its link rather than writing into it), the changes are laid over
+# the copy's dist/, and the pages that no longer exist are removed. This
+# release is never touched (failure 15), so rolling back is deploying it
+# again. The poller then deploys <out> with its own deploy.sh.
 #
 set -euo pipefail
 
-CODE="${1:-}"
-RUN="${2:-}"
+INCOMING="${1:-}"
+OUT="${2:-}"
 
-if [[ ! "$CODE" =~ ^v[1-9][0-9]*$ ]] || [[ ! "$RUN" =~ ^[1-9][0-9]*$ ]]; then
-    echo "error: usage: assemble.sh <release tag, like v7> <run number>" >&2
+if [ -z "$INCOMING" ] || [ -z "$OUT" ]; then
+    echo "error: usage: assemble.sh <incoming> <out>" >&2
     exit 2
 fi
 
-APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-cd "$APP_DIR"
+BASE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+HERE="$(basename "$BASE")"
 
-NEW="${CODE}.d${RUN}"
-INCOMING="releases/${NEW}.incoming"
+for required in .scoped-base .scoped-remove build.txt pages-manifest.json; do
+    if [ ! -f "$INCOMING/$required" ]; then
+        echo "error: the data rebuild in ${INCOMING} is incomplete: no ${required}." >&2
+        exit 1
+    fi
+done
 
-if [ ! -d "$INCOMING" ] || [ ! -f "$INCOMING/pages-manifest.json" ]; then
-    echo "error: nothing to assemble: ${INCOMING}/ is missing or incomplete." >&2
+NEW="$(head -n 1 "$INCOMING/build.txt")"
+if [[ ! "$NEW" =~ ^(v[1-9][0-9]*)\.d[1-9][0-9]*$ ]]; then
+    echo "error: the data rebuild's build.txt names '${NEW}', not a data rebuild like v7.d12." >&2
+    exit 1
+fi
+CODE="${BASH_REMATCH[1]}"
+
+# (21) Over the release it was built over, and nothing else.
+BUILT_OVER="$(head -n 1 "$INCOMING/.scoped-base")"
+if [ "$BUILT_OVER" != "$HERE" ]; then
+    echo "error: ${NEW} was built over ${BUILT_OVER}, not ${HERE}; refusing to lay it over this release." >&2
     exit 1
 fi
 
-if [ ! -L current ]; then
-    echo "error: no release is being served; a scoped release needs one to start from." >&2
-    exit 1
-fi
-
-BASE="$(readlink current)"
-
-# (15) Only over the code it was built from: the served release's manifest
-# must name the same release tag.
-SERVED="$(sed -n 's/^ *"release": *"\([^"]*\)".*/\1/p' "$BASE/pages-manifest.json" 2>/dev/null | head -n 1)"
-
+# (15) Only over the code it was built from: this release's manifest must
+# name the same release tag.
+SERVED="$(grep -o '"release": *"[^"]*"' "$BASE/dist/pages-manifest.json" 2>/dev/null | head -n 1 | sed 's/.*"\([^"]*\)"$/\1/' || true)"
 if [ "$SERVED" != "$CODE" ]; then
-    echo "error: ${BASE} was built from ${SERVED:-an unknown release}, not ${CODE}; refusing to lay this scoped build over it." >&2
-    echo "       the next change notice rebuilds against whatever is served then." >&2
+    echo "error: ${HERE} was built from ${SERVED:-an unknown release}, not ${CODE}; refusing to lay ${NEW} over it." >&2
     exit 1
 fi
 
-echo "==> assembling ${NEW} from ${BASE}"
-rm -rf "releases/${NEW}"
-cp -al "$BASE" "releases/${NEW}"
+echo "==> assembling ${NEW} from ${HERE}"
+rm -rf "$OUT"
+cp -al "$BASE" "$OUT"
 # --remove-destination: each changed file replaces the hard link instead of
-# writing through it into the served release.
-cp -a --remove-destination "$INCOMING/." "releases/${NEW}/"
-rm -f "releases/${NEW}/.scoped-remove"
+# writing through it into this release.
+cp -a --remove-destination "$INCOMING/." "$OUT/dist/"
+rm -f "$OUT/dist/.scoped-remove" "$OUT/dist/.scoped-base"
 
 while IFS= read -r dir; do
     [ -z "$dir" ] && continue
@@ -65,14 +72,12 @@ while IFS= read -r dir; do
     # Only a page's directory, never a path that climbs out of the release.
     if [[ ! "$dir" =~ ^[a-z0-9]+(-[a-z0-9]+)*(/[a-z0-9]+(-[a-z0-9]+)*)*$ ]]; then
         echo "error: refusing to remove '${dir}': not a page directory." >&2
-        rm -rf "releases/${NEW}"
+        rm -rf "$OUT"
         exit 1
     fi
 
-    rm -rf "releases/${NEW}/${dir}"
+    rm -rf "${OUT:?}/dist/${dir}"
     echo "    removed /${dir}/"
 done < "$INCOMING/.scoped-remove"
 
-rm -rf "$INCOMING"
-
-exec bash "$APP_DIR/deploy/deploy.sh" "$NEW"
+echo "    assembled ${NEW}"

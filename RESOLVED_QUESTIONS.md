@@ -15,8 +15,8 @@ Each starts with where it was settled. Newest moves at the top.
 
 ## Where do secrets live?
 
-**Resolved by the template:** Doppler, and only Doppler, with two configs named for who reads them and inheriting nothing: `prod-serve` (the server: `WAFFLE_SITE_KEY`) and `prod-deploy` (GitHub Actions: the deploy credentials). There is no `.env` file anywhere. AGENTS.md §8.
+**Resolved by the template:** Doppler, and only Doppler, with one config, `prod`, read by the server; GitHub Actions holds no secret. There is no `.env` file anywhere. AGENTS.md §8.
 
 ## How is the site deployed?
 
-**Resolved by the template:** GitHub Actions on `release: published`, gated by a `v*` tag rule on the `prod` environment, builds the production site on the runner and rsyncs it to `releases/vN/` on the server, where `deploy/deploy.sh` switches `current` to it atomically and proves it is served over HTTPS. Nothing is cloned or built on the server. AGENTS.md §9.
+**Resolved by the template:** GitHub Actions on `release: published` builds the production site and attaches it to the release; the server pulls it on a timer, unpacks it into `releases/vN/`, and `deploy/deploy.sh` switches `current` to it atomically and proves it is served over HTTPS. Nothing is cloned or built on the server, and CI cannot reach it. AGENTS.md §9, docs/pull-based-deployments.md.

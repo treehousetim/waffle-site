@@ -1,23 +1,14 @@
 # Releasing
 
 `./tools/release.sh` is the release. Publishing the GitHub release it creates
-is what deploys a site.
+is what deploys a site: GitHub Actions builds it and attaches it to the
+release, and the server pulls it from there (docs/pull-based-deployments.md).
 
 ```bash
 ./tools/release.sh --dry-run     # what it would do; changes nothing
 ./tools/release.sh               # the next release
-gh run watch                     # the build and deploy it started
+gh run watch                     # the build it started
 ```
-
-## Versions
-
-`VERSION` holds the last released version and is the only place one is
-written (`tests/infra/release.test.js` fails if `package.json` grows one).
-
-- **A site** is numbered 1, 2, 3, tagged `v1`, `v2`, `v3`; `0` means never
-  released. `vN` is the only shape the workflow deploys.
-- **The template itself** uses semver (`--patch`, `--minor`, `--major`) and
-  never deploys: the workflow's job is skipped in `treehousetim/waffle-site`.
 
 **CI** (`.github/workflows/ci.yml`) runs the same gate on every push to
 `main` and every pull request, with no secret, no environment and a
@@ -25,6 +16,17 @@ read-only token, so a pull request from anyone can be tested safely. It is
 the check, not the release: releasing still runs the gate itself, before
 anything is tagged. A project started from this template keeps it; on a
 private repository its runs count against the account's Actions minutes.
+
+## Versions
+
+`VERSION` holds the last released version and is the only place one is
+written (`tests/infra/release.test.js` fails if `package.json` grows one).
+
+- **A site** is numbered 1, 2, 3, tagged `v1`, `v2`, `v3`; `0` means never
+  released. `vN` is the only shape the workflow builds and the server
+  deploys; a data rebuild of `vN` is `vN.dRUN` (docs/scoped-builds.md).
+- **The template itself** uses semver (`--patch`, `--minor`, `--major`) and
+  never deploys: the workflow's jobs are skipped in `treehousetim/waffle-site`.
 
 ## What the script does
 
@@ -40,71 +42,64 @@ committed, and `main` and the tag are pushed together:
 
 ## What the pipeline does
 
-`.github/workflows/deploy.yml` runs on `release: published`, against the `prod`
-GitHub environment, whose `v*` tag rule blocks a release cut from anything
-else. Every action is pinned to a commit.
+`.github/workflows/deploy.yml` runs on `release: published`. It holds no
+secret and cannot reach the server; every action is pinned to a commit.
 
-1. Refuses a tag that is not `vN`, and checks out the tag.
+1. Refuses a tag that is not `vN`, and checks out the tag, keeping no token.
 2. Reads the hostname and the waffle app's URL from `docker-compose.prod.yml`.
-3. Installs exactly the lockfile, verifies its registry signatures, then builds as a production
-   build: type check, Astro build with the waffle app's live data, SEO audit.
-   Any of them failing stops the release here, before the server is touched.
-4. Loads the four deploy credentials from Doppler (only now, after npm has run
-   third-party code), rsyncs the tree to `/opt/waffle_site` and `dist/` to
-   `/opt/waffle_site/releases/vN/`.
-5. Runs `deploy/deploy.sh vN` on the server.
+3. Installs exactly the lockfile and verifies its registry signatures, in a
+   container that sees only the package files.
+4. Builds as a production build, in a container working on its own copy of
+   the tree: type check, Astro build with the waffle app's live data, SEO
+   audit. Any of them failing stops the release here.
+5. Takes only the built site, plain files only, adds `build.txt` naming the
+   release, and packs it with the tag's own server files (the Compose files,
+   the Caddyfile, `deploy/`) as `waffle_site-vN.tar.gz`.
+6. The `attach` job, the only one that can write, uploads it and its
+   `.sha256` to the release.
 
-Nothing is cloned and nothing is built on the server.
+Within a minute the server finds it and deploys it
+(docs/pull-based-deployments.md): `journalctl -fu waffle_site-deploy` or
+`waffle_site-pull status` on the server. Nothing is cloned and nothing is
+built there.
 
 ## What deploy.sh does
 
 Every release stays on disk under `releases/`, and `current` is a link to the
-one being served. In order:
+one being served. The poller runs the new release's own `deploy/deploy.sh`,
+from inside it. In order:
 
-1. Refuses anything but `vN`, and a release that is not complete on disk.
+1. Refuses anything but `vN` or `vN.dM`, a tag other than the release it is
+   in, and a release that is not complete.
 2. Checks Doppler can be read and holds `WAFFLE_SITE_KEY`.
 3. Checks DNS points here (a refusal on the first deploy, a warning after).
-4. Has Caddy validate the Caddyfile.
-5. Switches `current` to `releases/vN` with one rename, starts Caddy if needed
-   and reloads it.
-6. Fetches the home page over HTTPS with the real hostname and compares it, byte
-   for byte, with `releases/vN/index.html`. If it does not match within the
-   wait, `current` goes back to the previous release and the deploy fails.
-7. Installs the crontab, records the tag, and removes old releases beyond the
-   newest five, never the one serving or the one before.
+4. Has Caddy validate this release's Caddyfile, with this release's
+   redirects.
+5. Switches `current` to `releases/<tag>` with one rename, starts Caddy if
+   needed and reloads it. Caddy reads the site and its Caddyfile through
+   `current`, so nothing restarts.
+6. Fetches `build.txt` over HTTPS with the real hostname: it must name this
+   release. If it does not within the wait, `current` goes back to the
+   previous release, its containers are recreated from its own Compose files,
+   and the deploy fails.
+7. Installs its block of the crontab, leaving the app's lines alone, and
+   records the release before it.
 
 ## Rolling back
 
-Deploy the older tag again. While it is still in `releases/`, it is instant:
+Deploy the older tag again, on the server:
 
 ```bash
-ssh deploy@waffle-site.example.com "cd /opt/waffle_site && bash deploy/deploy.sh v6"
+sudo -u deploy waffle_site-pull deploy v6
 ```
 
-Or re-run the release workflow for that tag, which rebuilds it from scratch.
-There is no database, so nothing else needs rolling back.
+Instant while it is still in `releases/`, downloaded again from its GitHub
+release if not. The server holds there until something newer is published,
+or `waffle_site-pull retry`. There is no database, so nothing else needs
+rolling back.
 
-**Never edit files on the server.** The next deploy's `rsync --delete` would
-overwrite them anyway.
-
-## Pull-based deploys (proposal)
-
-**Not built.** Waffle's docs/pull-based-deployments.md proposes the
-other way round from the push above: the server pulls each release from
-GitHub itself, on a timer, so the workflow never reaches the server. For this
-site it changes only how a release arrives, since the server already keeps
-`releases/vN/` and switches `current` by a rename:
-
-- the `build` job attaches the built `dist/` as `<slug>-vN.tar.gz`, with its
-  `.sha256`, to the release; there is no `ship` job, no SSH, and no
-  `prod-deploy` config in Doppler
-- the server checks the release (newer than live, an approved publisher, the
-  checksum), unpacks it into `releases/vN/`, switches `current`, and proves it
-  is being served over HTTPS, switching back if not, as `deploy.sh` does now
-- a scoped rebuild from a change notice becomes a `vN.dRUN` release, ordered
-  after `vN`
-- secrets stay in Doppler on the server; the only new one is a read-only
-  token for this repository's releases, in `prod-serve`
+**Never edit files on the server.** The poller refuses a release that has
+changed since it was unpacked.
 
 ## Failure lists
 
@@ -129,10 +124,11 @@ Each has a test in `tests/infra/release-script.test.js`.
 ### deploy/deploy.sh
 
 Each has a test in `tests/infra/deploy.test.js`, which runs the real script
-against stand-in `docker`, `doppler`, `curl` and `crontab`.
+from inside a release against stand-in `docker`, `doppler`, `curl` and
+`crontab`. The poller's own list is in docs/pull-based-deployments.md.
 
-1. A tag that is not `vN`, or a release that is missing or incomplete on disk,
-   is put into service.
+1. A tag that is not `vN` or `vN.dM`, a tag other than the release the script
+   is in, or an incomplete release, is put into service.
 2. The stack starts without Doppler, or without the site key, and every form
    fails.
 3. A first deploy starts while DNS points elsewhere, so no certificate can be
@@ -141,5 +137,5 @@ against stand-in `docker`, `doppler`, `curl` and `crontab`.
 5. Visitors see a half-switched site, mixing two releases.
 6. A release that is not actually being served, or not over valid HTTPS, is
    reported as deployed, and stays live.
-7. A failed deploy records its tag as deployed, or old releases fill the disk,
-   or the release being served is removed.
+7. A failed deploy records itself as the release before the next one, or the
+   crontab replaces the app's jobs on a shared server.

@@ -23,18 +23,23 @@ to reach.
    the repository mounted: no home directory, so no `~/.ssh`, no tokens, no
    browser data. `node_modules` lives in a Docker volume
    (`<slug>_node_modules`), never on your disk. The test suite uses the same
-   image and the same volume.
+   volume, in the same image plus `jq` (`docker/test/Dockerfile`).
 4. **The lockfile is the install.** CI runs `npm ci`, which installs exactly
-   the locked versions and checks each against its recorded hash, and loads no
-   secret until the build has finished.
+   the locked versions and checks each against its recorded hash.
 5. **Tampering is checked.** CI runs `npm audit signatures` after `npm ci`.
-6. **The browser contains the rest.** The content security policy
+6. **In CI, npm runs only in containers, on a runner with no secret.** The
+   install sees the three package files and nothing else; the build works on
+   its own copy of the tree and hands back only `dist/`, plain files only. The
+   server's files in a release are the tag's own, so nothing npm runs can
+   change what the server runs, and the checkout keeps no token for it to
+   find (docs/pull-based-deployments.md, "What is trusted").
+7. **The browser contains the rest.** The content security policy
    (docs/https.md) allows scripts only from the site and connections only to
    the site, so code smuggled into the bundle can neither load more code nor
    send data anywhere else.
-7. **Production runs no Node at all.** The server serves built files; a
+8. **Production runs no Node at all.** The server serves built files; a
    compromised build dependency can only reach visitors through the bundle,
-   which layer 6 contains.
+   which layer 7 contains.
 
 Editors that read `node_modules` for types will not find it on disk. That is
 the price of layer 3.
@@ -76,6 +81,8 @@ stand-in `docker`.
     silently ignored.
 12. The script runs in a native Windows shell, where nothing behaves as
     expected.
+13. In CI, a package changes what the server runs, or finds a token: tested
+    by shape in `tests/infra/release.test.js`.
 
 # Watching for advisories, on the server
 
@@ -101,7 +108,7 @@ site shares a server with its waffle app, the app's check covers both.
 
 ### How it reports, and its failure list
 
-As Waffle's: once per finding (state in `.deploy/advisories`), to the channel
+As Waffle's: once per finding (state in `shared/deploy/advisories`), to the channel
 chosen in OPEN-QUESTIONS.md, a check that cannot run reported after two days,
 and nothing but versions and links ever sent. Its numbered failure list is
 Waffle's, items 1 to 9, less the ones about PHP, MariaDB and Composer.
@@ -109,7 +116,7 @@ Waffle's, items 1 to 9, less the ones about PHP, MariaDB and Composer.
 ### To build
 
 - `deploy/check-advisories.sh`, run daily from `deploy/crontab`, its state in
-  `.deploy/`
+  `shared/deploy/`
 - the reporting channel, rendered into the crontab the way `HEARTBEAT_URL` is
 - `unattended-upgrades` in docs/fresh-install.md
 - tests in `tests/infra/deploy.test.js` against stand-in `docker` and `curl`,

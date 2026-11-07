@@ -68,7 +68,7 @@ if [[ ! "$APP" =~ $HOST_RE ]]; then
 fi
 
 if [ "$APP" = "$HOST" ]; then
-    echo "error: the site and the waffle app need different hostnames: each runs its own Caddy and certificate." >&2
+    echo "error: the site and the waffle app need different hostnames: the server's front Caddy sends each hostname to one of them." >&2
     exit 2
 fi
 
@@ -110,6 +110,15 @@ for file in $FILES; do
     echo "  renamed in ${file#./}"
 done
 
+# Files whose names hold the slug: the server's systemd units
+# (deploy/systemd/<slug>-deploy.service and .timer), named for the poller
+# they run.
+while IFS= read -r path; do
+    target="${path//waffle_site/${SLUG}}"
+    mv "$path" "$target"
+    echo "  renamed ${path#./} to ${target#./}"
+done < <(find . \( -name node_modules -o -name .git -o -name dist -o -name coverage -o -name .astro \) -prune -o -type f -name '*waffle_site*' -print)
+
 # A new project starts its own release stream (docs/releasing.md): VERSION 0,
 # never released, and a fresh changelog whose first line records the template
 # version it started from. The line names treehousetim/waffle-site, so no
@@ -137,5 +146,6 @@ echo "  started VERSION at 0 and a fresh CHANGELOG.md"
 echo
 echo "Done: slug ${SLUG}, name \"${NAME}\", site ${HOST}, waffle app ${APP}."
 echo "  - replace the example's logo, link-preview image and photos (docs/playbook.md)"
-echo "  - create the Doppler project '${SLUG}' with configs prod-serve and prod-deploy (docs/fresh-install.md)"
+echo "  - create the Doppler project '${SLUG}' with the config prod (docs/fresh-install.md)"
+echo "  - fill in REPO and DEPLOY_AUTHORS in deploy/systemd/${SLUG}-deploy.service (docs/fresh-install.md)"
 echo "  - fill in section 1 of AGENTS.md with what the site is for"

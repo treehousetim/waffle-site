@@ -10,8 +10,9 @@ slug `tools/setup.sh` set, `waffle-site.example.com` the site's hostname, and
 - The site's hostname (often `www.` plus your domain), and where its DNS is
   managed.
 - The waffle app this site fronts, and its hostname. The site and the app each
-  run their own Caddy with their own certificate, so they need different
-  hostnames, and usually different droplets: both want ports 80 and 443.
+  run their own Caddy, behind the server's front Caddy ([Waffle's docs/edge.md](https://github.com/treehousetim/waffle/blob/main/docs/edge.md)),
+  which holds both certificates; so they need different
+  hostnames, and can share one droplet.
 - The server: a single DigitalOcean droplet (Debian 13). The site is static
   files behind Caddy, so the smallest droplet is plenty. IPv4 is enough; an
   AAAA record is only for a droplet with IPv6 turned on (`deploy/check-dns.sh`
@@ -28,145 +29,170 @@ needed: npm runs in a container (docs/supply-chain.md).
 ./tools/test.sh --coverage
 ```
 
-## Part B — Doppler
+## Part B — Accounts and keys
 
-**3. The project and its two configs.** Create project `waffle_site` and delete
-the environments Doppler starts it with. Create two, named for who reads them,
-each the root config of its own environment and inheriting nothing:
+Keys go into Doppler, through its website or piped in as below, and nowhere
+else: never into a file, a chat, a ticket or a command line.
 
-- `prod-serve` — the site's production secrets, read only by the server.
-- `prod-deploy` — the four deploy credentials, read only by GitHub Actions. It
-  must not inherit from `prod-serve`: the CI runner that reads it must never
-  see a production secret.
+| Account | What to create | Where it goes |
+| --- | --- | --- |
+| [Doppler](https://www.doppler.com) | Project `waffle_site`, one config, `prod`; a read-only service token for the server | Step 9 |
+| [GitHub](https://github.com) | A fine-grained token that can read this repository's contents (step 4) | Doppler `prod`: `GITHUB_RELEASES_TOKEN` |
+| The waffle app | The site key, shared with the app (step 5) | Doppler `prod`: `WAFFLE_SITE_KEY` |
+| [healthchecks.io](https://healthchecks.io) | Optional: a check's ping URL | Doppler `prod`: `HEARTBEAT_URL` |
+| [Slack](https://slack.com) | Optional: an incoming-webhook URL for failed or refused deploys | Doppler `prod`: `DEPLOY_ALERT_WEBHOOK` |
 
-There is no local config: local development needs no secrets.
+**3. Doppler.** Create the project `waffle_site` with the one config `prod`,
+read only by the server. There is no local config: local development needs no
+secrets. Sign the CLI in on your workstation: `doppler login`.
 
-**4. Sign the CLI in** on your workstation: `doppler login`.
+**4. The server's GitHub token.** GitHub → Settings → Developer settings →
+Fine-grained tokens → **Generate new token**: resource owner the repository's
+owner, **Only select repositories** → this one, **Repository permissions** →
+**Contents: Read-only** and nothing else, an expiry you will notice (a year).
+It can read the code and download releases, and change nothing. Paste it into
+Doppler `prod` as `GITHUB_RELEASES_TOKEN`. When it expires the server reports
+it; make a new one and replace the value.
 
-**5. The site key.** The one production secret: how the waffle app knows a
-request came through this site (docs/waffle-api.md). Generate it and pipe it
-in, so it never appears on a command line:
+**5. The site key.** How the waffle app knows a request came through this
+site (docs/waffle-api.md). Generate it and pipe it in, so it never appears on
+a command line:
 
 ```bash
-openssl rand -hex 32 | tr -d '\n' | doppler secrets set WAFFLE_SITE_KEY -p waffle_site -c prod-serve >/dev/null
+openssl rand -hex 32 | tr -d '\n' | doppler secrets set WAFFLE_SITE_KEY -p waffle_site -c prod >/dev/null
 ```
 
-The waffle app needs the same value in its own `prod-serve` config. Copy it
-across in the Doppler dashboard; never paste it into a chat, a ticket or a
-file.
+The waffle app needs the same value; register this site on its Sites page and
+copy the key across in the Doppler dashboard. Never paste it into a chat, a
+ticket or a file.
+
+**6. Optional:** `HEARTBEAT_URL` (an `https://` URL from a dead-man's switch;
+the crontab pings it every five minutes after the site answers) and
+`DEPLOY_ALERT_WEBHOOK` (a Slack incoming webhook the server posts to when a
+deploy fails or is refused), both in `prod`.
 
 ## Part C — The server
 
-**6. Create the droplet** (Debian 13) with your own SSH key, and point an A
-record for `waffle-site.example.com` at it. Firewall: 22 from your addresses;
-80, 443 and 443/udp from anywhere. Port 80 stays open for good: Let's Encrypt
-validates over it, and Caddy redirects everything else on it to HTTPS.
+**7. Create the droplet** (Debian 13) with only your own SSH key, and point an
+A record for `waffle-site.example.com` at it. Firewall: 22 from your addresses; 80, 443
+and 443/udp from anywhere. Port 80 stays open for good: Let's Encrypt
+validates over it, and the front Caddy redirects everything else on it to
+HTTPS.
+Password logins stay off: only keys open it.
 
-**7. Install what the deploy needs**, as root:
+**8. Install what the deploy needs**, as root:
 
 - Docker Engine and the Compose plugin from Docker's own apt repository
   (https://docs.docker.com/engine/install/debian/). Compose **v2.24 or later**:
   `docker-compose.prod.yml` uses `!override` and `!reset`.
-- The Doppler CLI (https://docs.doppler.com/docs/install-cli).
-- `curl`, `rsync` and `bind9-dnsutils` (for `dig`) from Debian's own
-  repositories. No certbot, no Node, no PHP: Caddy is the whole server.
+- The Doppler CLI from Doppler's own apt repository
+  (https://docs.doppler.com/docs/install-cli).
+- `jq` and `bind9-dnsutils` (for `dig`) from Debian's own repositories.
+  `curl` is already there, and `unattended-upgrades`, which installs Debian's
+  security updates on its own. No certbot, no Node, no PHP: Caddy is the
+  whole server.
 
-Then the deploy user and the directory:
+Then the deploy user and its directories:
 
 ```bash
 adduser --disabled-password --gecos '' deploy
 usermod -aG docker deploy
-mkdir -p /opt/waffle_site && chown deploy:deploy /opt/waffle_site
+mkdir -p /opt/waffle_site/releases /opt/waffle_site/shared/deploy
+chown -R deploy:deploy /opt/waffle_site
 ```
 
-Install a **deploy key** for `deploy`: a new ed25519 keypair made on your
-workstation (`ssh-keygen -t ed25519 -f ~/.ssh/waffle_site_deploy`), its public
-half in `/home/deploy/.ssh/authorized_keys`. Its private half goes to Doppler
-in step 10 and nowhere else.
-
-**8. Give the server its Doppler token.** Doppler → `prod-serve` → Access → a
-**read-only service token**. Type it interactively, as `deploy`, scoped to the
-site's directory:
+**9. Give the server its Doppler token.** Doppler → `prod` → Access →
+**Generate** a read-only service token. As `deploy`, so the token is the
+deploy user's and scoped to the site's directory:
 
 ```bash
 sudo -iu deploy
-doppler configure set token dp.st.prod-serve.XXXX --scope /opt/waffle_site
-cd /opt/waffle_site && doppler secrets --only-names      # must list WAFFLE_SITE_KEY
+read -rs -p 'Doppler token: ' T && printf %s "$T" | doppler configure set token --scope /opt/waffle_site; unset T
+cd /opt/waffle_site && doppler secrets --only-names      # must list the prod keys
+exit
 ```
 
-**9. Optional: a heartbeat and a deploy alert.**
+`read -s` keeps the token off the screen and out of the shell's history, and
+piping it in keeps it out of every command's arguments, which any process on
+the server can read.
 
-- `HEARTBEAT_URL` in **`prod-serve`**: an `https://` URL from a dead-man's
-  switch (healthchecks.io or similar). The crontab pings it every five minutes
-  after the site answers, so something outside notices when it stops.
-- `DEPLOY_ALERT_WEBHOOK` in **`prod-deploy`**: a Slack incoming-webhook URL the
-  release workflow posts to when a deploy fails.
+**10. Install the poller and its timer**, from your workstation's copy of the
+repository, as root on the server. They are server config, so a release never
+changes them (docs/pull-based-deployments.md):
 
-HTTPS needs nothing installed: Caddy gets the certificate on the first deploy
-and renews it on its own (docs/https.md).
+```bash
+# on your workstation
+scp deploy/pull.sh deploy/systemd/waffle_site-deploy.service deploy/systemd/waffle_site-deploy.timer root@waffle-site.example.com:
+
+# on the server, as root
+install -m 755 ~/pull.sh /usr/local/sbin/waffle_site-pull
+install -m 644 ~/waffle_site-deploy.service ~/waffle_site-deploy.timer /etc/systemd/system/
+rm ~/pull.sh ~/waffle_site-deploy.service ~/waffle_site-deploy.timer
+systemctl daemon-reload
+systemctl enable --now waffle_site-deploy.timer
+```
+
+Fill in the two settings the template leaves empty in
+`deploy/systemd/waffle_site-deploy.service` first, and commit them: `REPO`,
+the GitHub repository as `owner/name`, and `DEPLOY_AUTHORS`, the GitHub logins
+whose releases deploy. The poller refuses to run while either is empty.
+
+**11. The front Caddy**, which owns ports 80 and 443 for every project on the
+server and holds their certificates: set it up once per server, before the
+first deploy, as [Waffle's docs/edge.md](https://github.com/treehousetim/waffle/blob/main/docs/edge.md) says; its Caddyfile must name
+`waffle-site.example.com`. It gets the certificate as soon as DNS points here, and
+renews it on its own (docs/https.md). A deploy refuses to start without it.
 
 ## Part D — GitHub
 
-**10. Fill Doppler `prod-deploy`** — exactly four keys:
+**12. Protect the release tags.** Settings → Rules → Rulesets → **New tag
+ruleset**: target `v*`, restrict creations, updates and deletions, with only
+you on the bypass list. Then only you can create or move a release tag.
 
-```bash
-doppler secrets set -p waffle_site -c prod-deploy DROPLET_HOST=waffle-site.example.com DROPLET_USER=deploy
-doppler secrets set -p waffle_site -c prod-deploy DROPLET_SSH_KEY < ~/.ssh/waffle_site_deploy
-ssh-keyscan -t ed25519 waffle-site.example.com | doppler secrets set -p waffle_site -c prod-deploy DROPLET_SSH_KNOWN_HOSTS
-```
-
-> Doppler will say this config is "missing" keys compared with `prod-serve`.
-> **Ignore it and never click "Add missing value"**: that would hand the CI
-> runner the site key.
-
-**11. The `prod` and `prod-rebuild` environments and their tokens, in one command**, once
-`prod-deploy` is filled and `gh` and `doppler` are signed in:
-
-```bash
-./tools/setup-github.sh
-```
-
-It creates the `prod` environment with only a `v*` tag rule (releases), and
-`prod-rebuild` with only a rule for the default branch (scoped rebuilds from
-the app's change notices, which run there: docs/scoped-builds.md). It checks
-that `prod-deploy` holds the deploy credentials and nothing more, and pipes a
-new read-only token straight from Doppler into each environment's
-`DOPPLER_TOKEN` secret, never shown or put on a command line. Whoever can
-push to the default branch can deploy through `prod-rebuild`: protect it. Safe to re-run; it replaces an
-existing token only with `--rotate-token`. Required reviewers stay a manual
-choice (Settings → Environments → prod).
-
-**12. Protect `main`** (Settings → Branches): pull requests required.
+**13. Protect `main`** (Settings → Branches): pull requests required.
 
 ## Part E — The waffle app
 
-**13.** The site reads `GET /api/site/prices` while it builds and forwards
-`/api/site/forms/<name>` from visitors (docs/waffle-api.md has the contract).
-The waffle app needs those endpoints and the same `WAFFLE_SITE_KEY` before the
-first release, or the production build fails on the price guide.
+**14.** The site reads the app's public `/api/site/*` endpoints while it
+builds and forwards `/api/site/forms/<name>` from visitors (docs/waffle-api.md
+has the contract). The app needs those endpoints and the same
+`WAFFLE_SITE_KEY` before the first release, or the production build fails.
+For change notices, the app also needs `SITE_REPOSITORY` and
+`SITE_DISPATCH_TOKEN` (docs/scoped-builds.md).
 
 ## Part F — The first release
 
-**14.** Record the first release's notes under `## [Unreleased]` in
+**15.** Record the first release's notes under `## [Unreleased]` in
 `CHANGELOG.md`, commit, then (docs/releasing.md):
 
 ```bash
 ./tools/release.sh      # v1: version, changelog, gate, tag, push, GitHub release
-gh run watch            # the build and deploy it started
+gh run watch            # the build, which attaches waffle_site-v1.tar.gz to the release
+```
+
+Within a minute of the files being attached, the server deploys it. Watch it
+there:
+
+```bash
+journalctl -fu waffle_site-deploy
+sudo -u deploy waffle_site-pull status
 ```
 
 | Symptom | Cause |
 | --- | --- |
 | `release tag is not vN` | the release was not cut by `./tools/release.sh`; delete it and run the script |
-| `could not reach the waffle app` / `answered HTTP …` | the build could not read `/api/site/prices` (Part E) |
+| `could not reach the waffle app` / `answered HTTP …` | the build could not read the app's `/api/site/*` (Part E) |
 | `audit: … errors` | a page breaks an SEO rule; the build log names the page and the rule (docs/seo.md) |
-| `is not a complete release here` | the rsync of `dist/` to `releases/vN/` did not finish |
-| `Doppler is installed but cannot read secrets` | step 8 skipped, not scoped to `/opt/waffle_site`, or not set as `deploy` |
+| `GITHUB_RELEASES_TOKEN is not set in Doppler` | the key is missing from `prod` (step 4), or the token in step 9 is not the deploy user's |
+| `GitHub's API has been failing (last answer: HTTP 401)` | the GitHub token expired or was revoked; make a new one (step 4) |
+| `waiting for v1's files`, then `still has no tarball` | the build failed; `gh run view` says why |
+| `published by …, who is not in DEPLOY_AUTHORS` | add that login to the unit's `DEPLOY_AUTHORS` (step 10) |
+| `Doppler is installed but cannot read secrets` | step 9 skipped, not scoped to `/opt/waffle_site`, or not set as `deploy` |
 | `WAFFLE_SITE_KEY is not set in Doppler` | step 5 |
-| `has no A record` / `points at …, but this server is …` | DNS (step 6) is missing, wrong, or still spreading |
-| `Caddy cannot load docker/caddy/Caddyfile` | a Caddyfile change that does not parse; nothing was changed |
-| `is not serving vN with a valid certificate` | ports 80/443 closed, DNS, or Let's Encrypt's rate limit; `logs --tail=80 caddy` says which |
-| rsync fails on the host key | server rebuilt; re-capture `DROPLET_SSH_KNOWN_HOSTS` |
+| `has no A record` / `points at …, but this server is …` | DNS (step 7) is missing, wrong, or still spreading; fix it, then `waffle_site-pull retry` |
+| `Caddy cannot load this release's docker/caddy/Caddyfile` | a Caddyfile change that does not parse; nothing was changed |
+| `there is no edge network` | the front Caddy is not set up (step 11) |
+| `is not serving v1 with a valid certificate` | ports 80/443 closed, DNS, Let's Encrypt's rate limit, or the front Caddy not naming `waffle-site.example.com`; `cd /opt/edge && docker compose logs --tail=80 caddy` says which |
 
 ## Appendix — every configuration key
 
@@ -174,31 +200,9 @@ gh run watch            # the build and deploy it started
 | --- | --- | --- | --- |
 | `SITE_ADDRESS` | `docker-compose.prod.yml` | yes | the hostname; set by `tools/setup.sh` |
 | `WAFFLE_APP_URL` | `docker-compose.prod.yml` | yes | the waffle app's origin; set by `tools/setup.sh` |
-| `WAFFLE_SITE_KEY` | Doppler `prod-serve` | yes | step 5 |
-| `HEARTBEAT_URL` | Doppler `prod-serve` | no | step 9 |
-| `DROPLET_HOST`, `DROPLET_USER`, `DROPLET_SSH_KEY`, `DROPLET_SSH_KNOWN_HOSTS` | Doppler `prod-deploy` | yes | step 10 |
-| `DEPLOY_ALERT_WEBHOOK` | Doppler `prod-deploy` | no | step 9 |
-| `DOPPLER_TOKEN` | GitHub `prod` and `prod-rebuild` environments | yes | step 11 |
+| `WAFFLE_SITE_KEY` | Doppler `prod` | yes | step 5 |
+| `GITHUB_RELEASES_TOKEN` | Doppler `prod` | yes | step 4; read by the poller, never by Caddy |
+| `HEARTBEAT_URL` | Doppler `prod` | no | step 6 |
+| `DEPLOY_ALERT_WEBHOOK` | Doppler `prod` | no | step 6 |
+| `APP_ROOT`, `SLUG`, `REPO`, `DEPLOY_AUTHORS`, `KEEP` | `deploy/systemd/waffle_site-deploy.service` | yes | the poller's settings, none secret |
 | `SITE_ENV`, `SITE_URL`, `WAFFLE_DATA` | the build's environment | set by the workflow | docs/building.md |
-
-## Appendix — `tools/setup-github.sh` failure list
-
-Each has a test in `tests/infra/setup-github.test.js`, which runs the script
-against stand-in `gh` and `doppler` commands.
-
-1. `gh` is missing or not signed in, and the script fails halfway.
-2. `doppler` is missing or not signed in.
-3. The repository cannot be worked out (no GitHub remote), and the script
-   guesses.
-4. The `prod-deploy` config does not exist, and a token is issued for nothing.
-5. `prod-deploy` holds keys beyond the deploy credentials (somebody clicked
-   "Add missing value"), and a token that can read the site key is handed to CI.
-6. A deploy credential is missing, and the first release fails at the SSH step
-   instead of here.
-7. The `prod` environment already allows a branch or another tag pattern to
-   deploy (or `prod-rebuild` anything but the default branch), and the script
-   leaves it that way without saying.
-8. A re-run adds a second `v*` (or default-branch) rule.
-9. A re-run silently replaces a working `DOPPLER_TOKEN`.
-10. The token appears in the terminal or on a command line.
-11. The token can write to Doppler.

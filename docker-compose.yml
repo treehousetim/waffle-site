@@ -11,7 +11,7 @@
 #
 # Every value has a local default after `:-`, and none is secret. In
 # production deploy.sh runs Compose under `doppler run --` with the server's
-# prod-serve config, which supplies WAFFLE_SITE_KEY.
+# prod config, which supplies WAFFLE_SITE_KEY.
 
 # The Compose project's name: containers, networks and volumes are named for
 # the project's slug, not for whatever folder it was cloned into (on the server
@@ -38,9 +38,3 @@ services:
     volumes:
       - .:/srv/site:ro
       - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data
-      - caddy_config:/config
-
-volumes:
-  caddy_data:
-  caddy_config:

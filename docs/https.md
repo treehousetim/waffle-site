@@ -1,9 +1,13 @@
 # HTTPS and the web server
 
-Caddy is the whole server: it serves the built site as files, forwards
-`/api/site/*` to the waffle app, and gets and renews its own Let's Encrypt
-certificate. One file, `docker/caddy/Caddyfile`, serves locally and in
-production.
+Caddy is the whole server: it serves the built site as files and forwards
+`/api/site/*` to the waffle app. One file, `docker/caddy/Caddyfile`, serves
+locally and in production, always over plain HTTP. In production the server's
+front Caddy sits in front of it (Waffle's `deploy/edge/`, and
+[Waffle's docs/edge.md](https://github.com/treehousetim/waffle/blob/main/docs/edge.md)): it owns ports 80 and 443, gets and renews every hostname's
+Let's Encrypt certificate, redirects HTTP to HTTPS, and forwards
+`waffle-site.example.com` to this Caddy over the `edge` Docker network, with the
+visitor's address in `X-Forwarded-For`.
 
 ## Two modes, one file
 
@@ -11,9 +15,10 @@ production.
 
 - **Locally** `docker-compose.yml` sets `:80`: plain HTTP on
   `http://localhost:8090`, no certificate, serving `dist/`.
-- **In production** `docker-compose.prod.yml` sets the hostname. Caddy asks
-  Let's Encrypt for a certificate on the first start, renews it on its own,
-  and redirects HTTP to HTTPS.
+- **In production** `docker-compose.prod.yml` sets the hostname: that
+  hostname only, still plain HTTP, no public port. It trusts forwarded
+  addresses only from private networks, so the visitor's address it passes to
+  the app (`X-Visitor-Address`) is the visitor's, not the front Caddy's.
 
 `SITE_ROOT` is the directory served: `dist/` locally, `current` (the release
 `deploy.sh` switched to) in production.
@@ -41,11 +46,12 @@ page that does, so the policy never silently breaks a page.
 
 ## DNS
 
-Caddy can only get a certificate for a hostname whose DNS leads to the server.
+The front Caddy can only get a certificate for a hostname whose DNS leads to
+the server.
 `deploy/check-dns.sh` checks before anything starts, asking a public resolver:
 
 ```bash
-bash /opt/waffle_site/deploy/check-dns.sh waffle-site.example.com
+bash /opt/waffle_site/current/deploy/check-dns.sh waffle-site.example.com
 ```
 
 Behind a proxy such as Cloudflare, whose addresses are not the droplet's,
@@ -53,10 +59,10 @@ deploy with `SKIP_DNS_CHECK=1`.
 
 ## The certificate store
 
-The certificates live in the `caddy_data` Docker volume, never in the tree
-(the release rsync would delete them). **Never `docker compose down -v` on the
-server**: a wiped store means a new certificate on every deploy, until Let's
-Encrypt's rate limit locks the hostname out for days.
+The certificates are the front Caddy's, in its `edge_data` volume in
+`/opt/edge`. **Never `docker compose down -v` there**: a wiped store means new
+certificates for every hostname on the server, until Let's Encrypt's rate
+limit locks them out for days.
 
 ## Failure lists
 
@@ -79,7 +85,9 @@ Caddy validate the file.
 9. A large request body reaches the app.
 10. Local and production disagree: the wrong port, the wrong directory, a
     missing key that should stop Compose.
-11. The certificate store is somewhere the release rsync can delete.
+11. This Caddy publishes a port, or asks for a certificate, and fights the
+    front Caddy for 80 and 443; or a visitor's forged address reaches the app
+    (Waffle's docs/edge.md, 1 to 3).
 
 ### deploy/check-dns.sh
 

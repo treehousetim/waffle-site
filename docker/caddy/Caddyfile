@@ -5,10 +5,12 @@
 # /api/site/* to the waffle app (docs/waffle-api.md). There is no PHP and no
 # Node in production; this is the whole server.
 #
-# SITE_ADDRESS decides the mode. Locally docker-compose.yml sets ":80": plain
-# HTTP, no certificate. In production docker-compose.prod.yml sets the
-# hostname, and Caddy gets and renews its certificate from Let's Encrypt and
-# redirects HTTP to HTTPS on its own.
+# Plain HTTP, always. Locally docker-compose.yml sets SITE_ADDRESS to ":80":
+# any hostname, on a loopback port. In production docker-compose.prod.yml sets
+# the hostname, and the server's front Caddy (Waffle's deploy/edge/
+# and docs/edge.md) owns ports 80 and 443, gets and renews the certificate,
+# redirects HTTP to HTTPS, and forwards the hostname here over the `edge`
+# Docker network.
 #
 # SITE_ROOT is the directory served: dist/ locally, and in production the
 # `current` link deploy.sh points at the release it is serving.
@@ -17,6 +19,17 @@
 # here and release. deploy.sh validates it before anything restarts.
 #
 # Comments are whole lines only; the shape test strips them before reading.
+
+# The visitor's address, which goes to the app as X-Visitor-Address. Every
+# request in production comes through the front Caddy, which sends the
+# visitor's in X-Forwarded-For, having thrown away any the visitor sent.
+# Trusted only from private networks, which nothing on the internet can reach
+# this Caddy from: it publishes no public port.
+{
+	servers {
+		trusted_proxies static private_ranges
+	}
+}
 
 # Security headers, on every response.
 #
@@ -44,7 +57,7 @@
 	}
 }
 
-{$SITE_ADDRESS} {
+http://{$SITE_ADDRESS} {
 	import security_headers
 
 	root * {$SITE_ROOT}

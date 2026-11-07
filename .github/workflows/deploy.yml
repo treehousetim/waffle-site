@@ -1,14 +1,16 @@
-name: Deploy
+name: Release
 
-# Releases only. Nothing deploys from a branch push.
+# Releases only. Nothing builds from a branch push. The workflow builds the
+# release and attaches it to the GitHub release; the server finds it there
+# and deploys it (docs/pull-based-deployments.md). Nothing here can reach the
+# server, and there are no secrets.
 on:
   release:
     types: [published]
 
-# One deploy at a time. Two releases published close together would otherwise
-# rsync over each other mid-transfer.
+# One build per tag. A re-run of the same tag waits for the one in progress.
 concurrency:
-  group: deploy-production
+  group: release-${{ github.event.release.tag_name }}
   cancel-in-progress: false
 
 permissions:
@@ -16,25 +18,24 @@ permissions:
 
 # Every action is pinned to a commit (the major version is in the comment,
 # when this template was written). A tag can be moved by whoever controls the
-# action's repository; a commit cannot, and this job holds the production
-# server's key. Re-pin deliberately, never to a moving tag.
+# action's repository; a commit cannot, and what this builds runs on the
+# production server. Re-pin deliberately, never to a moving tag.
 
 jobs:
   build:
     name: Build ${{ github.event.release.tag_name }}
     # The template's own repository publishes releases too (semver) and has no
-    # server: never try to deploy from it. In a project started from it this
-    # is always true. tools/rename-project.sh leaves this line alone because
-    # it names treehousetim/waffle-site.
+    # server: never build one there. In a project started from it this is
+    # always true. tools/rename-project.sh leaves this line alone because it
+    # names treehousetim/waffle-site.
     if: github.repository != 'treehousetim/waffle-site'
     runs-on: ubuntu-latest
 
-    # No environment: this job cannot read DOPPLER_TOKEN.
     steps:
       # -------------------------------------------------------------------
-      # The tag is text somebody typed, and it reaches a shell on the server.
-      # Only a plain release number goes further. Read through the
-      # environment, never spliced into a script with ${{ }}.
+      # The tag is text somebody typed. Only a plain release number goes
+      # further. Read through the environment, never spliced into a script
+      # with ${{ }}.
       # -------------------------------------------------------------------
       - name: Refuse anything but a release tag
         env:
@@ -42,15 +43,17 @@ jobs:
         run: |
           set -euo pipefail
           if [[ ! "$TAG" =~ ^v[1-9][0-9]*$ ]]; then
-            echo "::error::release tag is not vN (docs/releasing.md); refusing to deploy it"
+            echo "::error::release tag is not vN (docs/releasing.md); refusing to build it"
             exit 1
           fi
           echo "TAG=$TAG" >> "$GITHUB_ENV"
 
+      # No token is left in .git for anything later to find.
       - name: Check out the release tag
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           ref: ${{ github.event.release.tag_name }}
+          persist-credentials: false
 
       # -------------------------------------------------------------------
       # Where the site lives and which waffle app it fronts, from the one
@@ -66,230 +69,119 @@ jobs:
           echo "SITE_URL=https://$host" >> "$GITHUB_ENV"
           echo "WAFFLE_APP_URL=$app" >> "$GITHUB_ENV"
 
-      - name: Set up Node
-        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
-        with:
-          node-version: '26'
-          cache: npm
-
       # -------------------------------------------------------------------
-      # npm ci installs exactly the lockfile, checking every package against
-      # its recorded hash, with install scripts off (.npmrc). Then the
-      # registry signatures are verified, before anything is built from
-      # them (docs/supply-chain.md).
-      #
-      # The build is a production build: indexable, canonical URLs on
-      # SITE_URL, and the waffle app's live data (its public read
-      # endpoints, which need no key). `npm run build` type-checks, builds,
-      # and runs the SEO audit, any of which fails the release here, before
-      # anything reaches the server.
+      # npm runs only in containers (docs/supply-chain.md). This one sees the
+      # three package files and an empty node_modules, nothing else: npm ci
+      # installs exactly the lockfile, checking every package against its
+      # recorded hash, with install scripts off (.npmrc), then the registry
+      # signatures are verified, before anything is built from them.
       # -------------------------------------------------------------------
-      - name: Build the site
-        env:
-          SITE_ENV: production
-          # Written into the page manifest, so a scoped rebuild knows which
-          # release's code to use (docs/scoped-builds.md).
-          SITE_RELEASE: ${{ env.TAG }}
-        run: |
-          npm ci
-          npm audit signatures
-          npm run build
-
-      - name: Verify the release artifact
+      - name: Install the site's packages, in a container
         run: |
           set -euo pipefail
-          for required in dist/index.html dist/404.html dist/robots.txt dist/sitemap-index.xml; do
-            [ -e "$required" ] || { echo "::error::missing $required"; exit 1; }
-          done
-          echo "artifact complete"
+          mkdir -p "$RUNNER_TEMP/node_modules"
+          docker run --rm \
+            -v "$PWD/package.json:/app/package.json:ro" \
+            -v "$PWD/package-lock.json:/app/package-lock.json:ro" \
+            -v "$PWD/.npmrc:/app/.npmrc:ro" \
+            -v "$RUNNER_TEMP/node_modules:/app/node_modules" \
+            -w /app -e NPM_CONFIG_IGNORE_SCRIPTS=true \
+            node:26 sh -euc 'npm ci; npm audit signatures'
 
-      # The built site goes to the next job as an artifact. Nothing here can
-      # read a secret: this job has no environment, and the packages npm ran
-      # die with it.
-      - name: Hand the build to the ship job
+      # -------------------------------------------------------------------
+      # The build, in a container that reads the tree and cannot change it:
+      # it copies the tree into its own filesystem, builds there, and only
+      # dist/ comes out. It keeps its network, because a production build
+      # reads the waffle app's live data (its public read endpoints, which
+      # need no key); there is nothing on it to take.
+      #
+      # A production build: indexable, canonical URLs on SITE_URL. `npm run
+      # build` type-checks, builds, and runs the SEO audit, any of which
+      # fails the release here.
+      # -------------------------------------------------------------------
+      - name: Build the site, in a container
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/dist"
+          docker run --rm \
+            -v "$PWD:/src:ro" \
+            -v "$RUNNER_TEMP/node_modules:/app/node_modules" \
+            -v "$RUNNER_TEMP/dist:/out" \
+            -w /app \
+            -e SITE_ENV=production -e SITE_URL -e WAFFLE_APP_URL -e SITE_RELEASE="$TAG" \
+            -e ASTRO_TELEMETRY_DISABLED=1 -e NPM_CONFIG_IGNORE_SCRIPTS=true \
+            node:26 sh -euc 'tar -C /src --exclude=./.git --exclude=./node_modules -cf - . | tar -C /app -xf -; npm run build; cp -R dist/. /out/'
+
+      # Only plain files and directories, and the pages every site has. Then
+      # build.txt, which names the release: the server checks it is serving
+      # it, and a rebuild checks what the server is serving.
+      - name: Take only the built site
+        run: |
+          set -euo pipefail
+          odd="$(find "$RUNNER_TEMP/dist" ! -type f ! -type d)"
+          if [ -n "$odd" ]; then
+            echo "::error::the build left something that is not a plain file: $odd"
+            exit 1
+          fi
+          for required in index.html 404.html robots.txt sitemap-index.xml; do
+            [ -f "$RUNNER_TEMP/dist/$required" ] || { echo "::error::the build made no $required"; exit 1; }
+          done
+          printf '%s\n' "$TAG" > "$RUNNER_TEMP/dist/build.txt"
+
+      # -------------------------------------------------------------------
+      # The release: the tag's own server files (the Compose files, the
+      # Caddyfile, deploy/), which nothing above could change, and the built
+      # site. Nothing else is shipped.
+      # -------------------------------------------------------------------
+      - name: Pack the release
+        run: |
+          set -euo pipefail
+          stage="$RUNNER_TEMP/release"
+          mkdir -p "$stage/docker/caddy"
+          cp docker-compose.yml docker-compose.prod.yml VERSION "$stage/"
+          cp docker/caddy/Caddyfile "$stage/docker/caddy/"
+          cp -R deploy "$stage/deploy"
+          cp -R "$RUNNER_TEMP/dist" "$stage/dist"
+          tar -C "$stage" -czf "waffle_site-${TAG}.tar.gz" .
+          sha256sum "waffle_site-${TAG}.tar.gz" > "waffle_site-${TAG}.tar.gz.sha256"
+
+      - name: Hand the release to the attach job
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
-          name: site
-          path: dist/
+          name: release
+          path: |
+            waffle_site-${{ env.TAG }}.tar.gz
+            waffle_site-${{ env.TAG }}.tar.gz.sha256
           retention-days: 3
 
   # -------------------------------------------------------------------------
-  # Ship: the only job that can read DOPPLER_TOKEN, and it runs no npm. A
-  # process an npm package started in the build job cannot outlive that job,
-  # so it can never see the server's key (secrets loaded later in the same
-  # job would not have been safe from it).
+  # Attach: the only job that can write, and it runs nothing but the
+  # checksum and the upload. The files are uploaded by the workflow's own
+  # bot, which is the only uploader the server trusts.
   # -------------------------------------------------------------------------
-  ship:
-    name: Ship ${{ github.event.release.tag_name }}
+  attach:
+    name: Attach ${{ github.event.release.tag_name }}
     needs: build
     # Skipped with build in the template's own repository anyway; said again
     # so no edit to build's condition can let this job run there.
     if: github.repository != 'treehousetim/waffle-site'
     runs-on: ubuntu-latest
-
-    # A GitHub *environment*, not repository secrets: DOPPLER_TOKEN lives on
-    # it, so only a job that declares it can read the value, and its v* tag
-    # policy blocks a release cut from anything else (docs/fresh-install.md).
-    environment:
-      name: prod
-      url: https://waffle-site.example.com
+    permissions:
+      contents: write
 
     steps:
-      - name: Refuse anything but a release tag
-        env:
-          TAG: ${{ github.event.release.tag_name }}
-        run: |
-          set -euo pipefail
-          if [[ ! "$TAG" =~ ^v[1-9][0-9]*$ ]]; then
-            echo "::error::release tag is not vN (docs/releasing.md); refusing to deploy it"
-            exit 1
-          fi
-          echo "TAG=$TAG" >> "$GITHUB_ENV"
-
-      # The tree the server needs (Compose files, the Caddyfile, deploy/),
-      # from the release tag; nothing from it is run here.
-      - name: Check out the release tag
-        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-        with:
-          ref: ${{ github.event.release.tag_name }}
-
-      - name: Take the build from the build job
+      - name: Take the release from the build job
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
-          name: site
-          path: dist/
+          name: release
 
-      # -------------------------------------------------------------------
-      # Secrets. DOPPLER_TOKEN is the ONLY GitHub secret, it lives on the
-      # `prod` environment, and it is scoped to Doppler's `prod-deploy`
-      # config, which holds nothing but the deploy credentials. The site's
-      # own secret (WAFFLE_SITE_KEY) is in `prod-serve`, read by the server
-      # itself, and never touches this runner.
-      # -------------------------------------------------------------------
-      - name: Install the Doppler CLI
-        uses: dopplerhq/cli-action@014df23b1329b615816a38eb5f473bb9000700b1 # v3
-
-      - name: Load deploy credentials from Doppler
+      - name: Attach it to the GitHub release
         env:
-          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
-        run: |
-          set -euo pipefail
-
-          for name in DROPLET_HOST DROPLET_USER DROPLET_SSH_KEY DROPLET_SSH_KNOWN_HOSTS; do
-            value="$(doppler secrets get "$name" --plain)"
-
-            if [ -z "$value" ]; then
-              echo "::error::${name} is empty in Doppler's prod-deploy config"
-              exit 1
-            fi
-
-            # Mask before anything can echo it, including a later `set -x`.
-            while IFS= read -r line; do
-              [ -n "$line" ] && echo "::add-mask::$line"
-            done <<< "$value"
-
-            {
-              echo "${name}<<__DOPPLER_EOF__"
-              echo "$value"
-              echo "__DOPPLER_EOF__"
-            } >> "$GITHUB_ENV"
-          done
-
-      # known_hosts comes from Doppler rather than ssh-keyscan, which would
-      # trust whatever answers on the day.
-      - name: Configure SSH
-        run: |
-          set -euo pipefail
-          mkdir -p ~/.ssh
-          chmod 700 ~/.ssh
-          printf '%s\n' "$DROPLET_SSH_KEY" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          printf '%s\n' "$DROPLET_SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
-          chmod 600 ~/.ssh/known_hosts
-
-      # -------------------------------------------------------------------
-      # Ship it, in two parts.
-      #
-      # The tree (Compose files, the Caddyfile, deploy/) goes to
-      # /opt/waffle_site with --delete, so a file removed in this release is
-      # removed there. Excluded paths are NOT deleted (that would need
-      # --delete-excluded, deliberately absent), which is what protects what
-      # lives only on the server:
-      #
-      #   releases/  every shipped release, for instant rollback
-      #   current    the link to the one being served
-      #   .deploy/   deploy state: the last tag
-      #
-      # The built site goes to releases/<tag>/, a directory of its own, so it
-      # is complete before anything points at it.
-      # -------------------------------------------------------------------
-      - name: Rsync the release to the server
-        run: |
-          set -euo pipefail
-          SSH="ssh -i ~/.ssh/deploy_key -o UserKnownHostsFile=~/.ssh/known_hosts -o StrictHostKeyChecking=yes"
-          rsync -az --delete -e "$SSH" \
-            --exclude '.git/' \
-            --exclude '.github/' \
-            --exclude 'node_modules/' \
-            --exclude 'dist/' \
-            --exclude 'coverage/' \
-            --exclude 'tests/' \
-            --exclude 'releases/' \
-            --exclude 'current' \
-            --exclude 'current.next' \
-            --exclude '.deploy/' \
-            --exclude '.env' \
-            ./ "${DROPLET_USER}@${DROPLET_HOST}:/opt/waffle_site/"
-          rsync -az --delete -e "$SSH" \
-            dist/ "${DROPLET_USER}@${DROPLET_HOST}:/opt/waffle_site/releases/${TAG}/"
-
-      # deploy.sh was rsync'd a moment ago, so the version invoked is this
-      # release's.
-      - name: Run the deploy
-        run: |
-          set -euo pipefail
-          ssh -i ~/.ssh/deploy_key \
-            -o UserKnownHostsFile=~/.ssh/known_hosts \
-            -o StrictHostKeyChecking=yes \
-            "${DROPLET_USER}@${DROPLET_HOST}" \
-            "bash /opt/waffle_site/deploy/deploy.sh '$TAG'"
-
-      - name: Clean up credentials
-        if: always()
-        run: rm -f ~/.ssh/deploy_key ~/.ssh/known_hosts
-
-  # -------------------------------------------------------------------------
-  # A failed build or ship says so where people look. Its own job, so a
-  # failed build (which never reaches ship) is reported too; it runs no npm.
-  # -------------------------------------------------------------------------
-  alert:
-    name: Report a failed deploy
-    needs: [build, ship]
-    if: failure() && github.repository != 'treehousetim/waffle-site'
-    runs-on: ubuntu-latest
-    environment:
-      name: prod
-    steps:
-      - name: Install the Doppler CLI
-        uses: dopplerhq/cli-action@014df23b1329b615816a38eb5f473bb9000700b1 # v3
-
-      # A failed deploy says so where people look. Optional:
-      # DEPLOY_ALERT_WEBHOOK, a Slack incoming-webhook URL in Doppler's
-      # prod-deploy config. Without it, the failed run here is the only notice.
-      - name: Tell Slack the deploy failed
-        env:
-          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
           TAG: ${{ github.event.release.tag_name }}
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
         run: |
-          set -uo pipefail
-          url="$(doppler secrets get DEPLOY_ALERT_WEBHOOK --plain 2>/dev/null || true)"
-
-          if [ -z "$url" ]; then
-            echo "No DEPLOY_ALERT_WEBHOOK in Doppler's prod-deploy config; nothing sent."
-            exit 0
-          fi
-
-          echo "::add-mask::$url"
-          text="The deploy of ${TAG:-a release} failed: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
-          curl -fsS -m 10 -H 'Content-Type: application/json' -d "$(jq -n --arg text "$text" '{text: $text}')" "$url" >/dev/null \
-            || echo "::warning::the deploy alert could not be sent"
+          set -euo pipefail
+          [[ "$TAG" =~ ^v[1-9][0-9]*$ ]] || { echo "::error::release tag is not vN"; exit 1; }
+          sha256sum -c "waffle_site-${TAG}.tar.gz.sha256"
+          gh release upload "$TAG" "waffle_site-${TAG}.tar.gz" "waffle_site-${TAG}.tar.gz.sha256" --clobber
